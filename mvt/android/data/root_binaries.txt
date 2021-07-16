@@ -1,0 +1,10 @@
+su
+busybox
+supersu
+Superuser.apk
+KingoUser.apk
+SuperSu.apk
+magisk
+magiskhide
+magiskinit
+magiskpolicy

@@ -1,0 +1,43 @@
+site_name: Mobile Verification Toolkit
+repo_url: https://github.com/mvt-project/mvt
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2021 MVT Project Developers
+site_description: Mobile Verification Toolkit Documentation
+markdown_extensions:
+    - attr_list
+    - admonition
+    - pymdownx.emoji:
+        emoji_index: !!python/name:materialx.emoji.twemoji
+        emoji_generator: !!python/name:materialx.emoji.to_svg
+    - pymdownx.superfences
+    - pymdownx.inlinehilite
+    - pymdownx.highlight:
+        use_pygments: true
+theme:
+    name: material
+    features:
+        - tabs
+plugins:
+    - search
+    - mkdocstrings
+extra:
+    social:
+        - icon: fontawesome/brands/github
+          link: https://github.com/mvt-project/mvt
+nav:
+    - Welcome: "index.md"
+    - Introduction: "introduction.md"
+    - Installation: "install.md"
+    - MVT for iOS:
+        - iOS Forensic Methodology: "ios/methodology.md"
+        - Install libimobiledevice: "ios/install.md"
+        - Check an iTunes Backup:
+            - Backup with iTunes app: "ios/backup/itunes.md"
+            - Backup with libimobiledevice: "ios/backup/libimobiledevice.md"
+            - Check a Backup with mvt-ios: "ios/backup/check.md"
+        - Check a Filesystem Dump:
+            - Dumping the filesystem: "ios/filesystem/dump.md"
+            - Check a Filesystem Dump with mvt-ios: "ios/filesystem/check.md"
+        - Records extracted by mvt-ios: "ios/records.md"
+    - MVT for Android: "android.md"
+    - License: "license.md"
