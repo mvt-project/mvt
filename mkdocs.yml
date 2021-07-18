@@ -39,5 +39,8 @@ nav:
             - Dumping the filesystem: "ios/filesystem/dump.md"
             - Check a Filesystem Dump with mvt-ios: "ios/filesystem/check.md"
         - Records extracted by mvt-ios: "ios/records.md"
-    - MVT for Android: "android.md"
+    - MVT for Android:
+        - Android Forensic Methodology: "android/methodology.md"
+        - Check APKs: "android/download_apks.md"
+        - Check an Android Backup: "android/backup.md"
     - License: "license.md"

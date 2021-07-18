@@ -1,4 +1,4 @@
-# Checking an Android Device
+# Downloading APKs from an Android phone
 
 In order to use `mvt-android` you need to connect your Android device to your computer. You will then need to [enable USB debugging](https://developer.android.com/studio/debug/dev-options#enable>) on the Android device.
 

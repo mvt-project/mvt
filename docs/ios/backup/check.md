@@ -52,7 +52,7 @@ Once you have a decrypted backup available for analysis you can use the `check-b
 
       --help              Show this message and exit.
 
-Following is a basic usage of `check-backup`: 
+Following is a basic usage of `check-backup`:
 
 ```bash
 mvt-ios check-backup --output /path/to/output/ /path/to/backup/udid/

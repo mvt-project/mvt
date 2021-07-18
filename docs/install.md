@@ -32,7 +32,13 @@ If you haven't done so, you can add this to your `.bashrc` or `.zshrc` file in o
 export PATH=$PATH:~/.local/bin
 ```
 
-Then you can install MVT directly:
+Then you can install MVT directly from [pypi](https://pypi.org/project/mvt/)
+
+```bash
+pip install mvt
+```
+
+Or from the source code:
 
 ```bash
 git clone https://github.com/mvt-project/mvt.git

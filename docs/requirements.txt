@@ -1,0 +1,5 @@
+mkdocs==1.2.1
+mkdocs-autorefs
+mkdocs-material
+mkdocs-material-extensions
+mkdocstrings
