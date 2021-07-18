@@ -7,7 +7,7 @@ import os
 from setuptools import setup, find_packages
 
 __package_name__ = "mvt"
-__version__ = "1.0"
+__version__ = "1.0.11"
 __description__ = "Mobile Verification Toolkit"
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
@@ -47,7 +47,8 @@ setup(
     version=__version__,
     description=__description__,
     long_description=long_description,
-
+    long_description_content_type="text/markdown",
+    url="https://github.com/mvt-project/mvt",
     entry_points={
         "console_scripts": [
             "mvt-ios = mvt.ios:cli",
