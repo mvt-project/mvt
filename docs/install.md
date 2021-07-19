@@ -12,7 +12,7 @@ sudo apt install python3 python3-pip libusb-1.0-0
 
 *libusb-1.0-0* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
 
-For running on NixOS, a `shell.nix` is supplied.
+For running on NixOS, a `shell.nix` is supplied. In order to use abd, you need to enable it in your config using `programs.adb.enable = true;`. Make sure your user is also in the `adbusers` group.
 
 ## Dependencies on Mac
 
