@@ -12,6 +12,8 @@ sudo apt install python3 python3-pip libusb-1.0-0
 
 *libusb-1.0-0* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
 
+For running on NixOS, a `shell.nix` is supplied.
+
 ## Dependencies on Mac
 
 Running MVT on Mac requires Xcode and [homebrew](https://brew.sh) to be installed.

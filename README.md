@@ -21,6 +21,9 @@ cd mvt
 pip3 install .
 ```
 
+### Running on NixOS
+If you want to debug android applications, you first need to enable adb by setting `programs.adb.enable = true;` in your config. The you can clone this repository and run mvt using `nix-shell`.
+
 ## Usage
 
 MVT provides two commands `mvt-ios` and `mvt-android` with the following subcommands available:
