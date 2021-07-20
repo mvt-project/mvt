@@ -18,7 +18,7 @@ Then you can install mvt from pypi with `pip install mvt`, or directly form sour
 ```bash
 git clone https://github.com/mvt-project/mvt.git
 cd mvt
-pip3 install .
+pip3 install mvt.
 ```
 
 ## Usage
