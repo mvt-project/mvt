@@ -43,6 +43,7 @@ def cli():
               help="Path to the folder where to store the decrypted backup")
 @click.option("--password", "-p", cls=MutuallyExclusiveOption,
               help="Password to use to decrypt the backup",
+              prompt="Enter backup password", hide_input=True, prompt_required=False,
               mutually_exclusive=["key_file"])
 @click.option("--key-file", "-k", cls=MutuallyExclusiveOption,
               type=click.Path(exists=True),
