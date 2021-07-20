@@ -172,7 +172,7 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
 @click.argument("FOLDER", type=click.Path(exists=True))
 def check_iocs(iocs, list_modules, module, folder):
     all_modules = []
-    for entry in BACKUP_MODULES + FS_MODULES + SYSDIAGNOSE_MODULES:
+    for entry in BACKUP_MODULES + FS_MODULES:
         if entry not in all_modules:
             all_modules.append(entry)
 
