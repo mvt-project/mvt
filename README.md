@@ -14,7 +14,7 @@ Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and a
 
 First you need to install dependencies, on Linux `sudo apt install python3 python3-pip libusb-1.0-0` or on MacOS `brew install python3 libusb`.
 
-Then you can install mvt from pypi with `pip install mvt`, or directly form sources:
+Then you can install mvt from pypi with `pip3 install mvt`, or directly form sources:
 ```bash
 git clone https://github.com/mvt-project/mvt.git
 cd mvt
