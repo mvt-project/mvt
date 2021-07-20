@@ -111,7 +111,7 @@ class AndroidExtraction(MVTModule):
         """
         return self._adb_command(f"su -c {command}")
 
-    def _adb_download(self, remote_path, local_path, progress_callback=None):
+    def _adb_download(self, remote_path, local_path, package_name, progress_callback=None):
         """Download a file form the device.
         :param remote_path: Path to download from the device
         :param local_path: Path to where to locally store the copy of the file
@@ -119,8 +119,35 @@ class AndroidExtraction(MVTModule):
         """
         try:
             self.device.pull(remote_path, local_path, progress_callback)
+        except AdbCommandFailureException:
+            self._adb_download_root(remote_path, local_path, package_name, progress_callback)
         except AdbCommandFailureException as e:
             raise Exception(f"Unable to download file {remote_path}: {e}")
+    
+    def _adb_download_root(self, remote_path, local_path, package_name, progress_callback=None):
+        try:
+            # Check if we have root, if not raise an Exception.
+            self._adb_root_or_die()
+
+            # We create a temporary local file.
+            new_remote_path = f"/sdcard/Download/{package_name}"
+
+            # We copy the file from the data folder to /sdcard/.
+            cp = self._adb_command_as_root(f"cp {remote_path} {new_remote_path}")
+            if cp.startswith("cp: ") and "No such file or directory" in cp:
+                raise Exception(f"Unable to process file {remote_path}: File not found")
+            elif cp.startswith("cp: ") and "Permission denied" in cp:
+                raise Exception(f"Unable to process file {remote_path}: Permission denied")
+
+            # We download from /sdcard/ to the local temporary file.
+            self._adb_download(new_remote_path, local_path, package_name)
+
+            # Delete the copy on /sdcard/.
+            self._adb_command(f"rm -f {new_remote_path}")
+        
+        except AdbCommandFailureException as e:
+            raise Exception(f"Unable to download file {remote_path}: {e}")
+    
 
     def _adb_process_file(self, remote_path, process_routine):
         """Download a local copy of a file which is only accessible as root.
