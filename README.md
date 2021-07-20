@@ -17,8 +17,7 @@ Install Docker using the [official instructions](https://docs.docker.com/get-doc
 
 Afterwards, you can build the Docker image once inside:
 
-```
-bash
+```bash
 git clone https://github.com/mvt-project/mvt.git
 cd mvt
 docker build -t mvt .

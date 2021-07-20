@@ -25,5 +25,7 @@ RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 # --------------------------------
 RUN mkdir /home/cases
 WORKDIR /home/cases 
+RUN echo 'echo "Mobile Verification Toolkit @ Docker\n------------------------------------\n\nYou can find information about how to use this image for Android (https://github.com/mvt-project/mvt/tree/master/docs/android) and iOS (https://github.com/mvt-project/mvt/tree/master/docs/ios) in the official docs of the project.\n"' >> ~/.bashrc
+RUN echo 'echo "Note that to perform the debug via USB you might need to give the Docker image access to the USB using \"docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb mvt\" or, preferably, the \"--device=\" parameter.\n"' >> ~/.bashrc
 
 CMD /bin/bash
