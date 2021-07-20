@@ -18,8 +18,8 @@ RUN pip3 install mvt
 # --------------
 RUN mkdir /opt/abe
 RUN wget https://github.com/nelenkov/android-backup-extractor/releases/download/20210709062403-4c55371/abe.jar -O /opt/abe/abe.jar
-# Create shortcut for abe
-RUN echo "java -jar /opt/abe/abe.jar" > /usr/local/bin/abe && chmod +x /usr/local/bin/abe
+# Create alias for abe
+RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
 # Setup investigations environment
 # --------------------------------
