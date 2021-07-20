@@ -46,7 +46,7 @@ class KeyUtils:
             log.critical("Failed to write key file.")
             return
         else:
-            log.info("Wrote decryption key for backup at path %s to %s",
+            log.info("Wrote decryption key for backup at path %s to file %s",
                      self.backup_path, key_file)
-            log.warn("%s is equivalent to a stored plaintext password. Keep this file safe!",
+            log.warn("The file %s is equivalent to a plaintext password. Keep this file safe!",
                      key_file)
