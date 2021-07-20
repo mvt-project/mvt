@@ -8,7 +8,7 @@
 
 Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and automate the process of gathering forensic traces helpful to identify a potential compromise of Android and iOS devices.
 
-[Please check out the documentation](https://mvt-docs.readthedocs.io/en/latest/)..
+[Please check out the documentation.](https://mvt.readthedocs.io/en/latest/)
 
 ## Installation
 
@@ -24,6 +24,7 @@ pip3 install .
 ## Usage
 
 MVT provides two commands `mvt-ios` and `mvt-android` with the following subcommands available:
+
 * `mvt-ios`:
     * `check-backup`: Extract artifacts from an iTunes backup
     * `check-fs`: Extract artifacts from a full filesystem dump
@@ -33,7 +34,7 @@ MVT provides two commands `mvt-ios` and `mvt-android` with the following subcomm
     * `check-backup`: Check an Android Backup
     * `download-apks`: Download all or non-safelisted installed APKs
 
-Check out [the documentation to see how to use them.](https://mvt-docs.readthedocs.io/en/latest/).
+Check out [the documentation to see how to use them](https://mvt.readthedocs.io/en/latest/).
 
 ## License
 
