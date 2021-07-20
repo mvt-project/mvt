@@ -12,6 +12,15 @@ sudo apt install python3 python3-pip libusb-1.0-0
 
 *libusb-1.0-0* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
 
+### Note: For Arch Linux
+
+Use the following command for installing the tools:
+
+```bash
+sudo pacman -Syyy
+sudo pacman -S python-pip libusb
+```
+
 ## Dependencies on Mac
 
 Running MVT on Mac requires Xcode and [homebrew](https://brew.sh) to be installed.
@@ -38,7 +47,15 @@ Then you can install MVT directly from [pypi](https://pypi.org/project/mvt/)
 pip install mvt
 ```
 
-Or from the source code:
+**Note:** In Arch, running the above command can result in python packages and linux packages being stored in same directory which can result in issues. To overcome this, use 
+
+```bash
+pip install --user mvt
+``` 
+
+This installs pip in `/home/user/.local` folder. 
+
+To install from the source code:
 
 ```bash
 git clone https://github.com/mvt-project/mvt.git

@@ -22,3 +22,33 @@ Or, to launch all available lookups::
 ```bash
 mvt-android download-apks --output /path/to/folder --all-checks
 ```
+
+# Errors:
+
+If you receive error 
+
+```bash
+No such file or directory: '/home/{user_name}/.android/adbkey'
+```
+
+You either need to install adb or if it is installed, you have not enabled USB Debugging. To install adb, run the following commands depending on your distribution.
+
+For Ubuntu/ Debian,
+
+```bash
+sudo apt-get install android-tools-adb
+```
+
+For Fedora/ SUSE-based Linux, 
+
+```bash
+sudo yum install android-tools
+```
+
+To check if this has been installed correctly, connect your phone to the computer using USB cable, and run 
+```bash
+adb devices
+```
+It should display your device. 
+
+Read [this document](https://developer.android.com/studio/debug/dev-options) to enable USB debugging. On running `adb devices` for the first time, your phone will give you a warning about exchanging keys. Accept it and you're good to go. 
