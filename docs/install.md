@@ -17,7 +17,7 @@ sudo apt install python3 python3-pip libusb-1.0-0
 Use the following command for installing the tools:
 
 ```bash
-sudo pacman -Syyy
+sudo pacman -Sy
 sudo pacman -S python-pip libusb
 ```
 
