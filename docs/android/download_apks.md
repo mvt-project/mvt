@@ -10,7 +10,7 @@ Now you can launch `mvt-android` and specify the `download-apks` command and the
 mvt-android download-apks --output /path/to/folder
 ```
 
-Optionally, you can decide to enable lookups of the SHA256 hash of all the extracted APKs on [VirusTotal](https://www.virustotal.com) and/or [Koodous](https://www.koodous.com). While these lookups do not provide any conclusive assessment on all of the extracted APKs, they might highlight any known malicious ones:
+Optionally, you can decide to enable lookups of the SHA256 hash of all the extracted APKs on [VirusTotal](https://www.virustotal.com) and/or [Koodous](https://koodous.com). While these lookups do not provide any conclusive assessment on all of the extracted APKs, they might highlight any known malicious ones:
 
 ```bash
 mvt-android download-apks --output /path/to/folder --virustotal
