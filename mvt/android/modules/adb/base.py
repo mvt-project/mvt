@@ -8,7 +8,7 @@ import sys
 import time
 import logging
 import tempfile
-from adb_shell.adb_device import AdbDeviceUsb
+from adb_shell.adb_device import AdbDeviceUsb, AdbDeviceTcp
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import DeviceAuthError, AdbCommandFailureException
@@ -58,7 +58,15 @@ class AndroidExtraction(MVTModule):
 
         signer = PythonRSASigner("", priv_key)
 
-        self.device = AdbDeviceUsb(serial=self.serial)
+        if self.serial is None or ":" not in self.serial:
+            self.device = AdbDeviceUsb(serial=self.serial)
+        else:
+            addr = self.serial.split(":")
+
+            if len(addr) < 2:
+                raise ValueError("TCP serial number must follow the format: `address:port`")
+
+            self.device = AdbDeviceTcp(addr[0], int(addr[1]), default_transport_timeout_s=9.)
 
         while True:
             try:

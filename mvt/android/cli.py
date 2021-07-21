@@ -49,7 +49,7 @@ def cli():
               help="Specify a path to a folder where you want to store JSON results")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
-@click.option("--serial", "-s", type=str, help="Use the Android device with a given serial")
+@click.option("--serial", "-s", type=str, help="Use the Android device with a given serial number")
 def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file, serial):
     try:
         if from_file:
