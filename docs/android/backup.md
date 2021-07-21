@@ -25,7 +25,7 @@ tar xvf backup.tar
 You can then extract SMSs containing links with MVT:
 
 ```bash
-$ mvt-android check-backup --output sms .
+$ mvt-android check-backup --output . .
 16:18:38 INFO     [mvt.android.cli] Checking ADB backup located at: .
          INFO     [mvt.android.modules.backup.sms] Running module SMS...
          INFO     [mvt.android.modules.backup.sms] Processing SMS backup
