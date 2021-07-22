@@ -44,16 +44,10 @@ export PATH=$PATH:~/.local/bin
 Then you can install MVT directly from [pypi](https://pypi.org/project/mvt/)
 
 ```bash
-pip install mvt
+pip install --user mvt
 ```
 
-**Note:** In Arch, running the above command can result in python packages and linux packages being stored in same directory which can result in issues. To overcome this, use 
-
-```bash
-pip install --user mvt
-``` 
-
-This installs pip in `/home/user/.local` folder. 
+**Note:** In Arch Linux, do not run the above command without `--user` as it can lead to both python and pacman packages storing in the same location.
 
 To install from the source code:
 
