@@ -37,7 +37,7 @@ This can be done using the `--privileged` parameter when launching Docker as fol
 docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb mvt
 ```
 
-Note that using the `--pivileged` parameter is insecure for a number of reasons explained in detail [here](https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/) as it gives access to the whole system.
+Note that using the `--privileged` parameter is insecure for a number of reasons explained in detail [here](https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/) as it gives access to the whole system.
 As a brief explanation, the `-v <host_path>:<docker_path>` syntax maps the host path to the dockerized path to allow the connection.
 Modern versions of Docker have a `--device` option where you can specify the exact USB to mount without the `--privileged` option:
 
