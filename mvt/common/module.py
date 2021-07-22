@@ -67,7 +67,7 @@ class MVTModule(object):
         self.indicators = Indicators(file_path, self.log)
 
     def check_indicators(self):
-        """Check the results of this module againt a provided list of
+        """Check the results of this module against a provided list of
         indicators."""
         raise NotImplementedError
 
