@@ -70,6 +70,9 @@ class WebkitSessionResourceLog(IOSExtraction):
         return domains
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         for key, entries in self.results.items():
             for entry in entries:
                 source_domains = self._extract_domains(entry["redirect_source"])

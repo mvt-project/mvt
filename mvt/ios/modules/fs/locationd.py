@@ -43,10 +43,10 @@ class LocationdClients(IOSExtraction):
         for ts in self.timestamps:
             if ts in record.keys():
                 records.append({
-                    "timestamp": entry[ts],
+                    "timestamp": record[ts],
                     "module": self.__class__.__name__,
                     "event": ts,
-                    "data": f"{ts} from {entry['package']}"
+                    "data": f"{ts} from {record['package']}"
                 })
 
         return records
