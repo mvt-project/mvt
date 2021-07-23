@@ -34,6 +34,7 @@ MVT provides two commands `mvt-ios` and `mvt-android` with the following subcomm
     * `check-fs`: Extract artifacts from a full filesystem dump
     * `check-iocs`: Compare stored JSON results to provided indicators
     * `decrypt-backup`:  Decrypt an encrypted iTunes backup
+    * `extract-key`: Extract decryption key from an iTunes backup
 * `mvt-android`:
     * `check-backup`: Check an Android Backup
     * `download-apks`: Download all or non-safelisted installed APKs
