@@ -73,7 +73,7 @@ class Whatsapp(IOSExtraction):
             # Extract links from the WhatsApp message.
             message_links = check_for_links(new_message["ZTEXT"])
 
-            # If we find mesages, or if there's an empty message we add it to the list.
+            # If we find messages, or if there's an empty message we add it to the list.
             if new_message["ZTEXT"] and (message_links or new_message["ZTEXT"].strip() == ""):
                 self.results.append(new_message)
 

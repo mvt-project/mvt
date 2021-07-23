@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import io
 import os
 import re
 import csv
@@ -66,7 +67,7 @@ class MVTModule(object):
         self.indicators = Indicators(file_path, self.log)
 
     def check_indicators(self):
-        """Check the results of this module againt a provided list of
+        """Check the results of this module against a provided list of
         indicators."""
         raise NotImplementedError
 
@@ -160,7 +161,7 @@ def save_timeline(timeline, timeline_path):
     :param timeline: List of records to order and store.
     :param timeline_path: Path to the csv file to store the timeline to.
     """
-    with open(timeline_path, "a+") as handle:
+    with io.open(timeline_path, "a+", encoding="utf-8") as handle:
         csvoutput = csv.writer(handle, delimiter=",", quotechar="\"")
         csvoutput.writerow(["UTC Timestamp", "Plugin", "Event", "Description"])
         for event in sorted(timeline, key=lambda x: x["timestamp"] if x["timestamp"] is not None else ""):

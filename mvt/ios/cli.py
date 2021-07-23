@@ -44,6 +44,7 @@ def cli():
               help="Path to the folder where to store the decrypted backup")
 @click.option("--password", "-p", cls=MutuallyExclusiveOption,
               help="Password to use to decrypt the backup",
+              prompt="Enter backup password", hide_input=True, prompt_required=False,
               mutually_exclusive=["key_file"])
 @click.option("--key-file", "-k", cls=MutuallyExclusiveOption,
               type=click.Path(exists=True),
@@ -193,7 +194,7 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
 @click.argument("FOLDER", type=click.Path(exists=True))
 def check_iocs(iocs, list_modules, module, folder):
     all_modules = []
-    for entry in BACKUP_MODULES + FS_MODULES + SYSDIAGNOSE_MODULES:
+    for entry in BACKUP_MODULES + FS_MODULES:
         if entry not in all_modules:
             all_modules.append(entry)
 
