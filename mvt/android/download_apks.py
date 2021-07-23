@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 # TODO: Would be better to replace tqdm with rich.progress to reduce
 #       the number of dependencies. Need to investigate whether
-#       it's possible to have a simialr callback system.
+#       it's possible to have a similar callback system.
 class PullProgress(tqdm):
     """PullProgress is a tqdm update system for APK downloads."""
 
@@ -42,7 +42,7 @@ class DownloadAPKs(AndroidExtraction):
         """Initialize module.
         :param output_folder: Path to the folder where data should be stored
         :param all_apks: Boolean indicating whether to download all packages
-                         or filter known-goods 
+                         or filter known-goods
         :param packages: Provided list of packages, typically for JSON checks
         """
         super().__init__(file_path=None, base_folder=None,
