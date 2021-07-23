@@ -10,7 +10,7 @@ Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and a
 
 It has been developed and released by the [Amnesty International Security Lab](https://www.amnesty.org/en/tech/) in July 2021 in the context of the [Pegasus project](https://forbiddenstories.org/about-the-pegasus-project/) along with [a technical forensic methodology and forensic evidences](https://www.amnesty.org/en/latest/research/2021/07/forensic-methodology-report-how-to-catch-nso-groups-pegasus/).
 
-*Warning*: this tool has been released as a forensic tool for a technical audience. Using it requires some technical skills such as understanding basics of forensic analysis and using command line tools.
+_Warning_: this tool has been released as a forensic tool for a technical audience. Using it requires some technical skills such as understanding basics of forensic analysis and using command line tools.
 
 [Please check out the documentation.](https://mvt.readthedocs.io/en/latest/)
 
@@ -19,6 +19,7 @@ It has been developed and released by the [Amnesty International Security Lab](h
 First you need to install dependencies, on Linux `sudo apt install python3 python3-pip libusb-1.0-0` or on MacOS `brew install python3 libusb`.
 
 Then you can install mvt from pypi with `pip3 install mvt`, or directly from sources:
+
 ```bash
 git clone https://github.com/mvt-project/mvt.git
 cd mvt
@@ -29,21 +30,22 @@ pip3 install .
 
 MVT provides two commands `mvt-ios` and `mvt-android` with the following subcommands available:
 
-* `mvt-ios`:
-    * `check-backup`: Extract artifacts from an iTunes backup
-    * `check-fs`: Extract artifacts from a full filesystem dump
-    * `check-iocs`: Compare stored JSON results to provided indicators
-    * `decrypt-backup`:  Decrypt an encrypted iTunes backup
-* `mvt-android`:
-    * `check-backup`: Check an Android Backup
-    * `download-apks`: Download all or non-safelisted installed APKs
+- `mvt-ios`:
+  - `check-backup`: Extract artifacts from an iTunes backup
+  - `check-fs`: Extract artifacts from a full filesystem dump
+  - `check-iocs`: Compare stored JSON results to provided indicators
+  - `decrypt-backup`: Decrypt an encrypted iTunes backup
+  - `extract-key`: Extract decryption key from an iTunes backup
+- `mvt-android`:
+  - `check-backup`: Check an Android Backup
+  - `download-apks`: Download all or non-safelisted installed APKs
 
 Check out [the documentation to see how to use them](https://mvt.readthedocs.io/en/latest/).
 
 ## License
 
-The purpose of MVT is to facilitate the ***consensual forensic analysis*** of devices of those who might be targets of sophisticated mobile spyware attacks, especially members of civil society and marginalized communities. We do not want MVT to enable privacy violations of non-consenting individuals. Therefore, the goal of this license is to prohibit the use of MVT (and any other software licensed the same) for the purpose of *adversarial forensics*.
+The purpose of MVT is to facilitate the **_consensual forensic analysis_** of devices of those who might be targets of sophisticated mobile spyware attacks, especially members of civil society and marginalized communities. We do not want MVT to enable privacy violations of non-consenting individuals. Therefore, the goal of this license is to prohibit the use of MVT (and any other software licensed the same) for the purpose of _adversarial forensics_.
 
-In order to achieve this, MVT is released under an adaptation of [Mozilla Public License v2.0](https://www.mozilla.org/MPL). This modified license includes a new clause 3.0, "Consensual Use Restriction" which permits the use of the licensed software (and any *"Larger Work"* derived from it) exclusively with the explicit consent of the person/s whose data is being extracted and/or analysed (*"Data Owner"*).
+In order to achieve this, MVT is released under an adaptation of [Mozilla Public License v2.0](https://www.mozilla.org/MPL). This modified license includes a new clause 3.0, "Consensual Use Restriction" which permits the use of the licensed software (and any _"Larger Work"_ derived from it) exclusively with the explicit consent of the person/s whose data is being extracted and/or analysed (_"Data Owner"_).
 
 [Read the LICENSE](https://github.com/mvt-project/mvt/blob/main/LICENSE)
