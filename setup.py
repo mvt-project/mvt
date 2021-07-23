@@ -17,7 +17,7 @@ with open(readme_path, encoding="utf-8") as handle:
 
 requires = (
     # Base dependencies:
-    "click",
+    "click >= 8.0.1",
     "rich",
     "tld",
     "tqdm",
