@@ -18,7 +18,7 @@ It has been developed and released by the [Amnesty International Security Lab](h
 
 First you need to install dependencies, on Linux `sudo apt install python3 python3-pip libusb-1.0-0` or on MacOS `brew install python3 libusb`.
 
-Then you can install mvt from pypi with `pip --user install mvt`, or directly from sources:
+Then you can install mvt from pypi with `pip3 --user install mvt`, or directly from sources:
 
 ```bash
 git clone https://github.com/mvt-project/mvt.git
