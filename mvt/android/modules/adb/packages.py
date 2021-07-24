@@ -64,6 +64,9 @@ class Packages(AndroidExtraction):
                 continue
 
             fields = line.split()
+            if len(fields) < 3:
+                continue
+
             file_name, package_name = fields[0].split(":")[1].rsplit("=", 1)
             installer = fields[1].split("=")[1].strip()
             if installer == "null":
