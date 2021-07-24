@@ -14,54 +14,17 @@ It has been developed and released by the [Amnesty International Security Lab](h
 
 [Please check out the documentation.](https://mvt.readthedocs.io/en/latest/)
 
-### Installation using the Docker image
 
-Using Docker is the easiest way of having all the dependencies fixed with a couple of commands.
-Install Docker using the [official instructions](https://docs.docker.com/get-docker/) provided in the Website page.
+## Installation
 
-Afterwards, you can build the Docker image once inside:
+MVT can be installed from sources or conveniently using:
 
-```bash
-git clone https://github.com/mvt-project/mvt.git
-cd mvt
-docker build -t mvt .
-```
+`pip3 install mvt`.
 
-Once the image is built, can now be tested using, what will prompt a bash terminal:
+You will need some dependencies, so please check the [documentation](https://mvt.readthedocs.io/en/latest/install.html).
 
-```bash
-docker run -it mvt
-```
+Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://mvt.readthedocs.io/en/latest/docker.html)
 
-If this is correct, close the container (`exit`) and it is time to connect the Android device to analyse to the USB port using the development mode as explained in the official docs [here](https://developer.android.com/studio/debug/dev-options).
-To have visibility of the USB, the container WILL need to have access to the USB which is not activated in Docker by default.
-This can be done using the `--privileged` parameter when launching Docker as follows and mounting the USB as a volume.
-
-```bash
-docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb mvt
-```
-
-Note that using the `--privileged` parameter is insecure for a number of reasons explained in detail [here](https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/) as it gives access to the whole system.
-As a brief explanation, the `-v <host_path>:<docker_path>` syntax maps the host path to the dockerized path to allow the connection.
-Modern versions of Docker have a `--device` option where you can specify the exact USB to mount without the `--privileged` option:
-
-```bash
-docker run -it --device=/dev/<your_usb_port> mvt
-```
-
-The Docker image contains the dependencies fixed to perform a forensic analysis on an Android device using MVT, including ADB (reachable using `adb` as expected) and ABE (installed under `/opt/abe` and reachable using `abe` from the command line) which is ready to be launched using the installed version of Java. 
-Thus, the forensic analyst can proceed as expected to grab the evidences needed and performs the required tests.
-
-## Manual Installation
-
-First you need to install dependencies, on Linux `sudo apt install python3 python3-pip libusb-1.0-0` or on MacOS `brew install python3 libusb`.
-
-Then you can install mvt from pypi with `pip3 install mvt`, or directly from sources:
-```bash
-git clone https://github.com/mvt-project/mvt.git
-cd mvt
-pip3 install .
-```
 
 ## Usage
 
