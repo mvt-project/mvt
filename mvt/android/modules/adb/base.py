@@ -98,7 +98,7 @@ class AndroidExtraction(MVTModule):
         """Check if we have a `su` binary on the Android device.
         :returns: Boolean indicating whether a `su` binary is present or not
         """
-        return bool(self._adb_command("[ ! -f /sbin/su ] || echo 1"))
+        return bool(self._adb_command("command -v su"))
 
     def _adb_root_or_die(self):
         """Check if we have a `su` binary, otherwise raise an Exception.
