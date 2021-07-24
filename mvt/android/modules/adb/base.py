@@ -4,6 +4,8 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import os
+import random
+import string
 import sys
 import time
 import logging
@@ -111,7 +113,7 @@ class AndroidExtraction(MVTModule):
         """
         return self._adb_command(f"su -c {command}")
 
-    def _adb_download(self, remote_path, local_path, package_name, progress_callback=None):
+    def _adb_download(self, remote_path, local_path, progress_callback=None, retry_root=True):
         """Download a file form the device.
         :param remote_path: Path to download from the device
         :param local_path: Path to where to locally store the copy of the file
@@ -119,18 +121,22 @@ class AndroidExtraction(MVTModule):
         """
         try:
             self.device.pull(remote_path, local_path, progress_callback)
-        except AdbCommandFailureException:
-            self._adb_download_root(remote_path, local_path, package_name, progress_callback)
         except AdbCommandFailureException as e:
-            raise Exception(f"Unable to download file {remote_path}: {e}")
+            if retry_root:
+                self._adb_download_root(remote_path, local_path, progress_callback)
+            else:
+                raise Exception(f"Unable to download file {remote_path}: {e}")
     
-    def _adb_download_root(self, remote_path, local_path, package_name, progress_callback=None):
+    def _adb_download_root(self, remote_path, local_path, progress_callback=None):
         try:
             # Check if we have root, if not raise an Exception.
             self._adb_root_or_die()
 
+            # We generate a random temporary filename.
+            tmp_filename = "tmp_" + ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10))
+
             # We create a temporary local file.
-            new_remote_path = f"/sdcard/Download/{package_name}"
+            new_remote_path = f"/sdcard/{tmp_filename}"
 
             # We copy the file from the data folder to /sdcard/.
             cp = self._adb_command_as_root(f"cp {remote_path} {new_remote_path}")
@@ -140,14 +146,14 @@ class AndroidExtraction(MVTModule):
                 raise Exception(f"Unable to process file {remote_path}: Permission denied")
 
             # We download from /sdcard/ to the local temporary file.
-            self._adb_download(new_remote_path, local_path, package_name)
+            # If it doesn't work now, don't try again (retry_root=False)
+            self._adb_download(new_remote_path, local_path, retry_root=False)
 
             # Delete the copy on /sdcard/.
-            self._adb_command(f"rm -f {new_remote_path}")
-        
+            self._adb_command(f"rm -rf {new_remote_path}")
+            
         except AdbCommandFailureException as e:
             raise Exception(f"Unable to download file {remote_path}: {e}")
-    
 
     def _adb_process_file(self, remote_path, process_routine):
         """Download a local copy of a file which is only accessible as root.

@@ -135,7 +135,7 @@ class DownloadAPKs(AndroidExtraction):
         try:
             with PullProgress(unit='B', unit_divisor=1024, unit_scale=True,
                               miniters=1) as pp:
-                self._adb_download(remote_path, local_path, package_name,
+                self._adb_download(remote_path, local_path,
                                    progress_callback=pp.update_to)
         except Exception as e:
             log.exception("Failed to pull package file from %s: %s",
