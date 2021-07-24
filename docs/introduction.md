@@ -14,4 +14,4 @@ Mobile Verification Toolkit (MVT) is a collection of utilities designed to facil
 
 While MVT is capable of extracting and processing various types of very personal records typically found on a mobile phone (such as calls history, SMS and WhatsApp messages, etc.), this is intended to help identify potential attack vectors such as malicious SMS messages leading to exploitation.
 
-MVT's purpose is not to facilitate adversial forensics of non-consenting individuals' devices. The use of MVT and derivative products to extract and/or analyse data originating from devices used by individuals not consenting to the procedure is explicitly prohibited in the [license](license.md).
+MVT's purpose is not to facilitate adversarial forensics of non-consenting individuals' devices. The use of MVT and derivative products to extract and/or analyse data originating from devices used by individuals not consenting to the procedure is explicitly prohibited in the [license](license.md).
