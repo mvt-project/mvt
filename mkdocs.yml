@@ -28,6 +28,7 @@ nav:
     - Welcome: "index.md"
     - Introduction: "introduction.md"
     - Installation: "install.md"
+    - Using Docker: "docker.md"
     - MVT for iOS:
         - iOS Forensic Methodology: "ios/methodology.md"
         - Install libimobiledevice: "ios/install.md"

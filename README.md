@@ -14,16 +14,17 @@ It has been developed and released by the [Amnesty International Security Lab](h
 
 [Please check out the documentation.](https://mvt.readthedocs.io/en/latest/)
 
+
 ## Installation
 
-First you need to install dependencies, on Linux `sudo apt install python3 python3-pip libusb-1.0-0` or on MacOS `brew install python3 libusb`.
+MVT can be installed from sources or conveniently using:
 
-Then you can install mvt from pypi with `pip3 install mvt`, or directly from sources:
-```bash
-git clone https://github.com/mvt-project/mvt.git
-cd mvt
-pip3 install .
-```
+`pip3 install mvt`.
+
+You will need some dependencies, so please check the [documentation](https://mvt.readthedocs.io/en/latest/install.html).
+
+Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://mvt.readthedocs.io/en/latest/docker.html)
+
 
 ## Usage
 
@@ -39,6 +40,7 @@ MVT provides two commands `mvt-ios` and `mvt-android` with the following subcomm
     * `download-apks`: Download all or non-safelisted installed APKs
 
 Check out [the documentation to see how to use them](https://mvt.readthedocs.io/en/latest/).
+
 
 ## License
 
