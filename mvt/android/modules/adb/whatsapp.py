@@ -6,6 +6,7 @@
 import os
 import sqlite3
 import logging
+import base64
 
 from .base import AndroidExtraction
 from mvt.common.utils import convert_timestamp_to_iso, check_for_links
@@ -69,6 +70,8 @@ class Whatsapp(AndroidExtraction):
 
             # If we find links in the messages or if they are empty we add them to the list.
             if check_for_links(message["data"]) or message["data"].strip() == "":
+                if (message.get('thumb_image') is not None):
+                    message['thumb_image'] = base64.b64encode(message['thumb_image'])
                 messages.append(message)
 
         cur.close()
