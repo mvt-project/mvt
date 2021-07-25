@@ -137,8 +137,8 @@ def run_module(module):
         module.log.exception("The run() procedure of module %s was not implemented yet!",
                              module.__class__.__name__)
     except FileNotFoundError as e:
-        module.log.error("There might be no data to extract by module %s: %s",
-                         module.__class__.__name__, e)
+        module.log.info("There might be no data to extract by module %s: %s",
+                        module.__class__.__name__, e)
     except Exception as e:
         module.log.exception("Error in running extraction from module %s: %s",
                              module.__class__.__name__, e)
