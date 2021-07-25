@@ -13,6 +13,12 @@ import simplejson as json
 
 from .indicators import Indicators
 
+class DatabaseNotFoundError(Exception):
+    pass
+
+class DatabaseCorruptedError(Exception):
+    pass
+
 class MVTModule(object):
     """This class provides a base for all extraction modules."""
 
@@ -136,9 +142,12 @@ def run_module(module):
     except NotImplementedError:
         module.log.exception("The run() procedure of module %s was not implemented yet!",
                              module.__class__.__name__)
-    except FileNotFoundError as e:
+    except DatabaseNotFoundError as e:
         module.log.info("There might be no data to extract by module %s: %s",
                         module.__class__.__name__, e)
+    except DatabaseCorruptedError as e:
+        module.log.error("The %s module database seems to be corrupted and recovery failed: %s",
+                         module.__class__.__name__, e)
     except Exception as e:
         module.log.exception("Error in running extraction from module %s: %s",
                              module.__class__.__name__, e)
