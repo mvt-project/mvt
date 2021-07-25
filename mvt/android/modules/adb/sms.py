@@ -70,7 +70,6 @@ class SMS(AndroidExtraction):
     def _parse_db(self, db_path):
         """Parse an Android bugle_db SMS database file.
         :param db_path: Path to the Android SMS database file to process
-        :param sql_command: SQL command to execute
         """
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
