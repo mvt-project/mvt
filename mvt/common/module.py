@@ -89,7 +89,10 @@ class MVTModule(object):
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.output_folder, results_file_name)
             with open(results_json_path, "w") as handle:
-                json.dump(self.results, handle, indent=4)
+                try:
+                    json.dump(self.results, handle, indent=4)
+                except Exception as e:
+                    self.log.error(e)
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
