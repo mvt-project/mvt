@@ -92,7 +92,8 @@ class MVTModule(object):
                 try:
                     json.dump(self.results, handle, indent=4)
                 except Exception as e:
-                    self.log.error(e)
+                    self.log.error("Unable to store results of module %s to file %s: %s",
+                                   self.__class__.__name__, results_file_name, e)
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
