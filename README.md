@@ -10,7 +10,7 @@ Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and a
 
 It has been developed and released by the [Amnesty International Security Lab](https://www.amnesty.org/en/tech/) in July 2021 in the context of the [Pegasus project](https://forbiddenstories.org/about-the-pegasus-project/) along with [a technical forensic methodology and forensic evidence](https://www.amnesty.org/en/latest/research/2021/07/forensic-methodology-report-how-to-catch-nso-groups-pegasus/).
 
-*Warning*: this tool has been released as a forensic tool for technologists and investigators. Using it requires understanding the basics of forensic analysis and using command-line tools.
+*Warning*: MVT is a forensic research tool intended for technologists and investigators. Using it requires understanding the basics of forensic analysis and using command-line tools.
 
 [Please check out the documentation.](https://mvt.readthedocs.io/en/latest/)
 
