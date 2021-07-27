@@ -109,17 +109,19 @@ class MVTModule(object):
         """
         for result in self.results:
             record = self.serialize(result)
-            if type(record) == list:
-                self.timeline.extend(record)
-            else:
-                self.timeline.append(record)
+            if record:
+                if type(record) == list:
+                    self.timeline.extend(record)
+                else:
+                    self.timeline.append(record)
 
         for detected in self.detected:
             record = self.serialize(detected)
-            if type(record) == list:
-                self.timeline_detected.extend(record)
-            else:
-                self.timeline_detected.append(record)
+            if record:
+                if type(record) == list:
+                    self.timeline_detected.extend(record)
+                else:
+                    self.timeline_detected.append(record)
 
         # De-duplicate timeline entries
         self.timeline = self.timeline_deduplicate(self.timeline)
