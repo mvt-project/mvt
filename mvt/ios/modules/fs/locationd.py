@@ -62,7 +62,7 @@ class LocationdClients(IOSExtraction):
                 result["package"] = app
                 for ts in self.timestamps:
                     if ts in result.keys():
-                        result[ts] = convert_timestamp_to_iso(convert_mactime_to_unix(result[date]))
+                        result[ts] = convert_timestamp_to_iso(convert_mactime_to_unix(result["date"]))
 
                 self.results.append(result)
 
