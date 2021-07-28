@@ -7,7 +7,7 @@ Before proceeding, please note that mvt requires Python 3.6+ to run. While it sh
 First install some basic dependencies that will be necessary to build all required tools:
 
 ```bash
-sudo apt install python3 python3-pip libusb-1.0-0
+sudo apt install python3 python3-pip libusb-1.0-0 sqlite3
 ```
 
 *libusb-1.0-0* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
@@ -19,7 +19,7 @@ Running MVT on Mac requires Xcode and [homebrew](https://brew.sh) to be installe
 In order to install dependencies use:
 
 ```bash
-brew install python3 libusb
+brew install python3 libusb sqlite3
 ```
 
 *libusb* is not required if you intend to only use `mvt-ios` and not `mvt-android`.

@@ -7,7 +7,7 @@ import os
 from setuptools import setup, find_packages
 
 __package_name__ = "mvt"
-__version__ = "1.0.11"
+__version__ = "1.0.13"
 __description__ = "Mobile Verification Toolkit"
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
@@ -17,18 +17,18 @@ with open(readme_path, encoding="utf-8") as handle:
 
 requires = (
     # Base dependencies:
-    "click",
-    "rich",
-    "tld",
-    "tqdm",
-    "requests",
-    "simplejson",
+    "click>=8.0.1",
+    "rich>=10.6.0",
+    "tld>=0.12.6",
+    "tqdm>=4.61.2",
+    "requests>=2.26.0",
+    "simplejson>=3.17.3",
     # iOS dependencies:
-    "biplist",
-    "iOSbackup",
+    "biplist>=1.0.3",
+    "iOSbackup>=0.9.912",
     # Android dependencies:
-    "adb-shell",
-    "libusb1",
+    "adb-shell>=0.4.0",
+    "libusb1>=1.9.3",
 )
 
 def get_package_data(package):
