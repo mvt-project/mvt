@@ -40,6 +40,8 @@ class Manifest(IOSExtraction):
 
     def serialize(self, record):
         records = []
+        if "modified" not in record or "statusChanged" not in record:
+            return
         for ts in set([record["created"], record["modified"], record["statusChanged"]]):
             macb = ""
             macb += "M" if ts == record["modified"] else "-"
@@ -63,11 +65,14 @@ class Manifest(IOSExtraction):
         for result in self.results:
             if not "relativePath" in result:
                 continue
-
-            if os.path.basename(result["relativePath"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
-                self.log.warning("Found a potentially suspicious \"com.apple.CrashReporter.plist\" file created in RootDomain")
-                self.detected.append(result)
+            if not result["relativePath"]:
                 continue
+
+            if result["domain"]:
+                if os.path.basename(result["relativePath"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
+                    self.log.warning("Found a potentially suspicious \"com.apple.CrashReporter.plist\" file created in RootDomain")
+                    self.detected.append(result)
+                    continue
 
             if self.indicators.check_file(result["relativePath"]):
                 self.log.warning("Found a known malicious file at path: %s", result["relativePath"])

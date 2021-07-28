@@ -167,6 +167,10 @@ class NetBase(IOSExtraction):
         results_by_proc = {proc["proc_id"]: proc for proc in self.results if proc["proc_id"]}
         all_proc_id = sorted(results_by_proc.keys())
 
+        # Fix issue #108
+        if not all_proc_id:
+            return
+
         missing_procs, last_proc_id = {}, None
         for proc_id in range(min(all_proc_id), max(all_proc_id)):
             if proc_id not in all_proc_id:

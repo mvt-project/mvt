@@ -102,6 +102,7 @@ IPHONE_IOS_VERSIONS = [
     {"build": "10A405", "version": "6.0"},
     {"build": "11B601", "version": "7.0.5"},
     {"build": "18F72", "version": "14.6"},
+    {"build": "18G69", "version": "14.7"},
     {"build": "18E199", "version": "14.5"},
     {"build": "18E212", "version": "14.5.1"},
     {"build": "18D52", "version": "14.4"},

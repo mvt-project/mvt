@@ -1,4 +1,4 @@
-MVT License 1.0
+MVT License 1.1
 ===============
 
 1. Definitions
@@ -95,10 +95,10 @@ MVT License 1.0
     for subsequent analysis.
 
 1.17. "Data Owner" (or "Data Owners")
-    means an individual or group of individuals who made use of the
-    electronic device from which Data that is extracted and/or analyzed
-    originated. "Data Owner" might or might not differ from "Device
-    Owner".
+    means an individual or group of individuals who made legitimate use
+    of the electronic device from which Data that is extracted and/or
+    analyzed originated. "Data Owner" might or might not differ from
+    "Device Owner".
 
 2. License Grants and Conditions
 --------------------------------
@@ -381,8 +381,8 @@ Exhibit A - Source Code Form License Notice
 -------------------------------------------
 
   This Source Code Form is subject to the terms of the MVT License,
-  v. 1.0. If a copy of the MVT License was not distributed with this
-  file, You can obtain one at TODO.
+  v. 1.1. If a copy of the MVT License was not distributed with this
+  file, You can obtain one at https://license.mvt.re/1.1/.
 
 If it is not possible or desirable to put the notice in a particular
 file, then You may include the notice in a location (such as a LICENSE
@@ -395,7 +395,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 ---------------------------------------------------------
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
-  defined by the MVT License, v. 1.0.
+  defined by the MVT License, v. 1.1.
 
 
 This license is an adaption of Mozilla Public License, v. 2.0.

@@ -5,25 +5,26 @@
 # Mobile Verification Toolkit
 
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
+[![](https://img.shields.io/badge/docs-blue.svg)](https://mvt.readthedocs.io)
 
 Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and automate the process of gathering forensic traces helpful to identify a potential compromise of Android and iOS devices.
 
-It has been developed and released by the [Amnesty International Security Lab](https://www.amnesty.org/en/tech/) in July 2021 in the context of the [Pegasus project](https://forbiddenstories.org/about-the-pegasus-project/) along with [a technical forensic methodology and forensic evidences](https://www.amnesty.org/en/latest/research/2021/07/forensic-methodology-report-how-to-catch-nso-groups-pegasus/).
+It has been developed and released by the [Amnesty International Security Lab](https://www.amnesty.org/en/tech/) in July 2021 in the context of the [Pegasus project](https://forbiddenstories.org/about-the-pegasus-project/) along with [a technical forensic methodology and forensic evidence](https://www.amnesty.org/en/latest/research/2021/07/forensic-methodology-report-how-to-catch-nso-groups-pegasus/).
 
-*Warning*: this tool has been released as a forensic tool for a technical audience. Using it requires some technical skills such as understanding basics of forensic analysis and using command line tools.
-
-[Please check out the documentation.](https://mvt.readthedocs.io/en/latest/)
+*Warning*: MVT is a forensic research tool intended for technologists and investigators. Using it requires understanding the basics of forensic analysis and using command-line tools. This is not intended for end-user self-assessment. If you are concerned with the security of your device please seek expert assistance.
 
 ## Installation
 
-First you need to install dependencies, on Linux `sudo apt install python3 python3-pip libusb-1.0-0` or on MacOS `brew install python3 libusb`.
+MVT can be installed from sources or conveniently using:
 
-Then you can install mvt from pypi with `pip3 install mvt`, or directly from sources:
-```bash
-git clone https://github.com/mvt-project/mvt.git
-cd mvt
-pip3 install .
 ```
+pip3 install mvt
+```
+
+You will need some dependencies, so please check the [documentation](https://mvt.readthedocs.io/en/latest/install.html).
+
+Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://mvt.readthedocs.io/en/latest/docker.html).
+
 
 ## Usage
 
@@ -40,6 +41,7 @@ MVT provides two commands `mvt-ios` and `mvt-android` with the following subcomm
     * `download-apks`: Download all or non-safelisted installed APKs
 
 Check out [the documentation to see how to use them](https://mvt.readthedocs.io/en/latest/).
+
 
 ## License
 
