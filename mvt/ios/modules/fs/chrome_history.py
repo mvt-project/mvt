@@ -35,6 +35,14 @@ class ChromeHistory(IOSExtraction):
             "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, redirect source: {record['redirect_source']})"
         }
 
+    def check_indicators(self):
+        if not self.indicators:
+            return
+
+        for result in self.results:
+            if self.indicators.check_domain(result["url"]):
+                self.detected.append(result)
+
     def run(self):
         self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS, root_paths=CHROME_HISTORY_ROOT_PATHS)
         self.log.info("Found Chrome history database at path: %s", self.file_path)
