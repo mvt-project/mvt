@@ -14,6 +14,7 @@ from .webkit_indexeddb import WebkitIndexedDB
 from .webkit_localstorage import WebkitLocalStorage
 from .webkit_safariviewservice import WebkitSafariViewService
 from .webkit_session_resource_log import WebkitSessionResourceLog
+from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .chrome_history import ChromeHistory
 from .chrome_favicon import ChromeFavicon
 from .firefox_history import FirefoxHistory
@@ -31,12 +32,13 @@ from .filesystem import Filesystem
 
 BACKUP_MODULES = [SafariBrowserState, SafariHistory, Datausage, SMS, SMSAttachments,
                   ChromeHistory, ChromeFavicon, WebkitSessionResourceLog,
-                  Calls, IDStatusCache, LocationdClients, InteractionC,
-                  FirefoxHistory, FirefoxFavicon, Contacts, Manifest, Whatsapp]
+                  WebkitResourceLoadStatistics, Calls, IDStatusCache, LocationdClients,
+                  InteractionC, FirefoxHistory, FirefoxFavicon, Contacts, Manifest, Whatsapp]
 
 FS_MODULES = [IOSVersionHistory, SafariHistory, SafariFavicon, SafariBrowserState,
               WebkitIndexedDB, WebkitLocalStorage, WebkitSafariViewService,
-              WebkitSessionResourceLog, Datausage, Netusage, ChromeHistory,
+              WebkitResourceLoadStatistics, WebkitSessionResourceLog,
+              Datausage, Netusage, ChromeHistory,
               ChromeFavicon, Calls, IDStatusCache, SMS, SMSAttachments,
               LocationdClients, InteractionC, FirefoxHistory, FirefoxFavicon,
               Contacts, CacheFiles, Whatsapp, Filesystem]

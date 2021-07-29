@@ -20,6 +20,22 @@ class IOSExtraction(MVTModule):
     is_fs_dump = False
     is_sysdiagnose = False
 
+    def _is_database_malformed(self, file_path):
+        # Check if the database is malformed.
+        conn = sqlite3.connect(file_path)
+        cur = conn.cursor()
+
+        try:
+            recover = False
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        except sqlite3.DatabaseError as e:
+            if "database disk image is malformed" in str(e):
+                recover = True
+        finally:
+            conn.close()
+
+        return recover
+
     def _recover_database(self, file_path):
         """Tries to recover a malformed database by running a .clone command.
         :param file_path: Path to the malformed database file.
@@ -49,6 +65,7 @@ class IOSExtraction(MVTModule):
         """Try to locate the module's database file from either an iTunes
         backup or a full filesystem dump.
         :param backup_id: iTunes backup database file's ID (or hash).
+        :param root_paths: Glob patterns for files to seek in filesystem dump.
         """
         file_path = None
         # First we check if the was an explicit file path specified.
@@ -84,18 +101,5 @@ class IOSExtraction(MVTModule):
         else:
             raise DatabaseNotFoundError("Unable to find the module's database file")
 
-        # Check if the database is corrupted.
-        conn = sqlite3.connect(self.file_path)
-        cur = conn.cursor()
-
-        try:
-            recover = False
-            cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        except sqlite3.DatabaseError as e:
-            if "database disk image is malformed" in str(e):
-                recover = True
-        finally:
-            conn.close()
-
-        if recover:
+        if self._is_database_malformed(self.file_path):
             self._recover_database(self.file_path)

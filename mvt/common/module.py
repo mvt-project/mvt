@@ -123,7 +123,7 @@ class MVTModule(object):
                 else:
                     self.timeline_detected.append(record)
 
-        # De-duplicate timeline entries
+        # De-duplicate timeline entries.
         self.timeline = self.timeline_deduplicate(self.timeline)
         self.timeline_detected = self.timeline_deduplicate(self.timeline_detected)
 
