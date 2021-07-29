@@ -2,6 +2,14 @@
      <img src="./docs/mvt.png" width="300" />
 </p>
 
+<p align="center">
+   <img alt="GitHub issues" src="https://img.shields.io/github/issues/mvt-project/mvt"></a>
+   <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/mvt-project/mvt"></a>
+   <img alt="GitHub forks" src="https://img.shields.io/github/forks/mvt-project/mvt"></a>
+   <img alt="GitHub stars" src="https://img.shields.io/github/stars/mvt-project/mvt"></a>
+   <img alt="Github size" src="https://img.shields.io/github/repo-size/mvt-project/mvt"></a>
+   <img alt="Github license" src="https://img.shields.io/github/license/mvt-project/mvt"></a>
+</p>
 # Mobile Verification Toolkit
 
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
