@@ -4,7 +4,8 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 __package_name__ = "mvt"
 __version__ = "1.0.13"

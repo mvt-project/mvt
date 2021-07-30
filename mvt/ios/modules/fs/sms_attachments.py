@@ -6,8 +6,8 @@
 import sqlite3
 from base64 import b64encode
 
-from mvt.common.utils import check_for_links
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
+                              convert_timestamp_to_iso)
 
 from .base import IOSExtraction
 

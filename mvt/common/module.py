@@ -3,15 +3,17 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import io
-import os
-import re
 import csv
 import glob
+import io
 import logging
+import os
+import re
+
 import simplejson as json
 
 from .indicators import Indicators
+
 
 class DatabaseNotFoundError(Exception):
     pass

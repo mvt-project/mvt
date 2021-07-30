@@ -3,13 +3,15 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import os
 import json
 import logging
+import os
+
 import pkg_resources
 from tqdm import tqdm
 
 from mvt.common.utils import get_sha256_from_file_path
+
 from .modules.adb.base import AndroidExtraction
 
 log = logging.getLogger(__name__)

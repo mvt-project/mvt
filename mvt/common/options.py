@@ -5,7 +5,8 @@
 
 # From: https://gist.github.com/stanchan/bce1c2d030c76fe9223b5ff6ad0f03db
 
-from click import command, option, Option, UsageError
+from click import Option, UsageError, command, option
+
 
 class MutuallyExclusiveOption(Option):
     """This class extends click to support mutually exclusive options.

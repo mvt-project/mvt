@@ -4,8 +4,8 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import sqlite3
-
 from datetime import datetime
+
 from mvt.common.url import URL
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 

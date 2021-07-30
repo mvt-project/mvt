@@ -3,15 +3,16 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import glob
 import io
 import os
-import glob
 import shutil
 import sqlite3
 import subprocess
 
-from mvt.common.module import MVTModule
-from mvt.common.module import DatabaseNotFoundError, DatabaseCorruptedError
+from mvt.common.module import (DatabaseCorruptedError, DatabaseNotFoundError,
+                               MVTModule)
+
 
 class IOSExtraction(MVTModule):
     """This class provides a base for all iOS filesystem/backup extraction modules."""

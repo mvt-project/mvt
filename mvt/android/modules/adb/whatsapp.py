@@ -3,13 +3,14 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import base64
+import logging
 import os
 import sqlite3
-import logging
-import base64
+
+from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 
 from .base import AndroidExtraction
-from mvt.common.utils import convert_timestamp_to_iso, check_for_links
 
 log = logging.getLogger(__name__)
 

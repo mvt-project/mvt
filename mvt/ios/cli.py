@@ -4,16 +4,17 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import errno
+import logging
 import os
 import sys
-import click
 import tarfile
-import logging
+
+import click
 from rich.logging import RichHandler
 
+from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
-from mvt.common.indicators import Indicators
 
 from .decrypt import DecryptBackup
 from .modules.fs import BACKUP_MODULES, FS_MODULES

@@ -3,13 +3,14 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import sqlite3
 import operator
+import sqlite3
 from pathlib import Path
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
 from .base import IOSExtraction
+
 
 class NetBase(IOSExtraction):
     """This class provides a base for DataUsage and NetUsage extraction modules."""

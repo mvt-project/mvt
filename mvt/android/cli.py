@@ -3,15 +3,17 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import os
-import sys
-import click
 import argparse
 import logging
+import os
+import sys
+
+import click
 from rich.logging import RichHandler
 
-from mvt.common.module import run_module, save_timeline
 from mvt.common.indicators import Indicators
+from mvt.common.module import run_module, save_timeline
+
 from .download_apks import DownloadAPKs
 from .lookups.koodous import koodous_lookup
 from .lookups.virustotal import virustotal_lookup

@@ -3,12 +3,13 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import requests
 import logging
-from rich.text import Text
-from rich.table import Table
-from rich.progress import track
+
+import requests
 from rich.console import Console
+from rich.progress import track
+from rich.table import Table
+from rich.text import Text
 
 log = logging.getLogger(__name__)
 

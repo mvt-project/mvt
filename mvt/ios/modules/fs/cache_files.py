@@ -8,6 +8,7 @@ import sqlite3
 
 from .base import IOSExtraction
 
+
 class CacheFiles(IOSExtraction):
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,

@@ -4,11 +4,12 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import io
-import biplist
 import sqlite3
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
-from mvt.common.utils import keys_bytes_to_string
+import biplist
+
+from mvt.common.utils import (convert_mactime_to_unix,
+                              convert_timestamp_to_iso, keys_bytes_to_string)
 
 from .base import IOSExtraction
 

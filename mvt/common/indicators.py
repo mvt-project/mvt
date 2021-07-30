@@ -3,10 +3,11 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import os
 import json
+import os
 
 from .url import URL
+
 
 class Indicators:
     """This class is used to parse indicators from a STIX2 file and provide

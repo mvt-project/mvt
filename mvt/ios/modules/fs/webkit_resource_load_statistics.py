@@ -3,13 +3,13 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import datetime
 import os
 import sqlite3
-import datetime
-
-from .base import IOSExtraction
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+
+from .base import IOSExtraction
 
 WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH = "Library/WebKit/WebsiteData/ResourceLoadStatistics/observations.db"
 WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [

@@ -3,12 +3,13 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import os
 import datetime
+import os
+
+from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import IOSExtraction
 
-from mvt.common.utils import convert_timestamp_to_iso
 
 class WebkitBase(IOSExtraction):
     """This class is a base for other WebKit-related modules."""

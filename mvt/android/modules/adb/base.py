@@ -3,18 +3,19 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import logging
 import os
 import random
 import string
 import sys
-import time
-import logging
 import tempfile
+import time
+
 from adb_shell.adb_device import AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
-from adb_shell.exceptions import DeviceAuthError, AdbCommandFailureException
-from usb1 import USBErrorBusy, USBErrorAccess
+from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
+from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.common.module import MVTModule
 

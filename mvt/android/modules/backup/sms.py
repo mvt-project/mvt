@@ -3,13 +3,13 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import os
 import json
+import os
 import zlib
 
 from mvt.common.module import MVTModule
-from mvt.common.utils import check_for_links
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+
 
 class SMS(MVTModule):
 

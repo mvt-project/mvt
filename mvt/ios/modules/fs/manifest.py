@@ -3,15 +3,17 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import datetime
 import io
 import os
-import biplist
 import sqlite3
-import datetime
+
+import biplist
 
 from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import IOSExtraction
+
 
 class Manifest(IOSExtraction):
     """This module extracts information from a backup Manifest.db file."""

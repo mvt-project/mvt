@@ -3,10 +3,11 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
-import os
-import re
 import datetime
 import hashlib
+import os
+import re
+
 
 def convert_mactime_to_unix(timestamp, from_2001=True):
     """Converts Mac Standard Time to a Unix timestamp.

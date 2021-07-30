@@ -3,11 +3,12 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import binascii
+import logging
 import os
 import shutil
 import sqlite3
-import logging
-import binascii
+
 from iOSbackup import iOSbackup
 
 log = logging.getLogger(__name__)
