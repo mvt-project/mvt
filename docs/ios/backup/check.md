@@ -2,6 +2,32 @@
 
 The backup might take some time. It is best to make sure the phone remains unlocked during the backup process. Afterwards, a new folder will be created under the path you specified using the UDID of the iPhone you backed up.
 
+## Extracting and saving the decryption key (optional)
+
+If you do not wish to enter a password every time when decrypting a backup, MVT can accept a key file instead. This key can be used with the `decrypt-backup` command.
+
+To generate a key file, you will need your device backup and the backup password:
+
+    $ mvt-ios extract-key --help
+    Usage: mvt-ios extract-key [OPTIONS] BACKUP_PATH
+
+      Extract decryption key from an iTunes backup
+
+    Options:
+      -p, --password TEXT  Password to use to decrypt the backup  [required]
+      -k, --key-file FILE  Key file to be written (if unset, will print to STDOUT)
+      --help               Show this message and exit.
+
+You can specify the password on the command line, or omit the `-p` option to have MVT prompt for a password. The `-k` option specifies where to save the file containing the decryption key. If `-k` is omitted, MVT will display the decryption key without saving.
+
+_Note_: This decryption key is sensitive data! Keep the file safe.
+
+To extract the key and have MVT prompt for a password:
+
+```bash
+mvt-ios extract-key -k /path/to/save/key /path/to/backup
+```
+
 ## Decrypting a backup
 
 In case you have an encrypted backup, you will need to decrypt it first. This can be done with `mvt-ios` as well:
@@ -25,7 +51,7 @@ In case you have an encrypted backup, you will need to decrypt it first. This ca
 
       --help                  Show this message and exit.
 
-You can specify either a password via command-line or pass a key file, and you need to specify a destination path where the decrypted backup will be stored. Following is an example usage of `decrypt-backup`:
+You can specify either a password via command-line or pass a key file, and you need to specify a destination path where the decrypted backup will be stored. If `-p` is omitted, MVT will ask for a password. Following is an example usage of `decrypt-backup`:
 
 ```bash
 mvt-ios decrypt-backup -p password -d /path/to/decrypted /path/to/backup
