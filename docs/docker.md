@@ -1,5 +1,3 @@
-## Using Docker
-
 Using Docker simplifies having all the required dependencies and tools (including most recent versions of [libimobiledevice](https://libimobiledevice.org)) readily installed.
 
 Install Docker following the [official documentation](https://docs.docker.com/get-docker/).
