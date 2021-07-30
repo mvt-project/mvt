@@ -18,7 +18,7 @@ class DecryptBackup:
     using either a password or a key file.
     """
 
-    def __init__(self, backup_path, dest_path):
+    def __init__(self, backup_path, dest_path=None):
         """Decrypts an encrypted iOS backup.
         :param backup_path: Path to the encrypted backup folder
         :param dest_path: Path to the folder where to store the decrypted backup
@@ -26,8 +26,12 @@ class DecryptBackup:
         self.backup_path = backup_path
         self.dest_path = dest_path
         self._backup = None
+        self._decryption_key = None
 
-    def _process_backup(self):
+    def process_backup(self):
+        if not os.path.exists(self.dest_path):
+            os.makedirs(self.dest_path)
+
         manifest_path = os.path.join(self.dest_path, "Manifest.db")
         # We extract a decrypted Manifest.db.
         self._backup.getManifestDB()
@@ -69,9 +73,6 @@ class DecryptBackup:
         """
         log.info("Decrypting iOS backup at path %s with password", self.backup_path)
 
-        if not os.path.exists(self.dest_path):
-            os.makedirs(self.dest_path)
-
         try:
             self._backup = iOSbackup(udid=os.path.basename(self.backup_path),
                                      cleartextpassword=password,
@@ -79,9 +80,6 @@ class DecryptBackup:
         except Exception as e:
             log.exception(e)
             log.critical("Failed to decrypt backup. Did you provide the correct password?")
-            return
-        else:
-            self._process_backup()
 
     def decrypt_with_key_file(self, key_file):
         """Decrypts an encrypted iOS backup using a key file.
@@ -89,9 +87,6 @@ class DecryptBackup:
         """
         log.info("Decrypting iOS backup at path %s with key file %s",
                  self.backup_path, key_file)
-
-        if not os.path.exists(self.dest_path):
-            os.makedirs(self.dest_path)
 
         with open(key_file, "rb") as handle:
             key_bytes = handle.read()
@@ -109,6 +104,31 @@ class DecryptBackup:
         except Exception as e:
             log.exception(e)
             log.critical("Failed to decrypt backup. Did you provide the correct key file?")
+
+    def get_key(self):
+        """Retrieve and prints the encryption key.
+        """
+        if not self._backup:
+            return
+
+        self._decryption_key = self._backup.getDecryptionKey()
+        log.info("Derived decryption key for backup at path %s is: \"%s\"",
+                 self.backup_path, self._decryption_key)
+
+    def write_key(self, key_path):
+        """Save extracted key to file.
+        :param key_path: Path to the file where to write the derived decryption key.
+        """
+        if not self._decryption_key:
+            return
+
+        try:
+            with open(key_path, 'w') as handle:
+                handle.write(self._decryption_key)
+        except Exception as e:
+            log.exception(e)
+            log.critical("Failed to write key to file: %s", key_path)
             return
         else:
-            self._process_backup()
+            log.info("Wrote decryption key to file: %s. This file is equivalent to a plaintext password. Keep it safe!",
+                     key_path)
