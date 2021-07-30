@@ -113,6 +113,19 @@ class AndroidExtraction(MVTModule):
         :returns: Output of command
         """
         return self._adb_command(f"su -c {command}")
+    
+    def _adb_check_file_exists(self, file):
+        """Verify that a file exists.
+        :param file: Path of the file
+        :returns: Boolean indicating whether the file exists or not
+        """
+
+        # Connect to the device over adb.
+        self._adb_connect()
+        # Check if we have root, if not raise an Exception.
+        self._adb_root_or_die()
+        
+        return bool(self._adb_command_as_root(f"[ ! -f {file} ] || echo 1"))
 
     def _adb_download(self, remote_path, local_path, progress_callback=None, retry_root=True):
         """Download a file form the device.
