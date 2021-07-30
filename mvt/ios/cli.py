@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import errno
 import os
 import sys
 import click
@@ -66,7 +67,7 @@ def decrypt_backup(destination, password, key_file, backup_path):
 #==============================================================================
 @cli.command("check-backup", help="Extract artifacts from an iTunes backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -80,6 +81,13 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
         return
 
     log.info("Checking iTunes backup located at: %s", backup_path)
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
@@ -116,7 +124,7 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
 #==============================================================================
 @cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -130,6 +138,13 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
         return
 
     log.info("Checking filesystem dump located at: %s", dump_path)
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
 
     if iocs:
         # Pre-load indicators for performance reasons.

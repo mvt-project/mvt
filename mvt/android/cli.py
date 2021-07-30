@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import errno
 import os
 import sys
 import click
@@ -45,8 +46,8 @@ def cli():
 @click.option("--virustotal", "-v", is_flag=True, help="Check packages on VirusTotal")
 @click.option("--koodous", "-k", is_flag=True, help="Check packages on Koodous")
 @click.option("--all-checks", "-A", is_flag=True, help="Run all available checks")
-@click.option("--output", "-o", type=click.Path(exists=True),
-              help="Specify a path to a folder where you want to store JSON results")
+@click.option("--output", "-o", type=click.Path(exists=False),
+              help="Specify a path to a folder where you want to store the APKs")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
 def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
@@ -54,9 +55,12 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
         if from_file:
             download = DownloadAPKs.from_json(from_file)
         else:
-            if not output:
-                log.critical("You need to specify an output folder (with --output, -o) when extracting APKs from a device")
-                sys.exit(-1)
+            if output and not os.path.exists(output):
+                try:
+                    os.makedirs(output)
+                except Exception as e:
+                    log.critical("Unable to create output folder %s: %s", output, e)
+                    sys.exit(-1)
 
             download = DownloadAPKs(output_folder=output, all_apks=all_apks)
             download.run()
@@ -81,7 +85,7 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
 #==============================================================================
 @cli.command("check-adb", help="Check an Android device over adb")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True),
+@click.option("--output", "-o", type=click.Path(exists=False),
               help="Specify a path to a folder where you want to store JSON results")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -94,6 +98,13 @@ def check_adb(iocs, output, list_modules, module):
         return
 
     log.info("Checking Android through adb bridge")
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
@@ -127,10 +138,17 @@ def check_adb(iocs, output, list_modules, module):
 #==============================================================================
 @cli.command("check-backup", help="Check an Android Backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def check_backup(iocs, output, backup_path):
     log.info("Checking ADB backup located at: %s", backup_path)
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
