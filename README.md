@@ -5,7 +5,7 @@
 # Mobile Verification Toolkit
 
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
-[![](https://img.shields.io/badge/docs-blue.svg)](https://mvt.readthedocs.io)
+[![](https://img.shields.io/badge/docs-blue.svg)](https://docs.mvt.re)
 
 Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and automate the process of gathering forensic traces helpful to identify a potential compromise of Android and iOS devices.
 
@@ -21,9 +21,9 @@ MVT can be installed from sources or conveniently using:
 pip3 install mvt
 ```
 
-You will need some dependencies, so please check the [documentation](https://mvt.readthedocs.io/en/latest/install.html).
+You will need some dependencies, so please check the [documentation](https://docs.mvt.re/en/latest/install.html).
 
-Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://mvt.readthedocs.io/en/latest/docker.html).
+Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://docs.mvt.re/en/latest/docker.html).
 
 
 ## Usage
@@ -39,7 +39,7 @@ MVT provides two commands `mvt-ios` and `mvt-android` with the following subcomm
     * `check-backup`: Check an Android Backup
     * `download-apks`: Download all or non-safelisted installed APKs
 
-Check out [the documentation to see how to use them](https://mvt.readthedocs.io/en/latest/).
+Check out [the documentation to see how to use them](https://docs.mvt.re/).
 
 
 ## License
