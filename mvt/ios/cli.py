@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+import errno
 import os
 import sys
 import click
@@ -66,7 +67,7 @@ def decrypt_backup(destination, password, key_file, backup_path):
 #==============================================================================
 @cli.command("check-backup", help="Extract artifacts from an iTunes backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -105,6 +106,12 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
         timeline_detected.extend(m.timeline_detected)
 
     if output:
+        try:
+            os.makedirs(output)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                log.critical("You need to specify a writable output folder (with --output, -o) when analysing the backup")
+                sys.exit(-1)
         if len(timeline) > 0:
             save_timeline(timeline, os.path.join(output, "timeline.csv"))
         if len(timeline_detected) > 0:
@@ -116,7 +123,7 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
 #==============================================================================
 @cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -156,6 +163,12 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
         timeline_detected.extend(m.timeline_detected)
 
     if output:
+        try:
+            os.makedirs(output)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                log.critical("You need to specify a writable output folder (with --output, -o) when analysing the file system")
+                sys.exit(-1)
         if len(timeline) > 0:
             save_timeline(timeline, os.path.join(output, "timeline.csv"))
         if len(timeline_detected) > 0:
