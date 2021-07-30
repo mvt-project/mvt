@@ -21,6 +21,7 @@ RUN apt install -y build-essential \
 	libplist-dev \
 	libusbmuxd-dev \
 	libssl-dev \
+	sqlite3 \
     pkg-config
 
 # Clean up
