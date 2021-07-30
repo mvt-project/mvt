@@ -47,7 +47,7 @@ def cli():
 @click.option("--koodous", "-k", is_flag=True, help="Check packages on Koodous")
 @click.option("--all-checks", "-A", is_flag=True, help="Run all available checks")
 @click.option("--output", "-o", type=click.Path(exists=False),
-              help="Specify a path to a folder where you want to store JSON results")
+              help="Specify a path to a folder where you want to store the APKs")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
 def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
@@ -55,11 +55,11 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
         if from_file:
             download = DownloadAPKs.from_json(from_file)
         else:
-            try:
-                os.makedirs(output)
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    log.critical("You need to specify a writable output folder (with --output, -o) when extracting APKs from a device")
+            if output and not os.path.exists(output):
+                try:
+                    os.makedirs(output)
+                except Exception as e:
+                    log.critical("Unable to create output folder %s: %s", output, e)
                     sys.exit(-1)
 
             download = DownloadAPKs(output_folder=output, all_apks=all_apks)
@@ -99,6 +99,13 @@ def check_adb(iocs, output, list_modules, module):
 
     log.info("Checking Android through adb bridge")
 
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
+
     if iocs:
         # Pre-load indicators for performance reasons.
         log.info("Loading indicators from provided file at %s", iocs)
@@ -121,13 +128,6 @@ def check_adb(iocs, output, list_modules, module):
         timeline_detected.extend(m.timeline_detected)
 
     if output:
-        try:
-            os.makedirs(output)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                log.critical("You need to specify a writable output folder (with --output, -o) to log the details observed from ADB")
-                sys.exit(-1)
-
         if len(timeline) > 0:
             save_timeline(timeline, os.path.join(output, "timeline.csv"))
         if len(timeline_detected) > 0:
@@ -143,11 +143,11 @@ def check_adb(iocs, output, list_modules, module):
 def check_backup(iocs, output, backup_path):
     log.info("Checking ADB backup located at: %s", backup_path)
 
-    try:
-        os.makedirs(output)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            log.critical("You need to specify a writable output folder (with --output, -o) when analysing the ADB backup")
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
             sys.exit(-1)
 
     if iocs:

@@ -82,6 +82,13 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
 
     log.info("Checking iTunes backup located at: %s", backup_path)
 
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
+
     if iocs:
         # Pre-load indicators for performance reasons.
         log.info("Loading indicators from provided file at: %s", iocs)
@@ -106,12 +113,6 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
         timeline_detected.extend(m.timeline_detected)
 
     if output:
-        try:
-            os.makedirs(output)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                log.critical("You need to specify a writable output folder (with --output, -o) when analysing the backup")
-                sys.exit(-1)
         if len(timeline) > 0:
             save_timeline(timeline, os.path.join(output, "timeline.csv"))
         if len(timeline_detected) > 0:
@@ -138,6 +139,13 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
 
     log.info("Checking filesystem dump located at: %s", dump_path)
 
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
+
     if iocs:
         # Pre-load indicators for performance reasons.
         log.info("Loading indicators from provided file at: %s", iocs)
@@ -163,12 +171,6 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
         timeline_detected.extend(m.timeline_detected)
 
     if output:
-        try:
-            os.makedirs(output)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                log.critical("You need to specify a writable output folder (with --output, -o) when analysing the file system")
-                sys.exit(-1)
         if len(timeline) > 0:
             save_timeline(timeline, os.path.join(output, "timeline.csv"))
         if len(timeline_detected) > 0:
