@@ -5,7 +5,7 @@
 # Mobile Verification Toolkit
 
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
-[![](https://img.shields.io/badge/docs-blue.svg)](https://docs.mvt.re)
+[![Documentation Status](https://readthedocs.org/projects/mvt/badge/?version=latest)](https://docs.mvt.re/en/latest/?badge=latest)
 
 Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and automate the process of gathering forensic traces helpful to identify a potential compromise of Android and iOS devices.
 
