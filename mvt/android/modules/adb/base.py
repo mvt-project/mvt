@@ -124,7 +124,7 @@ class AndroidExtraction(MVTModule):
         self._adb_connect()
         # Check if we have root, if not raise an Exception.
         self._adb_root_or_die()
-        
+
         return bool(self._adb_command_as_root(f"[ ! -f {file} ] || echo 1"))
 
     def _adb_download(self, remote_path, local_path, progress_callback=None, retry_root=True):

@@ -13,9 +13,8 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
-SMS_PATH = "data/data/com.google.android.apps.messaging/databases/bugle_db"
-SMS_PATH_2 = "data/data/com.android.providers.telephony/databases/mmssms.db"
-sql_command_1 = """
+SMS_BUGLE_PATH = "data/data/com.google.android.apps.messaging/databases/bugle_db"
+SMS_BUGLE_QUERY = """
 SELECT 
     ppl.normalized_destination AS number,
     p.timestamp AS timestamp,
@@ -29,7 +28,9 @@ WHERE (m.conversation_id = c._id)
     AND (cp.conversation_id = c._id)
     AND (cp.participant_id = ppl._id);
 """
-sql_command_2 = """
+
+SMS_MMSSMS_PATH = "data/data/com.android.providers.telephony/databases/mmssms.db"
+SMS_MMSMS_QUERY = """
 SELECT 
     address AS number,
     date_sent AS timestamp,
@@ -76,9 +77,9 @@ class SMS(AndroidExtraction):
         cur = conn.cursor()
         
         if (self.SMS_DB_TYPE == 1):
-            cur.execute(sql_command_1)
+            cur.execute(SMS_BUGLE_QUERY)
         elif (self.SMS_DB_TYPE == 2):
-            cur.execute(sql_command_2)
+            cur.execute(SMS_MMSMS_QUERY)
 
         names = [description[0] for description in cur.description]
 
@@ -103,12 +104,12 @@ class SMS(AndroidExtraction):
     def run(self):
         # Checking the SMS database path
         try:
-            if (self._adb_check_file_exists(os.path.join("/", SMS_PATH))):
+            if (self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH))):
                 self.SMS_DB_TYPE = 1
-                self._adb_process_file(os.path.join("/", SMS_PATH), self._parse_db)
-            elif (self._adb_check_file_exists(os.path.join("/", SMS_PATH_2))):
+                self._adb_process_file(os.path.join("/", SMS_BUGLE_PATH), self._parse_db)
+            elif (self._adb_check_file_exists(os.path.join("/", SMS_MMSSMS_PATH))):
                 self.SMS_DB_TYPE = 2
-                self._adb_process_file(os.path.join("/", SMS_PATH_2), self._parse_db)
+                self._adb_process_file(os.path.join("/", SMS_MMSSMS_PATH), self._parse_db)
             else:
                 self.log.error("No SMS database found")
         except Exception as e:
