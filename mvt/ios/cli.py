@@ -54,6 +54,7 @@ def cli():
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def decrypt_backup(destination, password, key_file, backup_path):
     backup = DecryptBackup(backup_path, destination)
+
     if password:
         backup.decrypt_with_password(password)
     elif key_file:
@@ -61,6 +62,30 @@ def decrypt_backup(destination, password, key_file, backup_path):
     else:
         raise click.ClickException("Missing required option. Specify either "
                                    "--password or --key-file.")
+
+    backup.process_backup()
+
+
+#==============================================================================
+# Command: extract-key
+#==============================================================================
+@cli.command("extract-key", help="Extract decryption key from an iTunes backup")
+@click.option("--password", "-p",
+              help="Password to use to decrypt the backup",
+              prompt="Enter backup password",
+              hide_input=True, prompt_required=False, required=True)
+@click.option("--key-file", "-k",
+              help="Key file to be written (if unset, will print to STDOUT)",
+              required=False,
+              type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
+@click.argument("BACKUP_PATH", type=click.Path(exists=True))
+def extract_key(password, backup_path, key_file):
+    backup = DecryptBackup(backup_path)
+    backup.decrypt_with_password(password)
+    backup.get_key()
+
+    if key_file:
+        backup.write_key(key_file)
 
 
 #==============================================================================
