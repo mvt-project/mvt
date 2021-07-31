@@ -4,7 +4,6 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import errno
-import getpass
 import logging
 import os
 import sys
@@ -12,6 +11,7 @@ import tarfile
 
 import click
 from rich.logging import RichHandler
+from rich.prompt import Prompt
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 # Help messages of repeating options.
 OUTPUT_HELP_MESSAGE = "Specify a path to a folder where you want to store JSON results"
 
-# set this environment variable to a password if needed
+# Set this environment variable to a password if needed.
 PASSWD_ENV = 'MVT_IOS_BACKUP_PASSWORD'
 
 #==============================================================================
@@ -59,18 +59,21 @@ def decrypt_backup(destination, password, key_file, backup_path):
 
     if key_file:
         if PASSWD_ENV in os.environ:
-            log.warning(f"Ignoring {PASSWD_ENV} environment variable, using --key-file '{key_file}' instead")
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --key-file '{key_file}' instead")
+
         backup.decrypt_with_key_file(key_file)
     elif password:
-        log.warning("Your password may be visible in the process table because it was supplied on the command line!")
+        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+
         if PASSWD_ENV in os.environ:
-            log.warning(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+
         backup.decrypt_with_password(password)
     elif PASSWD_ENV in os.environ:
         log.info(f"Using password from {PASSWD_ENV} environment variable")
         backup.decrypt_with_password(os.environ[PASSWD_ENV])
     else:
-        sekrit = getpass.getpass(prompt='Enter iOS backup password: ')
+        sekrit = Prompt.ask("Enter backup password")
         backup.decrypt_with_password(sekrit)
 
     backup.process_backup()
@@ -91,14 +94,15 @@ def extract_key(password, backup_path, key_file):
     backup = DecryptBackup(backup_path)
 
     if password:
-        log.warning("Your password may be visible in the process table because it was supplied on the command line!")
+        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+
         if PASSWD_ENV in os.environ:
-            log.warning(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
     elif PASSWD_ENV in os.environ:
         log.info(f"Using password from {PASSWD_ENV} environment variable")
         password = os.environ[PASSWD_ENV]
     else:
-        password = getpass.getpass(prompt='Enter iOS backup password: ')
+        password = Prompt.ask("Enter backup password")
 
     backup.decrypt_with_password(password)
     backup.get_key()
