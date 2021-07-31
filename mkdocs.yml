@@ -44,4 +44,5 @@ nav:
         - Android Forensic Methodology: "android/methodology.md"
         - Check APKs: "android/download_apks.md"
         - Check an Android Backup: "android/backup.md"
+    - Indicators of Compromise: "iocs.md"
     - License: "license.md"
