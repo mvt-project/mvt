@@ -81,9 +81,7 @@ def decrypt_backup(destination, password, key_file, backup_path):
 #==============================================================================
 @cli.command("extract-key", help="Extract decryption key from an iTunes backup")
 @click.option("--password", "-p",
-              help="Password to use to decrypt the backup",
-              prompt="Enter backup password",
-              hide_input=True, prompt_required=False, required=True)
+              help=f"Password to use to decrypt the backup (or, set {PASSWD_ENV} environment variable)")
 @click.option("--key-file", "-k",
               help="Key file to be written (if unset, will print to STDOUT)",
               required=False,
@@ -91,6 +89,17 @@ def decrypt_backup(destination, password, key_file, backup_path):
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def extract_key(password, backup_path, key_file):
     backup = DecryptBackup(backup_path)
+
+    if password:
+        log.warning("Your password may be visible in the process table because it was supplied on the command line!")
+        if PASSWD_ENV in os.environ:
+            log.warning(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+    elif PASSWD_ENV in os.environ:
+        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        password = os.environ[PASSWD_ENV]
+    else:
+        password = getpass.getpass(prompt='Enter iOS backup password: ')
+
     backup.decrypt_with_password(password)
     backup.get_key()
 
