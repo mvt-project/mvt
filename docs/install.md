@@ -35,7 +35,7 @@ export PATH=$PATH:~/.local/bin
 Then you can install MVT directly from [pypi](https://pypi.org/project/mvt/)
 
 ```bash
-pip install mvt
+pip3 install mvt
 ```
 
 Or from the source code:
