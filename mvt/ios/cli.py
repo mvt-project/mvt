@@ -73,7 +73,7 @@ def decrypt_backup(destination, password, key_file, backup_path):
         log.info(f"Using password from {PASSWD_ENV} environment variable")
         backup.decrypt_with_password(os.environ[PASSWD_ENV])
     else:
-        sekrit = Prompt.ask("Enter backup password")
+        sekrit = Prompt.ask("Enter backup password", password=True)
         backup.decrypt_with_password(sekrit)
 
     backup.process_backup()
@@ -102,7 +102,7 @@ def extract_key(password, backup_path, key_file):
         log.info(f"Using password from {PASSWD_ENV} environment variable")
         password = os.environ[PASSWD_ENV]
     else:
-        password = Prompt.ask("Enter backup password")
+        password = Prompt.ask("Enter backup password", password=True)
 
     backup.decrypt_with_password(password)
     backup.get_key()
