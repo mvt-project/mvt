@@ -50,13 +50,14 @@ class IOSExtraction(MVTModule):
 
         if not shutil.which("sqlite3"):
             raise DatabaseCorruptedError("Unable to recover without sqlite3 binary. Please install sqlite3!")
+        if '"' in file_path:
+            raise DatabaseCorruptedError(f"Database at path '{file_path}' is corrupted. unable to recover because it has a quotation mark (\") in its name.")
 
         bak_path = f"{file_path}.bak"
         shutil.move(file_path, bak_path)
 
-        cmd = f"sqlite3 {bak_path} '.clone {file_path}'"
-        ret = subprocess.call(cmd, shell=True, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+        ret = subprocess.call(['sqlite3', bak_path, f'.clone "{file_path}"'],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if ret != 0:
             raise DatabaseCorruptedError("Recovery of database failed")
 
