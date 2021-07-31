@@ -11,6 +11,7 @@ import tarfile
 
 import click
 from rich.logging import RichHandler
+from rich.prompt import Prompt
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
@@ -28,6 +29,8 @@ log = logging.getLogger(__name__)
 # Help messages of repeating options.
 OUTPUT_HELP_MESSAGE = "Specify a path to a folder where you want to store JSON results"
 
+# Set this environment variable to a password if needed.
+PASSWD_ENV = 'MVT_IOS_BACKUP_PASSWORD'
 
 #==============================================================================
 # Main
@@ -44,8 +47,7 @@ def cli():
 @click.option("--destination", "-d", required=True,
               help="Path to the folder where to store the decrypted backup")
 @click.option("--password", "-p", cls=MutuallyExclusiveOption,
-              help="Password to use to decrypt the backup",
-              prompt="Enter backup password", hide_input=True, prompt_required=False,
+              help=f"Password to use to decrypt the backup (or, set {PASSWD_ENV} environment variable)",
               mutually_exclusive=["key_file"])
 @click.option("--key-file", "-k", cls=MutuallyExclusiveOption,
               type=click.Path(exists=True),
@@ -55,13 +57,24 @@ def cli():
 def decrypt_backup(destination, password, key_file, backup_path):
     backup = DecryptBackup(backup_path, destination)
 
-    if password:
-        backup.decrypt_with_password(password)
-    elif key_file:
+    if key_file:
+        if PASSWD_ENV in os.environ:
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --key-file '{key_file}' instead")
+
         backup.decrypt_with_key_file(key_file)
+    elif password:
+        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+
+        if PASSWD_ENV in os.environ:
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+
+        backup.decrypt_with_password(password)
+    elif PASSWD_ENV in os.environ:
+        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        backup.decrypt_with_password(os.environ[PASSWD_ENV])
     else:
-        raise click.ClickException("Missing required option. Specify either "
-                                   "--password or --key-file.")
+        sekrit = Prompt.ask("Enter backup password")
+        backup.decrypt_with_password(sekrit)
 
     backup.process_backup()
 
@@ -71,9 +84,7 @@ def decrypt_backup(destination, password, key_file, backup_path):
 #==============================================================================
 @cli.command("extract-key", help="Extract decryption key from an iTunes backup")
 @click.option("--password", "-p",
-              help="Password to use to decrypt the backup",
-              prompt="Enter backup password",
-              hide_input=True, prompt_required=False, required=True)
+              help=f"Password to use to decrypt the backup (or, set {PASSWD_ENV} environment variable)")
 @click.option("--key-file", "-k",
               help="Key file to be written (if unset, will print to STDOUT)",
               required=False,
@@ -81,6 +92,18 @@ def decrypt_backup(destination, password, key_file, backup_path):
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def extract_key(password, backup_path, key_file):
     backup = DecryptBackup(backup_path)
+
+    if password:
+        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+
+        if PASSWD_ENV in os.environ:
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+    elif PASSWD_ENV in os.environ:
+        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        password = os.environ[PASSWD_ENV]
+    else:
+        password = Prompt.ask("Enter backup password")
+
     backup.decrypt_with_password(password)
     backup.get_key()
 

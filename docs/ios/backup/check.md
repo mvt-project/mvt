@@ -41,9 +41,10 @@ In case you have an encrypted backup, you will need to decrypt it first. This ca
       -d, --destination TEXT  Path to the folder where to store the decrypted
                               backup  [required]
 
-      -p, --password TEXT     Password to use to decrypt the backup NOTE: This
-                              argument is mutually exclusive with arguments:
-                              [key_file].
+      -p, --password TEXT     Password to use to decrypt the backup (or, set
+                              MVT_IOS_BACKUP_PASSWORD environment variable)
+                              NOTE: This argument is mutually exclusive with
+                              arguments: [key_file].
 
       -k, --key-file PATH     File containing raw encryption key to use to decrypt
                               the backup NOTE: This argument is mutually exclusive
@@ -51,10 +52,10 @@ In case you have an encrypted backup, you will need to decrypt it first. This ca
 
       --help                  Show this message and exit.
 
-You can specify either a password via command-line or pass a key file, and you need to specify a destination path where the decrypted backup will be stored. If `-p` is omitted, MVT will ask for a password. Following is an example usage of `decrypt-backup`:
+You can specify the password in the environment variable `MVT_IOS_BACKUP_PASSWORD`, or via command-line argument, or you can pass a key file.  You need to specify a destination path where the decrypted backup will be stored. If a password cannot be found and no key file is specified, MVT will ask for a password. Following is an example usage of `decrypt-backup` sending the password via an environment variable:
 
 ```bash
-mvt-ios decrypt-backup -p password -d /path/to/decrypted /path/to/backup
+MVT_IOS_BACKUP_PASSWORD="mypassword" mvt-ios decrypt-backup -d /path/to/decrypted /path/to/backup
 ```
 
 ## Run `mvt-ios` on a Backup
