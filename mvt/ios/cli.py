@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 OUTPUT_HELP_MESSAGE = "Specify a path to a folder where you want to store JSON results"
 
 # Set this environment variable to a password if needed.
-PASSWD_ENV = 'MVT_IOS_BACKUP_PASSWORD'
+PASSWD_ENV = "MVT_IOS_BACKUP_PASSWORD"
 
 #==============================================================================
 # Main
