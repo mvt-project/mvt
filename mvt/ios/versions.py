@@ -3,6 +3,46 @@
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
+IPHONE_MODELS = [
+    {"description": "iPhone 4S", "identifier": "iPhone4,1"},
+    {"description": "iPhone 5", "identifier": "iPhone5,1"},
+    {"description": "iPhone 5", "identifier": "iPhone5,2"},
+    {"description": "iPhone 5c", "identifier": "iPhone5,3"},
+    {"description": "iPhone 5c", "identifier": "iPhone5,4"},
+    {"description": "iPhone 5s", "identifier": "iPhone6,1"},
+    {"description": "iPhone 5s", "identifier": "iPhone6,2"},
+    {"description": "iPhone 6 Plus", "identifier": "iPhone7,1"},
+    {"description": "iPhone 6", "identifier": "iPhone7,2"},
+    {"description": "iPhone 6s", "identifier": "iPhone8,1"},
+    {"description": "iPhone 6s", "identifier": "iPhone8,1"},
+    {"description": "iPhone 6s Plus", "identifier": "iPhone8,2"},
+    {"description": "iPhone 6s Plus", "identifier": "iPhone8,2"},
+    {"description": "iPhone SE (1st generation)", "identifier": "iPhone8,4"},
+    {"description": "iPhone SE (1st generation)", "identifier": "iPhone8,4"},
+    {"description": "iPhone 7", "identifier": "iPhone9,1"},
+    {"description": "iPhone 7 Plus", "identifier": "iPhone9,2"},
+    {"description": "iPhone 7", "identifier": "iPhone9,3"},
+    {"description": "iPhone 7 Plus", "identifier": "iPhone9,4"},
+    {"description": "iPhone 8", "identifier": "iPhone10,1"},
+    {"description": "iPhone 8 Plus", "identifier": "iPhone10,2"},
+    {"description": "iPhone X", "identifier": "iPhone10,3"},
+    {"description": "iPhone 8", "identifier": "iPhone10,4"},
+    {"description": "iPhone 8 Plus", "identifier": "iPhone10,5"},
+    {"description": "iPhone X", "identifier": "iPhone10,6"},
+    {"description": "iPhone XS", "identifier": "iPhone11,2"},
+    {"description": "iPhone XS Max", "identifier": "iPhone11,4"},
+    {"description": "iPhone XS Max", "identifier": "iPhone11,6"},
+    {"description": "iPhone XR", "identifier": "iPhone11,8"},
+    {"description": "iPhone 11", "identifier": "iPhone12,1"},
+    {"description": "iPhone 11 Pro", "identifier": "iPhone12,3"},
+    {"description": "iPhone 11 Pro Max", "identifier": "iPhone12,5"},
+    {"description": "iPhone SE (2nd generation)", "identifier": "iPhone12,8"},
+    {"description": "iPhone 12 mini", "identifier": "iPhone13,1"},
+    {"description": "iPhone 12", "identifier": "iPhone13,2"},
+    {"description": "iPhone 12 Pro", "identifier": "iPhone13,3"},
+    {"description": "iPhone 12 Pro Max", "identifier": "iPhone13,4"},
+]
+
 IPHONE_IOS_VERSIONS = [
     {"build": "1A543a", "version": "1.0"},
     {"build": "1C25", "version": "1.0.1"},
@@ -185,6 +225,11 @@ IPHONE_IOS_VERSIONS = [
     {"build": "18F72", "version": "14.6"},
     {"build": "18G69", "version": "14.7"},
 ]
+
+def get_device_desc_from_id(identifier, devices_list=IPHONE_MODELS):
+    for model in IPHONE_MODELS:
+        if identifier == model["identifier"]:
+            return model["description"]
 
 def find_version_by_build(build):
     build = build.upper()
