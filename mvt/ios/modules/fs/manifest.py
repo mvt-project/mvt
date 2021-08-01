@@ -11,6 +11,7 @@ import sqlite3
 import biplist
 
 from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.module import DatabaseNotFoundError
 
 from .base import IOSExtraction
 
@@ -91,7 +92,7 @@ class Manifest(IOSExtraction):
     def run(self):
         manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
         if not os.path.isfile(manifest_db_path):
-            raise FileNotFoundError("Impossible to find the module's database file")
+            raise DatabaseNotFoundError("Impossible to find the module's database file")
 
         self.log.info("Found Manifest.db database at path: %s", manifest_db_path)
 
