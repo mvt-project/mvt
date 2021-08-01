@@ -10,8 +10,8 @@ import sqlite3
 
 import biplist
 
-from mvt.common.utils import convert_timestamp_to_iso
 from mvt.common.module import DatabaseNotFoundError
+from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import IOSExtraction
 
