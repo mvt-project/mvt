@@ -56,7 +56,7 @@ class IOSExtraction(MVTModule):
         bak_path = f"{file_path}.bak"
         shutil.move(file_path, bak_path)
 
-        ret = subprocess.call(["sqlite3", bak_path, f".clone '{file_path}'"],
+        ret = subprocess.call(["sqlite3", bak_path, f".clone \"{file_path}\""],
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if ret != 0:
             raise DatabaseCorruptedError("Recovery of database failed")
