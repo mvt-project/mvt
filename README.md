@@ -25,6 +25,7 @@ You will need some dependencies, so please check the [documentation](https://doc
 
 Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://docs.mvt.re/en/latest/docker.html).
 
+**Please note:** [MVT does not currently support running natively on Windows.](https://docs.mvt.re/en/latest/install.html#mvt-on-windows)
 
 ## Usage
 
