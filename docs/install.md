@@ -24,6 +24,12 @@ brew install python3 libusb sqlite3
 
 *libusb* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
 
+## MVT on Windows
+
+MVT is currently not officially supported to run natively on Windows. While most functionality should work out of the box, there are known issues especially with `mvt-android`.
+
+It is recommended to try installing and running MVT from [Windows Subsystem Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/about) and follow Linux installation instructions for your distribution of choice.
+
 ## Installing MVT
 
 If you haven't done so, you can add this to your `.bashrc` or `.zshrc` file in order to add locally installed Pypi binaries to your `$PATH`:
