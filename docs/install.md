@@ -12,6 +12,8 @@ sudo apt install python3 python3-pip libusb-1.0-0 sqlite3
 
 *libusb-1.0-0* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
 
+When working with Android devices you should additionally install [Android SDK Platform Tools](https://developer.android.com/studio/releases/platform-tools). If you prefer to install a package made available by your distribution of choice, please make sure the version is recent to ensure compatibility with modern Android devices.
+
 ## Dependencies on Mac
 
 Running MVT on Mac requires Xcode and [homebrew](https://brew.sh) to be installed.
@@ -23,6 +25,14 @@ brew install python3 libusb sqlite3
 ```
 
 *libusb* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
+
+When working with Android devices you should additionally install Android SDK Platform Tools:
+
+```bash
+brew install --cask android-platform-tools
+```
+
+Or by downloading the [official binary releases](https://developer.android.com/studio/releases/platform-tools).
 
 ## MVT on Windows
 
