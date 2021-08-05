@@ -221,6 +221,7 @@ IPHONE_IOS_VERSIONS = [
     {"build": "18E212", "version": "14.5.1"},
     {"build": "18F72", "version": "14.6"},
     {"build": "18G69", "version": "14.7"},
+    {"build": "18G82", "version": "14.7.1"},
 ]
 
 def get_device_desc_from_id(identifier, devices_list=IPHONE_MODELS):
