@@ -81,10 +81,10 @@ class DecryptBackup:
             if isinstance(e, KeyError) and len(e.args) > 0 and e.args[0] == b"KEY":
                 log.critical("Failed to decrypt backup. Password is probably wrong.")
             elif isinstance(e, FileNotFoundError) and os.path.basename(e.filename) == "Manifest.plist":
-                log.critical(f"Failed to find backup at {self.backup_path}.  Did you need to specify the full path?")
+                log.critical(f"Failed to find a valid backup at {self.backup_path}. Did you point to the right backup path?")
             else:
                 log.exception(e)
-                log.critical("Failed to decrypt backup. Did you provide the correct password?  Did you point to the right backup path?")
+                log.critical("Failed to decrypt backup. Did you provide the correct password? Did you point to the right backup path?")
 
     def decrypt_with_key_file(self, key_file):
         """Decrypts an encrypted iOS backup using a key file.
