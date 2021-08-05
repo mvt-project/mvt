@@ -17,7 +17,7 @@ from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
 from usb1 import USBErrorAccess, USBErrorBusy
 
-from mvt.common.module import MVTModule
+from mvt.common.module import MVTModule, InsufficientPrivileges
 
 log = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class AndroidExtraction(MVTModule):
         """Check if we have a `su` binary, otherwise raise an Exception.
         """
         if not self._adb_check_if_root():
-            raise Exception("The Android device does not seem to have a `su` binary. Cannot run this module.")
+            raise InsufficientPrivileges("The Android device does not seem to have a `su` binary. Cannot run this module.")
 
     def _adb_command_as_root(self, command):
         """Execute an adb shell command.
@@ -119,6 +119,8 @@ class AndroidExtraction(MVTModule):
         :param file: Path of the file
         :returns: Boolean indicating whether the file exists or not
         """
+
+        # TODO: Need to support checking files without root privileges as well.
 
         # Connect to the device over adb.
         self._adb_connect()
