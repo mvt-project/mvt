@@ -154,7 +154,7 @@ def run_module(module):
         module.log.exception("The run() procedure of module %s was not implemented yet!",
                              module.__class__.__name__)
     except InsufficientPrivileges as e:
-        module.log.info("Insufficient privileges for module %s: %s", module.__class.__name__, e)
+        module.log.info("Insufficient privileges for module %s: %s", module.__class__.__name__, e)
     except DatabaseNotFoundError as e:
         module.log.info("There might be no data to extract by module %s: %s",
                         module.__class__.__name__, e)
