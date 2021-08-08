@@ -1,12 +1,13 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
-import sqlite3
 import logging
+import sqlite3
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso, check_for_links
+from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
+                              convert_timestamp_to_iso)
 
 from .base import IOSExtraction
 
@@ -73,7 +74,7 @@ class Whatsapp(IOSExtraction):
             # Extract links from the WhatsApp message.
             message_links = check_for_links(new_message["ZTEXT"])
 
-            # If we find mesages, or if there's an empty message we add it to the list.
+            # If we find messages, or if there's an empty message we add it to the list.
             if new_message["ZTEXT"] and (message_links or new_message["ZTEXT"].strip() == ""):
                 self.results.append(new_message)
 

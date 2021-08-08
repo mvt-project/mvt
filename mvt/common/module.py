@@ -1,17 +1,28 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
-import io
-import os
-import re
 import csv
 import glob
+import io
 import logging
+import os
+import re
+
 import simplejson as json
 
 from .indicators import Indicators
+
+
+class DatabaseNotFoundError(Exception):
+    pass
+
+class DatabaseCorruptedError(Exception):
+    pass
+
+class InsufficientPrivileges(Exception):
+    pass
 
 class MVTModule(object):
     """This class provides a base for all extraction modules."""
@@ -69,7 +80,7 @@ class MVTModule(object):
         self.indicators = Indicators(file_path, self.log)
 
     def check_indicators(self):
-        """Check the results of this module againt a provided list of
+        """Check the results of this module against a provided list of
         indicators."""
         raise NotImplementedError
 
@@ -85,7 +96,11 @@ class MVTModule(object):
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.output_folder, results_file_name)
             with open(results_json_path, "w") as handle:
-                json.dump(self.results, handle, indent=4)
+                try:
+                    json.dump(self.results, handle, indent=4)
+                except Exception as e:
+                    self.log.error("Unable to store results of module %s to file %s: %s",
+                                   self.__class__.__name__, results_file_name, e)
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
@@ -101,19 +116,21 @@ class MVTModule(object):
         """
         for result in self.results:
             record = self.serialize(result)
-            if type(record) == list:
-                self.timeline.extend(record)
-            else:
-                self.timeline.append(record)
+            if record:
+                if type(record) == list:
+                    self.timeline.extend(record)
+                else:
+                    self.timeline.append(record)
 
         for detected in self.detected:
             record = self.serialize(detected)
-            if type(record) == list:
-                self.timeline_detected.extend(record)
-            else:
-                self.timeline_detected.append(record)
+            if record:
+                if type(record) == list:
+                    self.timeline_detected.extend(record)
+                else:
+                    self.timeline_detected.append(record)
 
-        # De-duplicate timeline entries
+        # De-duplicate timeline entries.
         self.timeline = self.timeline_deduplicate(self.timeline)
         self.timeline_detected = self.timeline_deduplicate(self.timeline_detected)
 
@@ -138,8 +155,13 @@ def run_module(module):
     except NotImplementedError:
         module.log.exception("The run() procedure of module %s was not implemented yet!",
                              module.__class__.__name__)
-    except FileNotFoundError as e:
-        module.log.error("There might be no data to extract by module %s: %s",
+    except InsufficientPrivileges as e:
+        module.log.info("Insufficient privileges for module %s: %s", module.__class__.__name__, e)
+    except DatabaseNotFoundError as e:
+        module.log.info("There might be no data to extract by module %s: %s",
+                        module.__class__.__name__, e)
+    except DatabaseCorruptedError as e:
+        module.log.error("The %s module database seems to be corrupted and recovery failed: %s",
                          module.__class__.__name__, e)
     except Exception as e:
         module.log.exception("Error in running extraction from module %s: %s",

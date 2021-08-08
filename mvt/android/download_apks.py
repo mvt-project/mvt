@@ -1,22 +1,24 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
-import os
 import json
 import logging
+import os
+
 import pkg_resources
 from tqdm import tqdm
 
 from mvt.common.utils import get_sha256_from_file_path
+
 from .modules.adb.base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
 # TODO: Would be better to replace tqdm with rich.progress to reduce
 #       the number of dependencies. Need to investigate whether
-#       it's possible to have a simialr callback system.
+#       it's possible to have a similar callback system.
 class PullProgress(tqdm):
     """PullProgress is a tqdm update system for APK downloads."""
 
@@ -42,7 +44,7 @@ class DownloadAPKs(AndroidExtraction):
         """Initialize module.
         :param output_folder: Path to the folder where data should be stored
         :param all_apks: Boolean indicating whether to download all packages
-                         or filter known-goods 
+                         or filter known-goods
         :param packages: Provided list of packages, typically for JSON checks
         :param serial: The USB device serial ID
         """

@@ -1,17 +1,20 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
+import datetime
 import io
 import os
-import biplist
 import sqlite3
-import datetime
 
+import biplist
+
+from mvt.common.module import DatabaseNotFoundError
 from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import IOSExtraction
+
 
 class Manifest(IOSExtraction):
     """This module extracts information from a backup Manifest.db file."""
@@ -40,6 +43,8 @@ class Manifest(IOSExtraction):
 
     def serialize(self, record):
         records = []
+        if "modified" not in record or "statusChanged" not in record:
+            return
         for ts in set([record["created"], record["modified"], record["statusChanged"]]):
             macb = ""
             macb += "M" if ts == record["modified"] else "-"
@@ -63,11 +68,14 @@ class Manifest(IOSExtraction):
         for result in self.results:
             if not "relativePath" in result:
                 continue
-
-            if os.path.basename(result["relativePath"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
-                self.log.warning("Found a potentially suspicious \"com.apple.CrashReporter.plist\" file created in RootDomain")
-                self.detected.append(result)
+            if not result["relativePath"]:
                 continue
+
+            if result["domain"]:
+                if os.path.basename(result["relativePath"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
+                    self.log.warning("Found a potentially suspicious \"com.apple.CrashReporter.plist\" file created in RootDomain")
+                    self.detected.append(result)
+                    continue
 
             if self.indicators.check_file(result["relativePath"]):
                 self.log.warning("Found a known malicious file at path: %s", result["relativePath"])
@@ -84,7 +92,7 @@ class Manifest(IOSExtraction):
     def run(self):
         manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
         if not os.path.isfile(manifest_db_path):
-            raise FileNotFoundError("Impossible to find the module's database file")
+            raise DatabaseNotFoundError("Impossible to find the module's database file")
 
         self.log.info("Found Manifest.db database at path: %s", manifest_db_path)
 

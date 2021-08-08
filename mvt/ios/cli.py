@@ -1,18 +1,20 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
+import logging
 import os
 import sys
-import click
 import tarfile
-import logging
-from rich.logging import RichHandler
 
+import click
+from rich.logging import RichHandler
+from rich.prompt import Prompt
+
+from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
-from mvt.common.indicators import Indicators
 
 from .decrypt import DecryptBackup
 from .modules.fs import BACKUP_MODULES, FS_MODULES
@@ -26,6 +28,8 @@ log = logging.getLogger(__name__)
 # Help messages of repeating options.
 OUTPUT_HELP_MESSAGE = "Specify a path to a folder where you want to store JSON results"
 
+# Set this environment variable to a password if needed.
+PASSWD_ENV = "MVT_IOS_BACKUP_PASSWORD"
 
 #==============================================================================
 # Main
@@ -42,8 +46,7 @@ def cli():
 @click.option("--destination", "-d", required=True,
               help="Path to the folder where to store the decrypted backup")
 @click.option("--password", "-p", cls=MutuallyExclusiveOption,
-              help="Password to use to decrypt the backup",
-              prompt="Enter backup password", hide_input=True, prompt_required=False,
+              help=f"Password to use to decrypt the backup (or, set {PASSWD_ENV} environment variable)",
               mutually_exclusive=["key_file"])
 @click.option("--key-file", "-k", cls=MutuallyExclusiveOption,
               type=click.Path(exists=True),
@@ -52,13 +55,59 @@ def cli():
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def decrypt_backup(destination, password, key_file, backup_path):
     backup = DecryptBackup(backup_path, destination)
-    if password:
-        backup.decrypt_with_password(password)
-    elif key_file:
+
+    if key_file:
+        if PASSWD_ENV in os.environ:
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --key-file '{key_file}' instead")
+
         backup.decrypt_with_key_file(key_file)
+    elif password:
+        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+
+        if PASSWD_ENV in os.environ:
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+
+        backup.decrypt_with_password(password)
+    elif PASSWD_ENV in os.environ:
+        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        backup.decrypt_with_password(os.environ[PASSWD_ENV])
     else:
-        raise click.ClickException("Missing required option. Specify either "
-                                   "--password or --key-file.")
+        sekrit = Prompt.ask("Enter backup password", password=True)
+        backup.decrypt_with_password(sekrit)
+
+    backup.process_backup()
+
+
+#==============================================================================
+# Command: extract-key
+#==============================================================================
+@cli.command("extract-key", help="Extract decryption key from an iTunes backup")
+@click.option("--password", "-p",
+              help=f"Password to use to decrypt the backup (or, set {PASSWD_ENV} environment variable)")
+@click.option("--key-file", "-k",
+              help="Key file to be written (if unset, will print to STDOUT)",
+              required=False,
+              type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
+@click.argument("BACKUP_PATH", type=click.Path(exists=True))
+def extract_key(password, backup_path, key_file):
+    backup = DecryptBackup(backup_path)
+
+    if password:
+        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+
+        if PASSWD_ENV in os.environ:
+            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+    elif PASSWD_ENV in os.environ:
+        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        password = os.environ[PASSWD_ENV]
+    else:
+        password = Prompt.ask("Enter backup password", password=True)
+
+    backup.decrypt_with_password(password)
+    backup.get_key()
+
+    if key_file:
+        backup.write_key(key_file)
 
 
 #==============================================================================
@@ -66,7 +115,7 @@ def decrypt_backup(destination, password, key_file, backup_path):
 #==============================================================================
 @cli.command("check-backup", help="Extract artifacts from an iTunes backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -80,6 +129,13 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
         return
 
     log.info("Checking iTunes backup located at: %s", backup_path)
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
@@ -116,7 +172,7 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
 #==============================================================================
 @cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
-@click.option("--output", "-o", type=click.Path(exists=True), help=OUTPUT_HELP_MESSAGE)
+@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
@@ -130,6 +186,13 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
         return
 
     log.info("Checking filesystem dump located at: %s", dump_path)
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            sys.exit(-1)
 
     if iocs:
         # Pre-load indicators for performance reasons.

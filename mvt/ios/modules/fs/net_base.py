@@ -1,15 +1,16 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
-import sqlite3
 import operator
+import sqlite3
 from pathlib import Path
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
 from .base import IOSExtraction
+
 
 class NetBase(IOSExtraction):
     """This class provides a base for DataUsage and NetUsage extraction modules."""
@@ -166,6 +167,10 @@ class NetBase(IOSExtraction):
         """Identify process which may have been deleted from the DataUsage database"""
         results_by_proc = {proc["proc_id"]: proc for proc in self.results if proc["proc_id"]}
         all_proc_id = sorted(results_by_proc.keys())
+
+        # Fix issue #108
+        if not all_proc_id:
+            return
 
         missing_procs, last_proc_id = {}, None
         for proc_id in range(min(all_proc_id), max(all_proc_id)):

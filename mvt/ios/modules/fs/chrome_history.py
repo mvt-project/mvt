@@ -1,11 +1,12 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
 import sqlite3
 
-from mvt.common.utils import convert_chrometime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import (convert_chrometime_to_unix,
+                              convert_timestamp_to_iso)
 
 from .base import IOSExtraction
 
@@ -34,6 +35,14 @@ class ChromeHistory(IOSExtraction):
             "event": "visit",
             "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, redirect source: {record['redirect_source']})"
         }
+
+    def check_indicators(self):
+        if not self.indicators:
+            return
+
+        for result in self.results:
+            if self.indicators.check_domain(result["url"]):
+                self.detected.append(result)
 
     def run(self):
         self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS, root_paths=CHROME_HISTORY_ROOT_PATHS)

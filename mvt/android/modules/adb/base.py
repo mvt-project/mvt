@@ -1,20 +1,22 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
-import os
-import sys
-import time
 import logging
+import os
+import random
+import string
+import sys
 import tempfile
+import time
 from adb_shell.adb_device import AdbDeviceUsb, AdbDeviceTcp
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
-from adb_shell.exceptions import DeviceAuthError, AdbCommandFailureException
-from usb1 import USBErrorBusy, USBErrorAccess
+from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
+from usb1 import USBErrorAccess, USBErrorBusy
 
-from mvt.common.module import MVTModule
+from mvt.common.module import MVTModule, InsufficientPrivileges
 
 log = logging.getLogger(__name__)
 
@@ -106,13 +108,13 @@ class AndroidExtraction(MVTModule):
         """Check if we have a `su` binary on the Android device.
         :returns: Boolean indicating whether a `su` binary is present or not
         """
-        return bool(self._adb_command("[ ! -f /sbin/su ] || echo 1"))
+        return bool(self._adb_command("command -v su"))
 
     def _adb_root_or_die(self):
         """Check if we have a `su` binary, otherwise raise an Exception.
         """
         if not self._adb_check_if_root():
-            raise Exception("The Android device does not seem to have a `su` binary. Cannot run this module.")
+            raise InsufficientPrivileges("The Android device does not seem to have a `su` binary. Cannot run this module.")
 
     def _adb_command_as_root(self, command):
         """Execute an adb shell command.
@@ -120,8 +122,23 @@ class AndroidExtraction(MVTModule):
         :returns: Output of command
         """
         return self._adb_command(f"su -c {command}")
+    
+    def _adb_check_file_exists(self, file):
+        """Verify that a file exists.
+        :param file: Path of the file
+        :returns: Boolean indicating whether the file exists or not
+        """
 
-    def _adb_download(self, remote_path, local_path, progress_callback=None):
+        # TODO: Need to support checking files without root privileges as well.
+
+        # Connect to the device over adb.
+        self._adb_connect()
+        # Check if we have root, if not raise an Exception.
+        self._adb_root_or_die()
+
+        return bool(self._adb_command_as_root(f"[ ! -f {file} ] || echo 1"))
+
+    def _adb_download(self, remote_path, local_path, progress_callback=None, retry_root=True):
         """Download a file form the device.
         :param remote_path: Path to download from the device
         :param local_path: Path to where to locally store the copy of the file
@@ -129,6 +146,37 @@ class AndroidExtraction(MVTModule):
         """
         try:
             self.device.pull(remote_path, local_path, progress_callback)
+        except AdbCommandFailureException as e:
+            if retry_root:
+                self._adb_download_root(remote_path, local_path, progress_callback)
+            else:
+                raise Exception(f"Unable to download file {remote_path}: {e}")
+    
+    def _adb_download_root(self, remote_path, local_path, progress_callback=None):
+        try:
+            # Check if we have root, if not raise an Exception.
+            self._adb_root_or_die()
+
+            # We generate a random temporary filename.
+            tmp_filename = "tmp_" + ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10))
+
+            # We create a temporary local file.
+            new_remote_path = f"/sdcard/{tmp_filename}"
+
+            # We copy the file from the data folder to /sdcard/.
+            cp = self._adb_command_as_root(f"cp {remote_path} {new_remote_path}")
+            if cp.startswith("cp: ") and "No such file or directory" in cp:
+                raise Exception(f"Unable to process file {remote_path}: File not found")
+            elif cp.startswith("cp: ") and "Permission denied" in cp:
+                raise Exception(f"Unable to process file {remote_path}: Permission denied")
+
+            # We download from /sdcard/ to the local temporary file.
+            # If it doesn't work now, don't try again (retry_root=False)
+            self._adb_download(new_remote_path, local_path, retry_root=False)
+
+            # Delete the copy on /sdcard/.
+            self._adb_command(f"rm -rf {new_remote_path}")
+            
         except AdbCommandFailureException as e:
             raise Exception(f"Unable to download file {remote_path}: {e}")
 

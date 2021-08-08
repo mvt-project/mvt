@@ -6,7 +6,7 @@ Before jumping into acquiring and analyzing data from an iOS device, you should 
 
 You will need to decide whether to attempt to jailbreak the device and obtain a full filesystem dump, or not.
 
-While access the full filesystem allows to extact data that would otherwise be unavailable, it might not always be possible to jailbreak a certain iPhone model or version of iOS. In addition, depending on the type of jailbreak available, doing so might compromise some important records, pollute others, or potentially cause unintended malfunctioning of the device later in case it is used again.
+While access the full filesystem allows to extract data that would otherwise be unavailable, it might not always be possible to jailbreak a certain iPhone model or version of iOS. In addition, depending on the type of jailbreak available, doing so might compromise some important records, pollute others, or potentially cause unintended malfunctioning of the device later in case it is used again.
 
 If you are not expected to return the phone, you might want to consider to attempt a jailbreak after having exhausted all other options, including a backup.
 

@@ -1,14 +1,15 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
+
+import logging
 
 import requests
-import logging
-from rich.text import Text
-from rich.table import Table
-from rich.progress import track
 from rich.console import Console
+from rich.progress import track
+from rich.table import Table
+from rich.text import Text
 
 log = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 # Dumping the filesystem
 
-While iTunes backup provide a lot of very useful databases and diagnistic data, in some cases you might want to jailbreak the device and perform a full filesystem dump. In that case, you should take a look at [checkra1n](https://checkra.in/), which provides an easy way to obtain root on most recent iPhone models.
+While iTunes backup provide a lot of very useful databases and diagnostic data, in some cases you might want to jailbreak the device and perform a full filesystem dump. In that case, you should take a look at [checkra1n](https://checkra.in/), which provides an easy way to obtain root on most recent iPhone models.
 
 !!! warning
     Before you checkra1n any device, make sure you take a full backup, and that you are prepared to do a full factory reset before restoring it. Even after using checkra1n's "Restore System", some traces of the jailbreak are still left on the device and [apps with anti-jailbreaks will be able to detect them](https://github.com/checkra1n/BugTracker/issues/279) and stop functioning.

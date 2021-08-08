@@ -1,11 +1,12 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
 # From: https://gist.github.com/stanchan/bce1c2d030c76fe9223b5ff6ad0f03db
 
-from click import command, option, Option, UsageError
+from click import Option, UsageError, command, option
+
 
 class MutuallyExclusiveOption(Option):
     """This class extends click to support mutually exclusive options.

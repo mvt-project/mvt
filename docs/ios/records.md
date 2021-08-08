@@ -236,7 +236,7 @@ If indicators are provided through the command-line, they are checked against th
     Backup: :material-close:  
     Full filesystem dump: :material-check:
 
-This JSON file is created by mvt-ios' `WebkitLocalStorage` module. The module extracts a lsit of file and folder names located at the following path */private/var/mobile/Containers/Data/Application/\*/Library/WebKit/WebsiteData/LocalStorage/*, which contains local storage files created by any app installed on the device.
+This JSON file is created by mvt-ios' `WebkitLocalStorage` module. The module extracts a list of file and folder names located at the following path */private/var/mobile/Containers/Data/Application/\*/Library/WebKit/WebsiteData/LocalStorage/*, which contains local storage files created by any app installed on the device.
 
 If indicators are provided through the command-line, they are checked against the extracted names. Any matches are stored in *webkit_local_storage_detected.json*.
 

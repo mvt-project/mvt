@@ -1,12 +1,18 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021 MVT Project Developers.
-# See the file 'LICENSE' for usage and copying permissions, or find a copy at
-#   https://github.com/mvt-project/mvt/blob/main/LICENSE
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
-import os
 import glob
+import io
+import os
+import shutil
+import sqlite3
+import subprocess
 
-from mvt.common.module import MVTModule
+from mvt.common.module import (DatabaseCorruptedError, DatabaseNotFoundError,
+                               MVTModule)
+
 
 class IOSExtraction(MVTModule):
     """This class provides a base for all iOS filesystem/backup extraction modules."""
@@ -15,10 +21,53 @@ class IOSExtraction(MVTModule):
     is_fs_dump = False
     is_sysdiagnose = False
 
+    def _is_database_malformed(self, file_path):
+        # Check if the database is malformed.
+        conn = sqlite3.connect(file_path)
+        cur = conn.cursor()
+
+        try:
+            recover = False
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        except sqlite3.DatabaseError as e:
+            if "database disk image is malformed" in str(e):
+                recover = True
+        finally:
+            conn.close()
+
+        return recover
+
+    def _recover_database(self, file_path):
+        """Tries to recover a malformed database by running a .clone command.
+        :param file_path: Path to the malformed database file.
+        """
+        # TODO: Find a better solution.
+
+        self.log.info("Database at path %s is malformed. Trying to recover...", file_path)
+
+        if not os.path.exists(file_path):
+            return
+
+        if not shutil.which("sqlite3"):
+            raise DatabaseCorruptedError("Unable to recover without sqlite3 binary. Please install sqlite3!")
+        if '"' in file_path:
+            raise DatabaseCorruptedError(f"Database at path '{file_path}' is corrupted. unable to recover because it has a quotation mark (\") in its name.")
+
+        bak_path = f"{file_path}.bak"
+        shutil.move(file_path, bak_path)
+
+        ret = subprocess.call(["sqlite3", bak_path, f".clone \"{file_path}\""],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if ret != 0:
+            raise DatabaseCorruptedError("Recovery of database failed")
+
+        self.log.info("Database at path %s recovered successfully!", file_path)
+
     def _find_ios_database(self, backup_ids=None, root_paths=[]):
         """Try to locate the module's database file from either an iTunes
         backup or a full filesystem dump.
         :param backup_id: iTunes backup database file's ID (or hash).
+        :param root_paths: Glob patterns for files to seek in filesystem dump.
         """
         file_path = None
         # First we check if the was an explicit file path specified.
@@ -52,4 +101,7 @@ class IOSExtraction(MVTModule):
         if file_path:
             self.file_path = file_path
         else:
-            raise FileNotFoundError("Unable to find the module's database file")
+            raise DatabaseNotFoundError("Unable to find the module's database file")
+
+        if self._is_database_malformed(self.file_path):
+            self._recover_database(self.file_path)
