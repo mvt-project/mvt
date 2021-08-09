@@ -23,7 +23,7 @@ pip3 install mvt
 
 Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://docs.mvt.re/en/latest/docker.html).
 
-**Please note:** [MVT does not currently support running natively on Windows.](https://docs.mvt.re/en/latest/install.html#mvt-on-windows)
+**Please note:** MVT is best run on Linux or Mac systems. [It does not currently support running natively on Windows.](https://docs.mvt.re/en/latest/install.html#mvt-on-windows)
 
 ## Usage
 
