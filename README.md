@@ -29,19 +29,7 @@ Alternatively, you can decide to run MVT and all relevant tools through a [Docke
 
 ## Usage
 
-MVT provides two commands `mvt-ios` and `mvt-android` with the following subcommands available:
-
-* `mvt-ios`:
-    * `check-backup`: Extract artifacts from an iTunes backup
-    * `check-fs`: Extract artifacts from a full filesystem dump
-    * `check-iocs`: Compare stored JSON results to provided indicators
-    * `decrypt-backup`:  Decrypt an encrypted iTunes backup
-    * `extract-key`: Extract decryption key from an iTunes backup
-* `mvt-android`:
-    * `check-backup`: Check an Android Backup
-    * `download-apks`: Download all or non-safelisted installed APKs
-
-Check out [the documentation to see how to use them](https://docs.mvt.re/).
+MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/).
 
 ## License
 
