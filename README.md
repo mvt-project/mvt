@@ -15,13 +15,11 @@ It has been developed and released by the [Amnesty International Security Lab](h
 
 ## Installation
 
-MVT can be installed from sources or conveniently using:
+MVT can be installed from sources or from [PyPi](https://pypi.org/project/mvt/) (you will need some dependencies, check the [documentation](https://docs.mvt.re/en/latest/install.html):
 
 ```
 pip3 install mvt
 ```
-
-You will need some dependencies, so please check the [documentation](https://docs.mvt.re/en/latest/install.html).
 
 Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://docs.mvt.re/en/latest/docker.html).
 
