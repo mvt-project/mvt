@@ -167,6 +167,8 @@ def run_module(module):
     else:
         try:
             module.check_indicators()
+            if not module.detected:
+                module.log.info("No detection!")
         except NotImplementedError:
             pass
 
