@@ -28,6 +28,9 @@ class DecryptBackup:
         self._backup = None
         self._decryption_key = None
 
+    def can_process(self) -> bool:
+        return self._backup is not None
+        
     def process_backup(self):
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)

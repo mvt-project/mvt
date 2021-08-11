@@ -53,7 +53,8 @@ def cli():
               help="File containing raw encryption key to use to decrypt the backup",
               mutually_exclusive=["password"])
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-def decrypt_backup(destination, password, key_file, backup_path):
+@click.pass_context
+def decrypt_backup(ctx, destination, password, key_file, backup_path):
     backup = DecryptBackup(backup_path, destination)
 
     if key_file:
@@ -75,6 +76,8 @@ def decrypt_backup(destination, password, key_file, backup_path):
         sekrit = Prompt.ask("Enter backup password", password=True)
         backup.decrypt_with_password(sekrit)
 
+    if not backup.can_process():
+        ctx.exit(1)
     backup.process_backup()
 
 
