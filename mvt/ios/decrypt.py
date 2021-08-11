@@ -8,6 +8,7 @@ import logging
 import os
 import shutil
 import sqlite3
+import glob
 
 from iOSbackup import iOSbackup
 
@@ -76,6 +77,15 @@ class DecryptBackup:
         """
         log.info("Decrypting iOS backup at path %s with password", self.backup_path)
 
+        if not os.path.exists(os.path.join(self.backup_path, "Manifest.plist")):
+            possible = glob.glob(os.path.join(self.backup_path, "*", "Manifest.plist"))
+            if len(possible) == 1:
+                newpath = os.path.dirname(possible[0])
+                log.warning(f"No Manifest.plist in {self.backup_path}, using {newpath} instead.")
+                self.backup_path = newpath
+            elif len(possible) > 1:
+                log.critical(f"No Manifest.plist in {self.backup_path}, and {len(possible)} Manifest.plist files in subdirs.  Please choose one!")
+                return
         try:
             self._backup = iOSbackup(udid=os.path.basename(self.backup_path),
                                      cleartextpassword=password,
