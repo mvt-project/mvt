@@ -40,15 +40,11 @@ class DownloadAPKs(AndroidExtraction):
     """DownloadAPKs is the main class operating the download of APKs
     from the device."""
 
-    def __init__(self, output_folder=None, all_apks=False, packages=None):
-        """Initialize module.
-        :param output_folder: Path to the folder where data should be stored
-        :param all_apks: Boolean indicating whether to download all packages
-                         or filter known-goods
-        :param packages: Provided list of packages, typically for JSON checks
-        """
-        super().__init__(file_path=None, base_folder=None,
-                         output_folder=output_folder)
+    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+                 serial=None, fast_mode=False, log=None, results=[]):
+        super().__init__(file_path=file_path, base_folder=base_folder,
+                         output_folder=output_folder, fast_mode=fast_mode,
+                         log=log, results=results)
 
         self.output_folder_apk = None
         self.packages = packages or []

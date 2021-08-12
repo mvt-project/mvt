@@ -31,11 +31,12 @@ class MVTModule(object):
     slug = None
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
-                 fast_mode=False, log=None, results=[]):
+                 serial=None, fast_mode=False, log=None, results=[]):
         """Initialize module.
         :param file_path: Path to the module's database file, if there is any.
         :param base_folder: Path to the base folder (backup or filesystem dump)
         :param output_folder: Folder where results will be stored
+        :param serial: The USB device serial ID
         :param fast_mode: Flag to enable or disable slow modules
         :param log: Handle to logger
         :param results: Provided list of results entries
@@ -43,6 +44,7 @@ class MVTModule(object):
         self.file_path = file_path
         self.base_folder = base_folder
         self.output_folder = output_folder
+        self.serial= serial
         self.fast_mode = fast_mode
         self.log = log
         self.indicators = None

@@ -10,8 +10,7 @@ import string
 import sys
 import tempfile
 import time
-
-from adb_shell.adb_device import AdbDeviceUsb
+from adb_shell.adb_device import AdbDeviceUsb, AdbDeviceTcp
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
@@ -40,6 +39,7 @@ class AndroidExtraction(MVTModule):
                          log=log, results=results)
 
         self.device = None
+        self.serial = None
 
     def _adb_check_keys(self):
         """Make sure Android adb keys exist.
@@ -59,7 +59,19 @@ class AndroidExtraction(MVTModule):
             priv_key = handle.read()
 
         signer = PythonRSASigner("", priv_key)
-        self.device = AdbDeviceUsb()
+
+        # If no serial was specified or if the serial does not seem to be
+        # a HOST:PORT definition, we use the USB transport.
+        if not self.serial or ":" not in self.serial:
+            self.device = AdbDeviceUsb(serial=self.serial)
+        # Otherwise we try to use the TCP transport.
+        else:
+            addr = self.serial.split(":")
+            if len(addr) < 2:
+                raise ValueError("TCP serial number must follow the format: `address:port`")
+
+            self.device = AdbDeviceTcp(addr[0], int(addr[1]),
+                                       default_transport_timeout_s=30.)
 
         while True:
             try:

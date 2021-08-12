@@ -20,7 +20,7 @@ class Whatsapp(AndroidExtraction):
     """This module extracts all WhatsApp messages containing links."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
-                 fast_mode=False, log=None, results=[]):
+                 serial=None, fast_mode=False, log=None, results=[]):
         super().__init__(file_path=file_path, base_folder=base_folder,
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
