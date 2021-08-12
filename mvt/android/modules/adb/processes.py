@@ -21,7 +21,7 @@ class Processes(AndroidExtraction):
     def run(self):
         self._adb_connect()
 
-        output = self._adb_command("ps")
+        output = self._adb_command("ps -e")
 
         for line in output.split("\n")[1:]:
             line = line.strip()
