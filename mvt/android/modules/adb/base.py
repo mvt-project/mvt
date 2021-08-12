@@ -105,7 +105,7 @@ class AndroidExtraction(MVTModule):
         """Check if we have a `su` binary, otherwise raise an Exception.
         """
         if not self._adb_check_if_root():
-            raise InsufficientPrivileges("The Android device does not seem to have a `su` binary. Cannot run this module.")
+            raise InsufficientPrivileges("This module is optionally available in case the device is already rooted. Do NOT root your own device!")
 
     def _adb_command_as_root(self, command):
         """Execute an adb shell command.
