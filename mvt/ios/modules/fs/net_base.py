@@ -203,6 +203,15 @@ class NetBase(IOSExtraction):
         self.results = sorted(self.results, key=operator.itemgetter("first_isodate"))
 
     def check_indicators(self):
+        # Check for manipulated process records.
+        # TODO: Catching KeyError for live_isodate for retro-compatibility.
+        #       This is not very good.
+        try:
+            self.check_manipulated()
+            self.find_deleted()
+        except KeyError:
+            pass
+
         if not self.indicators:
             return
 
@@ -218,12 +227,3 @@ class NetBase(IOSExtraction):
 
             if self.indicators.check_process(proc_name):
                 self.detected.append(result)
-
-        # Check for manipulated process records.
-        # TODO: Catching KeyError for live_isodate for retro-compatibility.
-        #       This is not very good.
-        try:
-            self.check_manipulated()
-            self.find_deleted()
-        except KeyError:
-            pass
