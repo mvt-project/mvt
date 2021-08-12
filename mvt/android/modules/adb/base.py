@@ -10,8 +10,7 @@ import string
 import sys
 import tempfile
 import time
-
-from adb_shell.adb_device import AdbDeviceUsb
+from adb_shell.adb_device import AdbDeviceUsb, AdbDeviceTcp
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
@@ -28,16 +27,17 @@ class AndroidExtraction(MVTModule):
     """This class provides a base for all Android extraction modules."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
-                 fast_mode=False, log=None, results=[]):
+                 serial=None, fast_mode=False, log=None, results=[]):
         """Initialize Android extraction module.
         :param file_path: Path to the database file to parse
         :param base_folder: Path to a base folder containing an Android dump
         :param output_folder: Path to the folder where to store extraction
                               results
+        :param serial: The USB device serial ID
         """
         super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
-                         log=log, results=results)
+                         output_folder=output_folder, serial=serial,
+                         fast_mode=fast_mode, log=log, results=results)
 
         self.device = None
 
@@ -59,7 +59,16 @@ class AndroidExtraction(MVTModule):
             priv_key = handle.read()
 
         signer = PythonRSASigner("", priv_key)
-        self.device = AdbDeviceUsb()
+
+        if self.serial is None or ":" not in self.serial:
+            self.device = AdbDeviceUsb(serial=self.serial)
+        else:
+            addr = self.serial.split(":")
+
+            if len(addr) < 2:
+                raise ValueError("TCP serial number must follow the format: `address:port`")
+
+            self.device = AdbDeviceTcp(addr[0], int(addr[1]), default_transport_timeout_s=9.)
 
         while True:
             try:

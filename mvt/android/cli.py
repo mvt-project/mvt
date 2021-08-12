@@ -51,7 +51,8 @@ def cli():
               help="Specify a path to a folder where you want to store the APKs")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
-def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
+@click.option("--serial", "-s", type=str, help="Use the Android device with a given serial number")
+def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file, serial):
     try:
         if from_file:
             download = DownloadAPKs.from_json(from_file)
@@ -63,7 +64,7 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
                     log.critical("Unable to create output folder %s: %s", output, e)
                     sys.exit(-1)
 
-            download = DownloadAPKs(output_folder=output, all_apks=all_apks)
+            download = DownloadAPKs(output_folder=output, all_apks=all_apks, serial=serial)
             download.run()
 
         packages = download.packages
@@ -90,7 +91,8 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file):
               help="Specify a path to a folder where you want to store JSON results")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
-def check_adb(iocs, output, list_modules, module):
+@click.option("--serial", "-s", type=str, help="Use the Android device with a given serial")
+def check_adb(iocs, output, list_modules, module, serial):
     if list_modules:
         log.info("Following is the list of available check-adb modules:")
         for adb_module in ADB_MODULES:
@@ -118,7 +120,7 @@ def check_adb(iocs, output, list_modules, module):
         if module and adb_module.__name__ != module:
             continue
 
-        m = adb_module(output_folder=output, log=logging.getLogger(adb_module.__module__))
+        m = adb_module(output_folder=output, serial=serial, log=logging.getLogger(adb_module.__module__))
 
         if iocs:
             indicators.log = m.log
@@ -140,8 +142,9 @@ def check_adb(iocs, output, list_modules, module):
 @cli.command("check-backup", help="Check an Android Backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
 @click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
+@click.option("--serial", "-s", type=str, help="Use the Android device with a given serial")
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-def check_backup(iocs, output, backup_path):
+def check_backup(iocs, output, backup_path, serial):
     log.info("Checking ADB backup located at: %s", backup_path)
 
     if output and not os.path.exists(output):
@@ -166,7 +169,7 @@ def check_backup(iocs, output, backup_path):
 
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,
-                   log=logging.getLogger(module.__module__))
+                   serial=serial, log=logging.getLogger(module.__module__))
 
         if iocs:
             indicators.log = m.log
