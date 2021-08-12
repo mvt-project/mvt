@@ -18,8 +18,8 @@ class RootBinaries(AndroidExtraction):
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  serial=None, fast_mode=False, log=None, results=[]):
         super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, serial=serial,
-                         fast_mode=fast_mode, log=log, results=results)
+                         output_folder=output_folder, fast_mode=fast_mode,
+                         log=log, results=results)
 
     def run(self):
         root_binaries_path = os.path.join("..", "..", "data", "root_binaries.txt")

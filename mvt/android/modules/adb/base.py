@@ -27,19 +27,19 @@ class AndroidExtraction(MVTModule):
     """This class provides a base for all Android extraction modules."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
-                 serial=None, fast_mode=False, log=None, results=[]):
+                 fast_mode=False, log=None, results=[]):
         """Initialize Android extraction module.
         :param file_path: Path to the database file to parse
         :param base_folder: Path to a base folder containing an Android dump
         :param output_folder: Path to the folder where to store extraction
                               results
-        :param serial: The USB device serial ID
         """
         super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, serial=serial,
-                         fast_mode=fast_mode, log=log, results=results)
+                         output_folder=output_folder, fast_mode=fast_mode,
+                         log=log, results=results)
 
         self.device = None
+        self.serial = None
 
     def _adb_check_keys(self):
         """Make sure Android adb keys exist.
@@ -60,15 +60,18 @@ class AndroidExtraction(MVTModule):
 
         signer = PythonRSASigner("", priv_key)
 
-        if self.serial is None or ":" not in self.serial:
+        # If no serial was specified or if the serial does not seem to be
+        # a HOST:PORT definition, we use the USB transport.
+        if not self.serial or ":" not in self.serial:
             self.device = AdbDeviceUsb(serial=self.serial)
+        # Otherwise we try to use the TCP transport.
         else:
             addr = self.serial.split(":")
-
             if len(addr) < 2:
                 raise ValueError("TCP serial number must follow the format: `address:port`")
 
-            self.device = AdbDeviceTcp(addr[0], int(addr[1]), default_transport_timeout_s=9.)
+            self.device = AdbDeviceTcp(addr[0], int(addr[1]),
+                                       default_transport_timeout_s=30.)
 
         while True:
             try:
