@@ -5,7 +5,6 @@
 
 import logging
 import os
-import sys
 import tarfile
 
 import click
@@ -59,18 +58,20 @@ def decrypt_backup(ctx, destination, password, key_file, backup_path):
 
     if key_file:
         if PASSWD_ENV in os.environ:
-            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --key-file '{key_file}' instead")
+            log.info("Ignoring environment variable, using --key-file '%s' instead",
+                     PASSWD_ENV, key_file)
 
         backup.decrypt_with_key_file(key_file)
     elif password:
         log.info("Your password may be visible in the process table because it was supplied on the command line!")
 
         if PASSWD_ENV in os.environ:
-            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+            log.info("Ignoring %s environment variable, using --password argument instead",
+                     PASSWD_ENV)
 
         backup.decrypt_with_password(password)
     elif PASSWD_ENV in os.environ:
-        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        log.info("Using password from %s environment variable", PASSWD_ENV)
         backup.decrypt_with_password(os.environ[PASSWD_ENV])
     else:
         sekrit = Prompt.ask("Enter backup password", password=True)
@@ -99,9 +100,10 @@ def extract_key(password, backup_path, key_file):
         log.info("Your password may be visible in the process table because it was supplied on the command line!")
 
         if PASSWD_ENV in os.environ:
-            log.info(f"Ignoring {PASSWD_ENV} environment variable, using --password argument instead")
+            log.info("Ignoring %s environment variable, using --password argument instead",
+                     PASSWD_ENV)
     elif PASSWD_ENV in os.environ:
-        log.info(f"Using password from {PASSWD_ENV} environment variable")
+        log.info("Using password from %s environment variable", PASSWD_ENV)
         password = os.environ[PASSWD_ENV]
     else:
         password = Prompt.ask("Enter backup password", password=True)
@@ -123,7 +125,8 @@ def extract_key(password, backup_path, key_file):
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-def check_backup(iocs, output, fast, backup_path, list_modules, module):
+@click.pass_context
+def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
     if list_modules:
         log.info("Following is the list of available check-backup modules:")
         for backup_module in BACKUP_MODULES:
@@ -138,7 +141,7 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
-            sys.exit(-1)
+            ctx.exit(1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
@@ -180,7 +183,8 @@ def check_backup(iocs, output, fast, backup_path, list_modules, module):
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
-def check_fs(iocs, output, fast, dump_path, list_modules, module):
+@click.pass_context
+def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
     if list_modules:
         log.info("Following is the list of available check-fs modules:")
         for fs_module in FS_MODULES:
@@ -195,7 +199,7 @@ def check_fs(iocs, output, fast, dump_path, list_modules, module):
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
-            sys.exit(-1)
+            ctx.exit(1)
 
     if iocs:
         # Pre-load indicators for performance reasons.

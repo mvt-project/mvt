@@ -81,10 +81,12 @@ class DecryptBackup:
             possible = glob.glob(os.path.join(self.backup_path, "*", "Manifest.plist"))
             if len(possible) == 1:
                 newpath = os.path.dirname(possible[0])
-                log.warning(f"No Manifest.plist in {self.backup_path}, using {newpath} instead.")
+                log.warning("No Manifest.plist in %s, using %s instead.",
+                            self.backup_path, newpath)
                 self.backup_path = newpath
             elif len(possible) > 1:
-                log.critical(f"No Manifest.plist in {self.backup_path}, and {len(possible)} Manifest.plist files in subdirs.  Please choose one!")
+                log.critical("No Manifest.plist in %s, and %d Manifest.plist files in subdirs. Please choose one!",
+                             self.backup_path, len(possible))
                 return
         try:
             self._backup = iOSbackup(udid=os.path.basename(self.backup_path),
@@ -94,7 +96,8 @@ class DecryptBackup:
             if isinstance(e, KeyError) and len(e.args) > 0 and e.args[0] == b"KEY":
                 log.critical("Failed to decrypt backup. Password is probably wrong.")
             elif isinstance(e, FileNotFoundError) and os.path.basename(e.filename) == "Manifest.plist":
-                log.critical(f"Failed to find a valid backup at {self.backup_path}. Did you point to the right backup path?")
+                log.critical("Failed to find a valid backup at %s. Did you point to the right backup path?",
+                             self.backup_path)
             else:
                 log.exception(e)
                 log.critical("Failed to decrypt backup. Did you provide the correct password? Did you point to the right backup path?")
