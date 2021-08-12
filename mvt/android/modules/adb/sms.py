@@ -102,15 +102,11 @@ class SMS(AndroidExtraction):
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
     def run(self):
-        # Checking the SMS database path
-        try:
-            if (self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH))):
-                self.SMS_DB_TYPE = 1
-                self._adb_process_file(os.path.join("/", SMS_BUGLE_PATH), self._parse_db)
-            elif (self._adb_check_file_exists(os.path.join("/", SMS_MMSSMS_PATH))):
-                self.SMS_DB_TYPE = 2
-                self._adb_process_file(os.path.join("/", SMS_MMSSMS_PATH), self._parse_db)
-            else:
-                self.log.error("No SMS database found")
-        except Exception as e:
-            self.log.error(e)
+        if (self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH))):
+            self.SMS_DB_TYPE = 1
+            self._adb_process_file(os.path.join("/", SMS_BUGLE_PATH), self._parse_db)
+        elif (self._adb_check_file_exists(os.path.join("/", SMS_MMSSMS_PATH))):
+            self.SMS_DB_TYPE = 2
+            self._adb_process_file(os.path.join("/", SMS_MMSSMS_PATH), self._parse_db)
+        else:
+            self.log.error("No SMS database found")
