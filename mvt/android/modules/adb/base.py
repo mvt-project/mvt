@@ -29,12 +29,6 @@ class AndroidExtraction(MVTModule):
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
-        """Initialize Android extraction module.
-        :param file_path: Path to the database file to parse
-        :param base_folder: Path to a base folder containing an Android dump
-        :param output_folder: Path to the folder where to store extraction
-                              results
-        """
         super().__init__(file_path=file_path, base_folder=base_folder,
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)

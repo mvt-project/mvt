@@ -17,9 +17,15 @@ from mvt.common.module import (DatabaseCorruptedError, DatabaseNotFoundError,
 class IOSExtraction(MVTModule):
     """This class provides a base for all iOS filesystem/backup extraction modules."""
 
-    is_backup = False
-    is_fs_dump = False
-    is_sysdiagnose = False
+    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+                 fast_mode=False, log=None, results=[]):
+        super().__init__(file_path=file_path, base_folder=base_folder,
+                         output_folder=output_folder, fast_mode=fast_mode,
+                         log=log, results=results)
+
+        self.is_backup = False
+        self.is_fs_dump = False
+        self.is_sysdiagnose = False
 
     def _is_database_malformed(self, file_path):
         # Check if the database is malformed.
