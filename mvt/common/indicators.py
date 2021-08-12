@@ -8,6 +8,8 @@ import os
 
 from .url import URL
 
+class IndicatorsFileBadFormat(Exception):
+    pass
 
 class Indicators:
     """This class is used to parse indicators from a STIX2 file and provide
@@ -17,7 +19,10 @@ class Indicators:
     def __init__(self, file_path, log=None):
         self.file_path = file_path
         with open(self.file_path, "r") as handle:
-            self.data = json.load(handle)
+            try:
+                self.data = json.load(handle)
+            except json.decoder.JSONDecodeError:
+                raise IndicatorsFileBadFormat("Unable to parse STIX2 indicators file, the file seems malformed or in the wrong format")
 
         self.log = log
         self.ioc_domains = []

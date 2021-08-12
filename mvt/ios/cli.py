@@ -11,7 +11,7 @@ import click
 from rich.logging import RichHandler
 from rich.prompt import Prompt
 
-from mvt.common.indicators import Indicators
+from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
 
@@ -146,7 +146,11 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
     if iocs:
         # Pre-load indicators for performance reasons.
         log.info("Loading indicators from provided file at: %s", iocs)
-        indicators = Indicators(iocs)
+        try:
+            indicators = Indicators(iocs)
+        except IndicatorsFileBadFormat as e:
+            log.critical(e)
+            ctx.exit(1)
 
     timeline = []
     timeline_detected = []
@@ -204,7 +208,11 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
     if iocs:
         # Pre-load indicators for performance reasons.
         log.info("Loading indicators from provided file at: %s", iocs)
-        indicators = Indicators(iocs)
+        try:
+            indicators = Indicators(iocs)
+        except IndicatorsFileBadFormat as e:
+            log.critical(e)
+            ctx.exit(1)
 
     timeline = []
     timeline_detected = []
@@ -241,7 +249,8 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
 @click.argument("FOLDER", type=click.Path(exists=True))
-def check_iocs(iocs, list_modules, module, folder):
+@click.pass_context
+def check_iocs(ctx, iocs, list_modules, module, folder):
     all_modules = []
     for entry in BACKUP_MODULES + FS_MODULES:
         if entry not in all_modules:
@@ -258,7 +267,12 @@ def check_iocs(iocs, list_modules, module, folder):
 
     # Pre-load indicators for performance reasons.
     log.info("Loading indicators from provided file at: %s", iocs)
-    indicators = Indicators(iocs)
+
+    try:
+        indicators = Indicators(iocs)
+    except IndicatorsFileBadFormat as e:
+        log.critical(e)
+        ctx.exit(1)
 
     for file_name in os.listdir(folder):
         name_only, ext = os.path.splitext(file_name)
