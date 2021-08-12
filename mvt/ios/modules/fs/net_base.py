@@ -15,6 +15,12 @@ from .base import IOSExtraction
 class NetBase(IOSExtraction):
     """This class provides a base for DataUsage and NetUsage extraction modules."""
 
+    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+                 fast_mode=False, log=None, results=[]):
+        super().__init__(file_path=file_path, base_folder=base_folder,
+                         output_folder=output_folder, fast_mode=fast_mode,
+                         log=log, results=results)
+
     def _extract_net_data(self):
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
