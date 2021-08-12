@@ -4,11 +4,11 @@
 #   https://license.mvt.re/1.1/
 
 import binascii
+import glob
 import logging
 import os
 import shutil
 import sqlite3
-import glob
 
 from iOSbackup import iOSbackup
 

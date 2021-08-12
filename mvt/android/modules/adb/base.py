@@ -10,13 +10,14 @@ import string
 import sys
 import tempfile
 import time
-from adb_shell.adb_device import AdbDeviceUsb, AdbDeviceTcp
+
+from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
 from usb1 import USBErrorAccess, USBErrorBusy
 
-from mvt.common.module import MVTModule, InsufficientPrivileges
+from mvt.common.module import InsufficientPrivileges, MVTModule
 
 log = logging.getLogger(__name__)
 
