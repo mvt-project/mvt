@@ -8,6 +8,7 @@ from .calls import Calls
 from .chrome_favicon import ChromeFavicon
 from .chrome_history import ChromeHistory
 from .contacts import Contacts
+from .device_info import DeviceInfo
 from .filesystem import Filesystem
 from .firefox_favicon import FirefoxFavicon
 from .firefox_history import FirefoxHistory
@@ -33,7 +34,8 @@ from .whatsapp import Whatsapp
 BACKUP_MODULES = [SafariBrowserState, SafariHistory, Datausage, SMS, SMSAttachments,
                   ChromeHistory, ChromeFavicon, WebkitSessionResourceLog,
                   WebkitResourceLoadStatistics, Calls, IDStatusCache, LocationdClients,
-                  InteractionC, FirefoxHistory, FirefoxFavicon, Contacts, Manifest, Whatsapp]
+                  InteractionC, FirefoxHistory, FirefoxFavicon, Contacts, Manifest, Whatsapp,
+                  DeviceInfo]
 
 FS_MODULES = [IOSVersionHistory, SafariHistory, SafariFavicon, SafariBrowserState,
               WebkitIndexedDB, WebkitLocalStorage, WebkitSafariViewService,
