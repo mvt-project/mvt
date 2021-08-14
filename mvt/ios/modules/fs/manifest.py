@@ -6,9 +6,8 @@
 import datetime
 import io
 import os
+import plistlib
 import sqlite3
-
-import biplist
 
 from mvt.common.module import DatabaseNotFoundError
 from mvt.common.utils import convert_timestamp_to_iso
@@ -117,7 +116,7 @@ class Manifest(IOSExtraction):
 
             if file_data["file"]:
                 try:
-                    file_plist = biplist.readPlist(io.BytesIO(file_data["file"]))
+                    file_plist = plistlib.load(io.BytesIO(file_data["file"]))
                     file_metadata = self._get_key(file_plist, "$objects")[1]
                     cleaned_metadata.update({
                         "created": self._convert_timestamp(self._get_key(file_metadata, "Birth")),

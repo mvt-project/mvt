@@ -6,8 +6,7 @@
 import collections
 import glob
 import os
-
-import biplist
+import plistlib
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
@@ -57,7 +56,8 @@ class IDStatusCache(IOSExtraction):
         self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS, root_paths=IDSTATUSCACHE_ROOT_PATHS)
         self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
 
-        file_plist = biplist.readPlist(self.file_path)
+        with open(self.file_path, "rb") as handle:
+            file_plist = plistlib.load(handle)
 
         id_status_cache_entries = []
         for app in file_plist:

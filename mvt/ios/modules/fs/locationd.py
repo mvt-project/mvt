@@ -5,8 +5,7 @@
 
 import glob
 import os
-
-import biplist
+import plistlib
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
@@ -55,7 +54,9 @@ class LocationdClients(IOSExtraction):
     def run(self):
         self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS, root_paths=LOCATIOND_ROOT_PATHS)
         self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
-        file_plist = biplist.readPlist(self.file_path)
+
+        with open(self.file_path, "rb") as handle:
+            file_plist = plistlib.load(handle)
 
         for app in file_plist:
             if file_plist[app] is dict:

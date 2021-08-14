@@ -4,9 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 import io
+import plistlib
 import sqlite3
-
-import biplist
 
 from mvt.common.utils import (convert_mactime_to_unix,
                               convert_timestamp_to_iso, keys_bytes_to_string)
@@ -80,7 +79,7 @@ class SafariBrowserState(IOSExtraction):
             if item[4]:
                 # Skip a 4 byte header before the plist content.
                 session_plist = item[4][4:]
-                session_data = biplist.readPlist(io.BytesIO(session_plist))
+                session_data = plistlib.load(io.BytesIO(session_plist))
                 session_data = keys_bytes_to_string(session_data)
 
                 if "SessionHistoryEntries" in session_data["SessionHistory"]:

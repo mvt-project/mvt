@@ -5,8 +5,7 @@
 
 import glob
 import os
-
-import biplist
+import plistlib
 
 from mvt.common.utils import convert_timestamp_to_iso
 
@@ -36,7 +35,9 @@ class WebkitSessionResourceLog(IOSExtraction):
     def _extract_browsing_stats(self, file_path):
         items = []
 
-        file_plist = biplist.readPlist(file_path)
+        with open(file_path, "rb") as handle:
+            file_list = plistlib.read(handle)
+
         if "browsingStatistics" not in file_plist:
             return items
 
