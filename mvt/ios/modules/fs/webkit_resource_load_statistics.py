@@ -7,7 +7,7 @@ import datetime
 import os
 import sqlite3
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import IOSExtraction
 

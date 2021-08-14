@@ -5,7 +5,6 @@
 
 import datetime
 import hashlib
-import os
 import re
 
 

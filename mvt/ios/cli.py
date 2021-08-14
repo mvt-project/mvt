@@ -5,7 +5,6 @@
 
 import logging
 import os
-import tarfile
 
 import click
 from rich.logging import RichHandler

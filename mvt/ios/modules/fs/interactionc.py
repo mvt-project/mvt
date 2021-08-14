@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import sqlite3
-from base64 import b64encode
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 

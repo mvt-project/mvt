@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import glob
-import io
 import os
 import shutil
 import sqlite3

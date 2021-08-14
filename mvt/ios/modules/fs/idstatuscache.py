@@ -4,8 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import collections
-import glob
-import os
 import plistlib
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso

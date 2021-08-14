@@ -8,7 +8,7 @@ import os
 import zlib
 
 from mvt.common.module import MVTModule
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+from mvt.common.utils import check_for_links
 
 
 class SMS(MVTModule):

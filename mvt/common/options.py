@@ -5,7 +5,7 @@
 
 # From: https://gist.github.com/stanchan/bce1c2d030c76fe9223b5ff6ad0f03db
 
-from click import Option, UsageError, command, option
+from click import Option, UsageError
 
 
 class MutuallyExclusiveOption(Option):
