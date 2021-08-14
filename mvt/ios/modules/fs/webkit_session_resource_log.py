@@ -36,7 +36,7 @@ class WebkitSessionResourceLog(IOSExtraction):
         items = []
 
         with open(file_path, "rb") as handle:
-            file_list = plistlib.read(handle)
+            file_plist = plistlib.read(handle)
 
         if "browsingStatistics" not in file_plist:
             return items
