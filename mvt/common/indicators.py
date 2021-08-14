@@ -8,6 +8,7 @@ import os
 
 from .url import URL
 
+
 class IndicatorsFileBadFormat(Exception):
     pass
 
