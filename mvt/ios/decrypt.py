@@ -71,6 +71,13 @@ class DecryptBackup:
             except Exception as e:
                 log.error("Failed to decrypt file %s: %s", relative_path, e)
 
+        # Copying over the root plist files as well.
+        for file_name in os.listdir(self.backup_path):
+            if file_name.endswith(".plist"):
+                log.info("Copied plist file %s to %s", file_name, self.dest_path)
+                shutil.copy(os.path.join(self.backup_path, file_name),
+                            self.dest_path)
+
     def decrypt_with_password(self, password):
         """Decrypts an encrypted iOS backup.
         :param password: Password to use to decrypt the original backup

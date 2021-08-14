@@ -79,6 +79,7 @@ def decrypt_backup(ctx, destination, password, key_file, backup_path):
 
     if not backup.can_process():
         ctx.exit(1)
+
     backup.process_backup()
 
 
