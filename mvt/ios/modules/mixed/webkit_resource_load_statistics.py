@@ -28,6 +28,8 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
+        self.results = {}
+
     def check_indicators(self):
         if not self.indicators:
             return
@@ -72,8 +74,6 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             self.log.info("Extracted a total of %d records from %s", len(self.results[key]), db_path)
 
     def run(self):
-        self.results = {}
-
         if self.is_backup:
             try:
                 for backup_file in self._get_files_from_manifest(relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):

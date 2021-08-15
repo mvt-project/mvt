@@ -94,7 +94,18 @@ class IOSExtraction(MVTModule):
             raise Exception("Query to Manifest.db failed: %s", e)
 
         for row in cur:
-            yield dict(file_id=row[0], domain=row[1], relative_path=row[2])
+            yield {
+                "file_id": row[0],
+                "domain": row[1],
+                "relative_path": row[2],
+            }
+
+    def _get_backup_file_from_id(self, file_id):
+        file_path = os.path.join(self.base_folder, file_id[0:2], file_id)
+        if os.path.exists(file_path):
+            return file_path
+
+        return None
 
     def _find_ios_database(self, backup_ids=None, root_paths=[]):
         """Try to locate the module's database file from either an iTunes
@@ -110,9 +121,8 @@ class IOSExtraction(MVTModule):
             # folder structure, if we have a valid ID.
             if backup_ids:
                 for backup_id in backup_ids:
-                    file_path = os.path.join(self.base_folder, backup_id[0:2], backup_id)
-                    # If we found the correct backup file, then we stop searching.
-                    if os.path.exists(file_path):
+                    file_path = self._get_backup_file_from_id(backup_id)
+                    if file_path:
                         break
 
             # If this file does not exist we might be processing a full

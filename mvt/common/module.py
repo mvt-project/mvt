@@ -92,9 +92,9 @@ class MVTModule(object):
         if self.results:
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.output_folder, results_file_name)
-            with open(results_json_path, "w") as handle:
+            with io.open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
-                    json.dump(self.results, handle, indent=4)
+                    json.dump(self.results, handle, indent=4, default=str)
                 except Exception as e:
                     self.log.error("Unable to store results of module %s to file %s: %s",
                                    self.__class__.__name__, results_file_name, e)
@@ -102,8 +102,8 @@ class MVTModule(object):
         if self.detected:
             detected_file_name = f"{name}_detected.json"
             detected_json_path = os.path.join(self.output_folder, detected_file_name)
-            with open(detected_json_path, "w") as handle:
-                json.dump(self.detected, handle, indent=4)
+            with io.open(detected_json_path, "w", encoding="utf-8") as handle:
+                json.dump(self.detected, handle, indent=4, default=str)
 
     def serialize(self, record):
         raise NotImplementedError
@@ -193,8 +193,8 @@ def save_timeline(timeline, timeline_path):
         csvoutput.writerow(["UTC Timestamp", "Plugin", "Event", "Description"])
         for event in sorted(timeline, key=lambda x: x["timestamp"] if x["timestamp"] is not None else ""):
             csvoutput.writerow([
-                event["timestamp"],
-                event["module"],
-                event["event"],
-                event["data"],
+                event.get("timestamp"),
+                event.get("module"),
+                event.get("event"),
+                event.get("data"),
             ])

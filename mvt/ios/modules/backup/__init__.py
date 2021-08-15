@@ -4,6 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 from .backup_info import BackupInfo
+from .configuration_profiles import ConfigurationProfiles
 from .manifest import Manifest
+from .profile_events import ProfileEvents
 
-BACKUP_MODULES = [BackupInfo, Manifest,]
+BACKUP_MODULES = [BackupInfo, ConfigurationProfiles, Manifest, ProfileEvents]

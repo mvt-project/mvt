@@ -25,7 +25,7 @@ class Filesystem(IOSExtraction):
         return {
             "timestamp": record["modified"],
             "module": self.__class__.__name__,
-            "event": f"file_modified",
+            "event": "file_modified",
             "data": record["file_path"],
         }
 
