@@ -55,7 +55,7 @@ class SMSAttachments(IOSExtraction):
         names = [description[0] for description in cur.description]
 
         for item in cur:
-            attachment = dict()
+            attachment = {}
             for index, value in enumerate(item):
                 if (names[index] in ["user_info", "sticker_user_info", "attribution_info",
                                      "ck_server_change_token_blob", "sr_ck_server_change_token_blob"]) and value:

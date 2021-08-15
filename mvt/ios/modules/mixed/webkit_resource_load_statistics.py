@@ -61,14 +61,14 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             self.results[key] = []
 
         for row in cur:
-            self.results[key].append(dict(
-                domain_id=row[0],
-                registrable_domain=row[1],
-                last_seen=row[2],
-                had_user_interaction=bool(row[3]),
+            self.results[key].append({
+                "domain_id": row[0],
+                "registrable_domain": row[1],
+                "last_seen": row[2],
+                "had_user_interaction": bool(row[3]),
                 # TODO: Fix isodate.
-                last_seen_isodate=convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(int(row[2]))),
-            ))
+                "last_seen_isodate": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(int(row[2]))),
+            })
 
         if len(self.results[key]) > 0:
             self.log.info("Extracted a total of %d records from %s", len(self.results[key]), db_path)
