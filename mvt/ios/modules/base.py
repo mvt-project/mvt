@@ -68,6 +68,34 @@ class IOSExtraction(MVTModule):
 
         self.log.info("Database at path %s recovered successfully!", file_path)
 
+    def _get_files_from_manifest(self, relative_path=None, domain=None):
+        """Locate files from Manifest.db.
+        :param relative_path: Relative path to use as filter from Manifest.db.
+        :param domain: Domain to use as filter from Manifest.db.
+        """
+        manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
+        if not os.path.exists(manifest_db_path):
+            raise Exception("Unable to find backup's Manifest.db")
+
+        base_sql = "SELECT fileID, domain, relativePath FROM Files WHERE "
+
+        try:
+            conn = sqlite3.connect(manifest_db_path)
+            cur = conn.cursor()
+            if relative_path and domain:
+                cur.execute(f"{base_sql} relativePath = ? AND domain = ?;",
+                            (relative_path, domain))
+            else:
+                if relative_path:
+                    cur.execute(f"{base_sql} relativePath = ?;", (relative_path,))
+                elif domain:
+                    cur.execute(f"{base_sql} domain = ?;", (domain,))
+        except Exception as e:
+            raise Exception("Query to Manifest.db failed: %s", e)
+
+        for row in cur:
+            yield dict(file_id=row[0], domain=row[1], relative_path=row[2])
+
     def _find_ios_database(self, backup_ids=None, root_paths=[]):
         """Try to locate the module's database file from either an iTunes
         backup or a full filesystem dump.

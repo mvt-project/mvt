@@ -75,24 +75,13 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         self.results = {}
 
         if self.is_backup:
-            manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
-            if not os.path.exists(manifest_db_path):
-                self.log.info("Unable to search for WebKit observations.db files in backup because of missing Manifest.db")
-                return
-
             try:
-                conn = sqlite3.connect(manifest_db_path)
-                cur = conn.cursor()
-                cur.execute("SELECT fileID, domain FROM Files WHERE relativePath = ?;", (WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH,))
+                for backup_file in self._get_files_from_manifest(relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
+                    db_path = os.path.join(self.base_folder, backup_file["file_id"][0:2], backup_file["file_id"])
+                    key = f"{backup_file['domain']}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}"
+                    self._process_observations_db(db_path=db_path, key=key)
             except Exception as e:
-                self.log.error("Unable to search for WebKit observations.db files in backup because of failed query to Manifest.db: %s", e)
-
-            for row in cur:
-                file_id = row[0]
-                domain = row[1]
-                db_path = os.path.join(self.base_folder, file_id[0:2], file_id)
-                if os.path.exists(db_path):
-                    self._process_observations_db(db_path=db_path, key=f"{domain}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}")
+                self.log.info("Unable to search for WebKit observations.db: %s", e)
         elif self.is_fs_dump:
             for db_path in self._find_paths(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
                 self._process_observations_db(db_path=db_path, key=os.path.relpath(db_path, self.base_folder))
