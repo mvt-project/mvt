@@ -8,7 +8,7 @@ import plistlib
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 IDSTATUSCACHE_BACKUP_IDS = [
     "6b97989189901ceaa4e5be9b7f05fb584120e27b",

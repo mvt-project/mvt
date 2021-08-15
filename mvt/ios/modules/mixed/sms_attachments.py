@@ -8,7 +8,7 @@ from base64 import b64encode
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 SMS_BACKUP_IDS = [
     "3d0d7e5fb2ce288813306e4d4636395e047a3d28",

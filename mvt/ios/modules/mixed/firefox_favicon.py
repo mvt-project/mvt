@@ -8,7 +8,7 @@ from datetime import datetime
 
 from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 FIREFOX_HISTORY_BACKUP_IDS = [
     "2e57c396a35b0d1bcbc624725002d98bd61d142b",

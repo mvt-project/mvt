@@ -4,23 +4,22 @@
 #   https://license.mvt.re/1.1/
 
 import sqlite3
+from datetime import datetime
 
-from mvt.common.utils import (convert_chrometime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
-CHROME_HISTORY_BACKUP_IDS = [
-    "faf971ce92c3ac508c018dce1bef2a8b8e9838f1",
+FIREFOX_HISTORY_BACKUP_IDS = [
+    "2e57c396a35b0d1bcbc624725002d98bd61d142b",
+]
+FIREFOX_HISTORY_ROOT_PATHS = [
+    "private/var/mobile/profile.profile/browser.db",
 ]
 
-# TODO: Confirm Chrome database path.
-CHROME_HISTORY_ROOT_PATHS = [
-    "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/History",
-]
-
-class ChromeHistory(IOSExtraction):
-    """This module extracts all Chome visits."""
+class FirefoxHistory(IOSExtraction):
+    """This module extracts all Firefox visits and tries to detect potential
+    network injection attacks."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
@@ -32,8 +31,8 @@ class ChromeHistory(IOSExtraction):
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
-            "event": "visit",
-            "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, redirect source: {record['redirect_source']})"
+            "event": "firefox_history",
+            "data": f"Firefox visit with ID {record['id']} to URL: {record['url']}",
         }
 
     def check_indicators(self):
@@ -45,31 +44,31 @@ class ChromeHistory(IOSExtraction):
                 self.detected.append(result)
 
     def run(self):
-        self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS, root_paths=CHROME_HISTORY_ROOT_PATHS)
-        self.log.info("Found Chrome history database at path: %s", self.file_path)
+        self._find_ios_database(backup_ids=FIREFOX_HISTORY_BACKUP_IDS, root_paths=FIREFOX_HISTORY_ROOT_PATHS)
+        self.log.info("Found Firefox history database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
         cur.execute("""
             SELECT
-                urls.id,
-                urls.url,
                 visits.id,
-                visits.visit_time,
-                visits.from_visit
-            FROM urls
-            JOIN visits ON visits.url = urls.id
-            ORDER BY visits.visit_time;
+                visits.date/1000000,
+                history.url,
+                history.title,
+                visits.is_local,
+                visits.type
+            FROM visits, history
+            WHERE visits.siteID = history.id;
         """)
 
         for item in cur:
             self.results.append(dict(
                 id=item[0],
-                url=item[1],
-                visit_id=item[2],
-                timestamp=item[3],
-                isodate=convert_timestamp_to_iso(convert_chrometime_to_unix(item[3])),
-                redirect_source=item[4],
+                isodate=convert_timestamp_to_iso(datetime.utcfromtimestamp(item[1])),
+                url=item[2],
+                title=item[3],
+                i1000000s_local=item[4],
+                type=item[5]
             ))
 
         cur.close()

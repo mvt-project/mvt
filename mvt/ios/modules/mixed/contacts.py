@@ -5,7 +5,7 @@
 
 import sqlite3
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 CONTACTS_BACKUP_IDS = [
     "31bb7ba8914766d4ba40d6dfb6113c8b614be442",

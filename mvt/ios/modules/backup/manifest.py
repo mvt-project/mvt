@@ -12,7 +12,7 @@ import sqlite3
 from mvt.common.module import DatabaseNotFoundError
 from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 
 class Manifest(IOSExtraction):

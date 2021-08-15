@@ -7,7 +7,7 @@ import sqlite3
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 INTERACTIONC_BACKUP_IDS = [
     "1f5a521220a3ad80ebfdc196978df8e7a2e49dee",

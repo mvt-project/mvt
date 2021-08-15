@@ -7,7 +7,7 @@ import sqlite3
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 SAFARI_FAVICON_ROOT_PATHS = [
     "private/var/mobile/Library/Image Cache/Favicons/Favicons.db",

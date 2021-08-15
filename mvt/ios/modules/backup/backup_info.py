@@ -8,10 +8,10 @@ import plistlib
 
 from mvt.common.module import DatabaseNotFoundError
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 
-class DeviceInfo(IOSExtraction):
+class BackupInfo(IOSExtraction):
     """This module extracts information about the device."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,

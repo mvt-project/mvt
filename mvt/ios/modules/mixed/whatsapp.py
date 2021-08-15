@@ -9,7 +9,7 @@ import sqlite3
 from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
                               convert_timestamp_to_iso)
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 log = logging.getLogger(__name__)
 

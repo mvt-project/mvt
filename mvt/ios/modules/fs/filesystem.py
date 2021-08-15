@@ -8,7 +8,7 @@ import os
 
 from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 
 class Filesystem(IOSExtraction):

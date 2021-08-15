@@ -15,7 +15,9 @@ from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
 
 from .decrypt import DecryptBackup
-from .modules.fs import BACKUP_MODULES, FS_MODULES
+from .modules.backup import BACKUP_MODULES
+from .modules.fs import FS_MODULES
+from .modules.mixed import MIXED_MODULES
 
 # Setup logging using Rich.
 LOG_FORMAT = "[%(name)s] %(message)s"
@@ -129,7 +131,7 @@ def extract_key(password, backup_path, key_file):
 def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
     if list_modules:
         log.info("Following is the list of available check-backup modules:")
-        for backup_module in BACKUP_MODULES:
+        for backup_module in BACKUP_MODULES + MIXED_MODULES:
             log.info(" - %s", backup_module.__name__)
 
         return
@@ -154,7 +156,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 
     timeline = []
     timeline_detected = []
-    for backup_module in BACKUP_MODULES:
+    for backup_module in BACKUP_MODULES + MIXED_MODULES:
         if module and backup_module.__name__ != module:
             continue
 
@@ -191,7 +193,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
     if list_modules:
         log.info("Following is the list of available check-fs modules:")
-        for fs_module in FS_MODULES:
+        for fs_module in FS_MODULES + MIXED_MODULES:
             log.info(" - %s", fs_module.__name__)
 
         return
@@ -216,7 +218,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 
     timeline = []
     timeline_detected = []
-    for fs_module in FS_MODULES:
+    for fs_module in FS_MODULES + MIXED_MODULES:
         if module and fs_module.__name__ != module:
             continue
 

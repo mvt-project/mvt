@@ -8,7 +8,7 @@ import json
 
 from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 IOS_ANALYTICS_JOURNAL_PATHS = [
     "private/var/db/analyticsd/Analytics-Journal-*.ips",

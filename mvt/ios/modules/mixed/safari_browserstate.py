@@ -10,7 +10,7 @@ import sqlite3
 from mvt.common.utils import (convert_mactime_to_unix,
                               convert_timestamp_to_iso, keys_bytes_to_string)
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 SAFARI_BROWSER_STATE_BACKUP_IDS = [
     "3a47b0981ed7c10f3e2800aa66bac96a3b5db28e",

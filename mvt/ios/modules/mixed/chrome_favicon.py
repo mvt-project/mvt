@@ -8,7 +8,7 @@ import sqlite3
 from mvt.common.utils import (convert_chrometime_to_unix,
                               convert_timestamp_to_iso)
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 CHROME_FAVICON_BACKUP_IDS = [
     "55680ab883d0fdcffd94f959b1632e5fbbb18c5b"

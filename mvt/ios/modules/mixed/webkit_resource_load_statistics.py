@@ -9,7 +9,7 @@ import sqlite3
 
 from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH = "Library/WebKit/WebsiteData/ResourceLoadStatistics/observations.db"
 WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [

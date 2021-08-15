@@ -3,7 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from .net_base import NetBase
+from ..net_base import NetBase
 
 DATAUSAGE_BACKUP_IDS = [
     "0d609c54856a9bb2d56729df1d68f2958a88426b",

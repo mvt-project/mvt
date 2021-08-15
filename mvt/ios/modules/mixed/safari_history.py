@@ -8,7 +8,7 @@ import sqlite3
 from mvt.common.url import URL
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 SAFARI_HISTORY_BACKUP_IDS = [
     "e74113c185fd8297e140cfcf9c99436c5cc06b57",

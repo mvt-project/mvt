@@ -9,7 +9,7 @@ import plistlib
 
 from mvt.common.utils import convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 WEBKIT_SESSION_RESOURCE_LOG_BACKUP_IDS = [
     "a500ee38053454a02e990957be8a251935e28d3f",

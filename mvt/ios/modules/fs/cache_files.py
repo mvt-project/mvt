@@ -6,7 +6,7 @@
 import os
 import sqlite3
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 
 class CacheFiles(IOSExtraction):

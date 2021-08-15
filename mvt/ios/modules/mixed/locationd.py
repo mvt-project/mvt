@@ -7,7 +7,7 @@ import plistlib
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
-from .base import IOSExtraction
+from ..base import IOSExtraction
 
 LOCATIOND_BACKUP_IDS = [
     "a690d7769cce8904ca2b67320b107c8fe5f79412",
