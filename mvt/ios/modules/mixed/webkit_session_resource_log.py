@@ -117,7 +117,7 @@ class WebkitSessionResourceLog(IOSExtraction):
             self.results[self.file_path] = self._extract_browsing_stats(self.file_path)
             return
 
-        for log_file in self._get_fs_files_from_pattern(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
+        for log_file in self._get_fs_files_from_pattern(WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS):
             self.log.info("Found Safari browsing session resource log at path: %s", log_file)
             key = os.path.relpath(log_file, self.base_folder)
             self.results[key] = self._extract_browsing_stats(log_file)
