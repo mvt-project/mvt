@@ -12,7 +12,7 @@ from ..base import IOSExtraction
 
 
 class BackupInfo(IOSExtraction):
-    """This module extracts information about the device."""
+    """This module extracts information about the device and the backup."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
@@ -22,7 +22,7 @@ class BackupInfo(IOSExtraction):
 
         self.results = {}
 
-    def _get_info_from_backup(self):
+    def run(self):
         info_path = os.path.join(self.base_folder, "Info.plist")
         if not os.path.exists(info_path):
             raise DatabaseNotFoundError("No Info.plist at backup path, unable to extract device information")
@@ -41,10 +41,3 @@ class BackupInfo(IOSExtraction):
             value = info.get(field, None)
             self.log.info("%s: %s", field, value)
             self.results[field] = value
-
-    def run(self):
-        if self.is_backup:
-            self._get_info_from_backup()
-        elif self.is_fs_dump:
-            # TODO: Implement extraction of same details from a FS dump.
-            pass
