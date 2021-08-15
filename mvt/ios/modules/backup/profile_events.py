@@ -32,7 +32,7 @@ class ProfileEvents(IOSExtraction):
         }
 
     def run(self):
-        for events_file in self._get_files_from_manifest(relative_path=CONF_PROFILES_EVENTS_RELPATH):
+        for events_file in self._get_backup_files_from_manifest(relative_path=CONF_PROFILES_EVENTS_RELPATH):
             events_file_path = self._get_backup_file_from_id(events_file["file_id"])
             if not events_file_path:
                 continue

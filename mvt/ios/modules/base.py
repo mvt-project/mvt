@@ -68,7 +68,7 @@ class IOSExtraction(MVTModule):
 
         self.log.info("Database at path %s recovered successfully!", file_path)
 
-    def _get_files_from_manifest(self, relative_path=None, domain=None):
+    def _get_backup_files_from_manifest(self, relative_path=None, domain=None):
         """Locate files from Manifest.db.
         :param relative_path: Relative path to use as filter from Manifest.db.
         :param domain: Domain to use as filter from Manifest.db.
@@ -106,6 +106,14 @@ class IOSExtraction(MVTModule):
             return file_path
 
         return None
+
+    def _find_fs_files_from_pattern(self, root_paths):
+        for root_path in root_paths:
+            for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
+                if not os.path.exists(found_path):
+                    continue
+
+                yield found_path
 
     def _find_ios_database(self, backup_ids=None, root_paths=[]):
         """Try to locate the module's database file from either an iTunes

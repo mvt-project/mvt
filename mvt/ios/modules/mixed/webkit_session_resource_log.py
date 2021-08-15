@@ -14,7 +14,6 @@ from ..base import IOSExtraction
 WEBKIT_SESSION_RESOURCE_LOG_BACKUP_IDS = [
     "a500ee38053454a02e990957be8a251935e28d3f",
 ]
-
 WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/full_browsing_session_resourceLog.plist",
     "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/ResourceLoadStatistics/full_browsing_session_resourceLog.plist",
@@ -31,6 +30,8 @@ class WebkitSessionResourceLog(IOSExtraction):
         super().__init__(file_path=file_path, base_folder=base_folder,
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
+
+        self.results = {}
 
     def _extract_browsing_stats(self, file_path):
         items = []
@@ -110,32 +111,13 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                     self.log.warning("Found HTTP redirect between suspicious domains: %s", redirect_path)
 
-    def _find_paths(self, root_paths):
-        results = {}
-        for root_path in root_paths:
-            for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
-                if not os.path.exists(found_path):
-                    continue
-
-                key = os.path.relpath(found_path, self.base_folder)
-                if key not in results:
-                    results[key] = []
-
-        return results
-
     def run(self):
-        self.results = {}
-
-        try:
+        if self.is_backup:
             self._find_ios_database(backup_ids=WEBKIT_SESSION_RESOURCE_LOG_BACKUP_IDS)
-        except FileNotFoundError:
-            pass
-        else:
-            if self.file_path:
-                self.results[self.file_path] = self._extract_browsing_stats(self.file_path)
-                return
+            self.results[self.file_path] = self._extract_browsing_stats(self.file_path)
+            return
 
-        self.results = self._find_paths(root_paths=WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS)
-        for log_file in self.results.keys():
+        for log_file in self._find_fs_files_from_pattern(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
             self.log.info("Found Safari browsing session resource log at path: %s", log_file)
-            self.results[log_file] = self._extract_browsing_stats(os.path.join(self.base_folder, log_file))
+            key = os.path.relpath(log_file, self.base_folder)
+            self.results[key] = self._extract_browsing_stats(log_file)

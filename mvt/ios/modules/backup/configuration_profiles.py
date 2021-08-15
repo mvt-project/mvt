@@ -22,7 +22,7 @@ class ConfigurationProfiles(IOSExtraction):
                          log=log, results=results)
 
     def run(self):
-        for conf_file in self._get_files_from_manifest(domain=CONF_PROFILES_DOMAIN):
+        for conf_file in self._get_backup_files_from_manifest(domain=CONF_PROFILES_DOMAIN):
             conf_file_path = self._get_backup_file_from_id(conf_file["file_id"])
             if not conf_file_path:
                 continue

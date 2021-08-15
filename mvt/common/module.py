@@ -66,13 +66,6 @@ class MVTModule(object):
         sub = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", self.__class__.__name__)
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", sub).lower()
 
-    def _find_paths(self, root_paths):
-        for root_path in root_paths:
-            for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
-                if not os.path.exists(found_path):
-                    continue
-                yield found_path
-
     def load_indicators(self, file_path):
         self.indicators = Indicators(file_path, self.log)
 

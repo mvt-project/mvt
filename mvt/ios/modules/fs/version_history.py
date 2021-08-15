@@ -32,7 +32,7 @@ class IOSVersionHistory(IOSExtraction):
         }
 
     def run(self):
-        for found_path in self._find_paths(IOS_ANALYTICS_JOURNAL_PATHS):
+        for found_path in self._find_fs_files_from_pattern(IOS_ANALYTICS_JOURNAL_PATHS):
             with open(found_path, "r") as analytics_log:
                 log_line = json.loads(analytics_log.readline().strip())
 
