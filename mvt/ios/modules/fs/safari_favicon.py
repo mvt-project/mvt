@@ -57,13 +57,13 @@ class SafariFavicon(IOSExtraction):
 
         items = []
         for item in cur:
-            items.append(dict(
-                url=item[0],
-                icon_url=item[1],
-                timestamp=item[2],
-                isodate=convert_timestamp_to_iso(convert_mactime_to_unix(item[2])),
-                type="valid",
-            ))
+            items.append({
+                "url": item[0],
+                "icon_url": item[1],
+                "timestamp": item[2],
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(item[2])),
+                "type": "valid",
+            })
 
         # Fetch icons from the rejected icons table.
         cur.execute("""SELECT
@@ -73,13 +73,13 @@ class SafariFavicon(IOSExtraction):
             FROM rejected_resources ORDER BY timestamp;""")
 
         for item in cur:
-            items.append(dict(
-                url=item[0],
-                icon_url=item[1],
-                timestamp=item[2],
-                isodate=convert_timestamp_to_iso(convert_mactime_to_unix(item[2])),
-                type="rejected",
-            ))
+            items.append({
+                "url": item[0],
+                "icon_url": item[1],
+                "timestamp": item[2],
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(item[2])),
+                "type": "rejected",
+            })
 
         cur.close()
         conn.close()

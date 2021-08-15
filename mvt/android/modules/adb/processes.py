@@ -29,13 +29,13 @@ class Processes(AndroidExtraction):
                 continue
 
             fields = line.split()
-            proc = dict(
-                user=fields[0],
-                pid=fields[1],
-                parent_pid=fields[2],
-                vsize=fields[3],
-                rss=fields[4],
-            )
+            proc = {
+                "user": fields[0],
+                "pid": fields[1],
+                "parent_pid": fields[2],
+                "vsize": fields[3],
+                "rss": fields[4],
+            }
 
             # Sometimes WCHAN is empty, so we need to re-align output fields.
             if len(fields) == 8:

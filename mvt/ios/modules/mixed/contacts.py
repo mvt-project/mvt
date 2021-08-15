@@ -40,7 +40,7 @@ class Contacts(IOSExtraction):
         names = [description[0] for description in cur.description]
 
         for entry in cur:
-            new_contact = dict()
+            new_contact = {}
             for index, value in enumerate(entry):
                 new_contact[names[index]] = value
 

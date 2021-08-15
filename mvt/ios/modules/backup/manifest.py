@@ -102,7 +102,7 @@ class Manifest(IOSExtraction):
         names = [description[0] for description in cur.description]
 
         for file_entry in cur:
-            file_data = dict()
+            file_data = {}
             for index, value in enumerate(file_entry):
                 file_data[names[index]] = value
 

@@ -102,15 +102,15 @@ class SafariHistory(IOSExtraction):
 
         items = []
         for item in cur:
-            items.append(dict(
-                id=item[0],
-                url=item[1],
-                visit_id=item[2],
-                timestamp=item[3],
-                isodate=convert_timestamp_to_iso(convert_mactime_to_unix(item[3])),
-                redirect_source=item[4],
-                redirect_destination=item[5]
-            ))
+            items.append({
+                "id": item[0],
+                "url": item[1],
+                "visit_id": item[2],
+                "timestamp": item[3],
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(item[3])),
+                "redirect_source": item[4],
+                "redirect_destination": item[5]
+            })
 
         cur.close()
         conn.close()

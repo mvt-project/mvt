@@ -58,14 +58,14 @@ class CacheFiles(IOSExtraction):
             self.results[key_name] = []
 
         for row in cur:
-            self.results[key_name].append(dict(
-                entry_id=row[0],
-                version=row[1],
-                hash_value=row[2],
-                storage_policy=row[3],
-                url=row[4],
-                isodate=row[5],
-            ))
+            self.results[key_name].append({
+                "entry_id": row[0],
+                "version": row[1],
+                "hash_value": row[2],
+                "storage_policy": row[3],
+                "url": row[4],
+                "isodate": row[5],
+            })
 
     def run(self):
         self.results = {}

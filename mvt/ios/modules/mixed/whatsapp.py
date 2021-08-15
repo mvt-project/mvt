@@ -61,7 +61,7 @@ class Whatsapp(IOSExtraction):
         names = [description[0] for description in cur.description]
 
         for message in cur:
-            new_message = dict()
+            new_message = {}
             for index, value in enumerate(message):
                 new_message[names[index]] = value
 

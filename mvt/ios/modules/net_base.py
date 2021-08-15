@@ -55,20 +55,20 @@ class NetBase(IOSExtraction):
             else:
                 live_timestamp = ""
 
-            items.append(dict(
-                first_isodate=first_isodate,
-                isodate=isodate,
-                proc_name=item[2],
-                bundle_id=item[3],
-                proc_id=item[4],
-                wifi_in=item[5],
-                wifi_out=item[6],
-                wwan_in=item[7],
-                wwan_out=item[8],
-                live_id=item[9],
-                live_proc_id=item[10],
-                live_isodate=live_timestamp,
-            ))
+            items.append({
+                "first_isodate": first_isodate,
+                "isodate": isodate,
+                "proc_name": item[2],
+                "bundle_id": item[3],
+                "proc_id": item[4],
+                "wifi_in": item[5],
+                "wifi_out": item[6],
+                "wwan_in": item[7],
+                "wwan_out": item[8],
+                "live_id": item[9],
+                "live_proc_id": item[10],
+                "live_isodate": live_timestamp,
+            })
 
         cur.close()
         conn.close()
@@ -104,6 +104,7 @@ class NetBase(IOSExtraction):
                     "data": record_data,
                 }
             ])
+
         return records
 
     def _find_suspicious_processes(self):

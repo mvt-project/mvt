@@ -62,14 +62,14 @@ class FirefoxHistory(IOSExtraction):
         """)
 
         for item in cur:
-            self.results.append(dict(
-                id=item[0],
-                isodate=convert_timestamp_to_iso(datetime.utcfromtimestamp(item[1])),
-                url=item[2],
-                title=item[3],
-                i1000000s_local=item[4],
-                type=item[5]
-            ))
+            self.results.append({
+                "id": item[0],
+                "isodate": convert_timestamp_to_iso(datetime.utcfromtimestamp(item[1])),
+                "url": item[2],
+                "title": item[3],
+                "i1000000s_local": item[4],
+                "type": item[5]
+            })
 
         cur.close()
         conn.close()

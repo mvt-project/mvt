@@ -64,16 +64,16 @@ class FirefoxFavicon(IOSExtraction):
         """)
 
         for item in cur:
-            self.results.append(dict(
-                id=item[0],
-                url=item[1],
-                width=item[2],
-                height=item[3],
-                type=item[4],
-                isodate=convert_timestamp_to_iso(datetime.utcfromtimestamp(item[5])),
-                history_id=item[6],
-                history_url=item[7]
-            ))
+            self.results.append({
+                "id": item[0],
+                "url": item[1],
+                "width": item[2],
+                "height": item[3],
+                "type": item[4],
+                "isodate": convert_timestamp_to_iso(datetime.utcfromtimestamp(item[5])),
+                "history_id": item[6],
+                "history_url": item[7]
+            })
 
         cur.close()
         conn.close()

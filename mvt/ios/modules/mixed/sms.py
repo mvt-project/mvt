@@ -64,7 +64,7 @@ class SMS(IOSExtraction):
         names = [description[0] for description in cur.description]
 
         for item in cur:
-            message = dict()
+            message = {}
             for index, value in enumerate(item):
                 # We base64 escape some of the attributes that could contain
                 # binary data.

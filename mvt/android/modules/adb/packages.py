@@ -76,18 +76,18 @@ class Packages(AndroidExtraction):
             first_install = dumpsys[1].split("=")[1].strip()
             last_update = dumpsys[2].split("=")[1].strip()
 
-            self.results.append(dict(
-                package_name=package_name,
-                file_name=file_name,
-                installer=installer,
-                timestamp=timestamp,
-                first_install_time=first_install,
-                last_update_time=last_update,
-                uid=uid,
-                disabled=False,
-                system=False,
-                third_party=False,
-            ))
+            self.results.append({
+                "package_name": package_name,
+                "file_name": file_name,
+                "installer": installer,
+                "timestamp": timestamp,
+                "first_install_time": first_install,
+                "last_update_time": last_update,
+                "uid": uid,
+                "disabled": False,
+                "system": False,
+                "third_party": False,
+            })
 
         cmds = [
             {"field": "disabled", "arg": "-d"},

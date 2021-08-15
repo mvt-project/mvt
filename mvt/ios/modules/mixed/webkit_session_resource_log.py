@@ -44,16 +44,16 @@ class WebkitSessionResourceLog(IOSExtraction):
         browsing_stats = file_plist["browsingStatistics"]
 
         for item in browsing_stats:
-            items.append(dict(
-                origin=item.get("PrevalentResourceOrigin", ""),
-                redirect_source=item.get("topFrameUniqueRedirectsFrom", ""),
-                redirect_destination=item.get("topFrameUniqueRedirectsTo", ""),
-                subframe_under_origin=item.get("subframeUnderTopFrameOrigins", ""),
-                subresource_under_origin=item.get("subresourceUnderTopFrameOrigins", ""),
-                user_interaction=item.get("hadUserInteraction"),
-                most_recent_interaction=convert_timestamp_to_iso(item["mostRecentUserInteraction"]),
-                last_seen=convert_timestamp_to_iso(item["lastSeen"]),
-            ))
+            items.append({
+                "origin": item.get("PrevalentResourceOrigin", ""),
+                "redirect_source": item.get("topFrameUniqueRedirectsFrom", ""),
+                "redirect_destination": item.get("topFrameUniqueRedirectsTo", ""),
+                "subframe_under_origin": item.get("subframeUnderTopFrameOrigins", ""),
+                "subresource_under_origin": item.get("subresourceUnderTopFrameOrigins", ""),
+                "user_interaction": item.get("hadUserInteraction"),
+                "most_recent_interaction": convert_timestamp_to_iso(item["mostRecentUserInteraction"]),
+                "last_seen": convert_timestamp_to_iso(item["lastSeen"]),
+            })
 
         return items
 

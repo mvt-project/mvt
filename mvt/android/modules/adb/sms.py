@@ -84,7 +84,7 @@ class SMS(AndroidExtraction):
         names = [description[0] for description in cur.description]
 
         for item in cur:
-            message = dict()
+            message = {}
             for index, value in enumerate(item):
                 message[names[index]] = value
 

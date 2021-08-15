@@ -59,7 +59,7 @@ class Whatsapp(AndroidExtraction):
 
         messages = []
         for item in cur:
-            message = dict()
+            message = {}
             for index, value in enumerate(item):
                 message[names[index]] = value
 

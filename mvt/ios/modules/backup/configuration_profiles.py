@@ -33,11 +33,11 @@ class ConfigurationProfiles(IOSExtraction):
             if "SignerCerts" in conf_plist:
                 conf_plist["SignerCerts"] = [b64encode(x) for x in conf_plist["SignerCerts"]]
 
-            self.results.append(dict(
-                file_id=conf_file["file_id"],
-                relative_path=conf_file["relative_path"],
-                domain=conf_file["domain"],
-                plist=conf_plist,
-            ))
+            self.results.append({
+                "file_id": conf_file["file_id"],
+                "relative_path": conf_file["relative_path"],
+                "domain": conf_file["domain"],
+                "plist": conf_plist,
+            })
 
         self.log.info("Extracted details about %d configuration profiles", len(self.results))

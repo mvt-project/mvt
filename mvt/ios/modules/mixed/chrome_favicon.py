@@ -65,12 +65,12 @@ class ChromeFavicon(IOSExtraction):
         items = []
         for item in cur:
             last_timestamp = int(item[2]) or int(item[3])
-            items.append(dict(
-                url=item[0],
-                icon_url=item[1],
-                timestamp=last_timestamp,
-                isodate=convert_timestamp_to_iso(convert_chrometime_to_unix(last_timestamp)),
-            ))
+            items.append({
+                "url": item[0],
+                "icon_url": item[1],
+                "timestamp": last_timestamp,
+                "isodate": convert_timestamp_to_iso(convert_chrometime_to_unix(last_timestamp)),
+            })
 
         cur.close()
         conn.close()

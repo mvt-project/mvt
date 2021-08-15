@@ -85,19 +85,19 @@ class SafariBrowserState(IOSExtraction):
                 if "SessionHistoryEntries" in session_data["SessionHistory"]:
                     for session_entry in session_data["SessionHistory"]["SessionHistoryEntries"]:
                         session_history_count += 1
-                        session_entries.append(dict(
-                            entry_title=session_entry["SessionHistoryEntryOriginalURL"],
-                            entry_url=session_entry["SessionHistoryEntryURL"],
-                            data_length=len(session_entry["SessionHistoryEntryData"]) if "SessionHistoryEntryData" in session_entry else 0,
-                        ))
+                        session_entries.append({
+                            "entry_title": session_entry["SessionHistoryEntryOriginalURL"],
+                            "entry_url": session_entry["SessionHistoryEntryURL"],
+                            "data_length": len(session_entry["SessionHistoryEntryData"]) if "SessionHistoryEntryData" in session_entry else 0,
+                        })
 
-            self.results.append(dict(
-                tab_title=item[0],
-                tab_url=item[1],
-                tab_visible_url=item[2],
-                last_viewed_timestamp=convert_timestamp_to_iso(convert_mactime_to_unix(item[3])),
-                session_data=session_entries,
-            ))
+            self.results.append({
+                "tab_title": item[0],
+                "tab_url": item[1],
+                "tab_visible_url": item[2],
+                "last_viewed_timestamp": convert_timestamp_to_iso(convert_mactime_to_unix(item[3])),
+                "session_data": session_entries,
+            })
 
         self.log.info("Extracted a total of %d tab records and %d session history entries",
                       len(self.results), session_history_count)
