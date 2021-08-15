@@ -25,15 +25,14 @@ class Manifest(IOSExtraction):
                          log=log, results=results)
 
     def _get_key(self, dictionary, key):
-        """
-        Unserialized plist objects can have keys which are str or byte types
-
+        """Unserialized plist objects can have keys which are str or byte types
         This is a helper to try fetch a key as both a byte or string type.
         """
         return dictionary.get(key.encode("utf-8"), None) or dictionary.get(key, None)
 
     def _convert_timestamp(self, timestamp_or_unix_time_int):
-        """Older iOS versions stored the manifest times as unix timestamps."""
+        """Older iOS versions stored the manifest times as unix timestamps.
+        """
         if isinstance(timestamp_or_unix_time_int, datetime.datetime):
             return convert_timestamp_to_iso(timestamp_or_unix_time_int)
         else:
@@ -42,20 +41,20 @@ class Manifest(IOSExtraction):
 
     def serialize(self, record):
         records = []
-        if "modified" not in record or "statusChanged" not in record:
+        if "modified" not in record or "status_changed" not in record:
             return
-        for ts in set([record["created"], record["modified"], record["statusChanged"]]):
+        for ts in set([record["created"], record["modified"], record["status_changed"]]):
             macb = ""
             macb += "M" if ts == record["modified"] else "-"
             macb += "-"
-            macb += "C" if ts == record["statusChanged"] else "-"
+            macb += "C" if ts == record["status_changed"] else "-"
             macb += "B" if ts == record["created"] else "-"
 
             records.append({
                 "timestamp": ts,
                 "module": self.__class__.__name__,
                 "event": macb,
-                "data": f"{record['relativePath']} - {record['domain']}"
+                "data": f"{record['relative_path']} - {record['domain']}"
             })
 
         return records
@@ -65,23 +64,23 @@ class Manifest(IOSExtraction):
             return
 
         for result in self.results:
-            if not "relativePath" in result:
+            if not "relative_path" in result:
                 continue
-            if not result["relativePath"]:
+            if not result["relative_path"]:
                 continue
 
             if result["domain"]:
-                if os.path.basename(result["relativePath"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
+                if os.path.basename(result["relative_path"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
                     self.log.warning("Found a potentially suspicious \"com.apple.CrashReporter.plist\" file created in RootDomain")
                     self.detected.append(result)
                     continue
 
-            if self.indicators.check_file(result["relativePath"]):
-                self.log.warning("Found a known malicious file at path: %s", result["relativePath"])
+            if self.indicators.check_file(result["relative_path"]):
+                self.log.warning("Found a known malicious file at path: %s", result["relative_path"])
                 self.detected.append(result)
                 continue
 
-            relPath = result["relativePath"].lower()
+            relPath = result["relative_path"].lower()
             for ioc in self.indicators.ioc_domains:
                 if ioc.lower() in relPath:
                     self.log.warning("Found mention of domain \"%s\" in a backup file with path: %s",
@@ -107,9 +106,9 @@ class Manifest(IOSExtraction):
                 file_data[names[index]] = value
 
             cleaned_metadata = {
-                "fileID": file_data["fileID"],
+                "file_id": file_data["fileID"],
                 "domain": file_data["domain"],
-                "relativePath": file_data["relativePath"],
+                "relative_path": file_data["relativePath"],
                 "flags": file_data["flags"],
                 "created": "",
             }
@@ -121,7 +120,7 @@ class Manifest(IOSExtraction):
                     cleaned_metadata.update({
                         "created": self._convert_timestamp(self._get_key(file_metadata, "Birth")),
                         "modified": self._convert_timestamp(self._get_key(file_metadata, "LastModified")),
-                        "statusChanged": self._convert_timestamp(self._get_key(file_metadata, "LastStatusChange")),
+                        "status_changed": self._convert_timestamp(self._get_key(file_metadata, "LastStatusChange")),
                         "mode": oct(self._get_key(file_metadata, "Mode")),
                         "owner": self._get_key(file_metadata, "UserID"),
                         "size": self._get_key(file_metadata, "Size"),
