@@ -107,7 +107,7 @@ class IOSExtraction(MVTModule):
 
         return None
 
-    def _find_fs_files_from_pattern(self, root_paths):
+    def _get_fs_files_from_pattern(self, root_paths):
         for root_path in root_paths:
             for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
                 if not os.path.exists(found_path):

@@ -83,5 +83,5 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             except Exception as e:
                 self.log.info("Unable to search for WebKit observations.db: %s", e)
         elif self.is_fs_dump:
-            for db_path in self._find_fs_files_from_pattern(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
+            for db_path in self._get_fs_files_from_pattern(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
                 self._process_observations_db(db_path=db_path, key=os.path.relpath(db_path, self.base_folder))
