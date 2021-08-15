@@ -28,6 +28,6 @@ class WebkitLocalStorage(WebkitBase):
         }
 
     def run(self):
-        self._database_from_path(WEBKIT_LOCALSTORAGE_ROOT_PATHS)
+        self._process_webkit_folder(WEBKIT_LOCALSTORAGE_ROOT_PATHS)
         self.log.info("Extracted a total of %d records from WebKit Local Storages",
                       len(self.results))

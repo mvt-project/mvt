@@ -22,7 +22,7 @@ class WebkitBase(IOSExtraction):
             if self.indicators.check_domain(item["url"]):
                 self.detected.append(item)
 
-    def _database_from_path(self, root_paths):
+    def _process_webkit_folder(self, root_paths):
         for found_path in self._find_paths(root_paths):
             key = os.path.relpath(found_path, self.base_folder)
 

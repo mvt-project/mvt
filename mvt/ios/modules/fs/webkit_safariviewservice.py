@@ -20,4 +20,6 @@ class WebkitSafariViewService(WebkitBase):
                          log=log, results=results)
 
     def run(self):
-        self._database_from_path(WEBKIT_SAFARIVIEWSERVICE_ROOT_PATHS)
+        self._process_webkit_folder(WEBKIT_SAFARIVIEWSERVICE_ROOT_PATHS)
+        self.log.info("Extracted a total of %d records from WebKit SafariViewService WebsiteData",
+                      len(self.results))

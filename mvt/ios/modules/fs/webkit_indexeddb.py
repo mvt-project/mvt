@@ -30,6 +30,6 @@ class WebkitIndexedDB(WebkitBase):
         }
 
     def run(self):
-        self._database_from_path(WEBKIT_INDEXEDDB_ROOT_PATHS)
+        self._process_webkit_folder(WEBKIT_INDEXEDDB_ROOT_PATHS)
         self.log.info("Extracted a total of %d WebKit IndexedDB records",
                       len(self.results))
