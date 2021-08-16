@@ -61,14 +61,14 @@ class FirefoxHistory(IOSExtraction):
             WHERE visits.siteID = history.id;
         """)
 
-        for item in cur:
+        for row in cur:
             self.results.append({
-                "id": item[0],
-                "isodate": convert_timestamp_to_iso(datetime.utcfromtimestamp(item[1])),
-                "url": item[2],
-                "title": item[3],
-                "i1000000s_local": item[4],
-                "type": item[5]
+                "id": row[0],
+                "isodate": convert_timestamp_to_iso(datetime.utcfromtimestamp(row[1])),
+                "url": row[2],
+                "title": row[3],
+                "i1000000s_local": row[4],
+                "type": row[5]
             })
 
         cur.close()

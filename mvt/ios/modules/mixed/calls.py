@@ -34,7 +34,8 @@ class Calls(IOSExtraction):
         }
 
     def run(self):
-        self._find_ios_database(backup_ids=CALLS_BACKUP_IDS, root_paths=CALLS_ROOT_PATHS)
+        self._find_ios_database(backup_ids=CALLS_BACKUP_IDS,
+                                root_paths=CALLS_ROOT_PATHS)
         self.log.info("Found Calls database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
@@ -42,17 +43,17 @@ class Calls(IOSExtraction):
         cur.execute("""
             SELECT
                 ZDATE, ZDURATION, ZLOCATION, ZADDRESS, ZSERVICE_PROVIDER
-                FROM ZCALLRECORD;
+            FROM ZCALLRECORD;
         """)
         names = [description[0] for description in cur.description]
 
-        for entry in cur:
+        for row in cur:
             self.results.append({
-                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(entry[0])),
-                "duration": entry[1],
-                "location": entry[2],
-                "number": entry[3].decode("utf-8") if entry[3] and entry[3] is bytes else entry[3],
-                "provider": entry[4]
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(row[0])),
+                "duration": row[1],
+                "location": row[2],
+                "number": row[3].decode("utf-8") if row[3] and row[3] is bytes else row[3],
+                "provider": row[4]
             })
 
         cur.close()

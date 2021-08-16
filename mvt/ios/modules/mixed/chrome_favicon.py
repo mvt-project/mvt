@@ -45,14 +45,16 @@ class ChromeFavicon(IOSExtraction):
                 self.detected.append(result)
 
     def run(self):
-        self._find_ios_database(backup_ids=CHROME_FAVICON_BACKUP_IDS, root_paths=CHROME_FAVICON_ROOT_PATHS)
+        self._find_ios_database(backup_ids=CHROME_FAVICON_BACKUP_IDS,
+                                root_paths=CHROME_FAVICON_ROOT_PATHS)
         self.log.info("Found Chrome favicon cache database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
 
         # Fetch icon cache
         cur = conn.cursor()
-        cur.execute("""SELECT
+        cur.execute("""
+            SELECT
                 icon_mapping.page_url,
                 favicons.url,
                 favicon_bitmaps.last_updated,
@@ -60,14 +62,15 @@ class ChromeFavicon(IOSExtraction):
             FROM icon_mapping
             JOIN favicon_bitmaps ON icon_mapping.icon_id = favicon_bitmaps.icon_id
             JOIN favicons ON icon_mapping.icon_id = favicons.id
-            ORDER BY icon_mapping.id;""")
+            ORDER BY icon_mapping.id;
+        """)
 
-        items = []
-        for item in cur:
-            last_timestamp = int(item[2]) or int(item[3])
-            items.append({
-                "url": item[0],
-                "icon_url": item[1],
+        records = []
+        for row in cur:
+            last_timestamp = int(row[2]) or int(row[3])
+            records.append({
+                "url": row[0],
+                "icon_url": row[1],
                 "timestamp": last_timestamp,
                 "isodate": convert_timestamp_to_iso(convert_chrometime_to_unix(last_timestamp)),
             })
@@ -75,5 +78,5 @@ class ChromeFavicon(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d favicon records", len(items))
-        self.results = sorted(items, key=lambda item: item["isodate"])
+        self.log.info("Extracted a total of %d favicon records", len(records))
+        self.results = sorted(records, key=lambda row: row["isodate"])

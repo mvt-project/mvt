@@ -39,50 +39,57 @@ class SafariFavicon(IOSExtraction):
             if self.indicators.check_domain(result["url"]) or self.indicators.check_domain(result["icon_url"]):
                 self.detected.append(result)
 
-    def run(self):
-        self._find_ios_database(root_paths=SAFARI_FAVICON_ROOT_PATHS)
-        self.log.info("Found Safari favicon cache database at path: %s", self.file_path)
-
-        conn = sqlite3.connect(self.file_path)
+    def _process_favicon_db(self, file_path):
+        conn = sqlite3.connect(file_path)
 
         # Fetch valid icon cache.
         cur = conn.cursor()
-        cur.execute("""SELECT
+        cur.execute("""
+            SELECT
                 page_url.url,
                 icon_info.url,
                 icon_info.timestamp
             FROM page_url
             JOIN icon_info ON page_url.uuid = icon_info.uuid
-            ORDER BY icon_info.timestamp;""")
+            ORDER BY icon_info.timestamp;
+        """)
 
-        items = []
-        for item in cur:
-            items.append({
-                "url": item[0],
-                "icon_url": item[1],
-                "timestamp": item[2],
-                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(item[2])),
+        for row in cur:
+            self.results.append({
+                "url": row[0],
+                "icon_url": row[1],
+                "timestamp": row[2],
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(row[2])),
                 "type": "valid",
+                "safari_favicon_db_path": file_path,
             })
 
         # Fetch icons from the rejected icons table.
-        cur.execute("""SELECT
+        cur.execute("""
+            SELECT
                 page_url,
                 icon_url,
                 timestamp
-            FROM rejected_resources ORDER BY timestamp;""")
+            FROM rejected_resources ORDER BY timestamp;
+        """)
 
-        for item in cur:
-            items.append({
-                "url": item[0],
-                "icon_url": item[1],
-                "timestamp": item[2],
-                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(item[2])),
+        for row in cur:
+            self.results.append({
+                "url": row[0],
+                "icon_url": row[1],
+                "timestamp": row[2],
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(row[2])),
                 "type": "rejected",
+                "safari_favicon_db_path": file_path,
             })
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d favicon records", len(items))
-        self.results = sorted(items, key=lambda item: item["isodate"])
+    def run(self):
+        for file_path in self._get_fs_files_from_patterns(SAFARI_FAVICON_ROOT_PATHS):
+            self.log.info("Found Safari favicon cache database at path: %s", file_path)
+            self._process_favicon_db(file_path)
+
+        self.log.info("Extracted a total of %d favicon records", len(self.results))
+        self.results = sorted(self.results, key=lambda x: x["isodate"])

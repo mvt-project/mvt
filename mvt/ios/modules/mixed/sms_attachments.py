@@ -36,7 +36,8 @@ class SMSAttachments(IOSExtraction):
         }
 
     def run(self):
-        self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
+        self._find_ios_database(backup_ids=SMS_BACKUP_IDS,
+                                root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
@@ -50,19 +51,20 @@ class SMSAttachments(IOSExtraction):
             FROM attachment
             LEFT JOIN message_attachment_join ON message_attachment_join.attachment_id = attachment.ROWID
             LEFT JOIN message ON message.ROWID = message_attachment_join.message_id
-            LEFT JOIN handle ON handle.ROWID = message.handle_id
+            LEFT JOIN handle ON handle.ROWID = message.handle_id;
         """)
         names = [description[0] for description in cur.description]
 
         for item in cur:
             attachment = {}
             for index, value in enumerate(item):
-                if (names[index] in ["user_info", "sticker_user_info", "attribution_info",
-                                     "ck_server_change_token_blob", "sr_ck_server_change_token_blob"]) and value:
+                if (names[index] in ["user_info", "sticker_user_info",
+                                     "attribution_info",
+                                     "ck_server_change_token_blob",
+                                     "sr_ck_server_change_token_blob"]) and value:
                     value = b64encode(value).decode()
                 attachment[names[index]] = value
 
-            # We convert Mac's ridiculous timestamp format.
             attachment["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(attachment["created_date"]))
             attachment["start_date"] = convert_timestamp_to_iso(convert_mactime_to_unix(attachment["start_date"]))
             attachment["direction"] = ("sent" if attachment["is_outgoing"] == 1 else "received")

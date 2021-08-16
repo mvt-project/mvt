@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import os
 import sqlite3
 
 from mvt.common.url import URL
@@ -10,10 +11,7 @@ from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
 from ..base import IOSExtraction
 
-SAFARI_HISTORY_BACKUP_IDS = [
-    "e74113c185fd8297e140cfcf9c99436c5cc06b57",
-    "1a0e7afc19d307da602ccdcece51af33afe92c53",
-]
+SAFARI_HISTORY_BACKUP_RELPATH = "Library/Safari/History.db"
 SAFARI_HISTORY_ROOT_PATHS = [
     "private/var/mobile/Library/Safari/History.db",
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/History.db",
@@ -81,11 +79,8 @@ class SafariHistory(IOSExtraction):
             if self.indicators.check_domain(result["url"]):
                 self.detected.append(result)
 
-    def run(self):
-        self._find_ios_database(backup_ids=SAFARI_HISTORY_BACKUP_IDS, root_paths=SAFARI_HISTORY_ROOT_PATHS)
-        self.log.info("Found Safari history database at path: %s", self.file_path)
-
-        conn = sqlite3.connect(self.file_path)
+    def _process_history_db(self, history_path):
+        conn = sqlite3.connect(history_path)
         cur = conn.cursor()
         cur.execute("""
             SELECT
@@ -100,20 +95,33 @@ class SafariHistory(IOSExtraction):
             ORDER BY history_visits.visit_time;
         """)
 
-        items = []
-        for item in cur:
-            items.append({
-                "id": item[0],
-                "url": item[1],
-                "visit_id": item[2],
-                "timestamp": item[3],
-                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(item[3])),
-                "redirect_source": item[4],
-                "redirect_destination": item[5]
+        for row in cur:
+            self.results.append({
+                "id": row[0],
+                "url": row[1],
+                "visit_id": row[2],
+                "timestamp": row[3],
+                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(row[3])),
+                "redirect_source": row[4],
+                "redirect_destination": row[5],
+                "safari_history_db": os.path.relpath(history_path, self.base_folder),
             })
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d history items", len(items))
-        self.results = items
+    def run(self):
+        if self.is_backup:
+            for history_file in self._get_backup_files_from_manifest(relative_path=SAFARI_HISTORY_BACKUP_RELPATH):
+                history_path = self._get_backup_file_from_id(history_file["file_id"])
+                if not history_path:
+                    continue
+
+                self.log.info("Found Safari history database at path: %s", history_path)
+                self._process_history_db(history_path)
+        elif self.is_fs_dump:
+            for history_path in self._get_fs_files_from_patterns(SAFARI_HISTORY_ROOT_PATHS):
+                self.log.info("Found Safari history database at path: %s", history_path)
+                self._process_history_db(history_path)
+
+        self.log.info("Extracted a total of %d history records", len(self.results))

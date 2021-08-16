@@ -39,9 +39,9 @@ class Contacts(IOSExtraction):
         """)
         names = [description[0] for description in cur.description]
 
-        for entry in cur:
+        for row in cur:
             new_contact = {}
-            for index, value in enumerate(entry):
+            for index, value in enumerate(row):
                 new_contact[names[index]] = value
 
             self.results.append(new_contact)
@@ -49,4 +49,5 @@ class Contacts(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d contacts from the address book", len(self.results))
+        self.log.info("Extracted a total of %d contacts from the address book",
+                      len(self.results))

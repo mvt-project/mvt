@@ -45,7 +45,8 @@ class ChromeHistory(IOSExtraction):
                 self.detected.append(result)
 
     def run(self):
-        self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS, root_paths=CHROME_HISTORY_ROOT_PATHS)
+        self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS,
+                                root_paths=CHROME_HISTORY_ROOT_PATHS)
         self.log.info("Found Chrome history database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)

@@ -30,12 +30,12 @@ class Whatsapp(IOSExtraction):
                          log=log, results=results)
 
     def serialize(self, record):
-        text = record["ZTEXT"].replace("\n", "\\n")
+        text = record.get("ZTEXT", "").replace("\n", "\\n")
         return {
-            "timestamp": record["isodate"],
+            "timestamp": record.get("isodate"),
             "module": self.__class__.__name__,
             "event": "message",
-            "data": f"{text} from {record['ZFROMJID']}"
+            "data": f"{text} from {record.get('ZFROMJID', 'Unknown')}",
         }
 
     def check_indicators(self):
@@ -43,16 +43,13 @@ class Whatsapp(IOSExtraction):
             return
 
         for message in self.results:
-            if not "ZTEXT" in message:
-                continue
-
-            message_links = check_for_links(message["ZTEXT"])
+            message_links = check_for_links(message.get("ZTEXT", ""))
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
 
     def run(self):
-        self._find_ios_database(backup_ids=WHATSAPP_BACKUP_IDS, root_paths=WHATSAPP_ROOT_PATHS)
-
+        self._find_ios_database(backup_ids=WHATSAPP_BACKUP_IDS,
+                                root_paths=WHATSAPP_ROOT_PATHS)
         log.info("Found WhatsApp database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
@@ -65,11 +62,11 @@ class Whatsapp(IOSExtraction):
             for index, value in enumerate(message):
                 new_message[names[index]] = value
 
-            if not new_message["ZTEXT"]:
+            if not new_message.get("ZTEXT", None):
                 continue
 
             # We convert Mac's silly timestamp again.
-            new_message["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(new_message["ZMESSAGEDATE"]))
+            new_message["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(new_message.get("ZMESSAGEDATE")))
 
             # Extract links from the WhatsApp message.
             message_links = check_for_links(new_message["ZTEXT"])

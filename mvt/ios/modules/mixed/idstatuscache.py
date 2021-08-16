@@ -39,19 +39,20 @@ class IDStatusCache(IOSExtraction):
             return
 
         for result in self.results:
-            if result["user"].startswith("mailto:"):
+            if result.get("user", "").startswith("mailto:"):
                 email = result["user"][7:].strip("'")
                 if self.indicators.check_email(email):
                     self.detected.append(result)
                     continue
 
-            if "\\x00\\x00" in result["user"]:
+            if "\\x00\\x00" in result.get("user", ""):
                 self.log.warning("Found an ID Status Cache entry with suspicious patterns: %s",
-                                 result["user"])
+                                 result.get("user"))
                 self.detected.append(result)
 
     def run(self):
-        self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS, root_paths=IDSTATUSCACHE_ROOT_PATHS)
+        self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS,
+                                root_paths=IDSTATUSCACHE_ROOT_PATHS)
         self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
 
         with open(self.file_path, "rb") as handle:
@@ -78,7 +79,7 @@ class IDStatusCache(IOSExtraction):
 
         entry_counter = collections.Counter([entry["user"] for entry in id_status_cache_entries])
         for entry in id_status_cache_entries:
-            # Add total count of occurrences to the status cache entry
+            # Add total count of occurrences to the status cache entry.
             entry["occurrences"] = entry_counter[entry["user"]]
             self.results.append(entry)
 

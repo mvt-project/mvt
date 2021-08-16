@@ -24,7 +24,8 @@ class NetBase(IOSExtraction):
     def _extract_net_data(self):
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
-        cur.execute("""SELECT
+        cur.execute("""
+            SELECT
                 ZPROCESS.ZFIRSTTIMESTAMP,
                 ZPROCESS.ZTIMESTAMP,
                 ZPROCESS.ZPROCNAME,
@@ -38,43 +39,42 @@ class NetBase(IOSExtraction):
                 ZLIVEUSAGE.ZHASPROCESS,
                 ZLIVEUSAGE.ZTIMESTAMP
             FROM ZLIVEUSAGE
-            LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK;""")
+            LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK;
+        """)
 
-        items = []
-        for item in cur:
+        for row in cur:
             # ZPROCESS records can be missing after the JOIN. Handle NULL timestamps.
-            if item[0] and item[1]:
-                first_isodate = convert_timestamp_to_iso(convert_mactime_to_unix(item[0]))
-                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(item[1]))
+            if row[0] and row[1]:
+                first_isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[0]))
+                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[1]))
             else:
-                first_isodate = item[0]
-                isodate = item[1]
+                first_isodate = row[0]
+                isodate = row[1]
 
-            if item[11]:
-                live_timestamp = convert_timestamp_to_iso(convert_mactime_to_unix(item[11]))
+            if row[11]:
+                live_timestamp = convert_timestamp_to_iso(convert_mactime_to_unix(row[11]))
             else:
                 live_timestamp = ""
 
-            items.append({
+            self.results.append({
                 "first_isodate": first_isodate,
                 "isodate": isodate,
-                "proc_name": item[2],
-                "bundle_id": item[3],
-                "proc_id": item[4],
-                "wifi_in": item[5],
-                "wifi_out": item[6],
-                "wwan_in": item[7],
-                "wwan_out": item[8],
-                "live_id": item[9],
-                "live_proc_id": item[10],
+                "proc_name": row[2],
+                "bundle_id": row[3],
+                "proc_id": row[4],
+                "wifi_in": row[5],
+                "wifi_out": row[6],
+                "wwan_in": row[7],
+                "wwan_out": row[8],
+                "live_id": row[9],
+                "live_proc_id": row[10],
                 "live_isodate": live_timestamp,
             })
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted information on %d processes", len(items))
-        self.results = items
+        self.log.info("Extracted information on %d processes", len(self.results))
 
     def serialize(self, record):
         record_data = f"{record['proc_name']} (Bundle ID: {record['bundle_id']}, ID: {record['proc_id']})"

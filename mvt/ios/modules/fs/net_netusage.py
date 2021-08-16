@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import sqlite3
+
 from ..net_base import NetBase
 
 NETUSAGE_ROOT_PATHS = [
@@ -21,8 +23,13 @@ class Netusage(NetBase):
                          log=log, results=results)
 
     def run(self):
-        self._find_ios_database(root_paths=NETUSAGE_ROOT_PATHS)
-        self.log.info("Found NetUsage database at path: %s", self.file_path)
+        for netusage_path in self._get_fs_files_from_patterns(NETUSAGE_ROOT_PATHS):
+            self.file_path = netusage_path
+            self.log.info("Found NetUsage database at path: %s", self.file_path)
+            try:
+                self._extract_net_data()
+            except sqlite3.OperationalError as e:
+                self.log.info("Skipping this NetUsage database because it seems empty or malformed: %s", e)
+                continue
 
-        self._extract_net_data()
         self._find_suspicious_processes()

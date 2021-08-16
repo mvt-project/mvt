@@ -24,6 +24,7 @@ class LocationdClients(IOSExtraction):
         super().__init__(file_path=file_path, base_folder=base_folder,
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
+
         self.timestamps = [
             "ConsumptionPeriodBegin",
             "ReceivingLocationInformationTimeStopped",
@@ -50,7 +51,8 @@ class LocationdClients(IOSExtraction):
         return records
 
     def run(self):
-        self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS, root_paths=LOCATIOND_ROOT_PATHS)
+        self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS,
+                                root_paths=LOCATIOND_ROOT_PATHS)
         self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
 
         with open(self.file_path, "rb") as handle:

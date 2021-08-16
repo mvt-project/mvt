@@ -23,7 +23,8 @@ class Datausage(NetBase):
                          log=log, results=results)
 
     def run(self):
-        self._find_ios_database(backup_ids=DATAUSAGE_BACKUP_IDS, root_paths=DATAUSAGE_ROOT_PATHS)
+        self._find_ios_database(backup_ids=DATAUSAGE_BACKUP_IDS,
+                                root_paths=DATAUSAGE_ROOT_PATHS)
         self.log.info("Found DataUsage database at path: %s", self.file_path)
 
         self._extract_net_data()

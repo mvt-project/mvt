@@ -26,8 +26,11 @@ class IOSExtraction(MVTModule):
         self.is_fs_dump = False
         self.is_sysdiagnose = False
 
-    def _is_database_malformed(self, file_path):
-        # Check if the database is malformed.
+    def _recover_sqlite_db_if_needed(self, file_path):
+        """Tries to recover a malformed database by running a .clone command.
+        :param file_path: Path to the malformed database file.
+        """
+        # TODO: Find a better solution.
         conn = sqlite3.connect(file_path)
         cur = conn.cursor()
 
@@ -40,18 +43,10 @@ class IOSExtraction(MVTModule):
         finally:
             conn.close()
 
-        return recover
-
-    def _recover_database(self, file_path):
-        """Tries to recover a malformed database by running a .clone command.
-        :param file_path: Path to the malformed database file.
-        """
-        # TODO: Find a better solution.
+        if not recover:
+            return
 
         self.log.info("Database at path %s is malformed. Trying to recover...", file_path)
-
-        if not os.path.exists(file_path):
-            return
 
         if not shutil.which("sqlite3"):
             raise DatabaseCorruptedError("Unable to recover without sqlite3 binary. Please install sqlite3!")
@@ -107,7 +102,7 @@ class IOSExtraction(MVTModule):
 
         return None
 
-    def _get_fs_files_from_pattern(self, root_paths):
+    def _get_fs_files_from_patterns(self, root_paths):
         for root_path in root_paths:
             for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
                 if not os.path.exists(found_path):
@@ -116,8 +111,11 @@ class IOSExtraction(MVTModule):
                 yield found_path
 
     def _find_ios_database(self, backup_ids=None, root_paths=[]):
-        """Try to locate the module's database file from either an iTunes
-        backup or a full filesystem dump.
+        """Try to locate a module's database file from either an iTunes
+        backup or a full filesystem dump. This is intended only for
+        modules that expect to work with a single SQLite database.
+        If a module requires to process multiple databases or files,
+        you should use the helper functions above.
         :param backup_id: iTunes backup database file's ID (or hash).
         :param root_paths: Glob patterns for files to seek in filesystem dump.
         """
@@ -138,15 +136,9 @@ class IOSExtraction(MVTModule):
             if not file_path or not os.path.exists(file_path):
                 # We reset the file_path.
                 file_path = None
-                for root_path in root_paths:
-                    for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
-                        # If we find a valid path, we set file_path.
-                        if os.path.exists(found_path):
-                            file_path = found_path
-                            break
-
-                        # Otherwise, we reset the file_path again.
-                        file_path = None
+                for found_path in self._get_fs_files_from_patterns(root_paths):
+                    file_path = found_path
+                    break
 
         # If we do not find any, we fail.
         if file_path:
@@ -154,5 +146,4 @@ class IOSExtraction(MVTModule):
         else:
             raise DatabaseNotFoundError("Unable to find the module's database file")
 
-        if self._is_database_malformed(self.file_path):
-            self._recover_database(self.file_path)
+        self._recover_sqlite_db_if_needed(self.file_path)

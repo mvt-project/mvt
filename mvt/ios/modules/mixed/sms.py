@@ -41,15 +41,13 @@ class SMS(IOSExtraction):
             return
 
         for message in self.results:
-            if not "text" in message:
-                continue
-
-            message_links = check_for_links(message["text"])
+            message_links = check_for_links(message.get("text", ""))
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
 
     def run(self):
-        self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
+        self._find_ios_database(backup_ids=SMS_BACKUP_IDS,
+                                root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
@@ -78,17 +76,17 @@ class SMS(IOSExtraction):
 
             # We convert Mac's ridiculous timestamp format.
             message["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(message["date"]))
-            message["direction"] = ("sent" if message["is_from_me"] == 1 else "received")
+            message["direction"] = ("sent" if message.get("is_from_me", 0) == 1 else "received")
 
             # Sometimes "text" is None instead of empty string.
-            if message["text"] is None:
+            if not message.get("text", None):
                 message["text"] = ""
 
             # Extract links from the SMS message.
-            message_links = check_for_links(message["text"])
+            message_links = check_for_links(message.get("text", ""))
 
             # If we find links in the messages or if they are empty we add them to the list.
-            if message_links or message["text"].strip() == "":
+            if message_links or message.get("text", "").strip() == "":
                 self.results.append(message)
 
         cur.close()

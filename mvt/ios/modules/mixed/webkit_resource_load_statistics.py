@@ -46,8 +46,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
     def _process_observations_db(self, db_path, key):
         self.log.info("Found WebKit ResourceLoadStatistics observations.db file at path %s", db_path)
 
-        if self._is_database_malformed(db_path):
-            self._recover_database(db_path)
+        self._recover_sqlite_db_if_needed(db_path)
 
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
@@ -66,7 +65,6 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 "registrable_domain": row[1],
                 "last_seen": row[2],
                 "had_user_interaction": bool(row[3]),
-                # TODO: Fix isodate.
                 "last_seen_isodate": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(int(row[2]))),
             })
 
@@ -83,5 +81,5 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             except Exception as e:
                 self.log.info("Unable to search for WebKit observations.db: %s", e)
         elif self.is_fs_dump:
-            for db_path in self._get_fs_files_from_pattern(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
+            for db_path in self._get_fs_files_from_patterns(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
                 self._process_observations_db(db_path=db_path, key=os.path.relpath(db_path, self.base_folder))

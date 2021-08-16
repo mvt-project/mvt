@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import io
+import os
 import plistlib
 import sqlite3
 
@@ -15,6 +16,7 @@ from ..base import IOSExtraction
 SAFARI_BROWSER_STATE_BACKUP_IDS = [
     "3a47b0981ed7c10f3e2800aa66bac96a3b5db28e",
 ]
+SAFARI_BROWSER_STATE_BACKUP_RELPATH = "Library/Safari/BrowserState.db"
 SAFARI_BROWSER_STATE_ROOT_PATHS = [
     "private/var/mobile/Library/Safari/BrowserState.db",
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/BrowserState.db",
@@ -28,6 +30,8 @@ class SafariBrowserState(IOSExtraction):
         super().__init__(file_path=file_path, base_folder=base_folder,
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
+
+        self._session_history_count = 0
 
     def serialize(self, record):
         return {
@@ -53,16 +57,12 @@ class SafariBrowserState(IOSExtraction):
                 if "entry_url" in session_entry and self.indicators.check_domain(session_entry["entry_url"]):
                     self.detected.append(result)
 
-    def run(self):
-        self._find_ios_database(backup_ids=SAFARI_BROWSER_STATE_BACKUP_IDS,
-                                root_paths=SAFARI_BROWSER_STATE_ROOT_PATHS)
-        self.log.info("Found Safari browser state database at path: %s", self.file_path)
+    def _process_browser_state_db(self, db_path):
+        conn = sqlite3.connect(db_path)
 
-        conn = sqlite3.connect(self.file_path)
-
-        # Fetch valid icon cache.
         cur = conn.cursor()
-        cur.execute("""SELECT
+        cur.execute("""
+            SELECT
                 tabs.title,
                 tabs.url,
                 tabs.user_visible_url,
@@ -70,34 +70,43 @@ class SafariBrowserState(IOSExtraction):
                 tab_sessions.session_data
             FROM tabs
             JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
-            ORDER BY tabs.last_viewed_time;""")
+            ORDER BY tabs.last_viewed_time;
+        """)
 
-        session_history_count = 0
-        for item in cur:
+        for row in cur:
             session_entries = []
 
-            if item[4]:
+            if row[4]:
                 # Skip a 4 byte header before the plist content.
-                session_plist = item[4][4:]
+                session_plist = row[4][4:]
                 session_data = plistlib.load(io.BytesIO(session_plist))
                 session_data = keys_bytes_to_string(session_data)
 
-                if "SessionHistoryEntries" in session_data["SessionHistory"]:
-                    for session_entry in session_data["SessionHistory"]["SessionHistoryEntries"]:
-                        session_history_count += 1
+                if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
+                    for session_entry in session_data["SessionHistory"].get("SessionHistoryEntries"):
+                        self._session_history_count += 1
                         session_entries.append({
-                            "entry_title": session_entry["SessionHistoryEntryOriginalURL"],
-                            "entry_url": session_entry["SessionHistoryEntryURL"],
-                            "data_length": len(session_entry["SessionHistoryEntryData"]) if "SessionHistoryEntryData" in session_entry else 0,
+                            "entry_title": session_entry.get("SessionHistoryEntryOriginalURL"),
+                            "entry_url": session_entry.get("SessionHistoryEntryURL"),
+                            "data_length": len(session_entry.get("SessionHistoryEntryData")) if "SessionHistoryEntryData" in session_entry else 0,
                         })
 
             self.results.append({
-                "tab_title": item[0],
-                "tab_url": item[1],
-                "tab_visible_url": item[2],
-                "last_viewed_timestamp": convert_timestamp_to_iso(convert_mactime_to_unix(item[3])),
+                "tab_title": row[0],
+                "tab_url": row[1],
+                "tab_visible_url": row[2],
+                "last_viewed_timestamp": convert_timestamp_to_iso(convert_mactime_to_unix(row[3])),
                 "session_data": session_entries,
+                "safari_browser_state_db": os.path.relpath(db_path, self.base_folder),
             })
 
+    def run(self):
+        # TODO: Is there really only one BrowserState.db in a device?
+        self._find_ios_database(backup_ids=SAFARI_BROWSER_STATE_BACKUP_IDS,
+                                root_paths=SAFARI_BROWSER_STATE_ROOT_PATHS)
+        self.log.info("Found Safari browser state database at path: %s", self.file_path)
+
+        self._process_browser_state_db(self.file_path)
+
         self.log.info("Extracted a total of %d tab records and %d session history entries",
-                      len(self.results), session_history_count)
+                      len(self.results), self._session_history_count)

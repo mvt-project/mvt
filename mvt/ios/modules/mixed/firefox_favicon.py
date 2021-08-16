@@ -39,11 +39,13 @@ class FirefoxFavicon(IOSExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_domain(result["url"]) or self.indicators.check_domain(result["history_url"]):
+            if (self.indicators.check_domain(result.get("url", "")) or 
+                self.indicators.check_domain(result.get("history_url", ""))):
                 self.detected.append(result)
 
     def run(self):
-        self._find_ios_database(backup_ids=FIREFOX_HISTORY_BACKUP_IDS, root_paths=FIREFOX_HISTORY_ROOT_PATHS)
+        self._find_ios_database(backup_ids=FIREFOX_HISTORY_BACKUP_IDS,
+                                root_paths=FIREFOX_HISTORY_ROOT_PATHS)
         self.log.info("Found Firefox favicon database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)

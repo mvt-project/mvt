@@ -116,55 +116,56 @@ class InteractionC(IOSExtraction):
                 ZINTERACTIONS.ZGROUPNAME,
                 ZINTERACTIONS.ZDERIVEDINTENTIDENTIFIER,
                 ZINTERACTIONS.Z_PK
-        FROM ZINTERACTIONS
-            LEFT JOIN ZCONTACTS ON ZINTERACTIONS.ZSENDER = ZCONTACTS.Z_PK
-            LEFT JOIN Z_1INTERACTIONS ON ZINTERACTIONS.Z_PK == Z_1INTERACTIONS.Z_3INTERACTIONS
-            LEFT JOIN ZATTACHMENT ON Z_1INTERACTIONS.Z_1ATTACHMENTS == ZATTACHMENT.Z_PK
-            LEFT JOIN Z_2INTERACTIONRECIPIENT ON ZINTERACTIONS.Z_PK== Z_2INTERACTIONRECIPIENT.Z_3INTERACTIONRECIPIENT
-            LEFT JOIN ZCONTACTS RECEIPIENTCONACT ON Z_2INTERACTIONRECIPIENT.Z_2RECIPIENTS== RECEIPIENTCONACT.Z_PK;
+            FROM ZINTERACTIONS
+                LEFT JOIN ZCONTACTS ON ZINTERACTIONS.ZSENDER = ZCONTACTS.Z_PK
+                LEFT JOIN Z_1INTERACTIONS ON ZINTERACTIONS.Z_PK == Z_1INTERACTIONS.Z_3INTERACTIONS
+                LEFT JOIN ZATTACHMENT ON Z_1INTERACTIONS.Z_1ATTACHMENTS == ZATTACHMENT.Z_PK
+                LEFT JOIN Z_2INTERACTIONRECIPIENT ON ZINTERACTIONS.Z_PK== Z_2INTERACTIONRECIPIENT.Z_3INTERACTIONRECIPIENT
+                LEFT JOIN ZCONTACTS RECEIPIENTCONACT ON Z_2INTERACTIONRECIPIENT.Z_2RECIPIENTS== RECEIPIENTCONACT.Z_PK;
         """)
+
         names = [description[0] for description in cur.description]
 
-        for item in cur:
+        for row in cur:
             self.results.append({
-                "start_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[0])),
-                "end_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[1])),
-                "bundle_id": item[2],
-                "account": item[3],
-                "target_bundle_id": item[4],
-                "direction": item[5],
-                "sender_display_name": item[6],
-                "sender_identifier": item[7],
-                "sender_personid": item[8],
-                "recipient_display_name": item[9],
-                "recipient_identifier": item[10],
-                "recipient_personid": item[11],
-                "recipient_count": item[12],
-                "domain_identifier": item[13],
-                "is_response": item[14],
-                "content": item[15],
-                "uti": item[16],
-                "content_url": item[17],
-                "size": item[18],
-                "photo_local_id": item[19],
-                "attachment_id": item[20],
-                "cloud_id": item[21],
-                "incoming_recipient_count": item[22],
-                "incoming_sender_count": item[23],
-                "outgoing_recipient_count": item[24],
-                "interactions_creation_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[25])) if item[25] else None,
-                "contacts_creation_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[26])) if item[26] else None,
-                "first_incoming_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[27])) if item[27] else None,
-                "first_incoming_sender_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[28])) if item[28] else None,
-                "first_outgoing_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[29])) if item[29] else None,
-                "last_incoming_sender_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[30])) if item[30] else None,
-                "last_incoming_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[31])) if item[31] else None,
-                "last_outgoing_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(item[32])) if item[32] else None,
-                "custom_id": item[33],
-                "location_uuid": item[35],
-                "group_name": item[36],
-                "derivied_intent_id": item[37],
-                "table_id": item[38]
+                "start_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[0])),
+                "end_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[1])),
+                "bundle_id": row[2],
+                "account": row[3],
+                "target_bundle_id": row[4],
+                "direction": row[5],
+                "sender_display_name": row[6],
+                "sender_identifier": row[7],
+                "sender_personid": row[8],
+                "recipient_display_name": row[9],
+                "recipient_identifier": row[10],
+                "recipient_personid": row[11],
+                "recipient_count": row[12],
+                "domain_identifier": row[13],
+                "is_response": row[14],
+                "content": row[15],
+                "uti": row[16],
+                "content_url": row[17],
+                "size": row[18],
+                "photo_local_id": row[19],
+                "attachment_id": row[20],
+                "cloud_id": row[21],
+                "incoming_recipient_count": row[22],
+                "incoming_sender_count": row[23],
+                "outgoing_recipient_count": row[24],
+                "interactions_creation_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[25])) if row[25] else None,
+                "contacts_creation_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[26])) if row[26] else None,
+                "first_incoming_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[27])) if row[27] else None,
+                "first_incoming_sender_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[28])) if row[28] else None,
+                "first_outgoing_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[29])) if row[29] else None,
+                "last_incoming_sender_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[30])) if row[30] else None,
+                "last_incoming_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[31])) if row[31] else None,
+                "last_outgoing_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[32])) if row[32] else None,
+                "custom_id": row[33],
+                "location_uuid": row[35],
+                "group_name": row[36],
+                "derivied_intent_id": row[37],
+                "table_id": row[38]
             })
 
         cur.close()

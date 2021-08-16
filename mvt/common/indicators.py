@@ -115,10 +115,10 @@ class Indicators:
             # Then we just check the top level domain.
             if final_url.top_level.lower() == ioc:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a sub-domain matching a suspicious top level %s shortened as %s",
+                    self.log.warning("Found a sub-domain matching a known suspicious top level %s shortened as %s",
                                      final_url.url, orig_url.url)
                 else:
-                    self.log.warning("Found a sub-domain matching a suspicious top level: %s", final_url.url)
+                    self.log.warning("Found a sub-domain matching a known suspicious top level: %s", final_url.url)
 
                 return True
 
