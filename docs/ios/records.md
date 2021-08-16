@@ -4,6 +4,16 @@ In this page you can find a (reasonably) up-to-date breakdown of the files creat
 
 ## Records extracted by `check-fs` or `check-backup`
 
+### `backup_info.json`
+
+!!! info "Availabiliy"
+    Backup: :material-check:  
+    Full filesystem dump: :material-close:
+
+This JSON file is created by mvt-ios' `BackupInfo` module. The module extracts some details about the backup and the device, such as name, phone number, IMEI, product type and version.
+
+---
+
 ### `cache_files.json`
 
 !!! info "Availability"
@@ -47,6 +57,16 @@ If indicators are provided through the command-line, they are checked against bo
 This JSON file is created by mvt-ios' `ChromeHistory` module. The module extracts records from a SQLite database located at */private/var/mobile/Containers/Data/Application/\*/Library/Application Support/Google/Chrome/Default/History*, which contains a history of URL visits.
 
 If indicators a provided through the command-line, they are checked against the visited URL. Any matches are stored in *chrome_history_detected.json*.
+
+---
+
+### `configuration_profiles.json`
+
+!!! info "Availability"
+    Backup: :material-check:  
+    Full filesystem dump: :material-close:
+
+This JSON file is created by mvt-ios' `ConfigurationProfiles` module. The module extracts details about iOS configuration profiles that have been installed on the device. These should include both default iOS as well as third-party profiles.
 
 ---
 
@@ -150,6 +170,16 @@ If indicators are provided through the command-line, they are checked against th
 
 ---
 
+### `profile_events.json`
+
+!!! info "Availability"
+    Backup: :material-check:  
+    Full filesystem dump: :material-close:
+
+This JSON file is created by mvt-ios' `ProfileEvents` module. The module extracts a timeline of configuration profile operations. For example, it should indicate when a new profile was installed from the Settings app, or when one was removed.
+
+---
+
 ### `safari_browser_state.json`
 
 !!! info "Availability"
@@ -239,6 +269,18 @@ If indicators are provided through the command-line, they are checked against th
 This JSON file is created by mvt-ios' `WebkitLocalStorage` module. The module extracts a list of file and folder names located at the following path */private/var/mobile/Containers/Data/Application/\*/Library/WebKit/WebsiteData/LocalStorage/*, which contains local storage files created by any app installed on the device.
 
 If indicators are provided through the command-line, they are checked against the extracted names. Any matches are stored in *webkit_local_storage_detected.json*.
+
+---
+
+### `webkit_resource_load_statistics.json`
+
+!!! info "Availability"
+    Backup: :material-check:  
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios `WebkitResourceLoadStatistics` module. The module extracts records from available WebKit ResourceLoadStatistics *observations.db* SQLite3 databases. These records should indicate domain names contacted by apps, including a timestamp.
+
+If indicators are provided through the command-line, they are checked against the extracted domain names. Any matches are stored in *webkit_resource_load_statistics_detected.json*.
 
 ---
 
