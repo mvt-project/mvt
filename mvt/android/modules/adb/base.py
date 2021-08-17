@@ -81,6 +81,11 @@ class AndroidExtraction(MVTModule):
             except UsbReadFailedError:
                 log.error("Unable to connect to the device over USB. Try to unplug, plug the device and start again.")
                 sys.exit(-1)
+            except OSError as e:
+                if e.errno == 113 and self.serial:
+                    log.critical("Unable to connect to the device %s: did you specify the correct IP addres?",
+                              self.serial)
+                    sys.exit(-1)
             else:
                 break
 
