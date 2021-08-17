@@ -145,6 +145,7 @@ def check_adb(ctx, iocs, output, list_modules, module, serial):
         if len(timeline_detected) > 0:
             save_timeline(timeline_detected, os.path.join(output, "timeline_detected.csv"))
 
+
 #==============================================================================
 # Check ADB backup
 #==============================================================================
