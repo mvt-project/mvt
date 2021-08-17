@@ -66,9 +66,15 @@ class Packages(AndroidExtraction):
 
             fields = line.split()
             file_name, package_name = fields[0].split(":")[1].rsplit("=", 1)
-            installer = fields[1].split("=")[1].strip()
-            if installer == "null":
+
+            try:
+                installer = fields[1].split("=")[1].strip()
+            except IndexError:
                 installer = None
+            else:
+                if installer == "null":
+                    installer = None
+
             uid = fields[2].split(":")[1].strip()
 
             dumpsys = self._adb_command(f"dumpsys package {package_name} | grep -A2 timeStamp").split("\n")
@@ -105,6 +111,13 @@ class Packages(AndroidExtraction):
                 for i, result in enumerate(self.results):
                     if result["package_name"] == package_name:
                         self.results[i][cmd["field"]] = True
+
+        for result in self.results:
+            if result["system"]:
+                continue
+
+            self.log.info("Found non-system package with name \"%s\" installed by \"%s\" on %s",
+                          result["package_name"], result["installer"], result["timestamp"])
 
         self.log.info("Extracted at total of %d installed package names",
                       len(self.results))
