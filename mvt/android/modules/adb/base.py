@@ -15,6 +15,7 @@ from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import AdbCommandFailureException, DeviceAuthError
+from adb_shell.exceptions import UsbReadFailedError
 from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.common.module import InsufficientPrivileges, MVTModule
@@ -77,8 +78,8 @@ class AndroidExtraction(MVTModule):
             except DeviceAuthError:
                 log.error("You need to authorize this computer on the Android device. Retrying in 5 seconds...")
                 time.sleep(5)
-            except Exception as e:
-                log.critical(e)
+            except UsbReadFailedError:
+                log.error("Unable to connect to the device over USB. Try to unplug, plug the device and start again.")
                 sys.exit(-1)
             else:
                 break

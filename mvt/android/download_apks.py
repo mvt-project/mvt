@@ -10,6 +10,7 @@ import os
 import pkg_resources
 from tqdm import tqdm
 
+from mvt.common.module import InsufficientPrivileges
 from mvt.common.utils import get_sha256_from_file_path
 
 from .modules.adb.base import AndroidExtraction
@@ -139,6 +140,11 @@ class DownloadAPKs(AndroidExtraction):
                               miniters=1) as pp:
                 self._adb_download(remote_path, local_path,
                                    progress_callback=pp.update_to)
+        except InsufficientPrivileges:
+            log.warn("Unable to pull package file from %s: insufficient privileges, it might be a system app",
+                     remote_path)
+            self._adb_reconnect()
+            return None
         except Exception as e:
             log.exception("Failed to pull package file from %s: %s",
                           remote_path, e)

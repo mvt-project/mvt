@@ -5,7 +5,6 @@
 
 import logging
 import os
-import sys
 
 import click
 from rich.logging import RichHandler
@@ -51,17 +50,23 @@ def cli():
               help="Specify a path to a folder where you want to store the APKs")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
-def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file, serial):
+@click.pass_context
+def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_file, serial):
     try:
         if from_file:
             download = DownloadAPKs.from_json(from_file)
         else:
-            if output and not os.path.exists(output):
+            # TODO: Do we actually want to be able to run without storing any file?
+            if not output:
+                log.critical("You need to specify an output folder with --output!")
+                ctx.exit(1)
+
+            if not os.path.exists(output):
                 try:
                     os.makedirs(output)
                 except Exception as e:
                     log.critical("Unable to create output folder %s: %s", output, e)
-                    sys.exit(-1)
+                    ctx.exit(1)
 
             download = DownloadAPKs(output_folder=output, all_apks=all_apks)
             if serial:
@@ -80,7 +85,7 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file, 
             koodous_lookup(packages)
     except KeyboardInterrupt:
         print("")
-        sys.exit(-1)
+        ctx.exit(1)
 
 
 #==============================================================================
@@ -93,7 +98,8 @@ def download_apks(all_apks, virustotal, koodous, all_checks, output, from_file, 
               help="Specify a path to a folder where you want to store JSON results")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
-def check_adb(iocs, output, list_modules, module, serial):
+@click.pass_context
+def check_adb(ctx, iocs, output, list_modules, module, serial):
     if list_modules:
         log.info("Following is the list of available check-adb modules:")
         for adb_module in ADB_MODULES:
@@ -108,7 +114,7 @@ def check_adb(iocs, output, list_modules, module, serial):
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
-            sys.exit(-1)
+            ctx.exit(1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
@@ -147,7 +153,8 @@ def check_adb(iocs, output, list_modules, module, serial):
 @click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
 @click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-def check_backup(iocs, output, backup_path, serial):
+@click.pass_context
+def check_backup(ctx, iocs, output, backup_path, serial):
     log.info("Checking ADB backup located at: %s", backup_path)
 
     if output and not os.path.exists(output):
@@ -155,7 +162,7 @@ def check_backup(iocs, output, backup_path, serial):
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
-            sys.exit(-1)
+            ctx.exit(1)
 
     if iocs:
         # Pre-load indicators for performance reasons.
@@ -168,7 +175,7 @@ def check_backup(iocs, output, backup_path, serial):
         if os.path.basename(backup_path) == "backup.ab":
             log.info("You can use ABE (https://github.com/nelenkov/android-backup-extractor) " \
                      "to extract 'backup.ab' files!")
-        sys.exit(-1)
+        ctx.exit(1)
 
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,
