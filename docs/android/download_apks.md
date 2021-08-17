@@ -1,14 +1,14 @@
 # Downloading APKs from an Android phone
 
-In order to use `mvt-android` you need to connect your Android device to your computer. You will then need to [enable USB debugging](https://developer.android.com/studio/debug/dev-options#enable>) on the Android device.
+MVT allows to attempt to download all available installed packages (APKs) in order to further inspect them and potentially identify any which might be malicious in nature.
 
-If this is the first time you connect to this device, you will need to approve the authentication keys through a prompt that will appear on your Android device.
-
-Now you can launch `mvt-android` and specify the `download-apks` command and the path to the folder where you want to store the extracted data:
+You can do so by launching the following command:
 
 ```bash
 mvt-android download-apks --output /path/to/folder
 ```
+
+It might take several minutes to complete. **Please note:** MVT will likely warn you it was unable to download certain installed packages. There is no reason to be alarmed: this is typically expected behavior when MVT attempts to download a system package it has no privileges to access.
 
 Optionally, you can decide to enable lookups of the SHA256 hash of all the extracted APKs on [VirusTotal](https://www.virustotal.com) and/or [Koodous](https://koodous.com). While these lookups do not provide any conclusive assessment on all of the extracted APKs, they might highlight any known malicious ones:
 
@@ -22,3 +22,10 @@ Or, to launch all available lookups::
 ```bash
 mvt-android download-apks --output /path/to/folder --all-checks
 ```
+
+In case you have a previous extraction of APKs you want to later check against VirusTotal and Koodous, you can do so with the following arguments:
+
+```bash
+mvt-android download-apks --from-file /path/to/folder/apks.json --all-checks
+```
+

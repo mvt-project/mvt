@@ -42,7 +42,8 @@ nav:
         - Records extracted by mvt-ios: "ios/records.md"
     - MVT for Android:
         - Android Forensic Methodology: "android/methodology.md"
-        - Check APKs: "android/download_apks.md"
-        - Check an Android Backup: "android/backup.md"
+        - Check over ADB: "android/adb.md"
+        - Check an Android Backup (SMS messages): "android/backup.md"
+        - Download APKs: "android/download_apks.md"
     - Indicators of Compromise: "iocs.md"
     - License: "license.md"
