@@ -27,7 +27,7 @@ Alternatively, you can decide to run MVT and all relevant tools through a [Docke
 
 ## Usage
 
-MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/).
+MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
 ## License
 
