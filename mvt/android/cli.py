@@ -9,7 +9,7 @@ import os
 import click
 from rich.logging import RichHandler
 
-from mvt.common.indicators import Indicators
+from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
 from mvt.common.module import run_module, save_timeline
 
 from .download_apks import DownloadAPKs
