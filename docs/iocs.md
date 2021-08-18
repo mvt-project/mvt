@@ -22,7 +22,11 @@ After extracting forensics data from a device, you are also able to compare it w
 mvt-ios check-iocs --iocs ~/iocs/malware.stix2 /path/to/iphone/output/
 ```
 
-If you're looking for indicators of compromise for a specific piece of malware or adversary, please ask investigators or anti-malware researchers who have the relevant expertise for a STIX file.
+The `--iocs` option can be invoked multiple times to let MVT import multiple STIX2 files at once. For example:
+
+```bash
+mvt-ios check-backup --iocs ~/iocs/malware1.stix --iocs ~/iocs/malware2.stix2 /path/to/backup
+```
 
 ## Known repositories of STIX2 IOCs
 
