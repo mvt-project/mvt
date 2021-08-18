@@ -13,8 +13,9 @@ While it is out of the scope of this documentation to dwell into details on how 
 
 ## Check the device over Android Debug Bridge
 
-TODO
+Some additional diagnostic information can be extracted from the phone using the [Android Debug Bridge (adb)](https://developer.android.com/studio/command-line/adb). `mvt-android` allows to automatically extract information including [dumpsys](https://developer.android.com/studio/command-line/dumpsys) results, details on installed packages (without download), running processes, presence of root binaries and packages, and more.
+
 
 ## Check an Android Backup (SMS messages)
 
-TODO
+Although Android backups are becoming deprecated, it is still possible to generate one. Unfortunately, because apps these days typically favor backup over the cloud, the amount of data available is limited. Currently, `mvt-android check-backup` only supports checking SMS messages containing links.
