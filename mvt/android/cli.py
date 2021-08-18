@@ -93,7 +93,8 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
 #==============================================================================
 @cli.command("check-adb", help="Check an Android device over adb")
 @click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
-@click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
+@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
+              default=[], help="Path to indicators file")
 @click.option("--output", "-o", type=click.Path(exists=False),
               help="Specify a path to a folder where you want to store JSON results")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
@@ -116,10 +117,14 @@ def check_adb(ctx, iocs, output, list_modules, module, serial):
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
 
-    if iocs:
-        # Pre-load indicators for performance reasons.
-        log.info("Loading indicators from provided file at %s", iocs)
-        indicators = Indicators(iocs)
+    indicators = Indicators(log=log)
+    for ioc_path in iocs:
+        try:
+            indicators.parse_stix2(ioc_path)
+        except IndicatorsFileBadFormat as e:
+            log.critical(e)
+            ctx.exit(1)
+    log.info("Loaded a total of %d indicators", indicators.ioc_count)
 
     timeline = []
     timeline_detected = []
@@ -151,7 +156,8 @@ def check_adb(ctx, iocs, output, list_modules, module, serial):
 #==============================================================================
 @cli.command("check-backup", help="Check an Android Backup")
 @click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
-@click.option("--iocs", "-i", type=click.Path(exists=True), help="Path to indicators file")
+@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
+              default=[], help="Path to indicators file")
 @click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
@@ -165,10 +171,14 @@ def check_backup(ctx, iocs, output, backup_path, serial):
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
 
-    if iocs:
-        # Pre-load indicators for performance reasons.
-        log.info("Loading indicators from provided file at %s", iocs)
-        indicators = Indicators(iocs)
+    indicators = Indicators(log=log)
+    for ioc_path in iocs:
+        try:
+            indicators.parse_stix2(ioc_path)
+        except IndicatorsFileBadFormat as e:
+            log.critical(e)
+            ctx.exit(1)
+    log.info("Loaded a total of %d indicators", indicators.ioc_count)
 
     if os.path.isfile(backup_path):
         log.critical("The path you specified is a not a folder!")
