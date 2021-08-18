@@ -122,7 +122,7 @@ def extract_key(password, backup_path, key_file):
 #==============================================================================
 @cli.command("check-backup", help="Extract artifacts from an iTunes backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file")
+              default=[], help="Path to indicators file (can be invoked multiple time)")
 @click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
@@ -185,7 +185,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 #==============================================================================
 @cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file")
+              default=[], help="Path to indicators file (can be invoked multiple time)")
 @click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
@@ -249,7 +249,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 #==============================================================================
 @cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], required=True, help="Path to indicators file")
+              default=[], required=True, help="Path to indicators file (can be invoked multiple time)")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
 @click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
 @click.argument("FOLDER", type=click.Path(exists=True))

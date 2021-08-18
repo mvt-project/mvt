@@ -94,7 +94,7 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
 @cli.command("check-adb", help="Check an Android device over adb")
 @click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file")
+              default=[], help="Path to indicators file (can be invoked multiple times)")
 @click.option("--output", "-o", type=click.Path(exists=False),
               help="Specify a path to a folder where you want to store JSON results")
 @click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
@@ -157,7 +157,7 @@ def check_adb(ctx, iocs, output, list_modules, module, serial):
 @cli.command("check-backup", help="Check an Android Backup")
 @click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file")
+              default=[], help="Path to indicators file (can be invoked multiple times)")
 @click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
