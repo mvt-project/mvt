@@ -17,32 +17,30 @@ class Indicators:
     functions to compare extracted artifacts to the indicators.
     """
 
-    def __init__(self, file_path, log=None):
-        self.file_path = file_path
-        with open(self.file_path, "r") as handle:
-            try:
-                self.data = json.load(handle)
-            except json.decoder.JSONDecodeError:
-                raise IndicatorsFileBadFormat("Unable to parse STIX2 indicators file, the file seems malformed or in the wrong format")
-
+    def __init__(self, log=None):
         self.log = log
         self.ioc_domains = []
         self.ioc_processes = []
         self.ioc_emails = []
         self.ioc_files = []
-        self._parse_stix_file()
 
-    def _parse_stix_file(self):
-        """Extract IOCs of given type from STIX2 definitions.
+    def parse_stix2(self, file_path):
+        """Extract indicators from a STIX2 file.
         """
-        for entry in self.data["objects"]:
+        self.log.info("Parsing STIX2 indicators file at path %s",
+                      file_path)
+
+        with open(file_path, "r") as handle:
             try:
-                if entry["type"] != "indicator":
-                    continue
-            except KeyError:
+                data = json.load(handle)
+            except json.decoder.JSONDecodeError:
+                raise IndicatorsFileBadFormat("Unable to parse STIX2 indicators file, the file seems malformed or in the wrong format")
+
+        for entry in data.get("objects", []):
+            if entry.get("type", "") != "indicator":
                 continue
 
-            key, value = entry["pattern"].strip("[]").split("=")
+            key, value = entry.get("pattern", "").strip("[]").split("=")
             value = value.strip("'")
 
             if key == "domain-name:value":
