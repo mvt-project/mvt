@@ -10,6 +10,8 @@ Mobile Verification Toolkit (MVT) is a collection of utilities designed to facil
 - Generate JSON logs of extracted records, and separate JSON logs of all detected malicious traces.
 - Generate a unified chronological timeline of extracted records, along with a timeline all detected malicious traces.
 
+MVT is a forensic research tool intended for technologists and investigators. Using it requires understanding the basics of forensic analysis and using command-line tools. MVT is not intended for end-user self-assessment. If you are concerned with the security of your device please seek expert assistance.
+
 ## Consensual Forensics
 
 While MVT is capable of extracting and processing various types of very personal records typically found on a mobile phone (such as calls history, SMS and WhatsApp messages, etc.), this is intended to help identify potential attack vectors such as malicious SMS messages leading to exploitation.
