@@ -75,7 +75,10 @@ class Packages(AndroidExtraction):
                 if installer == "null":
                     installer = None
 
-            uid = fields[2].split(":")[1].strip()
+            try:
+                uid = fields[2].split(":")[1].strip()
+            except IndexError:
+                uid = None
 
             dumpsys = self._adb_command(f"dumpsys package {package_name} | grep -A2 timeStamp").split("\n")
             timestamp = dumpsys[0].split("=")[1].strip()
