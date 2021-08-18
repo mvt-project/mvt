@@ -29,7 +29,7 @@ If indicators are provided through the command-line, they are checked against th
 ### `calls.json`
 
 !!! info "Availability"
-    Backup (if encrypted): :material-check:
+    Backup (if encrypted): :material-check:  
     Full filesystem dump: :material-check:
 
 This JSON file is created by mvt-ios' `Calls` module. The module extracts records from a SQLite database located at */private/var/mobile/Library/CallHistoryDB/CallHistory.storedata*, which contains records of incoming and outgoing calls, including from messaging apps such as WhatsApp or Skype.
