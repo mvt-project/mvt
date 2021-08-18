@@ -29,7 +29,7 @@ If indicators are provided through the command-line, they are checked against th
 ### `calls.json`
 
 !!! info "Availability"
-    Backup: :material-check:  
+    Backup (if encrypted): :material-check:
     Full filesystem dump: :material-check:
 
 This JSON file is created by mvt-ios' `Calls` module. The module extracts records from a SQLite database located at */private/var/mobile/Library/CallHistoryDB/CallHistory.storedata*, which contains records of incoming and outgoing calls, including from messaging apps such as WhatsApp or Skype.
@@ -107,17 +107,19 @@ If indicators a provided through the command-line, they are checked against the 
 ### `id_status_cache.json`
 
 !!! info "Availability"
-    Backup: :material-check:  
+    Backup (before iOS 14.7): :material-check:  
     Full filesystem dump: :material-check:
 
 This JSON file is created by mvt-ios' `IDStatusCache` module. The module extracts records from a plist file located at */private/var/mobile/Library/Preferences/com.apple.identityservices.idstatuscache.plist*, which contains a cache of Apple user ID authentication. This chance will indicate when apps like Facetime and iMessage first established contacts with other registered Apple IDs. This is significant because it might contain traces of malicious accounts involved in exploitation of those apps.
+
+Starting from iOS 14.7.0, this file is empty or absent.
 
 ---
 
 ### `interaction_c.json`
 
 !!! info "Availability"
-    Backup: :material-check:  
+    Backup (if encrypted): :material-check:  
     Full filesystem dump: :material-check:
 
 This JSON file is created by mvt-ios' `InteractionC` module. The module extracts records from a SQLite database located at */private/var/mobile/Library/CoreDuet/People/interactionC.db*, which contains details about user interactions with installed apps.
@@ -183,7 +185,7 @@ This JSON file is created by mvt-ios' `ProfileEvents` module. The module extract
 ### `safari_browser_state.json`
 
 !!! info "Availability"
-    Backup: :material-check:  
+    Backup (if encrypted): :material-check:  
     Full filesystem dump: :material-check:
 
 This JSON file is created by mvt-ios' `SafariBrowserState` module. The module extracts records from the SQLite databases located at */private/var/mobile/Library/Safari/BrowserState.db* or */private/var/mobile/Containers/Data/Application/\*/Library/Safari/BrowserState.db*, which contain records of opened tabs.
@@ -207,7 +209,7 @@ If indicators are provided through the command-line, they are checked against bo
 ### `safari_history.json`
 
 !!! info "Availability"
-    Backup: :material-check:  
+    Backup (if encrypted): :material-check:  
     Full filesystem dump: :material-check:
 
 This JSON file is created by mvt-ios' `SafariHistory` module. The module extracts records from the SQLite databases located at */private/var/mobile/Library/Safari/History.db* or */private/var/mobile/Containers/Data/Application/\*/Library/Safari/History.db*, which contain a history of URL visits.
