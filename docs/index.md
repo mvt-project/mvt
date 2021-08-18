@@ -10,4 +10,4 @@ In this documentation you will find instructions on how to install and run the `
 
 ## Resources
 
-[:fontawesome-brands-python: Python Package](https://pypi.org/project/mvt){: .md-button .md-button--primary } [:fontawesome-brands-github: GitHub](https://github.com/mvt-project/mvt){: .md-button }
+[:fontawesome-brands-github: GitHub](https://github.com/mvt-project/mvt){: .md-button .md-button--primary } [:fontawesome-brands-python: Python Package](https://pypi.org/project/mvt){: .md-button }
