@@ -146,10 +146,9 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
 
+    indicators = Indicators(log=log)
     for ioc_path in iocs:
         try:
-            indicators = Indicators()
-            indicators.log = log
             indicators.parse_stix2(ioc_path)
         except IndicatorsFileBadFormat as e:
             log.critical(e)
@@ -166,8 +165,8 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
         m.is_backup = True
 
         if iocs:
-            indicators.log = m.log
             m.indicators = indicators
+            m.indicators.log = m.log
 
         run_module(m)
         timeline.extend(m.timeline)
@@ -209,10 +208,9 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
 
+    indicators = Indicators(log=log)
     for ioc_path in iocs:
         try:
-            indicators = Indicators()
-            indicators.log = log
             indicators.parse_stix2(ioc_path)
         except IndicatorsFileBadFormat as e:
             log.critical(e)
@@ -230,8 +228,8 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
         m.is_fs_dump = True
 
         if iocs:
-            indicators.log = m.log
             m.indicators = indicators
+            m.indicators.log = m.log
 
         run_module(m)
         timeline.extend(m.timeline)
@@ -269,10 +267,9 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 
     log.info("Checking stored results against provided indicators...")
 
+    indicators = Indicators(log=log)
     for ioc_path in iocs:
         try:
-            indicators = Indicators()
-            indicators.log = log
             indicators.parse_stix2(ioc_path)
         except IndicatorsFileBadFormat as e:
             log.critical(e)
@@ -295,8 +292,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
             m = iocs_module.from_json(file_path,
                                       log=logging.getLogger(iocs_module.__module__))
 
-            indicators.log = m.log
             m.indicators = indicators
+            m.indicators.log = m.log
 
             try:
                 m.check_indicators()
