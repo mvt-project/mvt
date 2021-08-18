@@ -8,7 +8,10 @@ You can do so by launching the following command:
 mvt-android download-apks --output /path/to/folder
 ```
 
-It might take several minutes to complete. **Please note:** MVT will likely warn you it was unable to download certain installed packages. There is no reason to be alarmed: this is typically expected behavior when MVT attempts to download a system package it has no privileges to access.
+It might take several minutes to complete.
+
+!!! info
+    MVT will likely warn you it was unable to download certain installed packages. There is no reason to be alarmed: this is typically expected behavior when MVT attempts to download a system package it has no privileges to access.
 
 Optionally, you can decide to enable lookups of the SHA256 hash of all the extracted APKs on [VirusTotal](https://www.virustotal.com) and/or [Koodous](https://koodous.com). While these lookups do not provide any conclusive assessment on all of the extracted APKs, they might highlight any known malicious ones:
 
