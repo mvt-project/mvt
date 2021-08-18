@@ -153,6 +153,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
         except IndicatorsFileBadFormat as e:
             log.critical(e)
             ctx.exit(1)
+    log.info("Loaded a total of %d indicators", indicators.ioc_count)
 
     timeline = []
     timeline_detected = []
@@ -215,6 +216,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
         except IndicatorsFileBadFormat as e:
             log.critical(e)
             ctx.exit(1)
+    log.info("Loaded a total of %d indicators", indicators.ioc_count)
 
     timeline = []
     timeline_detected = []
@@ -274,6 +276,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
         except IndicatorsFileBadFormat as e:
             log.critical(e)
             ctx.exit(1)
+    log.info("Loaded a total of %d indicators", indicators.ioc_count)
 
     for file_name in os.listdir(folder):
         name_only, ext = os.path.splitext(file_name)

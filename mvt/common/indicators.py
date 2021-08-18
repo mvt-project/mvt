@@ -23,6 +23,12 @@ class Indicators:
         self.ioc_processes = []
         self.ioc_emails = []
         self.ioc_files = []
+        self.ioc_count = 0
+
+    def _add_indicator(self, ioc, iocs_list):
+        if ioc not in iocs_list:
+            iocs_list.append(ioc)
+            self.ioc_count += 1
 
     def parse_stix2(self, file_path):
         """Extract indicators from a STIX2 file.
@@ -45,20 +51,18 @@ class Indicators:
 
             if key == "domain-name:value":
                 # We force domain names to lower case.
-                value = value.lower()
-                if value not in self.ioc_domains:
-                    self.ioc_domains.append(value)
+                self._add_indicator(ioc=value.lower(),
+                                    iocs_list=self.ioc_domains)
             elif key == "process:name":
-                if value not in self.ioc_processes:
-                    self.ioc_processes.append(value)
+                self._add_indicator(ioc=value,
+                                    iocs_list=self.ioc_processes)
             elif key == "email-addr:value":
                 # We force email addresses to lower case.
-                value = value.lower()
-                if value not in self.ioc_emails:
-                    self.ioc_emails.append(value)
+                self._add_indicator(ioc=value.lower(),
+                                    iocs_list=self.ioc_emails)
             elif key == "file:name":
-                if value not in self.ioc_files:
-                    self.ioc_files.append(value)
+                self._add_indicator(ioc=value,
+                                    iocs_list=self.ioc_files)
 
     def check_domain(self, url):
         # TODO: If the IOC domain contains a subdomain, it is not currently
