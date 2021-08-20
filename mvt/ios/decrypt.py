@@ -8,6 +8,7 @@ import glob
 import logging
 import os
 import shutil
+import sqlite3
 
 from iOSbackup import iOSbackup
 
@@ -30,7 +31,21 @@ class DecryptBackup:
 
     def can_process(self) -> bool:
         return self._backup is not None
-        
+
+    def is_encrypted(self, backup_path) -> bool:
+        """Query Manifest.db file to see if it's encrypted or not.
+        :param backup_path: Path to the backup to decrypt
+        """
+        conn = sqlite3.connect(os.path.join(backup_path, "Manifest.db"))
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT fileID FROM Files LIMIT 1;")
+        except sqlite3.DatabaseError:
+            return True
+        else:
+            log.critical("The backup does not seem encrypted!")
+            return False
+
     def process_backup(self):
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
@@ -94,6 +109,11 @@ class DecryptBackup:
                 log.critical("No Manifest.plist in %s, and %d Manifest.plist files in subdirs. Please choose one!",
                              self.backup_path, len(possible))
                 return
+
+        # Before proceeding, we check whether the backup is indeed encrypted.
+        if not self.is_encrypted(self.backup_path):
+            return
+
         try:
             self._backup = iOSbackup(udid=os.path.basename(self.backup_path),
                                      cleartextpassword=password,
@@ -114,6 +134,10 @@ class DecryptBackup:
         """
         log.info("Decrypting iOS backup at path %s with key file %s",
                  self.backup_path, key_file)
+
+        # Before proceeding, we check whether the backup is indeed encrypted.
+        if not self.is_encrypted(self.backup_path):
+            return
 
         with open(key_file, "rb") as handle:
             key_bytes = handle.read()
