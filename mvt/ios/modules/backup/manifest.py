@@ -126,7 +126,8 @@ class Manifest(IOSExtraction):
                         "size": self._get_key(file_metadata, "Size"),
                     })
                 except:
-                    self.log.exception("Error reading manifest file metadata")
+                    self.log.exception("Error reading manifest file metadata for file with ID %s and relative path %s",
+                                       file_data["fileID"], file_data["relativePath"])
                     pass
 
             self.results.append(cleaned_metadata)
