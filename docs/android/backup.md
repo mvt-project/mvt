@@ -44,4 +44,4 @@ $ mvt-android check-backup --output /path/to/results/ /path/to/backup/
                   64 SMS messages containing links
 ```
 
-Through the `--iocs` argument you can specify a [STIX2](https://oasis-open.github.io/cti-documentation/stix/intro) file defining a list of malicious indicators to check against the records extracted from the backup by mvt. Any matches will be highlighted in the terminal output.
+Through the `--iocs` argument you can specify a [STIX2](https://oasis-open.github.io/cti-documentation/stix/intro) file defining a list of malicious indicators to check against the records extracted from the backup by MVT. Any matches will be highlighted in the terminal output.

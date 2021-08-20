@@ -1,6 +1,6 @@
 # Installation
 
-Before proceeding, please note that mvt requires Python 3.6+ to run. While it should be available on most operating systems, please make sure of that before proceeding.
+Before proceeding, please note that MVT requires Python 3.6+ to run. While it should be available on most operating systems, please make sure of that before proceeding.
 
 ## Dependencies on Linux
 
@@ -14,9 +14,9 @@ sudo apt install python3 python3-pip libusb-1.0-0 sqlite3
 
 When working with Android devices you should additionally install [Android SDK Platform Tools](https://developer.android.com/studio/releases/platform-tools). If you prefer to install a package made available by your distribution of choice, please make sure the version is recent to ensure compatibility with modern Android devices.
 
-## Dependencies on Mac
+## Dependencies on macOS
 
-Running MVT on Mac requires Xcode and [homebrew](https://brew.sh) to be installed.
+Running MVT on macOS requires Xcode and [homebrew](https://brew.sh) to be installed.
 
 In order to install dependencies use:
 
@@ -26,7 +26,7 @@ brew install python3 libusb sqlite3
 
 *libusb* is not required if you intend to only use `mvt-ios` and not `mvt-android`.
 
-When working with Android devices you should additionally install Android SDK Platform Tools:
+When working with Android devices you should additionally install [Android SDK Platform Tools](https://developer.android.com/studio/releases/platform-tools):
 
 ```bash
 brew install --cask android-platform-tools

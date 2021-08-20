@@ -12,4 +12,4 @@ If you are not expected to return the phone, you might want to consider to attem
 
 #### iTunes Backup
 
-An alternative option is to generate an iTunes backup (in most recent version of mac OS, they are no longer launched from iTunes, but directly from Finder). While backups only provide a subset of the files stored on the device, in many cases it might be sufficient to at least detect some suspicious artifacts. Backups encrypted with a password will have some additional interesting records not available in unencrypted ones, such as Safari history, Safari state, etc.
+An alternative option is to generate an iTunes backup (in most recent version of macOS, they are no longer launched from iTunes, but directly from Finder). While backups only provide a subset of the files stored on the device, in many cases it might be sufficient to at least detect some suspicious artifacts. Backups encrypted with a password will have some additional interesting records not available in unencrypted ones, such as Safari history, Safari state, etc.

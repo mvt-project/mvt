@@ -20,7 +20,7 @@ mvt-android download-apks --output /path/to/folder --virustotal
 mvt-android download-apks --output /path/to/folder --koodous
 ```
 
-Or, to launch all available lookups::
+Or, to launch all available lookups:
 
 ```bash
 mvt-android download-apks --output /path/to/folder --all-checks
