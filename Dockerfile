@@ -12,8 +12,7 @@ ENV PIP_NO_CACHE_DIR=1
 # ----------------------------
 RUN apt update \
   && apt install -y python3 python3-pip libusb-1.0-0-dev \
-  && apt install -y wget \ 
-  && apt install -y adb \ 
+  && apt install -y wget unzip\ 
   && DEBIAN_FRONTEND=noninteractive apt-get -y install default-jre-headless \
 
 # Install build tools for libimobiledevice
@@ -64,6 +63,15 @@ RUN mkdir /opt/abe \
   && wget https://github.com/nelenkov/android-backup-extractor/releases/download/20210709062403-4c55371/abe.jar -O /opt/abe/abe.jar \
 # Create alias for abe
   && echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
+
+# Install Android Platform Tools 
+# ------------------------------ 
+
+RUN mkdir /opt/android \
+  && wget -q https://dl.google.com/android/repository/platform-tools-latest-linux.zip \
+  && unzip platform-tools-latest-linux.zip -d /opt/android \
+# Create alias for adb 
+  && echo 'alias adb="/opt/android/platform-tools/adb"' >> ~/.bashrc 
 
 # Setup investigations environment
 # --------------------------------
