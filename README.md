@@ -1,5 +1,5 @@
 <p align="center">
-     <img src="./docs/mvt.png" width="300" />
+     <img src="./docs/mvt.png" width="200" />
 </p>
 
 # Mobile Verification Toolkit
