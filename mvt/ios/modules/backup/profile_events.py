@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import plistlib
-from datetime import datetime
 
 from mvt.common.utils import convert_timestamp_to_iso
 

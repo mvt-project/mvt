@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import csv
-import glob
 import io
 import os
 import re
