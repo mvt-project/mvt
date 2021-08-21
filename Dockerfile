@@ -73,6 +73,10 @@ RUN mkdir /opt/android \
 # Create alias for adb 
   && echo 'alias adb="/opt/android/platform-tools/adb"' >> ~/.bashrc 
 
+# Generate adb key folder 
+# ------------------------------ 
+RUN mkdir /root/.android && /opt/android/platform-tools/adb keygen /root/.android/adbkey
+
 # Setup investigations environment
 # --------------------------------
 RUN mkdir /home/cases
