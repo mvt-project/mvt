@@ -9,6 +9,7 @@ import os
 import click
 from rich.logging import RichHandler
 
+from mvt.common.help import *
 from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
 from mvt.common.module import run_module, save_timeline
 
@@ -24,10 +25,6 @@ logging.basicConfig(level="INFO", format=LOG_FORMAT, handlers=[
     RichHandler(show_path=False, log_time_format="%X")])
 log = logging.getLogger(__name__)
 
-# Help messages of repeating options.
-OUTPUT_HELP_MESSAGE = "Specify a path to a folder where you want to store JSON results"
-SERIAL_HELP_MESSAGE = "Specify a device serial number or HOST:PORT connection string"
-
 #==============================================================================
 # Main
 #==============================================================================
@@ -40,7 +37,7 @@ def cli():
 # Download APKs
 #==============================================================================
 @cli.command("download-apks", help="Download all or non-safelisted installed APKs installed on the device")
-@click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
+@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True,
               help="Extract all packages installed on the phone, even those marked as safe")
 @click.option("--virustotal", "-v", is_flag=True, help="Check packages on VirusTotal")
@@ -92,13 +89,13 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
 # Checks through ADB
 #==============================================================================
 @cli.command("check-adb", help="Check an Android device over adb")
-@click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
+@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file (can be invoked multiple times)")
+              default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
-              help="Specify a path to a folder where you want to store JSON results")
-@click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
-@click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
+              help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.pass_context
 def check_adb(ctx, iocs, output, list_modules, module, serial):
     if list_modules:
@@ -155,10 +152,10 @@ def check_adb(ctx, iocs, output, list_modules, module, serial):
 # Check ADB backup
 #==============================================================================
 @cli.command("check-backup", help="Check an Android Backup")
-@click.option("--serial", "-s", type=str, help=SERIAL_HELP_MESSAGE)
+@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file (can be invoked multiple times)")
-@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
+              default=[], help=HELP_MSG_IOC)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(ctx, iocs, output, backup_path, serial):

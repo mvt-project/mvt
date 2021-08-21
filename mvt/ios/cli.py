@@ -10,6 +10,7 @@ import click
 from rich.logging import RichHandler
 from rich.prompt import Prompt
 
+from mvt.common.help import *
 from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
@@ -24,9 +25,6 @@ LOG_FORMAT = "[%(name)s] %(message)s"
 logging.basicConfig(level="INFO", format=LOG_FORMAT, handlers=[
     RichHandler(show_path=False, log_time_format="%X")])
 log = logging.getLogger(__name__)
-
-# Help messages of repeating options.
-OUTPUT_HELP_MESSAGE = "Specify a path to a folder where you want to store JSON results"
 
 # Set this environment variable to a password if needed.
 PASSWD_ENV = "MVT_IOS_BACKUP_PASSWORD"
@@ -122,11 +120,11 @@ def extract_key(password, backup_path, key_file):
 #==============================================================================
 @cli.command("check-backup", help="Extract artifacts from an iTunes backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file (can be invoked multiple time)")
-@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
-@click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
-@click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
-@click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
+              default=[], help=HELP_MSG_IOC)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
@@ -185,11 +183,11 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 #==============================================================================
 @cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help="Path to indicators file (can be invoked multiple time)")
-@click.option("--output", "-o", type=click.Path(exists=False), help=OUTPUT_HELP_MESSAGE)
-@click.option("--fast", "-f", is_flag=True, help="Avoid running time/resource consuming features")
-@click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
-@click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
+              default=[], help=HELP_MSG_IOC)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
@@ -249,9 +247,9 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 #==============================================================================
 @cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], required=True, help="Path to indicators file (can be invoked multiple time)")
-@click.option("--list-modules", "-l", is_flag=True, help="Print list of available modules and exit")
-@click.option("--module", "-m", help="Name of a single module you would like to run instead of all")
+              default=[], required=True, help=HELP_MSG_IOC)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
