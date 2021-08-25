@@ -41,7 +41,7 @@ def virustotal_lookup(packages):
 
     unique_hashes = []
     for package in packages:
-        for file in package.files:
+        for file in package.get("files", []):
             if file["sha256"] not in unique_hashes:
                 unique_hashes.append(file["sha256"])
 
@@ -74,8 +74,8 @@ def virustotal_lookup(packages):
     table.add_column("Detections")
 
     for package in packages:
-        for file in package.files:
-            row = [package.name, file["local_name"]]
+        for file in package.get("files", []):
+            row = [package["package_name"], file["local_name"]]
 
             if file["sha256"] in detections:
                 detection = detections[file["sha256"]]

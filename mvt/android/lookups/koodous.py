@@ -27,12 +27,12 @@ def koodous_lookup(packages):
     total_packages = len(packages)
     for i in track(range(total_packages), description=f"Looking up {total_packages} packages..."):
         package = packages[i]
-        for file in package.files:
+        for file in package.get("files", []):
             url = f"https://api.koodous.com/apks/{file['sha256']}"
             res = requests.get(url)
             report = res.json()
 
-            row = [package.name, file["local_name"]]
+            row = [package["package_name"], file["local_name"]]
 
             if "package_name" in report:
                 trusted = "no"
