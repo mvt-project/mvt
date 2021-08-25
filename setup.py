@@ -8,7 +8,7 @@ import os
 from setuptools import find_packages, setup
 
 __package_name__ = "mvt"
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 __description__ = "Mobile Verification Toolkit"
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
