@@ -39,7 +39,7 @@ def cli():
 @cli.command("download-apks", help="Download all or non-safelisted installed APKs installed on the device")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True,
-              help="Extract all packages installed on the phone, even those marked as safe")
+              help="Extract all packages installed on the phone, including system packages")
 @click.option("--virustotal", "-v", is_flag=True, help="Check packages on VirusTotal")
 @click.option("--koodous", "-k", is_flag=True, help="Check packages on Koodous")
 @click.option("--all-checks", "-A", is_flag=True, help="Run all available checks")
@@ -65,7 +65,8 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
                     log.critical("Unable to create output folder %s: %s", output, e)
                     ctx.exit(1)
 
-            download = DownloadAPKs(output_folder=output, all_apks=all_apks)
+            download = DownloadAPKs(output_folder=output, all_apks=all_apks,
+                                    log=logging.getLogger(DownloadAPKs.__module__))
             if serial:
                 download.serial = serial
             download.run()
