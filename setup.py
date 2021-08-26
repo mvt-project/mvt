@@ -22,6 +22,7 @@ requires = (
     "tqdm>=4.61.2",
     "requests>=2.26.0",
     "simplejson>=3.17.3",
+    "packaging>=21.0",
     # iOS dependencies:
     "iOSbackup>=0.9.912",
     # Android dependencies:
