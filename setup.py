@@ -7,9 +7,7 @@ import os
 
 from setuptools import find_packages, setup
 
-__package_name__ = "mvt"
-__version__ = "1.2.3"
-__description__ = "Mobile Verification Toolkit"
+from mvt.common.version import MVT_VERSION
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
 readme_path = os.path.join(this_directory, "README.md")
@@ -43,9 +41,9 @@ def get_package_data(package):
     return {package: filepaths}
 
 setup(
-    name=__package_name__,
-    version=__version__,
-    description=__description__,
+    name="mvt",
+    version=MVT_VERSION,
+    description="Mobile Verification Toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mvt-project/mvt",

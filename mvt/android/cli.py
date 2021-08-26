@@ -11,6 +11,7 @@ from rich.logging import RichHandler
 
 from mvt.common.help import *
 from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
+from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 
 from .download_apks import DownloadAPKs
@@ -30,7 +31,7 @@ log = logging.getLogger(__name__)
 #==============================================================================
 @click.group(invoke_without_command=False)
 def cli():
-    return
+    logo()
 
 
 #==============================================================================
