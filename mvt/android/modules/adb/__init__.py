@@ -12,7 +12,9 @@ from .processes import Processes
 from .rootbinaries import RootBinaries
 from .sms import SMS
 from .whatsapp import Whatsapp
+from .dumpsys_receivers import DumpsysReceivers
 
 ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes,
                DumpsysBatterystats, DumpsysProcstats,
-               DumpsysPackages, Packages, RootBinaries]
+               DumpsysPackages, DumpsysReceivers,
+               Packages, RootBinaries]
