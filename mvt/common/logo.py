@@ -7,6 +7,7 @@ from rich import print
 
 from .version import MVT_VERSION, check_for_updates
 
+
 def logo():
     print("\n")
     print("\t[bold]MVT[/bold] - Mobile Verification Toolkit")

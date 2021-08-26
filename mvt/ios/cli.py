@@ -12,6 +12,7 @@ from rich.prompt import Prompt
 
 from mvt.common.help import *
 from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
+from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
 
@@ -34,7 +35,7 @@ PASSWD_ENV = "MVT_IOS_BACKUP_PASSWORD"
 #==============================================================================
 @click.group(invoke_without_command=False)
 def cli():
-    return
+    logo()
 
 
 #==============================================================================
