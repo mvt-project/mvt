@@ -30,7 +30,8 @@ class Manifest(IOSExtraction):
         """
         return dictionary.get(key.encode("utf-8"), None) or dictionary.get(key, None)
 
-    def _convert_timestamp(self, timestamp_or_unix_time_int):
+    @staticmethod
+    def _convert_timestamp(timestamp_or_unix_time_int):
         """Older iOS versions stored the manifest times as unix timestamps.
         """
         if isinstance(timestamp_or_unix_time_int, datetime.datetime):

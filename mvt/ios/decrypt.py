@@ -32,7 +32,8 @@ class DecryptBackup:
     def can_process(self) -> bool:
         return self._backup is not None
 
-    def is_encrypted(self, backup_path) -> bool:
+    @staticmethod
+    def is_encrypted(backup_path) -> bool:
         """Query Manifest.db file to see if it's encrypted or not.
         :param backup_path: Path to the backup to decrypt
         """

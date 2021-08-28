@@ -100,6 +100,14 @@ class MVTModule(object):
     def serialize(self, record):
         raise NotImplementedError
 
+    @staticmethod
+    def _deduplicate_timeline(timeline):
+        """Serialize entry as JSON to deduplicate repeated entries"""
+        timeline_set = set()
+        for record in timeline:
+            timeline_set.add(json.dumps(record, sort_keys=True))
+        return [json.loads(record) for record in timeline_set]
+
     def to_timeline(self):
         """Convert results into a timeline.
         """
@@ -120,15 +128,8 @@ class MVTModule(object):
                     self.timeline_detected.append(record)
 
         # De-duplicate timeline entries.
-        self.timeline = self.timeline_deduplicate(self.timeline)
-        self.timeline_detected = self.timeline_deduplicate(self.timeline_detected)
-
-    def timeline_deduplicate(self, timeline):
-        """Serialize entry as JSON to deduplicate repeated entries"""
-        timeline_set = set()
-        for record in timeline:
-            timeline_set.add(json.dumps(record, sort_keys=True))
-        return [json.loads(record) for record in timeline_set]
+        self.timeline = self._deduplicate_timeline(self.timeline)
+        self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self):
         """Run the main module procedure.
