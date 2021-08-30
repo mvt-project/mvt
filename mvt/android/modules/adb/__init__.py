@@ -8,6 +8,7 @@ from .dumpsys_batterystats import DumpsysBatterystats
 from .dumpsys_packages import DumpsysPackages
 from .dumpsys_procstats import DumpsysProcstats
 from .dumpsys_receivers import DumpsysReceivers
+from .files import Files
 from .logcat import Logcat
 from .packages import Packages
 from .processes import Processes
@@ -18,4 +19,4 @@ from .whatsapp import Whatsapp
 ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes,
                DumpsysBatterystats, DumpsysProcstats,
                DumpsysPackages, DumpsysReceivers,
-               Packages, RootBinaries, Logcat]
+               Packages, RootBinaries, Logcat, Files]
