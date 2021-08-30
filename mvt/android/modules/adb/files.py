@@ -21,8 +21,13 @@ class Files(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
+
         output = self._adb_command("find / -type f 2> /dev/null")
-        if output:
-            with open(os.path.join(self.output_folder, "files.txt"), "w") as handle:
+        if output and self.output_folder:
+            files_txt_path = os.path.join(self.output_folder, "files.txt")
+            with open(files_txt_path, "w") as handle:
                 handle.write(output)
+
+            log.info("List of visible files stored at %s", files_txt_path)
+
         self._adb_disconnect()
