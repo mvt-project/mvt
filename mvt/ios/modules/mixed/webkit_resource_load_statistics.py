@@ -75,7 +75,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         if self.is_backup:
             try:
                 for backup_file in self._get_backup_files_from_manifest(relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
-                    db_path = os.path.join(self.base_folder, backup_file["file_id"][0:2], backup_file["file_id"])
+                    db_path = self._get_backup_file_from_id(backup_file["file_id"])
                     key = f"{backup_file['domain']}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}"
                     self._process_observations_db(db_path=db_path, key=key)
             except Exception as e:
