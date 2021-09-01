@@ -80,6 +80,7 @@ class SafariHistory(IOSExtraction):
                 self.detected.append(result)
 
     def _process_history_db(self, history_path):
+        self._recover_sqlite_db_if_needed(history_path)
         conn = sqlite3.connect(history_path)
         cur = conn.cursor()
         cur.execute("""
