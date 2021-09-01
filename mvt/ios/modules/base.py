@@ -49,9 +49,9 @@ class IOSExtraction(MVTModule):
         self.log.info("Database at path %s is malformed. Trying to recover...", file_path)
 
         if not shutil.which("sqlite3"):
-            raise DatabaseCorruptedError("Unable to recover without sqlite3 binary. Please install sqlite3!")
+            raise DatabaseCorruptedError("failed to recover without sqlite3 binary: please install sqlite3!")
         if '"' in file_path:
-            raise DatabaseCorruptedError(f"Database at path '{file_path}' is corrupted. unable to recover because it has a quotation mark (\") in its name.")
+            raise DatabaseCorruptedError(f"database at path '{file_path}' is corrupted. unable to recover because it has a quotation mark (\") in its name")
 
         bak_path = f"{file_path}.bak"
         shutil.move(file_path, bak_path)
@@ -59,7 +59,7 @@ class IOSExtraction(MVTModule):
         ret = subprocess.call(["sqlite3", bak_path, f".clone \"{file_path}\""],
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if ret != 0:
-            raise DatabaseCorruptedError("Recovery of database failed")
+            raise DatabaseCorruptedError("failed to recover database")
 
         self.log.info("Database at path %s recovered successfully!", file_path)
 
@@ -70,7 +70,7 @@ class IOSExtraction(MVTModule):
         """
         manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
         if not os.path.exists(manifest_db_path):
-            raise Exception("Unable to find backup's Manifest.db")
+            raise DatabaseNotFoundError("unable to find backup's Manifest.db")
 
         base_sql = "SELECT fileID, domain, relativePath FROM Files WHERE "
 
@@ -86,7 +86,7 @@ class IOSExtraction(MVTModule):
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
         except Exception as e:
-            raise Exception("Query to Manifest.db failed: %s", e)
+            raise DatabaseCorruptedError("failed to query Manifest.db: %s", e)
 
         for row in cur:
             yield {
@@ -144,6 +144,6 @@ class IOSExtraction(MVTModule):
         if file_path:
             self.file_path = file_path
         else:
-            raise DatabaseNotFoundError("Unable to find the module's database file")
+            raise DatabaseNotFoundError("unable to find the module's database file")
 
         self._recover_sqlite_db_if_needed(self.file_path)

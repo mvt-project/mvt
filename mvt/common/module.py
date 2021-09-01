@@ -151,7 +151,7 @@ def run_module(module):
         module.log.info("There might be no data to extract by module %s: %s",
                         module.__class__.__name__, e)
     except DatabaseCorruptedError as e:
-        module.log.error("The %s module database seems to be corrupted and recovery failed: %s",
+        module.log.error("The %s module database seems to be corrupted: %s",
                          module.__class__.__name__, e)
     except Exception as e:
         module.log.exception("Error in running extraction from module %s: %s",
