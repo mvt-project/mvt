@@ -113,7 +113,10 @@ class WebkitSessionResourceLog(IOSExtraction):
 
     def run(self):
         if self.is_backup:
-            for log_path in self._get_backup_files_from_manifest(relative_path=WEBKIT_SESSION_RESOURCE_LOG_BACKUP_RELPATH):
+            for log_file in self._get_backup_files_from_manifest(relative_path=WEBKIT_SESSION_RESOURCE_LOG_BACKUP_RELPATH):
+                log_path = self._get_backup_file_from_id(log_file["file_id"])
+                if not log_path:
+                    continue
                 self.log.info("Found Safari browsing session resource log at path: %s", log_path)
                 self.results[log_path] = self._extract_browsing_stats(log_path)
         elif self.is_fs_dump:
