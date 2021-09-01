@@ -15,6 +15,7 @@ IDSTATUSCACHE_BACKUP_IDS = [
 ]
 IDSTATUSCACHE_ROOT_PATHS = [
     "private/var/mobile/Library/Preferences/com.apple.identityservices.idstatuscache.plist",
+    "private/var/mobile/Library/IdentityServices/idstatuscache.plist",
 ]
 
 class IDStatusCache(IOSExtraction):
