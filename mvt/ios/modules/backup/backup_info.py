@@ -32,7 +32,7 @@ class BackupInfo(IOSExtraction):
 
         fields = ["Build Version", "Device Name", "Display Name", "GUID",
                   "GUID", "ICCID", "IMEI", "MEID", "Installed Applications",
-                  "Last Backup Data", "Phone Number", "Product Name",
+                  "Last Backup Date", "Phone Number", "Product Name",
                   "Product Type", "Product Version", "Serial Number",
                   "Target Identifier", "Target Type", "Unique Identifier",
                   "iTunes Version"]
