@@ -30,7 +30,7 @@ class BackupInfo(IOSExtraction):
         with open(info_path, "rb") as handle:
             info = plistlib.load(handle)
 
-        fields = ["Build Version", "Device Name", "Display Name", "GUID",
+        fields = ["Build Version", "Device Name", "Display Name",
                   "GUID", "ICCID", "IMEI", "MEID", "Installed Applications",
                   "Last Backup Date", "Phone Number", "Product Name",
                   "Product Type", "Product Version", "Serial Number",
