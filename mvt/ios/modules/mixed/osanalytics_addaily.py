@@ -31,7 +31,7 @@ class OSAnalyticsADDaily(IOSExtraction):
         return {
             "timestamp": record["ts"],
             "module": self.__class__.__name__,
-            "event": "date",
+            "event": "osanalytics_addaily",
             "data": record_data,
         }
     
