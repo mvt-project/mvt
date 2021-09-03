@@ -28,15 +28,12 @@ class OSAnalyticsADDaily(IOSExtraction):
     def serialize(self, record):
         record_data = f"{record['package']} WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
                       f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
-
-        records = [{
+        return {
             "timestamp": record["ts"],
             "module": self.__class__.__name__,
             "event": "date",
             "data": record_data,
-        }]
-
-        return records
+        }
     
     def check_indicators(self):
         if not self.indicators:
@@ -54,18 +51,14 @@ class OSAnalyticsADDaily(IOSExtraction):
         with open(self.file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
 
-        for app in file_plist.get("netUsageBaseline"):
-            result = {}
-            result_list = file_plist.get("netUsageBaseline").get(app)
-            
-            if type(result_list) is list:
-                result["package"] = app
-                result["ts"] = convert_timestamp_to_iso(result_list[0])
-                result["wifi_in"] = result_list[1]
-                result["wifi_out"] = result_list[2]
-                result["wwan_in"] = result_list[3]
-                result["wwan_out"] = result_list[4]
-
-                self.results.append(result)
+        for app, values in file_plist.get("netUsageBaseline", {}).items():
+            self.results.append({
+                "package": app,
+                "ts": convert_timestamp_to_iso(values[0]),
+                "wifi_in": values[1],
+                "wifi_out": values[2],
+                "wwan_in": values[3],
+                "wwan_out": values[4],
+            })
 
         self.log.info("Extracted a total of %d com.apple.osanalytics.addaily entries", len(self.results))
