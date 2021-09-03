@@ -13,6 +13,7 @@ from .idstatuscache import IDStatusCache
 from .interactionc import InteractionC
 from .locationd import LocationdClients
 from .net_datausage import Datausage
+from .osanalytics_addaily import OSAnalyticsADDaily
 from .safari_browserstate import SafariBrowserState
 from .safari_history import SafariHistory
 from .sms import SMS
@@ -23,5 +24,6 @@ from .whatsapp import Whatsapp
 
 MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
                  FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,
-                 Datausage, SafariBrowserState, SafariHistory, SMS, SMSAttachments,
-                 WebkitResourceLoadStatistics, WebkitSessionResourceLog, Whatsapp,]
+                 OSAnalyticsADDaily, Datausage, SafariBrowserState, SafariHistory,
+                 SMS, SMSAttachments, WebkitResourceLoadStatistics,
+                 WebkitSessionResourceLog, Whatsapp,]
