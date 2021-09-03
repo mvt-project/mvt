@@ -148,6 +148,18 @@ If indicators are provided through the command-line, they are checked against th
 
 ---
 
+### `osanalyticsdaily.json`
+
+!!! info "Availability"
+    Backup: :material-check:  
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `OSAnalyticsADDAILY` module. The module extracts records from a plist located *private/var/mobile/Library/Preferences/com.apple.osanalytics.addaily.plist*, which contains a history of data usage by processes running on the system. Besides the network statistics, these records are particularly important because they might show traces of malicious process executions and the relevant timeframe.
+
+If indicators are provided through the command-line, they are checked against the process names. Any matches are stored in *osanalyticsdaily_detected.json*.
+
+---
+
 ### `datausage.json`
 
 !!! info "Availability"
