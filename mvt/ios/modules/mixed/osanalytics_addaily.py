@@ -26,15 +26,14 @@ class OSAnalyticsADDaily(IOSExtraction):
                          log=log, results=results)
 
     def serialize(self, record):
-        record_data = f"{record['package']}"
-        record_data_usage = record_data + f" WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
-                            f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
+        record_data = f"{record['package']} WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
+                      f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
 
         records = [{
             "timestamp": record["ts"],
             "module": self.__class__.__name__,
             "event": "date",
-            "data": record_data_usage,
+            "data": record_data,
         }]
 
         return records
