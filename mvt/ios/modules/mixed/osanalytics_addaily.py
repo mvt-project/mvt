@@ -16,7 +16,7 @@ OSANALYTICS_ADDAILY_ROOT_PATHS = [
     "private/var/mobile/Library/Preferences/com.apple.osanalytics.addaily.plist",
 ]
 
-class OSAnalyticsADDAILY(IOSExtraction):
+class OSAnalyticsADDaily(IOSExtraction):
     """Extract network usage information by process, from com.apple.osanalytics.addaily.plist"""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
