@@ -17,7 +17,7 @@ LOCATIOND_ROOT_PATHS = [
 ]
 
 class LocationdClients(IOSExtraction):
-    """Extract information from apps who used geolocation"""
+    """Extract information from apps who used geolocation."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
@@ -50,6 +50,14 @@ class LocationdClients(IOSExtraction):
 
         return records
 
+    def check_indicators(self):
+        for result in self.results:
+            parts = result["package"].split("/")
+            proc_name = parts[len(parts)-1]
+
+            if self.indicators.check_process(proc_name):
+                self.detected.append(result)
+
     def run(self):
         self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS,
                                 root_paths=LOCATIOND_ROOT_PATHS)
@@ -58,14 +66,13 @@ class LocationdClients(IOSExtraction):
         with open(self.file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
 
-        for app in file_plist:
-            if file_plist[app] is dict:
-                result = file_plist[app]
-                result["package"] = app
-                for ts in self.timestamps:
-                    if ts in result.keys():
-                        result[ts] = convert_timestamp_to_iso(convert_mactime_to_unix(result[ts]))
+        for key, values in file_plist.items():
+            result = file_plist[key]
+            result["package"] = key
+            for ts in self.timestamps:
+                if ts in result.keys():
+                    result[ts] = convert_timestamp_to_iso(convert_mactime_to_unix(result[ts]))
 
-                self.results.append(result)
+            self.results.append(result)
 
         self.log.info("Extracted a total of %d Locationd Clients entries", len(self.results))
