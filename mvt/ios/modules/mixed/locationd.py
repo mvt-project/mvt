@@ -14,6 +14,7 @@ LOCATIOND_BACKUP_IDS = [
 ]
 LOCATIOND_ROOT_PATHS = [
     "private/var/mobile/Library/Caches/locationd/clients.plist",
+    "private/var/root/Library/Caches/locationd/clients.plist"
 ]
 
 class LocationdClients(IOSExtraction):
