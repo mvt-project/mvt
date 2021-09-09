@@ -252,6 +252,16 @@ This JSON file is created by mvt-ios' `SMSAttachments` module. The module extrac
 
 ---
 
+### `tcc.json`
+
+!!! info "Availability"
+    Backup: :material-check:  
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `TCC` module. The module extracts records from a SQLite database located at */private/var/mobile/Library/TCC/TCC.db*, which contains a list of which services such as microphone, camera, or location, apps have been granted or denied access to.
+
+---
+
 ### `version_history.json`
 
 !!! info "Availability"

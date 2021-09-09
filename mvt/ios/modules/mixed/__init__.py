@@ -18,6 +18,7 @@ from .safari_browserstate import SafariBrowserState
 from .safari_history import SafariHistory
 from .sms import SMS
 from .sms_attachments import SMSAttachments
+from .tcc import TCC
 from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
@@ -25,5 +26,5 @@ from .whatsapp import Whatsapp
 MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
                  FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,
                  OSAnalyticsADDaily, Datausage, SafariBrowserState, SafariHistory,
-                 SMS, SMSAttachments, WebkitResourceLoadStatistics,
+                 TCC, SMS, SMSAttachments, WebkitResourceLoadStatistics,
                  WebkitSessionResourceLog, Whatsapp,]
