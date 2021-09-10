@@ -15,8 +15,6 @@ class IndicatorsFileBadFormat(Exception):
 class Indicators:
     """This class is used to parse indicators from a STIX2 file and provide
     functions to compare extracted artifacts to the indicators.
-
-
     """
 
     def __init__(self, log=None):

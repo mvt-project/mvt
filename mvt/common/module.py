@@ -23,7 +23,8 @@ class InsufficientPrivileges(Exception):
     pass
 
 class MVTModule(object):
-    """This class provides a base for all extraction modules."""
+    """This class provides a base for all extraction modules.
+    """
 
     enabled = True
     slug = None
@@ -31,12 +32,19 @@ class MVTModule(object):
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
         """Initialize module.
+
         :param file_path: Path to the module's database file, if there is any
+        :type file_path: str
         :param base_folder: Path to the base folder (backup or filesystem dump)
+        :type file_path: str
         :param output_folder: Folder where results will be stored
+        :type output_folder: str
         :param fast_mode: Flag to enable or disable slow modules
+        :type fast_mode: bool
         :param log: Handle to logger
         :param results: Provided list of results entries
+        :type results: list
+
         """
         self.file_path = file_path
         self.base_folder = base_folder
@@ -59,25 +67,23 @@ class MVTModule(object):
             return cls(results=results, log=log)
 
     def get_slug(self):
+        """Use the module's class name to retrieve a slug
+        """
         if self.slug:
             return self.slug
 
         sub = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", self.__class__.__name__)
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", sub).lower()
 
-    def load_indicators(self, file_path):
-        self.indicators = Indicators(file_path, self.log)
-
     def check_indicators(self):
         """Check the results of this module against a provided list of
         indicators.
-
-
         """
         raise NotImplementedError
 
     def save_to_json(self):
-        """Save the collected results to a json file."""
+        """Save the collected results to a json file.
+        """
         if not self.output_folder:
             return
 
@@ -137,7 +143,8 @@ class MVTModule(object):
         self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self):
-        """Run the main module procedure."""
+        """Run the main module procedure.
+        """
         raise NotImplementedError
 
 
