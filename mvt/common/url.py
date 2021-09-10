@@ -263,8 +263,12 @@ class URL:
 
     def get_domain(self):
         """Get the domain from a URL.
+
         :param url: URL to parse
-        :returns: Just the domain name extracted from the URL
+        :type url: str
+        :returns: Domain name extracted from URL
+        :rtype: str
+
         """
         # TODO: Properly handle exception.
         try:
@@ -273,9 +277,13 @@ class URL:
             return None
 
     def get_top_level(self):
-        """Get only the top level domain from a URL.
+        """Get only the top-level domain from a URL.
+
         :param url: URL to parse
-        :returns: The top level domain extracted from the URL
+        :type url: str
+        :returns: Top-level domain name extracted from URL
+        :rtype: str
+
         """
         # TODO: Properly handle exception.
         try:
@@ -283,13 +291,22 @@ class URL:
         except:
             return None
 
-    def check_if_shortened(self):
+    def check_if_shortened(self) -> bool:
+        """Check if the URL is among list of shortener services.
+
+
+        :returns: True if the URL is shortened, otherwise False
+
+        :rtype: bool
+
+        """
         if self.domain.lower() in SHORTENER_DOMAINS:
             self.is_shortened = True
 
         return self.is_shortened
 
     def unshorten(self):
+        """Unshorten the URL by requesting an HTTP HEAD response."""
         res = requests.head(self.url)
         if str(res.status_code).startswith("30"):
             return res.headers["Location"]

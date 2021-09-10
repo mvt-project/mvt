@@ -23,7 +23,10 @@ WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS = [
 class WebkitSessionResourceLog(IOSExtraction):
     """This module extracts records from WebKit browsing session
     resource logs, and checks them against any provided list of
-    suspicious domains."""
+    suspicious domains.
+
+
+    """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

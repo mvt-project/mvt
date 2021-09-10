@@ -14,7 +14,10 @@ NETUSAGE_ROOT_PATHS = [
 
 class Netusage(NetBase):
     """This class extracts data from netusage.sqlite and attempts to identify
-    any suspicious processes if running on a full filesystem dump."""
+    any suspicious processes if running on a full filesystem dump.
+
+
+    """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

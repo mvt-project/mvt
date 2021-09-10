@@ -17,6 +17,8 @@ log = logging.getLogger(__name__)
 class DecryptBackup:
     """This class provides functions to decrypt an encrypted iTunes backup
     using either a password or a key file.
+
+
     """
 
     def __init__(self, backup_path, dest_path=None):
@@ -35,7 +37,9 @@ class DecryptBackup:
     @staticmethod
     def is_encrypted(backup_path) -> bool:
         """Query Manifest.db file to see if it's encrypted or not.
+
         :param backup_path: Path to the backup to decrypt
+
         """
         conn = sqlite3.connect(os.path.join(backup_path, "Manifest.db"))
         cur = conn.cursor()
@@ -95,7 +99,9 @@ class DecryptBackup:
 
     def decrypt_with_password(self, password):
         """Decrypts an encrypted iOS backup.
+
         :param password: Password to use to decrypt the original backup
+
         """
         log.info("Decrypting iOS backup at path %s with password", self.backup_path)
 
@@ -131,7 +137,9 @@ class DecryptBackup:
 
     def decrypt_with_key_file(self, key_file):
         """Decrypts an encrypted iOS backup using a key file.
+
         :param key_file: File to read the key bytes to decrypt the backup
+
         """
         log.info("Decrypting iOS backup at path %s with key file %s",
                  self.backup_path, key_file)
@@ -158,8 +166,7 @@ class DecryptBackup:
             log.critical("Failed to decrypt backup. Did you provide the correct key file?")
 
     def get_key(self):
-        """Retrieve and prints the encryption key.
-        """
+        """Retrieve and prints the encryption key."""
         if not self._backup:
             return
 
@@ -169,7 +176,9 @@ class DecryptBackup:
 
     def write_key(self, key_path):
         """Save extracted key to file.
+
         :param key_path: Path to the file where to write the derived decryption key.
+
         """
         if not self._decryption_key:
             return

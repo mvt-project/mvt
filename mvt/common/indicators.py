@@ -15,6 +15,8 @@ class IndicatorsFileBadFormat(Exception):
 class Indicators:
     """This class is used to parse indicators from a STIX2 file and provide
     functions to compare extracted artifacts to the indicators.
+
+
     """
 
     def __init__(self, log=None):
@@ -32,6 +34,10 @@ class Indicators:
 
     def parse_stix2(self, file_path):
         """Extract indicators from a STIX2 file.
+
+        :param file_path: Path to the STIX2 file to parse
+        :type file_path: str
+
         """
         self.log.info("Parsing STIX2 indicators file at path %s",
                       file_path)
@@ -64,9 +70,20 @@ class Indicators:
                 self._add_indicator(ioc=value,
                                     iocs_list=self.ioc_files)
 
-    def check_domain(self, url):
+    def check_domain(self, url) -> bool:
+        """Check if a given URL matches any of the provided domain indicators.
+
+        :param url: URL to match against domain indicators
+        :type url: str
+        :returns: True if the URL matched an indicator, otherwise False
+        :rtype: bool
+
+        """
+
         # TODO: If the IOC domain contains a subdomain, it is not currently
         # being matched.
+        if not url:
+            return False
 
         try:
             # First we use the provided URL.
@@ -124,18 +141,35 @@ class Indicators:
 
                 return True
 
-    def check_domains(self, urls):
-        """Check the provided list of (suspicious) domains against a list of URLs.
-        :param urls: List of URLs to check
+        return False
+
+    def check_domains(self, urls) -> bool:
+        """Check a list of URLs against the provided list of domain indicators.
+
+        :param urls: List of URLs to check against domain indicators
+        :type urls: list
+        :returns: True if any URL matched an indicator, otherwise False
+        :rtype: bool
+
         """
+        if not urls:
+            return False
+
         for url in urls:
             if self.check_domain(url):
                 return True
 
-    def check_process(self, process):
+        return False
+
+    def check_process(self, process) -> bool:
         """Check the provided process name against the list of process
         indicators.
-        :param process: Process name to check
+
+        :param process: Process name to check against process indicators
+        :type process: str
+        :returns: True if process matched an indicator, otherwise False
+        :rtype: bool
+
         """
         if not process:
             return False
@@ -151,18 +185,35 @@ class Indicators:
                     self.log.warning("Found a truncated known suspicious process name \"%s\"", process)
                     return True
 
-    def check_processes(self, processes):
+        return False
+
+    def check_processes(self, processes) -> bool:
         """Check the provided list of processes against the list of
         process indicators.
-        :param processes: List of processes to check
+
+        :param processes: List of processes to check against process indicators
+        :type processes: list
+        :returns: True if process matched an indicator, otherwise False
+        :rtype: bool
+
         """
+        if not processes:
+            return False
+
         for process in processes:
             if self.check_process(process):
                 return True
 
-    def check_email(self, email):
+        return False
+
+    def check_email(self, email) -> bool:
         """Check the provided email against the list of email indicators.
-        :param email: Suspicious email to check
+
+        :param email: Email address to check against email indicators
+        :type email: str
+        :returns: True if email address matched an indicator, otherwise False
+        :rtype: bool
+
         """
         if not email:
             return False
@@ -171,9 +222,17 @@ class Indicators:
             self.log.warning("Found a known suspicious email address: \"%s\"", email)
             return True
 
-    def check_file(self, file_path):
+        return False
+
+    def check_file(self, file_path) -> bool:
         """Check the provided file path against the list of file indicators.
-        :param file_path: Path or name of the file to check
+
+        :param file_path: File path or file name to check against file
+        indicators
+        :type file_path: str
+        :returns: True if the file path matched an indicator, otherwise False
+        :rtype: bool
+
         """
         if not file_path:
             return False
@@ -182,3 +241,5 @@ class Indicators:
         if file_name in self.ioc_files:
             self.log.warning("Found a known suspicious file: \"%s\"", file_path)
             return True
+
+        return False

@@ -28,7 +28,9 @@ class IOSExtraction(MVTModule):
 
     def _recover_sqlite_db_if_needed(self, file_path):
         """Tries to recover a malformed database by running a .clone command.
+
         :param file_path: Path to the malformed database file.
+
         """
         # TODO: Find a better solution.
         conn = sqlite3.connect(file_path)
@@ -65,8 +67,10 @@ class IOSExtraction(MVTModule):
 
     def _get_backup_files_from_manifest(self, relative_path=None, domain=None):
         """Locate files from Manifest.db.
-        :param relative_path: Relative path to use as filter from Manifest.db.
-        :param domain: Domain to use as filter from Manifest.db.
+
+        :param relative_path: Relative path to use as filter from Manifest.db. (Default value = None)
+        :param domain: Domain to use as filter from Manifest.db. (Default value = None)
+
         """
         manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
         if not os.path.exists(manifest_db_path):
@@ -116,8 +120,11 @@ class IOSExtraction(MVTModule):
         modules that expect to work with a single SQLite database.
         If a module requires to process multiple databases or files,
         you should use the helper functions above.
+
         :param backup_id: iTunes backup database file's ID (or hash).
-        :param root_paths: Glob patterns for files to seek in filesystem dump.
+        :param root_paths: Glob patterns for files to seek in filesystem dump. (Default value = [])
+        :param backup_ids: Default value = None)
+
         """
         file_path = None
         # First we check if the was an explicit file path specified.

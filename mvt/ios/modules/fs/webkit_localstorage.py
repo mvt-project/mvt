@@ -11,7 +11,10 @@ WEBKIT_LOCALSTORAGE_ROOT_PATHS = [
 
 class WebkitLocalStorage(WebkitBase):
     """This module looks extracts records from WebKit LocalStorage folders,
-    and checks them against any provided list of suspicious domains."""
+    and checks them against any provided list of suspicious domains.
+
+
+    """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

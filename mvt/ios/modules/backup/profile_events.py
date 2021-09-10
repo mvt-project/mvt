@@ -14,6 +14,8 @@ CONF_PROFILES_EVENTS_RELPATH = "Library/ConfigurationProfiles/MCProfileEvents.pl
 class ProfileEvents(IOSExtraction):
     """This module extracts events related to the installation of configuration
     profiles.
+
+
     """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,

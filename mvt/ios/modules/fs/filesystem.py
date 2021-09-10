@@ -13,7 +13,10 @@ from ..base import IOSExtraction
 
 class Filesystem(IOSExtraction):
     """This module extracts creation and modification date of files from a
-    full file-system dump."""
+    full file-system dump.
+
+
+    """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

@@ -151,8 +151,7 @@ class NetBase(IOSExtraction):
                     self.log.warning(msg)
 
     def check_manipulated(self):
-        """Check for missing or manipulate DB entries
-        """
+        """Check for missing or manipulate DB entries"""
         # Don't show duplicates for each missing process.
         missing_process_cache = set()
         for result in sorted(self.results, key=operator.itemgetter("live_isodate")):

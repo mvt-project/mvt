@@ -9,8 +9,7 @@ from click import Option, UsageError
 
 
 class MutuallyExclusiveOption(Option):
-    """This class extends click to support mutually exclusive options.
-    """
+    """This class extends click to support mutually exclusive options."""
 
     def __init__(self, *args, **kwargs):
         self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))

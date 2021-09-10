@@ -19,7 +19,10 @@ SAFARI_HISTORY_ROOT_PATHS = [
 
 class SafariHistory(IOSExtraction):
     """This module extracts all Safari visits and tries to detect potential
-    network injection attacks."""
+    network injection attacks.
+
+
+    """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

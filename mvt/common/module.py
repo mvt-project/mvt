@@ -31,7 +31,7 @@ class MVTModule(object):
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
         """Initialize module.
-        :param file_path: Path to the module's database file, if there is any.
+        :param file_path: Path to the module's database file, if there is any
         :param base_folder: Path to the base folder (backup or filesystem dump)
         :param output_folder: Folder where results will be stored
         :param fast_mode: Flag to enable or disable slow modules
@@ -70,12 +70,14 @@ class MVTModule(object):
 
     def check_indicators(self):
         """Check the results of this module against a provided list of
-        indicators."""
+        indicators.
+
+
+        """
         raise NotImplementedError
 
     def save_to_json(self):
-        """Save the collected results to a json file.
-        """
+        """Save the collected results to a json file."""
         if not self.output_folder:
             return
 
@@ -102,15 +104,18 @@ class MVTModule(object):
 
     @staticmethod
     def _deduplicate_timeline(timeline):
-        """Serialize entry as JSON to deduplicate repeated entries"""
+        """Serialize entry as JSON to deduplicate repeated entries
+
+        :param timeline: List of entries from timeline to deduplicate
+
+        """
         timeline_set = set()
         for record in timeline:
             timeline_set.add(json.dumps(record, sort_keys=True))
         return [json.loads(record) for record in timeline_set]
 
     def to_timeline(self):
-        """Convert results into a timeline.
-        """
+        """Convert results into a timeline."""
         for result in self.results:
             record = self.serialize(result)
             if record:
@@ -132,8 +137,7 @@ class MVTModule(object):
         self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self):
-        """Run the main module procedure.
-        """
+        """Run the main module procedure."""
         raise NotImplementedError
 
 
@@ -178,8 +182,10 @@ def run_module(module):
 
 def save_timeline(timeline, timeline_path):
     """Save the timeline in a csv file.
-    :param timeline: List of records to order and store.
-    :param timeline_path: Path to the csv file to store the timeline to.
+
+    :param timeline: List of records to order and store
+    :param timeline_path: Path to the csv file to store the timeline to
+
     """
     with io.open(timeline_path, "a+", encoding="utf-8") as handle:
         csvoutput = csv.writer(handle, delimiter=",", quotechar="\"")

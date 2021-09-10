@@ -35,7 +35,9 @@ class ChromeHistory(AndroidExtraction):
 
     def _parse_db(self, db_path):
         """Parse a Chrome History database file.
+
         :param db_path: Path to the History database to process.
+
         """
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()

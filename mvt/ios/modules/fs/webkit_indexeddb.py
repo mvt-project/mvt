@@ -11,7 +11,10 @@ WEBKIT_INDEXEDDB_ROOT_PATHS = [
 
 class WebkitIndexedDB(WebkitBase):
     """This module looks extracts records from WebKit IndexedDB folders,
-    and checks them against any provided list of suspicious domains."""
+    and checks them against any provided list of suspicious domains.
+
+
+    """
 
     slug = "webkit_indexeddb"
 

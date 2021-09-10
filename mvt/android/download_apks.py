@@ -32,7 +32,10 @@ class PullProgress(tqdm):
 
 class DownloadAPKs(AndroidExtraction):
     """DownloadAPKs is the main class operating the download of APKs
-    from the device."""
+    from the device.
+
+
+    """
 
     def __init__(self, output_folder=None, all_apks=False, log=None,
                  packages=None):
@@ -51,7 +54,9 @@ class DownloadAPKs(AndroidExtraction):
     @classmethod
     def from_json(cls, json_path):
         """Initialize this class from an existing apks.json file.
+
         :param json_path: Path to the apks.json file to parse.
+
         """
         with open(json_path, "r") as handle:
             packages = json.load(handle)
@@ -59,9 +64,11 @@ class DownloadAPKs(AndroidExtraction):
 
     def pull_package_file(self, package_name, remote_path):
         """Pull files related to specific package from the device.
+
         :param package_name: Name of the package to download
         :param remote_path: Path to the file to download
         :returns: Path to the local copy
+
         """
         log.info("Downloading %s ...", remote_path)
 
@@ -101,6 +108,8 @@ class DownloadAPKs(AndroidExtraction):
     def get_packages(self):
         """Use the Packages adb module to retrieve the list of packages.
         We reuse the same extraction logic to then download the APKs.
+
+
         """
         self.log.info("Retrieving list of installed packages...")
 
@@ -111,8 +120,7 @@ class DownloadAPKs(AndroidExtraction):
         self.packages = m.results
 
     def pull_packages(self):
-        """Download all files of all selected packages from the device.
-        """
+        """Download all files of all selected packages from the device."""
         log.info("Starting extraction of installed APKs at folder %s", self.output_folder)
 
         if not os.path.exists(self.output_folder):
@@ -185,15 +193,13 @@ class DownloadAPKs(AndroidExtraction):
         log.info("Download of selected packages completed")
 
     def save_json(self):
-        """Save the results to the package.json file.
-        """
+        """Save the results to the package.json file."""
         json_path = os.path.join(self.output_folder, "apks.json")
         with open(json_path, "w") as handle:
             json.dump(self.packages, handle, indent=4)
 
     def run(self):
-        """Run all steps of fetch-apk.
-        """
+        """Run all steps of fetch-apk."""
         self.get_packages()
         self._adb_connect()
         self.pull_packages()

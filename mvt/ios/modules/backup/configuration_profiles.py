@@ -11,8 +11,7 @@ from ..base import IOSExtraction
 CONF_PROFILES_DOMAIN = "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"
 
 class ConfigurationProfiles(IOSExtraction):
-    """This module extracts the full plist data from configuration profiles.
-    """
+    """This module extracts the full plist data from configuration profiles."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

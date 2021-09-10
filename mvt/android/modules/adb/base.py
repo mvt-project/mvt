@@ -39,8 +39,7 @@ class AndroidExtraction(MVTModule):
 
     @staticmethod
     def _adb_check_keys():
-        """Make sure Android adb keys exist.
-        """
+        """Make sure Android adb keys exist."""
         if not os.path.isdir(os.path.dirname(ADB_KEY_PATH)):
             os.path.makedirs(os.path.dirname(ADB_KEY_PATH))
 
@@ -51,8 +50,7 @@ class AndroidExtraction(MVTModule):
             write_public_keyfile(ADB_KEY_PATH, ADB_PUB_KEY_PATH)
 
     def _adb_connect(self):
-        """Connect to the device over adb.
-        """
+        """Connect to the device over adb."""
         self._adb_check_keys()
 
         with open(ADB_KEY_PATH, "rb") as handle:
@@ -94,47 +92,53 @@ class AndroidExtraction(MVTModule):
                 break
 
     def _adb_disconnect(self):
-        """Close adb connection to the device.
-        """
+        """Close adb connection to the device."""
         self.device.close()
 
     def _adb_reconnect(self):
-        """Reconnect to device using adb.
-        """
+        """Reconnect to device using adb."""
         log.info("Reconnecting ...")
         self._adb_disconnect()
         self._adb_connect()
 
     def _adb_command(self, command):
         """Execute an adb shell command.
+
         :param command: Shell command to execute
         :returns: Output of command
+
         """
         return self.device.shell(command)
 
     def _adb_check_if_root(self):
         """Check if we have a `su` binary on the Android device.
+
+
         :returns: Boolean indicating whether a `su` binary is present or not
+
         """
         return bool(self._adb_command("command -v su"))
 
     def _adb_root_or_die(self):
-        """Check if we have a `su` binary, otherwise raise an Exception.
-        """
+        """Check if we have a `su` binary, otherwise raise an Exception."""
         if not self._adb_check_if_root():
             raise InsufficientPrivileges("This module is optionally available in case the device is already rooted. Do NOT root your own device!")
 
     def _adb_command_as_root(self, command):
         """Execute an adb shell command.
+
         :param command: Shell command to execute as root
         :returns: Output of command
+
         """
         return self._adb_command(f"su -c {command}")
     
     def _adb_check_file_exists(self, file):
         """Verify that a file exists.
+
         :param file: Path of the file
         :returns: Boolean indicating whether the file exists or not
+
         """
 
         # TODO: Need to support checking files without root privileges as well.
@@ -148,9 +152,12 @@ class AndroidExtraction(MVTModule):
 
     def _adb_download(self, remote_path, local_path, progress_callback=None, retry_root=True):
         """Download a file form the device.
+
         :param remote_path: Path to download from the device
         :param local_path: Path to where to locally store the copy of the file
-        :param progress_callback: Callback for download progress bar
+        :param progress_callback: Callback for download progress bar (Default value = None)
+        :param retry_root: Default value = True)
+
         """
         try:
             self.device.pull(remote_path, local_path, progress_callback)
@@ -191,9 +198,11 @@ class AndroidExtraction(MVTModule):
     def _adb_process_file(self, remote_path, process_routine):
         """Download a local copy of a file which is only accessible as root.
         This is a wrapper around process_routine.
+
         :param remote_path: Path of the file on the device to process
         :param process_routine: Function to be called on the local copy of the
                                 downloaded file
+
         """
         # Connect to the device over adb.
         self._adb_connect()
@@ -227,6 +236,5 @@ class AndroidExtraction(MVTModule):
         self._adb_disconnect()
 
     def run(self):
-        """Run the main procedure.
-        """
+        """Run the main procedure."""
         raise NotImplementedError

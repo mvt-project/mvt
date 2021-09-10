@@ -27,12 +27,19 @@ class Manifest(IOSExtraction):
     def _get_key(self, dictionary, key):
         """Unserialized plist objects can have keys which are str or byte types
         This is a helper to try fetch a key as both a byte or string type.
+
+        :param dictionary: param key:
+        :param key: 
+
         """
         return dictionary.get(key.encode("utf-8"), None) or dictionary.get(key, None)
 
     @staticmethod
     def _convert_timestamp(timestamp_or_unix_time_int):
         """Older iOS versions stored the manifest times as unix timestamps.
+
+        :param timestamp_or_unix_time_int: 
+
         """
         if isinstance(timestamp_or_unix_time_int, datetime.datetime):
             return convert_timestamp_to_iso(timestamp_or_unix_time_int)

@@ -48,7 +48,9 @@ class Whatsapp(AndroidExtraction):
 
     def _parse_db(self, db_path):
         """Parse an Android msgstore.db WhatsApp database file.
+
         :param db_path: Path to the Android WhatsApp database file to process
+
         """
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()

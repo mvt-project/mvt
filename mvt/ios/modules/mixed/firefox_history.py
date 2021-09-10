@@ -19,7 +19,10 @@ FIREFOX_HISTORY_ROOT_PATHS = [
 
 class FirefoxHistory(IOSExtraction):
     """This module extracts all Firefox visits and tries to detect potential
-    network injection attacks."""
+    network injection attacks.
+
+
+    """
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):

@@ -18,8 +18,7 @@ WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [
 ]
 
 class WebkitResourceLoadStatistics(IOSExtraction):
-    """This module extracts records from WebKit ResourceLoadStatistics observations.db.
-    """
+    """This module extracts records from WebKit ResourceLoadStatistics observations.db."""
     # TODO: Add serialize().
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
