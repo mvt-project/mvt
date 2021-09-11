@@ -35,7 +35,6 @@ class Indicators:
 
         :param file_path: Path to the STIX2 file to parse
         :type file_path: str
-
         """
         self.log.info("Parsing STIX2 indicators file at path %s",
                       file_path)
@@ -75,9 +74,7 @@ class Indicators:
         :type url: str
         :returns: True if the URL matched an indicator, otherwise False
         :rtype: bool
-
         """
-
         # TODO: If the IOC domain contains a subdomain, it is not currently
         # being matched.
         if not url:
@@ -148,7 +145,6 @@ class Indicators:
         :type urls: list
         :returns: True if any URL matched an indicator, otherwise False
         :rtype: bool
-
         """
         if not urls:
             return False
@@ -167,7 +163,6 @@ class Indicators:
         :type process: str
         :returns: True if process matched an indicator, otherwise False
         :rtype: bool
-
         """
         if not process:
             return False
@@ -193,7 +188,6 @@ class Indicators:
         :type processes: list
         :returns: True if process matched an indicator, otherwise False
         :rtype: bool
-
         """
         if not processes:
             return False
@@ -211,7 +205,6 @@ class Indicators:
         :type email: str
         :returns: True if email address matched an indicator, otherwise False
         :rtype: bool
-
         """
         if not email:
             return False
@@ -230,7 +223,6 @@ class Indicators:
         :type file_path: str
         :returns: True if the file path matched an indicator, otherwise False
         :rtype: bool
-
         """
         if not file_path:
             return False

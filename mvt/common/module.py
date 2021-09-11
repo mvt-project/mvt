@@ -44,7 +44,6 @@ class MVTModule(object):
         :param log: Handle to logger
         :param results: Provided list of results entries
         :type results: list
-
         """
         self.file_path = file_path
         self.base_folder = base_folder
@@ -113,7 +112,6 @@ class MVTModule(object):
         """Serialize entry as JSON to deduplicate repeated entries
 
         :param timeline: List of entries from timeline to deduplicate
-
         """
         timeline_set = set()
         for record in timeline:
@@ -192,7 +190,6 @@ def save_timeline(timeline, timeline_path):
 
     :param timeline: List of records to order and store
     :param timeline_path: Path to the csv file to store the timeline to
-
     """
     with io.open(timeline_path, "a+", encoding="utf-8") as handle:
         csvoutput = csv.writer(handle, delimiter=",", quotechar="\"")

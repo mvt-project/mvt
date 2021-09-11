@@ -16,7 +16,6 @@ def convert_mactime_to_unix(timestamp, from_2001=True):
     :param from_2001: bool: Whether to (Default value = True)
     :param from_2001: Default value = True)
     :returns: Unix epoch timestamp.
-
     """
     if not timestamp:
         return None
@@ -43,7 +42,6 @@ def convert_chrometime_to_unix(timestamp):
     :param timestamp: Chrome timestamp as int.
     :type timestamp: int
     :returns: Unix epoch timestamp.
-
     """
     epoch_start = datetime.datetime(1601, 1 , 1)
     delta = datetime.timedelta(microseconds=timestamp)
@@ -57,7 +55,6 @@ def convert_timestamp_to_iso(timestamp):
     :type timestamp: int
     :returns: ISO timestamp string in YYYY-mm-dd HH:MM:SS.ms format.
     :rtype: str
-
     """
     try:
         return timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -70,7 +67,6 @@ def check_for_links(text):
     :param text: Any provided text.
     :type text: str
     :returns: Search results.
-
     """
     return re.findall("(?P<url>https?://[^\s]+)", text, re.IGNORECASE)
 
@@ -96,7 +92,6 @@ def keys_bytes_to_string(obj):
     :param obj: Object to convert from bytes to string.
     :returns: Object converted to string.
     :rtype: str
-
     """
     new_obj = {}
     if not isinstance(obj, dict):
