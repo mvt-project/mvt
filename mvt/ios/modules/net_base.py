@@ -145,7 +145,9 @@ class NetBase(IOSExtraction):
                     self.log.debug("Located at %s", binary_path)
                 else:
                     msg = f"Could not find the binary associated with the process with name {proc['proc_name']}"
-                    if len(proc["proc_name"]) == 16:
+                    if (proc["proc_name"] is None):
+                        msg = f"Found process entry with empty 'proc_name' : {proc['live_proc_id']} at {proc['live_isodate']}"
+                    elif len(proc["proc_name"]) == 16:
                         msg = msg + " (However, the process name might have been truncated in the database)"
 
                     self.log.warning(msg)
