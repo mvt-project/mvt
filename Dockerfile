@@ -38,11 +38,14 @@ RUN apt update \
 # Build libimobiledevice
 # ----------------------
 RUN git clone https://github.com/libimobiledevice/libplist \
+  && git clone https://github.com/libimobiledevice/libimobiledevice-glue \
   && git clone https://github.com/libimobiledevice/libusbmuxd \
   && git clone https://github.com/libimobiledevice/libimobiledevice \
   && git clone https://github.com/libimobiledevice/usbmuxd \
 
   && cd libplist && ./autogen.sh && make && make install && ldconfig \
+
+  && cd ../libimobiledevice-glue && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./autogen.sh --prefix=/usr && make && make install && ldconfig \
 
   && cd ../libusbmuxd && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./autogen.sh && make && make install && ldconfig \
 
@@ -51,7 +54,7 @@ RUN git clone https://github.com/libimobiledevice/libplist \
   && cd ../usbmuxd && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --runstatedir=/run && make && make install \
 
   # Clean up.
-  && cd .. && rm -rf libplist libusbmuxd libimobiledevice usbmuxd
+  && cd .. && rm -rf libplist libimobiledevice-glue libusbmuxd libimobiledevice usbmuxd
 
 # Installing MVT
 # --------------
