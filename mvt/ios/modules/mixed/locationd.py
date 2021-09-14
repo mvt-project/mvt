@@ -59,8 +59,8 @@ class LocationdClients(IOSExtraction):
             if self.indicators.check_process(proc_name):
                 self.detected.append(result)
 
-    def extract_locationd_entries(self):
-        with open(self.file_path, "rb") as handle:
+    def _extract_locationd_entries(self, file_path):
+        with open(file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
 
         for key, values in file_plist.items():
@@ -77,11 +77,11 @@ class LocationdClients(IOSExtraction):
         if self.is_backup:
             self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS)
             self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
-            self.extract_locationd_entries()
+            self._extract_locationd_entries(self.file_path)
         elif self.is_fs_dump:
             for locationd_path in self._get_fs_files_from_patterns(LOCATIOND_ROOT_PATHS):
                 self.file_path = locationd_path
                 self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
-                self.extract_locationd_entries()
+                self._extract_locationd_entries(self.file_path)
 
         self.log.info("Extracted a total of %d Locationd Clients entries", len(self.results))
