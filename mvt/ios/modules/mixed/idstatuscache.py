@@ -51,11 +51,7 @@ class IDStatusCache(IOSExtraction):
                                  result.get("user"))
                 self.detected.append(result)
 
-    def run(self):
-        self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS,
-                                root_paths=IDSTATUSCACHE_ROOT_PATHS)
-        self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
-
+    def extract_idstatuscache_entries(self):
         with open(self.file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
 
@@ -84,4 +80,16 @@ class IDStatusCache(IOSExtraction):
             entry["occurrences"] = entry_counter[entry["user"]]
             self.results.append(entry)
 
+    def run(self):
+
+        if self.is_backup:
+            self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS)
+            self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
+            self.extract_idstatuscache_entries()
+        elif self.is_fs_dump:
+            for idstatuscache_path in self._get_fs_files_from_patterns(IDSTATUSCACHE_ROOT_PATHS):
+                self.file_path = idstatuscache_path
+                self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
+                self.extract_idstatuscache_entries()
+            
         self.log.info("Extracted a total of %d ID Status Cache entries", len(self.results))
