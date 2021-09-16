@@ -1,6 +1,6 @@
 # Install libimobiledevice
 
-Before proceeding with doing any acquisition of iOS devices we recommend installing [libimobiledevice](https://www.libimobiledevice.org/) utilities. These utilities will become useful when extracting crash logs and generating iTunes backups. Because the utilities and its libraries are subject to frequent changes in response to new versions of iOS, you might want to consider compiling libimobiledevice utilities from sources. Otherwise, if available, you can try installing packages available in your distribution:
+Before proceeding with doing any acquisition of iOS devices we recommend installing [libimobiledevice](https://libimobiledevice.org/) utilities. These utilities will become useful when extracting crash logs and generating iTunes backups. Because the utilities and its libraries are subject to frequent changes in response to new versions of iOS, you might want to consider compiling libimobiledevice utilities from sources. Otherwise, if available, you can try installing packages available in your distribution:
 
 ```bash
 sudo apt install libimobiledevice-utils
