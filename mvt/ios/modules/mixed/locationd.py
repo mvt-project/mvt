@@ -52,6 +52,9 @@ class LocationdClients(IOSExtraction):
         return records
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         for result in self.results:
             parts = result["package"].split("/")
             proc_name = parts[len(parts)-1]
