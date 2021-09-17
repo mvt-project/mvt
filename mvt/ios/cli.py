@@ -39,6 +39,14 @@ def cli():
 
 
 #==============================================================================
+# Command: version
+#==============================================================================
+@cli.command("version", help="Show the currently installed version of MVT")
+def version():
+    return
+
+
+#==============================================================================
 # Command: decrypt-backup
 #==============================================================================
 @cli.command("decrypt-backup", help="Decrypt an encrypted iTunes backup")

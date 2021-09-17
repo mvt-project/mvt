@@ -35,6 +35,14 @@ def cli():
 
 
 #==============================================================================
+# Command: version
+#==============================================================================
+@cli.command("version", help="Show the currently installed version of MVT")
+def version():
+    return
+
+
+#==============================================================================
 # Download APKs
 #==============================================================================
 @cli.command("download-apks", help="Download all or non-safelisted installed APKs installed on the device")
