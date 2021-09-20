@@ -75,7 +75,7 @@ def virustotal_lookup(packages):
 
     for package in packages:
         for file in package.get("files", []):
-            row = [package["package_name"], file["local_name"]]
+            row = [package["package_name"], file["path"]]
 
             if file["sha256"] in detections:
                 detection = detections[file["sha256"]]

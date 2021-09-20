@@ -11,7 +11,6 @@ import pkg_resources
 from tqdm import tqdm
 
 from mvt.common.module import InsufficientPrivileges
-from mvt.common.utils import get_sha256_from_file_path
 
 from .modules.adb.base import AndroidExtraction
 from .modules.adb.packages import Packages
@@ -158,37 +157,16 @@ class DownloadAPKs(AndroidExtraction):
             log.info("[%d/%d] Package: %s", counter, len(packages_selection),
                      package["package_name"])
 
-            # Get the file path for the specific package.
-            try:
-                output = self._adb_command(f"pm path {package['package_name']}")
-                output = output.strip().replace("package:", "")
-                if not output:
-                    continue
-            except Exception as e:
-                log.exception("Failed to get path of package %s: %s",
-                              package["package_name"], e)
-                self._adb_reconnect()
-                continue
-
             # Sometimes the package path contains multiple lines for multiple apks.
             # We loop through each line and download each file.
-            for path in output.split("\n"):
-                device_path = path.strip()
-                file_path = self.pull_package_file(package["package_name"],
-                                                   device_path)
-                if not file_path:
+            for package_file in package["files"]:
+                device_path = package_file["path"]
+                local_path = self.pull_package_file(package["package_name"],
+                                                    device_path)
+                if not local_path:
                     continue
 
-                file_info = {
-                    "path": device_path,
-                    "local_name": file_path,
-                    "sha256": get_sha256_from_file_path(file_path),
-                }
-
-                if "files" not in package:
-                    package["files"] = [file_info,]
-                else:
-                    package["files"].append(file_info)
+                package_file["local_path"] = local_path
 
         log.info("Download of selected packages completed")
 

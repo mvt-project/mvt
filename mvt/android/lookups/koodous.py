@@ -32,7 +32,7 @@ def koodous_lookup(packages):
             res = requests.get(url)
             report = res.json()
 
-            row = [package["package_name"], file["local_name"]]
+            row = [package["package_name"], file["path"]]
 
             if "package_name" in report:
                 trusted = "no"

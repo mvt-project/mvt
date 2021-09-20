@@ -55,6 +55,31 @@ class Packages(AndroidExtraction):
                                  root_package)
                 self.detected.append(root_package)
 
+    def _get_files_for_package(self, package_name):
+        output = self._adb_command(f"pm path {package_name}")
+        output = output.strip().replace("package:", "")
+        if not output:
+            return []
+
+        package_files = []
+        for file_path in output.split("\n"):
+            file_path = file_path.strip()
+
+            md5 = self._adb_command(f"md5sum {file_path}").split(" ")[0]
+            sha1 = self._adb_command(f"sha1sum {file_path}").split(" ")[0]
+            sha256 = self._adb_command(f"sha256sum {file_path}").split(" ")[0]
+            sha512 = self._adb_command(f"sha512sum {file_path}").split(" ")[0]
+
+            package_files.append({
+                "path": file_path,
+                "md5": md5,
+                "sha1": sha1,
+                "sha256": sha256,
+                "sha512": sha512,
+            })
+
+        return package_files
+
     def run(self):
         self._adb_connect()
 
@@ -85,6 +110,8 @@ class Packages(AndroidExtraction):
             first_install = dumpsys[1].split("=")[1].strip()
             last_update = dumpsys[2].split("=")[1].strip()
 
+            package_files = self._get_files_for_package(package_name)
+
             self.results.append({
                 "package_name": package_name,
                 "file_name": file_name,
@@ -96,6 +123,7 @@ class Packages(AndroidExtraction):
                 "disabled": False,
                 "system": False,
                 "third_party": False,
+                "files": package_files,
             })
 
         cmds = [
