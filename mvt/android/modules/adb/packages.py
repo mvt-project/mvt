@@ -54,15 +54,14 @@ class Packages(AndroidExtraction):
                 self.detected.append(result)
             if result["package_name"] in self.indicators.ioc_app_ids:
                 self.log.warning("Found a malicious package name: \"%s\"",
-                                result["package_name"])
+                                 result["package_name"])
                 self.detected.append(result)
-                for f in result["files"]:
-                    if f["sha256"] in self.indicators.ioc_files_sha256:
-                        self.log.warning("Found a malicious app: \"%s\" %s",
-                                result["package_name"],
-                                f["sha256"])
+                for file in result["files"]:
+                    if file["sha256"] in self.indicators.ioc_files_sha256:
+                        self.log.warning("Found a malicious APK: \"%s\" %s",
+                                         result["package_name"],
+                                         file["sha256"])
                         self.detected.append(result)
-
 
     def _get_files_for_package(self, package_name):
         output = self._adb_command(f"pm path {package_name}")
