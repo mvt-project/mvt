@@ -33,6 +33,14 @@ class ChromeHistory(AndroidExtraction):
             "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, redirect source: {record['redirect_source']})"
         }
 
+    def check_indicators(self):
+        if not self.indicators:
+            return
+
+        for result in self.results:
+            if self.indicators.check_domain(result["url"]):
+                self.detected.append(result)
+
     def _parse_db(self, db_path):
         """Parse a Chrome History database file.
 
