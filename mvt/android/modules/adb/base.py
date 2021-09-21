@@ -132,7 +132,7 @@ class AndroidExtraction(MVTModule):
 
         """
         return self._adb_command(f"su -c {command}")
-    
+
     def _adb_check_file_exists(self, file):
         """Verify that a file exists.
 
@@ -166,7 +166,7 @@ class AndroidExtraction(MVTModule):
                 self._adb_download_root(remote_path, local_path, progress_callback)
             else:
                 raise Exception(f"Unable to download file {remote_path}: {e}")
-    
+
     def _adb_download_root(self, remote_path, local_path, progress_callback=None):
         try:
             # Check if we have root, if not raise an Exception.
@@ -191,7 +191,7 @@ class AndroidExtraction(MVTModule):
 
             # Delete the copy on /sdcard/.
             self._adb_command(f"rm -rf {new_remote_path}")
-            
+
         except AdbCommandFailureException as e:
             raise Exception(f"Unable to download file {remote_path}: {e}")
 

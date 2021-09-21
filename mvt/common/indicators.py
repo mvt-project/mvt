@@ -23,6 +23,8 @@ class Indicators:
         self.ioc_processes = []
         self.ioc_emails = []
         self.ioc_files = []
+        self.ioc_files_sha256 = []
+        self.ioc_app_ids = []
         self.ioc_count = 0
 
     def _add_indicator(self, ioc, iocs_list):
@@ -66,6 +68,12 @@ class Indicators:
             elif key == "file:name":
                 self._add_indicator(ioc=value,
                                     iocs_list=self.ioc_files)
+            elif key == "app:id":
+                self._add_indicator(ioc=value,
+                                    iocs_list=self.ioc_app_ids)
+            elif key == "file:hashes.sha256":
+                self._add_indicator(ioc=value,
+                                    iocs_list=self.ioc_files_sha256)
 
     def check_domain(self, url) -> bool:
         """Check if a given URL matches any of the provided domain indicators.
