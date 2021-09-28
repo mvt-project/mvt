@@ -163,10 +163,12 @@ class Indicators:
 
         return False
 
-    def check_process(self, process) -> bool:
+    def check_process(self, process, contains = False) -> bool:
         """Check the provided process name against the list of process
         indicators.
 
+        :param contains: Check if the process is contained inside the string.
+        :type process: bool
         :param process: Process name to check against process indicators
         :type process: str
         :returns: True if process matched an indicator, otherwise False
@@ -174,6 +176,12 @@ class Indicators:
         """
         if not process:
             return False
+
+        if (contains):
+            for malicious_process in self.ioc_processes:
+                if malicious_process in process:
+                    self.log.warning("Found a known suspicious process name (\"%s\") in \"%s\"", malicious_process, process)
+                    return True
 
         proc_name = os.path.basename(process)
         if proc_name in self.ioc_processes:
