@@ -6,7 +6,7 @@
 import requests
 from packaging import version
 
-MVT_VERSION = "1.2.9"
+MVT_VERSION = "1.2.10"
 
 def check_for_updates():
     res = requests.get("https://pypi.org/pypi/mvt/json")
