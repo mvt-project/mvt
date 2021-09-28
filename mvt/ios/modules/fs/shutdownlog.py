@@ -64,11 +64,11 @@ class ShutdownLog(IOSExtraction):
                 isodate = convert_timestamp_to_iso(timestamp)
 
                 for current_process in current_processes:
-                    self.results.append(dict(
+                    self.results.append({
                         "isodate": isodate,
                         "pid": current_process["pid"],
                         "client": current_process["client"],
-                    ))
+                    })
 
                 current_processes = []
 
