@@ -28,7 +28,6 @@ class ShutdownLog(IOSExtraction):
             "data": f"Client {record['client']} with PID {record['pid']} was running when the device was shut down",
         }
     
-
     def check_indicators(self):
         if not self.indicators:
             return
