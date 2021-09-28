@@ -230,6 +230,18 @@ If indicators are provided through the command-line, they are checked against th
 
 ---
 
+### `shutdown_log.json`
+
+!!! info "Availability"
+    Backup (if encrypted): :material-close:  
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `ShutdownLog` module. The module extracts records from the shutdown log located at *private/var/db/diagnostics/shutdown.log*. When shutting down an iPhone, a SIGTERM will be sent to all processes runnning. The `shutdown.log` file will log any process (with its pid and path) that did not shut down after the SIGTERM was sent. 
+
+If indicators are provided through the command-line, they are checked against the paths. Any matches are stored in *shutdown_log_detected.json*.
+
+---
+
 ### `sms.json`
 
 !!! info "Availability"
