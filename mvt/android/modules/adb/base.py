@@ -41,7 +41,7 @@ class AndroidExtraction(MVTModule):
     def _adb_check_keys():
         """Make sure Android adb keys exist."""
         if not os.path.isdir(os.path.dirname(ADB_KEY_PATH)):
-            os.path.makedirs(os.path.dirname(ADB_KEY_PATH))
+            os.makedirs(os.path.dirname(ADB_KEY_PATH))
 
         if not os.path.exists(ADB_KEY_PATH):
             keygen(ADB_KEY_PATH)
