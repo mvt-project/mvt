@@ -41,6 +41,9 @@ class Packages(AndroidExtraction):
         return records
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         root_packages_path = os.path.join("..", "..", "data", "root_packages.txt")
         root_packages_string = pkg_resources.resource_string(__name__, root_packages_path)
         root_packages = root_packages_string.decode("utf-8").split("\n")
