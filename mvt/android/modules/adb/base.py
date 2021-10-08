@@ -56,7 +56,10 @@ class AndroidExtraction(MVTModule):
         with open(ADB_KEY_PATH, "rb") as handle:
             priv_key = handle.read()
 
-        signer = PythonRSASigner("", priv_key)
+        with open(ADB_PUB_KEY_PATH, "rb") as handle:
+            pub_key = handle.read()
+
+        signer = PythonRSASigner(pub_key, priv_key)
 
         # If no serial was specified or if the serial does not seem to be
         # a HOST:PORT definition, we use the USB transport.
