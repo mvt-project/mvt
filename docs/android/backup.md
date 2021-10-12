@@ -22,7 +22,7 @@ adb backup -all
 
 ## Unpack the backup
 
-In order to reliable unpack th [Android Backup Extractor (ABE)](https://github.com/nelenkov/android-backup-extractor) to convert it to a readable file format. Make sure that java is installed on your system and use the following command:
+In order to unpack the backup, use [Android Backup Extractor (ABE)](https://github.com/nelenkov/android-backup-extractor) to convert it to a readable file format. Make sure that java is installed on your system and use the following command:
 
 ```bash
 java -jar ~/path/to/abe.jar unpack backup.ab backup.tar
@@ -30,6 +30,8 @@ tar xvf backup.tar
 ```
 
 If the backup is encrypted, ABE will prompt you to enter the password.
+
+Alternatively, [ab-decrypt](https://github.com/joernheissler/ab-decrypt) can be used for that purpose.
 
 ## Check the backup
 
