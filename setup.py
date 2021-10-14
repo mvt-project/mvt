@@ -26,7 +26,7 @@ requires = (
     # iOS dependencies:
     "iOSbackup>=0.9.912",
     # Android dependencies:
-    "adb-shell>=0.4.0",
+    "adb-shell>=0.4.1",
     "libusb1>=1.9.3",
 )
 
