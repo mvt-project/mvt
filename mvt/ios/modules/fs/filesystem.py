@@ -44,7 +44,6 @@ class Filesystem(IOSExtraction):
             # If we are instructed to run fast, we skip this.
             if self.fast_mode:
                 self.log.info("Flag --fast was enabled: skipping extended search for suspicious files/processes")
-
             else:
                 for ioc in self.indicators.ioc_processes:
                     parts = result["path"].split("/")

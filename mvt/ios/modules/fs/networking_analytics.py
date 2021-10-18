@@ -40,7 +40,7 @@ class NetworkingAnalytics(IOSExtraction):
                 for key in result.keys():
                     if ioc == result[key]:
                         self.log.warning("Found mention of a known malicious process \"%s\" in networking_analytics.db at %s",
-                                        ioc, result["timestamp"])
+                                         ioc, result["timestamp"])
                         self.detected.append(result)
                         break
     
@@ -84,7 +84,7 @@ class NetworkingAnalytics(IOSExtraction):
 
     def run(self):
         self._find_ios_database(root_paths=NETWORKING_ANALYTICS_DB_PATH)
-        if (self.file_path):
+        if self.file_path:
             self.log.info("Found networking_analytics.db log at path: %s", self.file_path)
             self._extract_networking_analytics_data()
         else:
