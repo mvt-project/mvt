@@ -268,6 +268,7 @@ class URL:
         :type url: str
         :returns: Domain name extracted from URL
         :rtype: str
+
         """
         # TODO: Properly handle exception.
         try:
@@ -282,6 +283,7 @@ class URL:
         :type url: str
         :returns: Top-level domain name extracted from URL
         :rtype: str
+
         """
         # TODO: Properly handle exception.
         try:
@@ -292,8 +294,11 @@ class URL:
     def check_if_shortened(self) -> bool:
         """Check if the URL is among list of shortener services.
 
+
         :returns: True if the URL is shortened, otherwise False
+
         :rtype: bool
+
         """
         if self.domain.lower() in SHORTENER_DOMAINS:
             self.is_shortened = True
@@ -301,8 +306,7 @@ class URL:
         return self.is_shortened
 
     def unshorten(self):
-        """Unshorten the URL by requesting an HTTP HEAD response.
-        """
+        """Unshorten the URL by requesting an HTTP HEAD response."""
         res = requests.head(self.url)
         if str(res.status_code).startswith("30"):
             return res.headers["Location"]

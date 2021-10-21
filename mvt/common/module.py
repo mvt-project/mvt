@@ -23,8 +23,7 @@ class InsufficientPrivileges(Exception):
     pass
 
 class MVTModule(object):
-    """This class provides a base for all extraction modules.
-    """
+    """This class provides a base for all extraction modules."""
 
     enabled = True
     slug = None
@@ -66,8 +65,7 @@ class MVTModule(object):
             return cls(results=results, log=log)
 
     def get_slug(self):
-        """Use the module's class name to retrieve a slug
-        """
+        """Use the module's class name to retrieve a slug"""
         if self.slug:
             return self.slug
 
@@ -77,12 +75,13 @@ class MVTModule(object):
     def check_indicators(self):
         """Check the results of this module against a provided list of
         indicators.
+
+
         """
         raise NotImplementedError
 
     def save_to_json(self):
-        """Save the collected results to a json file.
-        """
+        """Save the collected results to a json file."""
         if not self.output_folder:
             return
 
@@ -112,6 +111,7 @@ class MVTModule(object):
         """Serialize entry as JSON to deduplicate repeated entries
 
         :param timeline: List of entries from timeline to deduplicate
+
         """
         timeline_set = set()
         for record in timeline:
@@ -141,8 +141,7 @@ class MVTModule(object):
         self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self):
-        """Run the main module procedure.
-        """
+        """Run the main module procedure."""
         raise NotImplementedError
 
 
@@ -190,6 +189,7 @@ def save_timeline(timeline, timeline_path):
 
     :param timeline: List of records to order and store
     :param timeline_path: Path to the csv file to store the timeline to
+
     """
     with io.open(timeline_path, "a+", encoding="utf-8") as handle:
         csvoutput = csv.writer(handle, delimiter=",", quotechar="\"")

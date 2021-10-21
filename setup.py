@@ -16,18 +16,18 @@ with open(readme_path, encoding="utf-8") as handle:
 
 requires = (
     # Base dependencies:
-    "click>=8.0.1",
-    "rich>=10.6.0",
+    "click>=8.0.3",
+    "rich>=10.12.0",
     "tld>=0.12.6",
-    "tqdm>=4.61.2",
+    "tqdm>=4.62.3",
     "requests>=2.26.0",
-    "simplejson>=3.17.3",
+    "simplejson>=3.17.5",
     "packaging>=21.0",
     # iOS dependencies:
-    "iOSbackup>=0.9.912",
+    "iOSbackup>=0.9.921",
     # Android dependencies:
-    "adb-shell>=0.4.0",
-    "libusb1>=1.9.3",
+    "adb-shell>=0.4.1",
+    "libusb1>=2.0.1",
 )
 
 def get_package_data(package):

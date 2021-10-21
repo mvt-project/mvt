@@ -28,8 +28,8 @@ class Filesystem(IOSExtraction):
         return {
             "timestamp": record["modified"],
             "module": self.__class__.__name__,
-            "event": "file_modified",
-            "data": record["file_path"],
+            "event": "entry_modified",
+            "data": record["path"],
         }
 
     def check_indicators(self):
@@ -37,16 +37,39 @@ class Filesystem(IOSExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_file(result["file_path"]):
+            if self.indicators.check_file(result["path"]):
+                self.log.warning("Found a known malicious file at path: %s", result["path"])
                 self.detected.append(result)
+
+            # If we are instructed to run fast, we skip this.
+            if self.fast_mode:
+                self.log.info("Flag --fast was enabled: skipping extended search for suspicious files/processes")
+            else:
+                for ioc in self.indicators.ioc_processes:
+                    parts = result["path"].split("/")
+                    if ioc in parts:
+                        self.log.warning("Found a known malicious file/process at path: %s", result["path"])
+                        self.detected.append(result)
 
     def run(self):
         for root, dirs, files in os.walk(self.base_folder):
+            for dir_name in dirs:
+                try:
+                    dir_path = os.path.join(root, dir_name)
+                    result = {
+                        "path": os.path.relpath(dir_path, self.base_folder),
+                        "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(dir_path).st_mtime)),
+                    }
+                except:
+                    continue
+                else:
+                    self.results.append(result)
+
             for file_name in files:
                 try:
                     file_path = os.path.join(root, file_name)
                     result = {
-                        "file_path": os.path.relpath(file_path, self.base_folder),
+                        "path": os.path.relpath(file_path, self.base_folder),
                         "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(file_path).st_mtime)),
                     }
                 except:
