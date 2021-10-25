@@ -154,7 +154,7 @@ class NetBase(IOSExtraction):
 
                     self.log.warning(msg)
             if not proc["live_proc_id"]:
-                self.log.warning(f"Found process entry in ZPROCESS but not in ZLIVEUSAGE : {proc['proc_name']} at {proc['live_isodate']}")
+                self.log.info(f"Found process entry in ZPROCESS but not in ZLIVEUSAGE : {proc['proc_name']} at {proc['live_isodate']}")
 
     def check_manipulated(self):
         """Check for missing or manipulate DB entries"""
