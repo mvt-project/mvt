@@ -15,15 +15,15 @@ It has been developed and released by the [Amnesty International Security Lab](h
 
 ## Installation
 
-MVT can be installed from sources or from [PyPi](https://pypi.org/project/mvt/) (you will need some dependencies, check the [documentation](https://docs.mvt.re/en/latest/install.html)):
+MVT can be installed from sources or from [PyPi](https://pypi.org/project/mvt/) (you will need some dependencies, check the [documentation](https://docs.mvt.re/en/latest/install/)):
 
 ```
 pip3 install mvt
 ```
 
-Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://docs.mvt.re/en/latest/docker.html).
+Alternatively, you can decide to run MVT and all relevant tools through a [Docker container](https://docs.mvt.re/en/latest/docker/).
 
-**Please note:** MVT is best run on Linux or Mac systems. [It does not currently support running natively on Windows.](https://docs.mvt.re/en/latest/install.html#mvt-on-windows)
+**Please note:** MVT is best run on Linux or Mac systems. [It does not currently support running natively on Windows.](https://docs.mvt.re/en/latest/install/#mvt-on-windows)
 
 ## Usage
 
@@ -31,4 +31,4 @@ MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentat
 
 ## License
 
-The purpose of MVT is to facilitate the ***consensual forensic analysis*** of devices of those who might be targets of sophisticated mobile spyware attacks, especially members of civil society and marginalized communities. We do not want MVT to enable privacy violations of non-consenting individuals.  In order to achieve this, MVT is released under its own license. [Read more here.](https://docs.mvt.re/en/latest/license.html)
+The purpose of MVT is to facilitate the ***consensual forensic analysis*** of devices of those who might be targets of sophisticated mobile spyware attacks, especially members of civil society and marginalized communities. We do not want MVT to enable privacy violations of non-consenting individuals.  In order to achieve this, MVT is released under its own license. [Read more here.](https://docs.mvt.re/en/latest/license/)
