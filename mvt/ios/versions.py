@@ -38,6 +38,10 @@ IPHONE_MODELS = [
     {"identifier": "iPhone13,2", "description": "iPhone 12"},
     {"identifier": "iPhone13,3", "description": "iPhone 12 Pro"},
     {"identifier": "iPhone13,4", "description": "iPhone 12 Pro Max"},
+    {"identifier": "iPhone14,4", "description": "iPhone 13 Mini"},
+    {"identifier": "iPhone14,5", "description": "iPhone 13"},
+    {"identifier": "iPhone14,2", "description": "iPhone 13 Pro"},
+    {"identifier": "iPhone14,3", "description": "iPhone 13 Pro Max"},
 ]
 
 IPHONE_IOS_VERSIONS = [
