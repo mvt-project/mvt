@@ -39,7 +39,9 @@ class NetBase(IOSExtraction):
                 ZLIVEUSAGE.ZHASPROCESS,
                 ZLIVEUSAGE.ZTIMESTAMP
             FROM ZLIVEUSAGE
-            LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK;
+            LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK
+            UNION
+            SELECT ZFIRSTTIMESTAMP, ZTIMESTAMP, ZPROCNAME, ZBUNDLENAME, Z_PK, NULL, NULL, NULL, NULL, NULL, NULL, NULL FROM ZPROCESS WHERE Z_PK NOT IN (SELECT ZHASPROCESS FROM ZLIVEUSAGE);
         """)
 
         for row in cur:
@@ -68,7 +70,7 @@ class NetBase(IOSExtraction):
                 "wwan_out": row[8],
                 "live_id": row[9],
                 "live_proc_id": row[10],
-                "live_isodate": live_timestamp,
+                "live_isodate": live_timestamp if row[10] else first_isodate,
             })
 
         cur.close()
@@ -89,7 +91,7 @@ class NetBase(IOSExtraction):
         }]
 
         # Only included first_usage and current_usage records when a ZPROCESS entry exists.
-        if "MANIPULATED" not in record["proc_name"] and "MISSING" not in record["proc_name"]:
+        if "MANIPULATED" not in record["proc_name"] and "MISSING" not in record["proc_name"] and record["live_proc_id"] is not None:
             records.extend([
                 {
                     "timestamp": record["first_isodate"],
@@ -151,6 +153,8 @@ class NetBase(IOSExtraction):
                         msg = msg + " (However, the process name might have been truncated in the database)"
 
                     self.log.warning(msg)
+            if not proc["live_proc_id"]:
+                self.log.info(f"Found process entry in ZPROCESS but not in ZLIVEUSAGE : {proc['proc_name']} at {proc['live_isodate']}")
 
     def check_manipulated(self):
         """Check for missing or manipulate DB entries"""
