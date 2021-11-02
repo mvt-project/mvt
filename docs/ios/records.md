@@ -4,6 +4,18 @@ In this page you can find a (reasonably) up-to-date breakdown of the files creat
 
 ## Records extracted by `check-fs` or `check-backup`
 
+### `analytics.json`
+
+!!! info "Availability"
+    Backup (if encrypted): :material-close:  
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `Analytics` module. The module extracts records from the plists inside the SQLite databases located at *private/var/Keychains/Analytics/\*.db*, which contain various analytics information regarding networking, certificate-pinning, TLS, etc. failures.
+
+If indicators are provided through the command-line, processes and domains are checked against all fields of the plist. Any matches are stored in *analytics_detected.json*.
+
+---
+
 ### `backup_info.json`
 
 !!! info "Availabiliy"
@@ -56,7 +68,7 @@ If indicators are provided through the command-line, they are checked against bo
 
 This JSON file is created by mvt-ios' `ChromeHistory` module. The module extracts records from a SQLite database located at */private/var/mobile/Containers/Data/Application/\*/Library/Application Support/Google/Chrome/Default/History*, which contains a history of URL visits.
 
-If indicators a provided through the command-line, they are checked against the visited URL. Any matches are stored in *chrome_history_detected.json*.
+If indicators are provided through the command-line, they are checked against the visited URL. Any matches are stored in *chrome_history_detected.json*.
 
 ---
 
@@ -100,7 +112,7 @@ If indicators are provided through the command-line, they are checked against bo
 
 This JSON file is created by mvt-ios' `FirefoxHistory` module. The module extracts records from a SQLite database located at */private/var/mobile/profile.profile/browser.db*, which contains a history of URL visits.
 
-If indicators a provided through the command-line, they are checked against the visited URL. Any matches are stored in *firefox_history_detected.json*.
+If indicators are provided through the command-line, they are checked against the visited URL. Any matches are stored in *firefox_history_detected.json*.
 
 ---
 
@@ -202,7 +214,7 @@ This JSON file is created by mvt-ios' `ProfileEvents` module. The module extract
 
 This JSON file is created by mvt-ios' `SafariBrowserState` module. The module extracts records from the SQLite databases located at */private/var/mobile/Library/Safari/BrowserState.db* or */private/var/mobile/Containers/Data/Application/\*/Library/Safari/BrowserState.db*, which contain records of opened tabs.
 
-If indicators a provided through the command-line, they are checked against the visited URL. Any matches are stored in *safari_browser_state_detected.json*.
+If indicators are provided through the command-line, they are checked against the visited URL. Any matches are stored in *safari_browser_state_detected.json*.
 
 ---
 
