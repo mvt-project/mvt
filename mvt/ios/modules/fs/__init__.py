@@ -3,10 +3,10 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from .analytics import Analytics
 from .cache_files import CacheFiles
 from .filesystem import Filesystem
 from .net_netusage import Netusage
-from .analytics import Analytics
 from .safari_favicon import SafariFavicon
 from .shutdownlog import ShutdownLog
 from .version_history import IOSVersionHistory
