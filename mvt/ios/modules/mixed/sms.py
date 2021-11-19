@@ -18,6 +18,7 @@ SMS_ROOT_PATHS = [
     "private/var/mobile/Library/SMS/sms.db",
 ]
 
+
 class SMS(IOSExtraction):
     """This module extracts all SMS messages containing links."""
 
@@ -67,8 +68,8 @@ class SMS(IOSExtraction):
                 # We base64 escape some of the attributes that could contain
                 # binary data.
                 if (names[index] == "attributedBody" or
-                    names[index] == "payload_data" or
-                    names[index] == "message_summary_info") and value:
+                        names[index] == "payload_data" or
+                        names[index] == "message_summary_info") and value:
                     value = b64encode(value).decode()
 
                 # We store the value of each column under the proper key.

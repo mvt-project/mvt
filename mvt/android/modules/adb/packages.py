@@ -12,6 +12,7 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+
 class Packages(AndroidExtraction):
     """This module extracts the list of installed packages."""
 
@@ -49,11 +50,10 @@ class Packages(AndroidExtraction):
         root_packages = root_packages_string.decode("utf-8").split("\n")
         root_packages = [rp.strip() for rp in root_packages]
 
-
         for result in self.results:
             if result["package_name"] in root_packages:
                 self.log.warning("Found an installed package related to rooting/jailbreaking: \"%s\"",
-                                result["package_name"])
+                                 result["package_name"])
                 self.detected.append(result)
             if result["package_name"] in self.indicators.ioc_app_ids:
                 self.log.warning("Found a malicious package name: \"%s\"",

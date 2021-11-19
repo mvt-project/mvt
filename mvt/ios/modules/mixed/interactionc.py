@@ -16,6 +16,7 @@ INTERACTIONC_ROOT_PATHS = [
     "private/var/mobile/Library/CoreDuet/People/interactionC.db",
 ]
 
+
 class InteractionC(IOSExtraction):
     """This module extracts data from InteractionC db."""
 
@@ -54,8 +55,8 @@ class InteractionC(IOSExtraction):
                 "timestamp": record[ts],
                 "module": self.__class__.__name__,
                 "event": ts,
-                "data": f"[{record['bundle_id']}] {record['account']} - from {record['sender_display_name']} " \
-                        f"({record['sender_identifier']}) to {record['recipient_display_name']} " \
+                "data": f"[{record['bundle_id']}] {record['account']} - from {record['sender_display_name']} "
+                        f"({record['sender_identifier']}) to {record['recipient_display_name']} "
                         f"({record['recipient_identifier']}): {record['content']}"
             })
             processed.append(record[ts])
@@ -123,8 +124,7 @@ class InteractionC(IOSExtraction):
                 LEFT JOIN Z_2INTERACTIONRECIPIENT ON ZINTERACTIONS.Z_PK== Z_2INTERACTIONRECIPIENT.Z_3INTERACTIONRECIPIENT
                 LEFT JOIN ZCONTACTS RECEIPIENTCONACT ON Z_2INTERACTIONRECIPIENT.Z_2RECIPIENTS== RECEIPIENTCONACT.Z_PK;
         """)
-
-        names = [description[0] for description in cur.description]
+        # names = [description[0] for description in cur.description]
 
         for row in cur:
             self.results.append({

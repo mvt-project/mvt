@@ -17,6 +17,7 @@ FIREFOX_HISTORY_ROOT_PATHS = [
     "private/var/mobile/profile.profile/browser.db",
 ]
 
+
 class FirefoxHistory(IOSExtraction):
     """This module extracts all Firefox visits and tries to detect potential
     network injection attacks.

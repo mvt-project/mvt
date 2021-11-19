@@ -38,6 +38,7 @@ AUTH_REASONS = {
     12: "app_type_policy",
 }
 
+
 class TCC(IOSExtraction):
     """This module extracts records from the TCC.db SQLite database."""
 
@@ -50,7 +51,7 @@ class TCC(IOSExtraction):
     def process_db(self, file_path):
         conn = sqlite3.connect(file_path)
         cur = conn.cursor()
-        cur.execute("""SELECT 
+        cur.execute("""SELECT
             service, client, client_type, auth_value, auth_reason, last_modified
         FROM access;""")
 

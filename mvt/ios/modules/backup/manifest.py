@@ -28,8 +28,8 @@ class Manifest(IOSExtraction):
         """Unserialized plist objects can have keys which are str or byte types
         This is a helper to try fetch a key as both a byte or string type.
 
-        :param dictionary: param key:
-        :param key: 
+        :param dictionary:
+        :param key:
 
         """
         return dictionary.get(key.encode("utf-8"), None) or dictionary.get(key, None)
@@ -38,7 +38,7 @@ class Manifest(IOSExtraction):
     def _convert_timestamp(timestamp_or_unix_time_int):
         """Older iOS versions stored the manifest times as unix timestamps.
 
-        :param timestamp_or_unix_time_int: 
+        :param timestamp_or_unix_time_int:
 
         """
         if isinstance(timestamp_or_unix_time_int, datetime.datetime):
@@ -72,7 +72,7 @@ class Manifest(IOSExtraction):
             return
 
         for result in self.results:
-            if not "relative_path" in result:
+            if "relative_path" not in result:
                 continue
             if not result["relative_path"]:
                 continue
@@ -133,7 +133,7 @@ class Manifest(IOSExtraction):
                         "owner": self._get_key(file_metadata, "UserID"),
                         "size": self._get_key(file_metadata, "Size"),
                     })
-                except:
+                except Exception:
                     self.log.exception("Error reading manifest file metadata for file with ID %s and relative path %s",
                                        file_data["fileID"], file_data["relativePath"])
                     pass

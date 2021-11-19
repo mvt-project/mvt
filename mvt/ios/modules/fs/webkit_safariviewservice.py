@@ -9,6 +9,7 @@ WEBKIT_SAFARIVIEWSERVICE_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/",
 ]
 
+
 class WebkitSafariViewService(WebkitBase):
     """This module looks extracts records from WebKit LocalStorage folders,
     and checks them against any provided list of suspicious domains.

@@ -9,6 +9,7 @@ WEBKIT_LOCALSTORAGE_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/LocalStorage/",
 ]
 
+
 class WebkitLocalStorage(WebkitBase):
     """This module looks extracts records from WebKit LocalStorage folders,
     and checks them against any provided list of suspicious domains.

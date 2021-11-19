@@ -14,6 +14,7 @@ ANALYTICS_DB_PATH = [
     "private/var/Keychains/Analytics/*.db",
 ]
 
+
 class Analytics(IOSExtraction):
     """This module extracts information from the private/var/Keychains/Analytics/*.db files."""
 
@@ -30,7 +31,7 @@ class Analytics(IOSExtraction):
             "event": record["artifact"],
             "data": f"{record}",
         }
-    
+
     def check_indicators(self):
         if not self.indicators:
             return
@@ -50,7 +51,7 @@ class Analytics(IOSExtraction):
                                          ioc, result["artifact"], result["timestamp"])
                         self.detected.append(result)
                         break
-    
+
     def _extract_analytics_data(self):
         artifact = self.file_path.split("/")[-1]
 
@@ -86,7 +87,6 @@ class Analytics(IOSExtraction):
                     data
                 FROM soft_failures;
             """)
-
 
         for row in cur:
             if row[0] and row[1]:

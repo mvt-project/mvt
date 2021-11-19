@@ -19,6 +19,7 @@ SAFARI_BROWSER_STATE_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/BrowserState.db",
 ]
 
+
 class SafariBrowserState(IOSExtraction):
     """This module extracts all Safari browser state records."""
 
@@ -47,7 +48,7 @@ class SafariBrowserState(IOSExtraction):
                 self.detected.append(result)
                 continue
 
-            if not "session_data" in result:
+            if "session_data" not in result:
                 continue
 
             for session_entry in result["session_data"]:

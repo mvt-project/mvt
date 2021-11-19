@@ -17,6 +17,7 @@ SMS_ROOT_PATHS = [
     "private/var/mobile/Library/SMS/sms.db",
 ]
 
+
 class SMSAttachments(IOSExtraction):
     """This module extracts all info about SMS/iMessage attachments."""
 
@@ -45,7 +46,7 @@ class SMSAttachments(IOSExtraction):
         cur.execute("""
             SELECT
                 attachment.ROWID as "attachment_id",
-				attachment.*,
+                attachment.*,
                 message.service as "service",
                 handle.id as "phone_number"
             FROM attachment
@@ -73,7 +74,7 @@ class SMSAttachments(IOSExtraction):
             attachment["filename"] = attachment["filename"] or "NULL"
 
             if (attachment["filename"].startswith("/var/tmp/") and attachment["filename"].endswith("-1") and
-                attachment["direction"] == "received"):
+                    attachment["direction"] == "received"):
                 self.log.warn(f"Suspicious iMessage attachment '{attachment['filename']}' on {attachment['isodate']}")
                 self.detected.append(attachment)
 

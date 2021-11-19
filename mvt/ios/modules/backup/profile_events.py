@@ -11,6 +11,7 @@ from ..base import IOSExtraction
 
 CONF_PROFILES_EVENTS_RELPATH = "Library/ConfigurationProfiles/MCProfileEvents.plist"
 
+
 class ProfileEvents(IOSExtraction):
     """This module extracts events related to the installation of configuration
     profiles.

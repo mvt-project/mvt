@@ -10,6 +10,7 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+
 class DumpsysFull(AndroidExtraction):
     """This module extracts stats on battery consumption by processes."""
 
@@ -30,6 +31,6 @@ class DumpsysFull(AndroidExtraction):
                 handle.write(stats)
 
             log.info("Full dumpsys output stored at %s",
-                      stats_path)
+                     stats_path)
 
         self._adb_disconnect()

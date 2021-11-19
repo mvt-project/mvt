@@ -16,6 +16,7 @@ OSANALYTICS_ADDAILY_ROOT_PATHS = [
     "private/var/mobile/Library/Preferences/com.apple.osanalytics.addaily.plist",
 ]
 
+
 class OSAnalyticsADDaily(IOSExtraction):
     """Extract network usage information by process, from com.apple.osanalytics.addaily.plist"""
 
@@ -34,14 +35,14 @@ class OSAnalyticsADDaily(IOSExtraction):
             "event": "osanalytics_addaily",
             "data": record_data,
         }
-    
+
     def check_indicators(self):
         if not self.indicators:
             return
 
         for result in self.results:
             if self.indicators.check_process(result["package"]):
-                    self.detected.append(result)
+                self.detected.append(result)
 
     def run(self):
         self._find_ios_database(backup_ids=OSANALYTICS_ADDAILY_BACKUP_IDS,

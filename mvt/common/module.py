@@ -14,11 +14,14 @@ import simplejson as json
 class DatabaseNotFoundError(Exception):
     pass
 
+
 class DatabaseCorruptedError(Exception):
     pass
 
+
 class InsufficientPrivileges(Exception):
     pass
+
 
 class MVTModule(object):
     """This class provides a base for all extraction modules."""

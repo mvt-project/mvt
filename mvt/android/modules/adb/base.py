@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 ADB_KEY_PATH = os.path.expanduser("~/.android/adbkey")
 ADB_PUB_KEY_PATH = os.path.expanduser("~/.android/adbkey.pub")
 
+
 class AndroidExtraction(MVTModule):
     """This class provides a base for all Android extraction modules."""
 
@@ -89,7 +90,7 @@ class AndroidExtraction(MVTModule):
             except OSError as e:
                 if e.errno == 113 and self.serial:
                     log.critical("Unable to connect to the device %s: did you specify the correct IP addres?",
-                              self.serial)
+                                 self.serial)
                     sys.exit(-1)
             else:
                 break

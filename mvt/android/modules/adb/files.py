@@ -10,6 +10,7 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+
 class Files(AndroidExtraction):
     """This module extracts the list of installed packages."""
 

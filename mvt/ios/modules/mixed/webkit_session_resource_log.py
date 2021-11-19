@@ -20,6 +20,7 @@ WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS = [
     "private/var/mobile/Library/WebClips/*/Storage/full_browsing_session_resourceLog.plist",
 ]
 
+
 class WebkitSessionResourceLog(IOSExtraction):
     """This module extracts records from WebKit browsing session
     resource logs, and checks them against any provided list of

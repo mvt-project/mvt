@@ -14,6 +14,7 @@ ACTION_SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED"
 ACTION_DATA_SMS_RECEIVED = "android.intent.action.DATA_SMS_RECEIVED"
 ACTION_PHONE_STATE = "android.intent.action.PHONE_STATE"
 
+
 class DumpsysReceivers(AndroidExtraction):
     """This module extracts details on receivers for risky activities."""
 
@@ -66,16 +67,16 @@ class DumpsysReceivers(AndroidExtraction):
 
             if activity == ACTION_NEW_OUTGOING_SMS:
                 self.log.info("Found a receiver to intercept outgoing SMS messages: \"%s\"",
-                    receiver)
+                              receiver)
             elif activity == ACTION_SMS_RECEIVED:
                 self.log.info("Found a receiver to intercept incoming SMS messages: \"%s\"",
-                    receiver)
+                              receiver)
             elif activity == ACTION_DATA_SMS_RECEIVED:
                 self.log.info("Found a receiver to intercept incoming data SMS message: \"%s\"",
-                    receiver)
+                              receiver)
             elif activity == ACTION_PHONE_STATE:
                 self.log.info("Found a receiver monitoring telephony state: \"%s\"",
-                    receiver)
+                              receiver)
 
             self.results.append({
                 "activity": activity,

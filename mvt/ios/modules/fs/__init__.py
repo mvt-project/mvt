@@ -16,4 +16,4 @@ from .webkit_safariviewservice import WebkitSafariViewService
 
 FS_MODULES = [CacheFiles, Filesystem, Netusage, Analytics, SafariFavicon, ShutdownLog,
               IOSVersionHistory, WebkitIndexedDB, WebkitLocalStorage,
-              WebkitSafariViewService,]
+              WebkitSafariViewService]

@@ -27,4 +27,4 @@ MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
                  FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,
                  OSAnalyticsADDaily, Datausage, SafariBrowserState, SafariHistory,
                  TCC, SMS, SMSAttachments, WebkitResourceLoadStatistics,
-                 WebkitSessionResourceLog, Whatsapp,]
+                 WebkitSessionResourceLog, Whatsapp]

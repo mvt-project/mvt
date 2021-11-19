@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 WHATSAPP_PATH = "data/data/com.whatsapp/databases/msgstore.db"
 
+
 class Whatsapp(AndroidExtraction):
     """This module extracts all WhatsApp messages containing links."""
 
@@ -39,7 +40,7 @@ class Whatsapp(AndroidExtraction):
             return
 
         for message in self.results:
-            if not "data" in message:
+            if "data" not in message:
                 continue
 
             message_links = check_for_links(message["data"])

@@ -24,7 +24,7 @@ class SMS(MVTModule):
             return
 
         for message in self.results:
-            if not "body" in message:
+            if "body" not in message:
                 continue
 
             message_links = check_for_links(message["body"])

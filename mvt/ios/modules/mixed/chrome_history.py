@@ -13,11 +13,11 @@ from ..base import IOSExtraction
 CHROME_HISTORY_BACKUP_IDS = [
     "faf971ce92c3ac508c018dce1bef2a8b8e9838f1",
 ]
-
 # TODO: Confirm Chrome database path.
 CHROME_HISTORY_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/History",
 ]
+
 
 class ChromeHistory(IOSExtraction):
     """This module extracts all Chome visits."""

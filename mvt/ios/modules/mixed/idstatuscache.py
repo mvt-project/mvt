@@ -18,6 +18,7 @@ IDSTATUSCACHE_ROOT_PATHS = [
     "private/var/mobile/Library/IdentityServices/idstatuscache.plist",
 ]
 
+
 class IDStatusCache(IOSExtraction):
     """Extracts Apple Authentication information from idstatuscache.plist"""
 
@@ -91,5 +92,5 @@ class IDStatusCache(IOSExtraction):
                 self.file_path = idstatuscache_path
                 self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
                 self._extract_idstatuscache_entries(self.file_path)
-            
+
         self.log.info("Extracted a total of %d ID Status Cache entries", len(self.results))

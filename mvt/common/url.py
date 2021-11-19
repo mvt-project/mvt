@@ -250,6 +250,7 @@ SHORTENER_DOMAINS = [
     "zz.gd",
 ]
 
+
 class URL:
 
     def __init__(self, url):
@@ -273,7 +274,7 @@ class URL:
         # TODO: Properly handle exception.
         try:
             return get_tld(self.url, as_object=True, fix_protocol=True).parsed_url.netloc.lower().lstrip("www.")
-        except:
+        except Exception:
             return None
 
     def get_top_level(self):
@@ -288,7 +289,7 @@ class URL:
         # TODO: Properly handle exception.
         try:
             return get_tld(self.url, as_object=True, fix_protocol=True).fld.lower()
-        except:
+        except Exception:
             return None
 
     def check_if_shortened(self) -> bool:

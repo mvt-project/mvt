@@ -8,6 +8,7 @@ from packaging import version
 
 MVT_VERSION = "1.2.14"
 
+
 def check_for_updates():
     res = requests.get("https://pypi.org/pypi/mvt/json")
     data = res.json()

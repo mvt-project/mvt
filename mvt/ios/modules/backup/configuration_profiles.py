@@ -10,6 +10,7 @@ from ..base import IOSExtraction
 
 CONF_PROFILES_DOMAIN = "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"
 
+
 class ConfigurationProfiles(IOSExtraction):
     """This module extracts the full plist data from configuration profiles."""
 

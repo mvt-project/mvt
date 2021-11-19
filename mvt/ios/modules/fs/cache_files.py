@@ -38,7 +38,7 @@ class CacheFiles(IOSExtraction):
             for item in items:
                 if self.indicators.check_domain(item["url"]):
                     if key not in self.detected:
-                        self.detected[key] = [item,]
+                        self.detected[key] = [item, ]
                     else:
                         self.detected[key].append(item)
 
@@ -54,7 +54,7 @@ class CacheFiles(IOSExtraction):
             return
 
         key_name = os.path.relpath(file_path, self.base_folder)
-        if not key_name in self.results:
+        if key_name not in self.results:
             self.results[key_name] = []
 
         for row in cur:

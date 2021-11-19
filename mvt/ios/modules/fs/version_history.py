@@ -14,6 +14,7 @@ IOS_ANALYTICS_JOURNAL_PATHS = [
     "private/var/db/analyticsd/Analytics-Journal-*.ips",
 ]
 
+
 class IOSVersionHistory(IOSExtraction):
     """This module extracts iOS update history from Analytics Journal log files."""
 

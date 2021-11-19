@@ -12,6 +12,7 @@ from .url import URL
 class IndicatorsFileBadFormat(Exception):
     pass
 
+
 class Indicators:
     """This class is used to parse indicators from a STIX2 file and provide
     functions to compare extracted artifacts to the indicators.
@@ -115,7 +116,7 @@ class Indicators:
             else:
                 # If it's not shortened, we just use the original URL object.
                 final_url = orig_url
-        except Exception as e:
+        except Exception:
             # If URL parsing failed, we just try to do a simple substring
             # match.
             for ioc in self.ioc_domains:

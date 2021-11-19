@@ -11,6 +11,7 @@ SHUTDOWN_LOG_PATH = [
     "private/var/db/diagnostics/shutdown.log",
 ]
 
+
 class ShutdownLog(IOSExtraction):
     """This module extracts processes information from the shutdown log file."""
 
@@ -27,7 +28,7 @@ class ShutdownLog(IOSExtraction):
             "event": "shutdown",
             "data": f"Client {record['client']} with PID {record['pid']} was running when the device was shut down",
         }
-    
+
     def check_indicators(self):
         if not self.indicators:
             return
@@ -57,7 +58,7 @@ class ShutdownLog(IOSExtraction):
                     try:
                         start = line.find(" @")+2
                         mac_timestamp = int(line[start:start+10])
-                    except:
+                    except Exception:
                         mac_timestamp = 0
 
                 timestamp = convert_mactime_to_unix(mac_timestamp, from_2001=False)

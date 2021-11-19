@@ -16,7 +16,7 @@ def logo():
 
     try:
         latest_version = check_for_updates()
-    except:
+    except Exception:
         pass
     else:
         if latest_version:

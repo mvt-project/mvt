@@ -20,6 +20,7 @@ WHATSAPP_ROOT_PATHS = [
     "private/var/mobile/Containers/Shared/AppGroup/*/ChatStorage.sqlite",
 ]
 
+
 class Whatsapp(IOSExtraction):
     """This module extracts all WhatsApp messages containing links."""
 

@@ -5,4 +5,4 @@
 
 from .sms import SMS
 
-BACKUP_MODULES = [SMS,]
+BACKUP_MODULES = [SMS]

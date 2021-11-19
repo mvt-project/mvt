@@ -17,6 +17,7 @@ WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/observations.db",
 ]
 
+
 class WebkitResourceLoadStatistics(IOSExtraction):
     """This module extracts records from WebKit ResourceLoadStatistics observations.db."""
     # TODO: Add serialize().
@@ -38,7 +39,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             for item in items:
                 if self.indicators.check_domain(item["registrable_domain"]):
                     if key not in self.detected:
-                        self.detected[key] = [item,]
+                        self.detected[key] = [item, ]
                     else:
                         self.detected[key].append(item)
 
@@ -55,7 +56,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         except sqlite3.OperationalError:
             return
 
-        if not key in self.results:
+        if key not in self.results:
             self.results[key] = []
 
         for row in cur:

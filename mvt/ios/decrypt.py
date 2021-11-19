@@ -14,6 +14,7 @@ from iOSbackup import iOSbackup
 
 log = logging.getLogger(__name__)
 
+
 class DecryptBackup:
     """This class provides functions to decrypt an encrypted iTunes backup
     using either a password or a key file.

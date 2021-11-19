@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 CHROME_HISTORY_PATH = "data/data/com.android.chrome/app_chrome/Default/History"
 
+
 class ChromeHistory(AndroidExtraction):
     """This module extracts records from Android's Chrome browsing history."""
 

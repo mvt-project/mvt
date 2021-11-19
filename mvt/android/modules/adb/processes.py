@@ -9,6 +9,7 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+
 class Processes(AndroidExtraction):
     """This module extracts details on running processes."""
 

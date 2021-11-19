@@ -9,6 +9,7 @@ WEBKIT_INDEXEDDB_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/IndexedDB",
 ]
 
+
 class WebkitIndexedDB(WebkitBase):
     """This module looks extracts records from WebKit IndexedDB folders,
     and checks them against any provided list of suspicious domains.

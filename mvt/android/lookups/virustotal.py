@@ -13,6 +13,7 @@ from rich.text import Text
 
 log = logging.getLogger(__name__)
 
+
 def get_virustotal_report(hashes):
     apikey = "233f22e200ca5822bd91103043ccac138b910db79f29af5616a9afe8b6f215ad"
     url = f"https://www.virustotal.com/partners/sysinternals/file-reports?apikey={apikey}"
@@ -36,6 +37,7 @@ def get_virustotal_report(hashes):
         log.error("Unexpected response from VirusTotal: %s", res.status_code)
         return None
 
+
 def virustotal_lookup(packages):
     log.info("Looking up all extracted files on VirusTotal (www.virustotal.com)")
 
@@ -48,6 +50,7 @@ def virustotal_lookup(packages):
     total_unique_hashes = len(unique_hashes)
 
     detections = {}
+
     def virustotal_query(batch):
         report = get_virustotal_report(batch)
         if not report:

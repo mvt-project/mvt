@@ -30,6 +30,7 @@ requires = (
     "libusb1>=2.0.1",
 )
 
+
 def get_package_data(package):
     walk = [(dirpath.replace(package + os.sep, "", 1), filenames)
             for dirpath, dirnames, filenames in os.walk(package)
@@ -40,6 +41,7 @@ def get_package_data(package):
         filepaths.extend([os.path.join(base, filename)
                           for filename in filenames])
     return {package: filepaths}
+
 
 setup(
     name="mvt",

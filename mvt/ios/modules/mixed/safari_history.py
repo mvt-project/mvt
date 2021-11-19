@@ -17,6 +17,7 @@ SAFARI_HISTORY_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/History.db",
 ]
 
+
 class SafariHistory(IOSExtraction):
     """This module extracts all Safari visits and tries to detect potential
     network injection attacks.
@@ -62,7 +63,7 @@ class SafariHistory(IOSExtraction):
                     continue
 
                 self.log.info("Found HTTP redirect to different domain: \"%s\" -> \"%s\"",
-                         origin_domain, redirect_domain)
+                              origin_domain, redirect_domain)
 
                 redirect_time = convert_mactime_to_unix(redirect["timestamp"])
                 origin_time = convert_mactime_to_unix(result["timestamp"])

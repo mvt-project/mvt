@@ -16,6 +16,7 @@ from .modules.adb.packages import Packages
 
 log = logging.getLogger(__name__)
 
+
 # TODO: Would be better to replace tqdm with rich.progress to reduce
 #       the number of dependencies. Need to investigate whether
 #       it's possible to have a similar callback system.
@@ -137,7 +138,7 @@ class DownloadAPKs(AndroidExtraction):
                     packages_selection.append(package)
 
             log.info("Selected only %d packages which are not marked as system",
-                len(packages_selection))
+                     len(packages_selection))
 
         if len(packages_selection) == 0:
             log.info("No packages were selected for download")

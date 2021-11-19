@@ -81,7 +81,7 @@ class NetBase(IOSExtraction):
     def serialize(self, record):
         record_data = f"{record['proc_name']} (Bundle ID: {record['bundle_id']}, ID: {record['proc_id']})"
         record_data_usage = record_data + f" WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
-                            f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
+            f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
 
         records = [{
             "timestamp": record["live_isodate"],

@@ -14,6 +14,7 @@ CONTACTS_ROOT_PATHS = [
     "private/var/mobile/Library/AddressBook/AddressBook.sqlitedb",
 ]
 
+
 class Contacts(IOSExtraction):
     """This module extracts all contact details from the phone's address book."""
 

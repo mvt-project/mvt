@@ -14,6 +14,7 @@ SAFARI_FAVICON_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Image Cache/Favicons/Favicons.db",
 ]
 
+
 class SafariFavicon(IOSExtraction):
     """This module extracts all Safari favicon records."""
 

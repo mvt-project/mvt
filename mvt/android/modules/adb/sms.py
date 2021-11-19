@@ -15,12 +15,12 @@ log = logging.getLogger(__name__)
 
 SMS_BUGLE_PATH = "data/data/com.google.android.apps.messaging/databases/bugle_db"
 SMS_BUGLE_QUERY = """
-SELECT 
+SELECT
     ppl.normalized_destination AS number,
     p.timestamp AS timestamp,
-CASE WHEN m.sender_id IN 
+CASE WHEN m.sender_id IN
 (SELECT _id FROM participants WHERE contact_id=-1)
-THEN 2 ELSE 1 END incoming, p.text AS text 
+THEN 2 ELSE 1 END incoming, p.text AS text
 FROM messages m, conversations c, parts p,
         participants ppl, conversation_participants cp
 WHERE (m.conversation_id = c._id)
@@ -31,13 +31,14 @@ WHERE (m.conversation_id = c._id)
 
 SMS_MMSSMS_PATH = "data/data/com.android.providers.telephony/databases/mmssms.db"
 SMS_MMSMS_QUERY = """
-SELECT 
+SELECT
     address AS number,
     date_sent AS timestamp,
     type as incoming,
-    body AS text 
+    body AS text
 FROM sms;
 """
+
 
 class SMS(AndroidExtraction):
     """This module extracts all SMS messages containing links."""
@@ -62,7 +63,7 @@ class SMS(AndroidExtraction):
             return
 
         for message in self.results:
-            if not "text" in message:
+            if "text" not in message:
                 continue
 
             message_links = check_for_links(message["text"])
@@ -77,7 +78,7 @@ class SMS(AndroidExtraction):
         """
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        
+
         if (self.SMS_DB_TYPE == 1):
             cur.execute(SMS_BUGLE_QUERY)
         elif (self.SMS_DB_TYPE == 2):

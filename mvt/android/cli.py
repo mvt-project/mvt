@@ -9,7 +9,9 @@ import os
 import click
 from rich.logging import RichHandler
 
-from mvt.common.help import *
+from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
+from mvt.common.help import HELP_MSG_OUTPUT, HELP_MSG_LIST_MODULES
+from mvt.common.help import HELP_MSG_SERIAL
 from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
@@ -25,6 +27,7 @@ LOG_FORMAT = "[%(name)s] %(message)s"
 logging.basicConfig(level="INFO", format=LOG_FORMAT, handlers=[
     RichHandler(show_path=False, log_time_format="%X")])
 log = logging.getLogger(__name__)
+
 
 #==============================================================================
 # Main
@@ -191,7 +194,7 @@ def check_backup(ctx, iocs, output, backup_path, serial):
         log.critical("The path you specified is a not a folder!")
 
         if os.path.basename(backup_path) == "backup.ab":
-            log.info("You can use ABE (https://github.com/nelenkov/android-backup-extractor) " \
+            log.info("You can use ABE (https://github.com/nelenkov/android-backup-extractor) "
                      "to extract 'backup.ab' files!")
         ctx.exit(1)
 

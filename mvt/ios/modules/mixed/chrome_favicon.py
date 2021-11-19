@@ -19,6 +19,7 @@ CHROME_FAVICON_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/Favicons",
 ]
 
+
 class ChromeFavicon(IOSExtraction):
     """This module extracts all Chrome favicon records."""
 

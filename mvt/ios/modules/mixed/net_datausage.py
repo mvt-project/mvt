@@ -12,6 +12,7 @@ DATAUSAGE_ROOT_PATHS = [
     "private/var/wireless/Library/Databases/DataUsage.sqlite",
 ]
 
+
 class Datausage(NetBase):
     """This class extracts data from DataUsage.sqlite and attempts to identify
     any suspicious processes if running on a full filesystem dump.

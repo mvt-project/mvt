@@ -17,6 +17,7 @@ LOCATIOND_ROOT_PATHS = [
     "private/var/root/Library/Caches/locationd/clients.plist"
 ]
 
+
 class LocationdClients(IOSExtraction):
     """Extract information from apps who used geolocation."""
 

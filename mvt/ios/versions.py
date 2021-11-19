@@ -233,10 +233,12 @@ IPHONE_IOS_VERSIONS = [
     {"build": "19B74", "version": "15.1"},
 ]
 
+
 def get_device_desc_from_id(identifier, devices_list=IPHONE_MODELS):
     for model in IPHONE_MODELS:
         if identifier == model["identifier"]:
             return model["description"]
+
 
 def find_version_by_build(build):
     build = build.upper()

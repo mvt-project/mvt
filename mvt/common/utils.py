@@ -45,7 +45,7 @@ def convert_chrometime_to_unix(timestamp):
     :returns: Unix epoch timestamp.
 
     """
-    epoch_start = datetime.datetime(1601, 1 , 1)
+    epoch_start = datetime.datetime(1601, 1, 1)
     delta = datetime.timedelta(microseconds=timestamp)
     return epoch_start + delta
 
@@ -64,6 +64,7 @@ def convert_timestamp_to_iso(timestamp):
     except Exception:
         return None
 
+
 def check_for_links(text):
     """Checks if a given text contains HTTP links.
 
@@ -73,6 +74,7 @@ def check_for_links(text):
 
     """
     return re.findall("(?P<url>https?://[^\s]+)", text, re.IGNORECASE)
+
 
 def get_sha256_from_file_path(file_path):
     """Calculate the SHA256 hash of a file from a file path.
@@ -87,6 +89,7 @@ def get_sha256_from_file_path(file_path):
             sha256_hash.update(byte_block)
 
     return sha256_hash.hexdigest()
+
 
 # Note: taken from here:
 # https://stackoverflow.com/questions/57014259/json-dumps-on-dictionary-with-bytes-for-keys

@@ -13,6 +13,7 @@ from rich.text import Text
 
 log = logging.getLogger(__name__)
 
+
 def koodous_lookup(packages):
     log.info("Looking up all extracted files on Koodous (www.koodous.com)")
     log.info("This might take a while...")

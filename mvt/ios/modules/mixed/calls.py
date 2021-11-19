@@ -16,6 +16,7 @@ CALLS_ROOT_PATHS = [
     "private/var/mobile/Library/CallHistoryDB/CallHistory.storedata"
 ]
 
+
 class Calls(IOSExtraction):
     """This module extracts phone calls details"""
 
@@ -45,7 +46,7 @@ class Calls(IOSExtraction):
                 ZDATE, ZDURATION, ZLOCATION, ZADDRESS, ZSERVICE_PROVIDER
             FROM ZCALLRECORD;
         """)
-        names = [description[0] for description in cur.description]
+        # names = [description[0] for description in cur.description]
 
         for row in cur:
             self.results.append({

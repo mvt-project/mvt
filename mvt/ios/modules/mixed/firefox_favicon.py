@@ -17,6 +17,7 @@ FIREFOX_HISTORY_ROOT_PATHS = [
     "private/var/mobile/profile.profile/browser.db",
 ]
 
+
 class FirefoxFavicon(IOSExtraction):
     """This module extracts all Firefox favicon"""
 
@@ -39,8 +40,8 @@ class FirefoxFavicon(IOSExtraction):
             return
 
         for result in self.results:
-            if (self.indicators.check_domain(result.get("url", "")) or 
-                self.indicators.check_domain(result.get("history_url", ""))):
+            if (self.indicators.check_domain(result.get("url", "")) or
+                    self.indicators.check_domain(result.get("history_url", ""))):
                 self.detected.append(result)
 
     def run(self):

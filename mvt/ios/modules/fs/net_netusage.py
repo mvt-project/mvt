@@ -12,6 +12,7 @@ NETUSAGE_ROOT_PATHS = [
     "private/var/networkd/db/netusage.sqlite"
 ]
 
+
 class Netusage(NetBase):
     """This class extracts data from netusage.sqlite and attempts to identify
     any suspicious processes if running on a full filesystem dump.

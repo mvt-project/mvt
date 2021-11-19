@@ -10,6 +10,7 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+
 class DumpsysProcstats(AndroidExtraction):
     """This module extracts stats on memory consumption by processes."""
 

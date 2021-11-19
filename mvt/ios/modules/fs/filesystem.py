@@ -60,7 +60,7 @@ class Filesystem(IOSExtraction):
                         "path": os.path.relpath(dir_path, self.base_folder),
                         "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(dir_path).st_mtime)),
                     }
-                except:
+                except Exception:
                     continue
                 else:
                     self.results.append(result)
@@ -72,7 +72,7 @@ class Filesystem(IOSExtraction):
                         "path": os.path.relpath(file_path, self.base_folder),
                         "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(file_path).st_mtime)),
                     }
-                except:
+                except Exception:
                     continue
                 else:
                     self.results.append(result)

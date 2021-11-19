@@ -12,6 +12,7 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+
 class RootBinaries(AndroidExtraction):
     """This module extracts the list of installed packages."""
 
