@@ -10,8 +10,6 @@ import re
 
 import simplejson as json
 
-from .indicators import Indicators
-
 
 class DatabaseNotFoundError(Exception):
     pass

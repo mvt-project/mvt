@@ -7,7 +7,6 @@ import json
 import logging
 import os
 
-import pkg_resources
 from tqdm import tqdm
 
 from mvt.common.module import InsufficientPrivileges
