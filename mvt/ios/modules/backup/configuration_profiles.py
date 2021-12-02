@@ -41,7 +41,7 @@ class ConfigurationProfiles(IOSExtraction):
                conf_plist["LastPushTokenHash"] = b64encode(conf_plist["LastPushTokenHash"])
             if "PayloadContent" in conf_plist:
                for x in range(len(conf_plist["PayloadContent"])):
-                   if "PERSISTENT_REF" in conf_plist["PayloadContent"]:
+                   if "PERSISTENT_REF" in conf_plist["PayloadContent"][x]:
                        conf_plist["PayloadContent"][x]["PERSISTENT_REF"] = b64encode(conf_plist["PayloadContent"][x]["PERSISTENT_REF"])
 
             self.results.append({
