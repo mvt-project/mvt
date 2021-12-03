@@ -51,18 +51,37 @@ class SMS(IOSExtraction):
                                 root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT
-                message.*,
-                handle.id as "phone_number"
-            FROM message, handle
-            WHERE handle.rowid = message.handle_id;
-        """)
+        try:
+            conn = sqlite3.connect(self.file_path)
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT
+                    message.*,
+                    handle.id as "phone_number"
+                FROM message, handle
+                WHERE handle.rowid = message.handle_id;
+            """)
+            # Force the query early to catch database issues
+            items = list(cur)
+        except sqlite3.DatabaseError as e:
+            conn.close()
+            if "database disk image is malformed" in str(e):
+                self._recover_sqlite_db_if_needed(self.file_path, forced=True)
+                conn = sqlite3.connect(self.file_path)
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT
+                        message.*,
+                        handle.id as "phone_number"
+                    FROM message, handle
+                    WHERE handle.rowid = message.handle_id;
+                """)
+                items = list(cur)
+            else:
+                raise e
         names = [description[0] for description in cur.description]
 
-        for item in cur:
+        for item in items:
             message = {}
             for index, value in enumerate(item):
                 # We base64 escape some of the attributes that could contain
