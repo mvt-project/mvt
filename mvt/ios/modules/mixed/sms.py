@@ -102,12 +102,16 @@ class SMS(IOSExtraction):
             if not message.get("text", None):
                 message["text"] = ""
 
-            # Extract links from the SMS message.
-            message_links = check_for_links(message.get("text", ""))
-
-            # If we find links in the messages or if they are empty we add them to the list.
-            if message_links or message.get("text", "").strip() == "":
+            if message.get("text", "").startswith("ALERT: State-sponsored attackers may be targeting your iPhone"):
+                self.log.warn("Apple warning about state-sponsored attack received on the %s", message["isodate"])
                 self.results.append(message)
+            else:
+                # Extract links from the SMS message.
+                message_links = check_for_links(message.get("text", ""))
+
+                # If we find links in the messages or if they are empty we add them to the list.
+                if message_links or message.get("text", "").strip() == "":
+                    self.results.append(message)
 
         cur.close()
         conn.close()
