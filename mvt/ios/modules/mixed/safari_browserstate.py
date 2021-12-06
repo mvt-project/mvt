@@ -59,17 +59,26 @@ class SafariBrowserState(IOSExtraction):
         conn = sqlite3.connect(db_path)
 
         cur = conn.cursor()
-        cur.execute("""
-            SELECT
-                tabs.title,
-                tabs.url,
-                tabs.user_visible_url,
-                tabs.last_viewed_time,
-                tab_sessions.session_data
-            FROM tabs
-            JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
-            ORDER BY tabs.last_viewed_time;
-        """)
+        try:
+            cur.execute("""
+                SELECT
+                    tabs.title,
+                    tabs.url,
+                    tabs.user_visible_url,
+                    tabs.last_viewed_time,
+                    tab_sessions.session_data
+                FROM tabs
+                JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
+                ORDER BY tabs.last_viewed_time;
+            """)
+        except sqlite3.OperationalError:
+            # Old version iOS <12 likely
+            cur.execute("""
+                SELECT
+                    title, url, user_visible_url, last_viewed_time, session_data
+                FROM tabs
+                ORDER BY last_viewed_time;
+            """)
 
         for row in cur:
             session_entries = []
