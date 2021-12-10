@@ -29,11 +29,24 @@ class Indicators:
         self.ioc_files_sha256 = []
         self.ioc_app_ids = []
         self.ioc_count = 0
+        self._check_env_variable()
 
     def _add_indicator(self, ioc, iocs_list):
         if ioc not in iocs_list:
             iocs_list.append(ioc)
             self.ioc_count += 1
+
+    def _check_env_variable(self):
+        """
+        Checks if a variable MVT_STIX2 contains path to STIX Files
+        """
+        if "MVT_STIX2" in os.environ:
+            paths = os.environ["MVT_STIX2"].split(":")
+            for path in paths:
+                if os.path.isfile(path):
+                    self.parse_stix2(path)
+                else:
+                    self.log.info("Invalid STIX2 path %s in MVT_STIX2 environment variable", path)
 
     def parse_stix2(self, file_path):
         """Extract indicators from a STIX2 file.

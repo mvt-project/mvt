@@ -28,6 +28,12 @@ The `--iocs` option can be invoked multiple times to let MVT import multiple STI
 mvt-ios check-backup --iocs ~/iocs/malware1.stix --iocs ~/iocs/malware2.stix2 /path/to/backup
 ```
 
+It is also possible to load STIX2 files automatically from the environment variable `MVT_STIX2`:
+
+```bash
+export MVT_STIX2="/home/user/IOC1.stix2:/home/user/IOC2.stix2"
+```
+
 ## Known repositories of STIX2 IOCs
 
 - The [Amnesty International investigations repository](https://github.com/AmnestyTech/investigations) contains STIX-formatted IOCs for:
