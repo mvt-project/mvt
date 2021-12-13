@@ -175,7 +175,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
                           log=logging.getLogger(backup_module.__module__))
         m.is_backup = True
 
-        if iocs:
+        if indicators.ioc_count > 0:
             m.indicators = indicators
             m.indicators.log = m.log
 
