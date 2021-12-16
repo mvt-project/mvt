@@ -53,6 +53,19 @@ class TCC(IOSExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
+    def serialize(self, record):
+        if "last_modified" in record:
+            if "allowed_value" in record:
+                msg = f"Access to {record['service']} by {record['client']} {record['allowed_value']}"
+            else:
+                msg = f"Access to {record['service']} by {record['client']} {record['auth_value']}"
+            return {
+                "timestamp": record["last_modified"],
+                "module": self.__class__.__name__,
+                "event": "AccessRequest",
+                "data": msg
+            }
+
     def process_db(self, file_path):
         conn = sqlite3.connect(file_path)
         cur = conn.cursor()
