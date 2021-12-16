@@ -10,7 +10,7 @@ import click
 from rich.logging import RichHandler
 
 from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
-from mvt.common.help import HELP_MSG_OUTPUT, HELP_MSG_LIST_MODULES
+from mvt.common.help import HELP_MSG_FAST, HELP_MSG_OUTPUT, HELP_MSG_LIST_MODULES
 from mvt.common.help import HELP_MSG_SERIAL
 from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
 from mvt.common.logo import logo
@@ -107,10 +107,11 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
               help=HELP_MSG_OUTPUT)
+@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.pass_context
-def check_adb(ctx, iocs, output, list_modules, module, serial):
+def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
     if list_modules:
         log.info("Following is the list of available check-adb modules:")
         for adb_module in ADB_MODULES:
@@ -142,7 +143,8 @@ def check_adb(ctx, iocs, output, list_modules, module, serial):
         if module and adb_module.__name__ != module:
             continue
 
-        m = adb_module(output_folder=output, log=logging.getLogger(adb_module.__module__))
+        m = adb_module(output_folder=output, fast_mode=fast,
+                       log=logging.getLogger(adb_module.__module__))
         if serial:
             m.serial = serial
 

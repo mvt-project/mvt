@@ -83,7 +83,7 @@ class Manifest(IOSExtraction):
                     self.detected.append(result)
                     continue
 
-            if self.indicators.check_file(result["relative_path"]):
+            if self.indicators.check_filename(result["relative_path"]):
                 self.log.warning("Found a known malicious file at path: %s", result["relative_path"])
                 self.detected.append(result)
                 continue
