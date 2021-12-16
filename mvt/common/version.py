@@ -6,7 +6,7 @@
 import requests
 from packaging import version
 
-MVT_VERSION = "1.2.14"
+MVT_VERSION = "1.3.1"
 
 
 def check_for_updates():
