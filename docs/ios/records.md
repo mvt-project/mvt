@@ -80,6 +80,8 @@ If indicators are provided through the command-line, they are checked against th
 
 This JSON file is created by mvt-ios' `ConfigurationProfiles` module. The module extracts details about iOS configuration profiles that have been installed on the device. These should include both default iOS as well as third-party profiles.
 
+If indicators are provided through the command-line, they are checked against the configuration profile UUID to identify any known malicious profiles. Any matches are stored in *configuration_profiles_detected.json*.
+
 ---
 
 ### `contacts.json`

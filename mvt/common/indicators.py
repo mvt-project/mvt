@@ -28,6 +28,7 @@ class Indicators:
         self.ioc_files = []
         self.ioc_files_sha256 = []
         self.ioc_app_ids = []
+        self.ios_profile_ids = []
         self.ioc_count = 0
         self._check_env_variable()
 
@@ -88,6 +89,9 @@ class Indicators:
             elif key == "app:id":
                 self._add_indicator(ioc=value,
                                     iocs_list=self.ioc_app_ids)
+            elif key == "configuration-profile:id":
+                self._add_indicator(ioc=value,
+                                    iocs_list=self.ios_profile_ids)
             elif key == "file:hashes.sha256":
                 self._add_indicator(ioc=value,
                                     iocs_list=self.ioc_files_sha256)
@@ -261,6 +265,20 @@ class Indicators:
         file_name = os.path.basename(file_path)
         if file_name in self.ioc_files:
             self.log.warning("Found a known suspicious file: \"%s\"", file_path)
+            return True
+
+        return False
+
+    def check_profile(self, profile_uuid) -> bool:
+        """Check the provided configuration profile UUID against the list of indicators.
+
+        :param profile_uuid: Profile UUID to check against configuration profile indicators
+        :type profile_uuid: str
+        :returns: True if the UUID in indicator list, otherwise False
+        :rtype: bool
+
+        """
+        if profile_uuid in self.ios_profile_ids:
             return True
 
         return False
