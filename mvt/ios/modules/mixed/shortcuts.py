@@ -1,0 +1,102 @@
+# Mobile Verification Toolkit (MVT)
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
+
+import sqlite3
+import io
+import plistlib
+import itertools
+
+from mvt.common.utils import check_for_links, convert_mactime_to_unix, convert_timestamp_to_iso
+
+from ..base import IOSExtraction
+
+SHORTCUT_BACKUP_IDS = [
+    "5b4d0b44b5990f62b9f4d34ad8dc382bf0b01094",
+]
+SHORTCUT_ROOT_PATHS = [
+    "private/var/mobile/Library/Shortcuts/Shortcuts.sqlite",
+]
+
+
+class Shortcuts(IOSExtraction):
+    """This module extracts all info about SMS/iMessage attachments."""
+
+    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+                 fast_mode=False, log=None, results=[]):
+        super().__init__(file_path=file_path, base_folder=base_folder,
+                         output_folder=output_folder, fast_mode=fast_mode,
+                         log=log, results=results)
+
+    def serialize(self, record):
+        found_urls = ""
+        if record["action_urls"]:
+            found_urls = "- URLs in actions: {}".format(", ".join(record["action_urls"]))
+
+        return {
+            "timestamp": record["isodate"],
+            "module": self.__class__.__name__,
+            "event": "shortcut",
+            "data": f"iOS Shortcut '{record['shortcut_name']}': {record['description']} {found_urls}"
+        }
+
+    def check_indicators(self):
+        if not self.indicators:
+            return
+
+        for action in self.results:
+            if self.indicators.check_domains(action["action_urls"]):
+                self.detected.append(action)
+
+    def run(self):
+        self._find_ios_database(backup_ids=SHORTCUT_BACKUP_IDS,
+                                root_paths=SHORTCUT_ROOT_PATHS)
+        self.log.info("Found Shortcuts database at path: %s", self.file_path)
+
+        conn = sqlite3.connect(self.file_path)
+        cur = conn.cursor()
+        cur.execute("""
+              SELECT
+                  ZSHORTCUT.Z_PK as "shortcut_id",
+                  ZSHORTCUT.ZNAME as "shortcut_name",
+                  ZSHORTCUT.ZCREATIONDATE as "created_date",
+                  ZSHORTCUT.ZMODIFICATIONDATE as "modified_date",
+                  ZSHORTCUT.ZACTIONSDESCRIPTION as "description",
+                  ZSHORTCUTACTIONS.ZDATA as "action_data"
+              FROM ZSHORTCUT
+              LEFT JOIN ZSHORTCUTACTIONS ON ZSHORTCUTACTIONS.ZSHORTCUT == ZSHORTCUT.Z_PK;
+        """)
+        names = [description[0] for description in cur.description]
+
+        for item in cur:
+            shortcut = {}
+            # We store the value of each column under the proper key.
+            for index, value in enumerate(item):
+                shortcut[names[index]] = value
+
+            action_data = plistlib.load(io.BytesIO(shortcut.pop("action_data", [])))
+            actions = []
+            for action_entry in action_data:
+                action = {}
+                action["identifier"] = action_entry["WFWorkflowActionIdentifier"]
+                action["parameters"] = action_entry["WFWorkflowActionParameters"]
+
+                # URLs might be in multiple fields, do a simple regex search across the parameters
+                extracted_urls = check_for_links(str(action["parameters"]))
+
+                # Remove quoting characters that may have been captured by the regex
+                action["urls"] = [url.rstrip("',") for url in extracted_urls]
+                actions.append(action)
+
+            # pprint.pprint(actions)
+            shortcut["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut.pop("created_date")))
+            shortcut["modified_date"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut["modified_date"]))
+            shortcut["parsed_actions"] = len(actions)
+            shortcut["action_urls"] = list(itertools.chain(*[action["urls"] for action in actions]))
+            self.results.append(shortcut)
+
+        cur.close()
+        conn.close()
+
+        self.log.info("Extracted a total of %d Shortcuts", len(self.results))
