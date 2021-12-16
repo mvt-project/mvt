@@ -249,7 +249,7 @@ class Indicators:
 
         return False
 
-    def check_file(self, file_path) -> bool:
+    def check_filename(self, file_path) -> bool:
         """Check the provided file path against the list of file indicators.
 
         :param file_path: File path or file name to check against file
@@ -264,9 +264,27 @@ class Indicators:
 
         file_name = os.path.basename(file_path)
         if file_name in self.ioc_files:
-            self.log.warning("Found a known suspicious file: \"%s\"", file_path)
             return True
 
+        return False
+
+    def check_file_path(self, file_path) -> bool:
+        """Check the provided file path against the list of file indicators.
+
+        :param file_path: File path or file name to check against file
+        indicators
+        :type file_path: str
+        :returns: True if the file path matched an indicator, otherwise False
+        :rtype: bool
+
+        """
+        if not file_path:
+            return False
+
+        for ioc_file in  self.ioc_files:
+            # Strip any trailing slash from indicator paths to match directories.
+            if file_path.startswith(ioc_file.rstrip("/")):
+                return True
         return False
 
     def check_profile(self, profile_uuid) -> bool:
