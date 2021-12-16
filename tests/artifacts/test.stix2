@@ -1,0 +1,112 @@
+{
+    "type": "bundle",
+    "id": "bundle--25fa4351-8a0a-4fea-bb4c-88ecbd0dfbf2",
+    "objects": [
+        {
+            "type": "malware",
+            "spec_version": "2.1",
+            "id": "malware--b4581613-1fe9-441a-a7a5-56df36664e54",
+            "created": "2021-12-16T11:49:29.897487Z",
+            "modified": "2021-12-16T11:49:29.897487Z",
+            "name": "TestMalware",
+            "description": "",
+            "is_family": false
+        },
+        {
+            "type": "indicator",
+            "spec_version": "2.1",
+            "id": "indicator--8614e326-7863-4d79-902c-89a0b769f290",
+            "created": "2021-12-16T11:49:29.897624Z",
+            "modified": "2021-12-16T11:49:29.897624Z",
+            "indicator_types": [
+                "malicious-activity"
+            ],
+            "pattern": "[domain-name:value='example.org']",
+            "pattern_type": "stix",
+            "pattern_version": "2.1",
+            "valid_from": "2021-12-16T11:49:29.897624Z"
+        },
+        {
+            "type": "relationship",
+            "spec_version": "2.1",
+            "id": "relationship--6e02e776-1aa7-4436-8df0-d6cb6227f098",
+            "created": "2021-12-16T11:49:29.903846Z",
+            "modified": "2021-12-16T11:49:29.903846Z",
+            "relationship_type": "indicates",
+            "source_ref": "indicator--8614e326-7863-4d79-902c-89a0b769f290",
+            "target_ref": "malware--b4581613-1fe9-441a-a7a5-56df36664e54"
+        },
+        {
+            "type": "indicator",
+            "spec_version": "2.1",
+            "id": "indicator--1917e54e-d91d-4d11-811c-79e861c31661",
+            "created": "2021-12-16T11:49:29.903984Z",
+            "modified": "2021-12-16T11:49:29.903984Z",
+            "indicator_types": [
+                "malicious-activity"
+            ],
+            "pattern": "[process:name='Launch']",
+            "pattern_type": "stix",
+            "pattern_version": "2.1",
+            "valid_from": "2021-12-16T11:49:29.903984Z"
+        },
+        {
+            "type": "relationship",
+            "spec_version": "2.1",
+            "id": "relationship--e6561236-ef2e-45ed-984b-d1c4832119ca",
+            "created": "2021-12-16T11:49:29.905442Z",
+            "modified": "2021-12-16T11:49:29.905442Z",
+            "relationship_type": "indicates",
+            "source_ref": "indicator--1917e54e-d91d-4d11-811c-79e861c31661",
+            "target_ref": "malware--b4581613-1fe9-441a-a7a5-56df36664e54"
+        },
+        {
+            "type": "indicator",
+            "spec_version": "2.1",
+            "id": "indicator--bd3961ab-e13a-42f5-b677-a797ced82adf",
+            "created": "2021-12-16T11:49:29.905565Z",
+            "modified": "2021-12-16T11:49:29.905565Z",
+            "indicator_types": [
+                "malicious-activity"
+            ],
+            "pattern": "[file:name='/var/foobar/txt']",
+            "pattern_type": "stix",
+            "pattern_version": "2.1",
+            "valid_from": "2021-12-16T11:49:29.905565Z"
+        },
+        {
+            "type": "relationship",
+            "spec_version": "2.1",
+            "id": "relationship--9f4b5ee9-45d1-4b55-877c-082104baedab",
+            "created": "2021-12-16T11:49:29.906687Z",
+            "modified": "2021-12-16T11:49:29.906687Z",
+            "relationship_type": "indicates",
+            "source_ref": "indicator--bd3961ab-e13a-42f5-b677-a797ced82adf",
+            "target_ref": "malware--b4581613-1fe9-441a-a7a5-56df36664e54"
+        },
+        {
+            "type": "indicator",
+            "spec_version": "2.1",
+            "id": "indicator--0a798fe3-2293-4e60-8d45-d8d5cbd3f22f",
+            "created": "2021-12-16T11:49:29.906826Z",
+            "modified": "2021-12-16T11:49:29.906826Z",
+            "indicator_types": [
+                "malicious-activity"
+            ],
+            "pattern": "[email-addr:value='foobar@example.org']",
+            "pattern_type": "stix",
+            "pattern_version": "2.1",
+            "valid_from": "2021-12-16T11:49:29.906826Z"
+        },
+        {
+            "type": "relationship",
+            "spec_version": "2.1",
+            "id": "relationship--40f7462d-173b-43b5-b9e3-056f28c01ff7",
+            "created": "2021-12-16T11:49:29.907909Z",
+            "modified": "2021-12-16T11:49:29.907909Z",
+            "relationship_type": "indicates",
+            "source_ref": "indicator--0a798fe3-2293-4e60-8d45-d8d5cbd3f22f",
+            "target_ref": "malware--b4581613-1fe9-441a-a7a5-56df36664e54"
+        }
+    ]
+}
