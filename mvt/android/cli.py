@@ -148,7 +148,7 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
         if serial:
             m.serial = serial
 
-        if iocs:
+        if indicators.ioc_count > 0:
             indicators.log = m.log
             m.indicators = indicators
 
@@ -207,7 +207,7 @@ def check_backup(ctx, iocs, output, backup_path, serial):
         if serial:
             m.serial = serial
 
-        if len(indicators.ioc_count) > 0:
+        if indicators.ioc_count > 0:
             indicators.log = m.log
             m.indicators = indicators
 
