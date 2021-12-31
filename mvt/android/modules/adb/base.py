@@ -112,7 +112,7 @@ class AndroidExtraction(MVTModule):
         :returns: Output of command
 
         """
-        return self.device.shell(command)
+        return self.device.shell(command, read_timeout_s=200.0)
 
     def _adb_check_if_root(self):
         """Check if we have a `su` binary on the Android device.
