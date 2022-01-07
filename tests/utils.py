@@ -18,11 +18,5 @@ def get_artifact_folder():
 def get_backup_folder():
     return os.path.join(os.path.dirname(__file__), "artifacts", "ios_backup")
 
-def init_setup():
-    """
-    init data to have a clean state before testing
-    """
-    try:
-        del os.environ['MVT_STIX2']
-    except KeyError:
-        pass
+def get_indicator_file():
+    print("PYTEST env", os.getenv('PYTEST_CURRENT_TEST'))

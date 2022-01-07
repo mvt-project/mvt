@@ -1,17 +1,13 @@
-import pytest
 import logging
 
 from mvt.common.indicators import Indicators
 from mvt.ios.modules.backup.manifest import Manifest
 from mvt.common.module import run_module
 
-from ..utils import get_artifact, get_backup_folder, init_setup
+from ..utils import get_backup_folder
+
 
 class TestManifestModule:
-    @pytest.fixture(scope="session", autouse=True)
-    def set(self):
-        init_setup()
-
     def test_manifest(self):
         m = Manifest(base_folder=get_backup_folder(), log=logging)
         run_module(m)
@@ -19,10 +15,10 @@ class TestManifestModule:
         assert len(m.timeline) == 5881
         assert len(m.detected) == 0
 
-    def test_detection(self):
+    def test_detection(self, indicator_file):
         m = Manifest(base_folder=get_backup_folder(), log=logging)
         ind = Indicators(log=logging)
-        ind.parse_stix2(get_artifact("test.stix2"))
+        ind.parse_stix2(indicator_file)
         # Adds a file that exists in the manifest
         ind.ioc_files[0] = "com.apple.CoreBrightness.plist"
         m.indicators = ind

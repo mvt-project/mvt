@@ -1,16 +1,11 @@
-import pytest
 import logging
 
 from mvt.ios.modules.mixed.tcc import TCC
 from mvt.common.module import run_module
 
-from ..utils import get_backup_folder, init_setup
+from ..utils import get_backup_folder
 
 class TestManifestModule:
-    @pytest.fixture(scope="session", autouse=True)
-    def set(self):
-        init_setup()
-
     def test_manifest(self):
         m = TCC(base_folder=get_backup_folder(), log=logging)
         run_module(m)

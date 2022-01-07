@@ -2,10 +2,9 @@ import os
 
 from stix2.v21 import (Indicator, Malware, Relationship, Bundle)
 
-
-if __name__ == "__main__":
-    if os.path.isfile("test.stix2"):
-        os.remove("test.stix2")
+def generate_test_stix_file(file_path):
+    if os.path.isfile(file_path):
+        os.remove(file_path)
 
     domains = ["example.org"]
     processes = ["Launch"]
@@ -36,7 +35,10 @@ if __name__ == "__main__":
         res.append(Relationship(i, 'indicates', malware))
 
     bundle = Bundle(objects=res)
-    with open("test.stix2", "w+") as f:
+    with open(file_path, "w+") as f:
         f.write(bundle.serialize(pretty=True))
 
+
+if __name__ == "__main__":
+    generate_test_stix_file("test.stix2")
     print("test.stix2 file created")
