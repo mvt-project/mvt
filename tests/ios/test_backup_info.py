@@ -1,10 +1,10 @@
 import pytest
 import logging
-import os
-from ..utils import get_artifact, get_artifact_folder, init_setup
-from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
+
 from mvt.ios.modules.backup.backup_info import BackupInfo
 from mvt.common.module import run_module
+
+from ..utils import get_artifact_folder, init_setup
 
 
 class TestBackupInfoModule:
@@ -17,4 +17,3 @@ class TestBackupInfoModule:
         run_module(m)
         assert m.results["Build Version"] == "18C66"
         assert m.results["IMEI"] == '42'
-

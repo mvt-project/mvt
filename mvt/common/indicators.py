@@ -56,7 +56,7 @@ class Indicators:
             else:
                 self.log.info("Invalid STIX2 path %s in MVT_STIX2 environment variable", path)
 
-    def load_indicators_files(self, files):
+    def load_indicators_files(self, files, load_default=True):
         """
         Load a list of indicators files
         """
@@ -67,7 +67,8 @@ class Indicators:
                 self.log.warning("This indicators file %s does not exist", file_path)
 
         # Load downloaded indicators and any indicators from env variable
-        self._load_downloaded_indicators()
+        if load_default:
+            self._load_downloaded_indicators()
         self._check_stix2_env_variable()
         self.log.info("Loaded a total of %d unique indicators", self.ioc_count)
 

@@ -1,6 +1,6 @@
-import sys
 import os
-from stix2.v21 import (Indicator, Malware, Relationship, Bundle, DomainName)
+
+from stix2.v21 import (Indicator, Malware, Relationship, Bundle)
 
 
 if __name__ == "__main__":
@@ -38,4 +38,5 @@ if __name__ == "__main__":
     bundle = Bundle(objects=res)
     with open("test.stix2", "w+") as f:
         f.write(bundle.serialize(pretty=True))
+
     print("test.stix2 file created")

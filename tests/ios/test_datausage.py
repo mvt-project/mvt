@@ -1,11 +1,11 @@
 import pytest
 import logging
-import os
-from ..utils import get_artifact, get_artifact_folder, init_setup
-from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
+
+from mvt.common.indicators import Indicators
 from mvt.ios.modules.mixed.net_datausage import Datausage
 from mvt.common.module import run_module
 
+from ..utils import get_artifact, get_artifact_folder, init_setup
 
 class TestDatausageModule:
     @pytest.fixture(scope="session", autouse=True)
@@ -28,5 +28,3 @@ class TestDatausageModule:
         m.indicators = ind
         run_module(m)
         assert len(m.detected) == 4
-
-

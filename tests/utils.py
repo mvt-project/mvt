@@ -1,5 +1,6 @@
 import os
 
+
 def get_artifact(fname):
     """
     Return the artifact path in the artifact folder
@@ -10,8 +11,10 @@ def get_artifact(fname):
         return fpath
     return
 
+
 def get_artifact_folder():
     return os.path.join(os.path.dirname(__file__), "artifacts")
+
 
 def init_setup():
     """
