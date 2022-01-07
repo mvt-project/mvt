@@ -23,6 +23,7 @@ requires = (
     "requests>=2.26.0",
     "simplejson>=3.17.5",
     "packaging>=21.0",
+    "appdirs>=1.4.4",
     # iOS dependencies:
     "iOSbackup>=0.9.921",
     # Android dependencies:

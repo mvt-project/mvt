@@ -5,6 +5,7 @@
 
 import logging
 import os
+import io
 
 import click
 from rich.logging import RichHandler
@@ -13,7 +14,8 @@ from rich.prompt import Prompt
 from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
 from mvt.common.help import HELP_MSG_FAST, HELP_MSG_OUTPUT
 from mvt.common.help import HELP_MSG_LIST_MODULES
-from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
+from mvt.common.indicators import Indicators
+from mvt.common.indicators import download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
@@ -157,13 +159,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
             ctx.exit(1)
 
     indicators = Indicators(log=log)
-    for ioc_path in iocs:
-        try:
-            indicators.parse_stix2(ioc_path)
-        except IndicatorsFileBadFormat as e:
-            log.critical(e)
-            ctx.exit(1)
-    log.info("Loaded a total of %d indicators", indicators.ioc_count)
+    indicators.load_indicators_files(iocs)
 
     timeline = []
     timeline_detected = []
@@ -174,8 +170,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
         m = backup_module(base_folder=backup_path, output_folder=output, fast_mode=fast,
                           log=logging.getLogger(backup_module.__module__))
         m.is_backup = True
-
-        if indicators.ioc_count > 0:
+        if indicators.ioc_count:
             m.indicators = indicators
             m.indicators.log = m.log
 
@@ -220,13 +215,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
             ctx.exit(1)
 
     indicators = Indicators(log=log)
-    for ioc_path in iocs:
-        try:
-            indicators.parse_stix2(ioc_path)
-        except IndicatorsFileBadFormat as e:
-            log.critical(e)
-            ctx.exit(1)
-    log.info("Loaded a total of %d indicators", indicators.ioc_count)
+    indicators.load_indicators_files(iocs)
 
     timeline = []
     timeline_detected = []
@@ -238,8 +227,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
                       log=logging.getLogger(fs_module.__module__))
 
         m.is_fs_dump = True
-
-        if iocs:
+        if indicators.ioc_count:
             m.indicators = indicators
             m.indicators.log = m.log
 
@@ -280,13 +268,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
     log.info("Checking stored results against provided indicators...")
 
     indicators = Indicators(log=log)
-    for ioc_path in iocs:
-        try:
-            indicators.parse_stix2(ioc_path)
-        except IndicatorsFileBadFormat as e:
-            log.critical(e)
-            ctx.exit(1)
-    log.info("Loaded a total of %d indicators", indicators.ioc_count)
+    indicators.load_indicators_files(iocs)
 
     for file_name in os.listdir(folder):
         name_only, ext = os.path.splitext(file_name)
@@ -304,11 +286,18 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 
             m = iocs_module.from_json(file_path,
                                       log=logging.getLogger(iocs_module.__module__))
-
-            m.indicators = indicators
-            m.indicators.log = m.log
+            if indicators.ioc_count:
+                m.indicators = indicators
+                m.indicators.log = m.log
 
             try:
                 m.check_indicators()
             except NotImplementedError:
                 continue
+
+#==============================================================================
+# Command: download-indicators
+#==============================================================================
+@cli.command("download-indicators", help="Download public STIX2 indicators")
+def download_indicators():
+    download_indicators_files(log)

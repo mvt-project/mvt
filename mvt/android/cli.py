@@ -12,7 +12,8 @@ from rich.logging import RichHandler
 from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
 from mvt.common.help import HELP_MSG_FAST, HELP_MSG_OUTPUT, HELP_MSG_LIST_MODULES
 from mvt.common.help import HELP_MSG_SERIAL
-from mvt.common.indicators import Indicators, IndicatorsFileBadFormat
+from mvt.common.indicators import Indicators
+from mvt.common.indicators import download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 
@@ -129,13 +130,7 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
             ctx.exit(1)
 
     indicators = Indicators(log=log)
-    for ioc_path in iocs:
-        try:
-            indicators.parse_stix2(ioc_path)
-        except IndicatorsFileBadFormat as e:
-            log.critical(e)
-            ctx.exit(1)
-    log.info("Loaded a total of %d indicators", indicators.ioc_count)
+    indicators.load_indicators_files(iocs)
 
     timeline = []
     timeline_detected = []
@@ -145,12 +140,11 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
 
         m = adb_module(output_folder=output, fast_mode=fast,
                        log=logging.getLogger(adb_module.__module__))
+        if indicators.ioc_count:
+            m.indicators = indicators
+            m.indicators.log = m.log
         if serial:
             m.serial = serial
-
-        if indicators.ioc_count > 0:
-            indicators.log = m.log
-            m.indicators = indicators
 
         run_module(m)
         timeline.extend(m.timeline)
@@ -184,13 +178,7 @@ def check_backup(ctx, iocs, output, backup_path, serial):
             ctx.exit(1)
 
     indicators = Indicators(log=log)
-    for ioc_path in iocs:
-        try:
-            indicators.parse_stix2(ioc_path)
-        except IndicatorsFileBadFormat as e:
-            log.critical(e)
-            ctx.exit(1)
-    log.info("Loaded a total of %d indicators", indicators.ioc_count)
+    indicators.load_indicators_files(iocs)
 
     if os.path.isfile(backup_path):
         log.critical("The path you specified is a not a folder!")
@@ -203,12 +191,17 @@ def check_backup(ctx, iocs, output, backup_path, serial):
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,
                    log=logging.getLogger(module.__module__))
-
+        if indicators.ioc_count:
+            m.indicators = indicators
+            m.indicators.log = m.log
         if serial:
             m.serial = serial
 
-        if indicators.ioc_count > 0:
-            indicators.log = m.log
-            m.indicators = indicators
-
         run_module(m)
+
+#==============================================================================
+# Command: download-indicators
+#==============================================================================
+@cli.command("download-indicators", help="Download public STIX2 indicators")
+def download_indicators():
+    download_indicators_files(log)
