@@ -57,17 +57,25 @@ class Shortcuts(IOSExtraction):
         conn = sqlite3.connect(self.file_path)
         conn.text_factory = bytes
         cur = conn.cursor()
-        cur.execute("""
-              SELECT
-                  ZSHORTCUT.Z_PK as "shortcut_id",
-                  ZSHORTCUT.ZNAME as "shortcut_name",
-                  ZSHORTCUT.ZCREATIONDATE as "created_date",
-                  ZSHORTCUT.ZMODIFICATIONDATE as "modified_date",
-                  ZSHORTCUT.ZACTIONSDESCRIPTION as "description",
-                  ZSHORTCUTACTIONS.ZDATA as "action_data"
-              FROM ZSHORTCUT
-              LEFT JOIN ZSHORTCUTACTIONS ON ZSHORTCUTACTIONS.ZSHORTCUT == ZSHORTCUT.Z_PK;
-        """)
+        try:
+            cur.execute("""
+                SELECT
+                    ZSHORTCUT.Z_PK as "shortcut_id",
+                    ZSHORTCUT.ZNAME as "shortcut_name",
+                    ZSHORTCUT.ZCREATIONDATE as "created_date",
+                    ZSHORTCUT.ZMODIFICATIONDATE as "modified_date",
+                    ZSHORTCUT.ZACTIONSDESCRIPTION as "description",
+                    ZSHORTCUTACTIONS.ZDATA as "action_data"
+                FROM ZSHORTCUT
+                LEFT JOIN ZSHORTCUTACTIONS ON ZSHORTCUTACTIONS.ZSHORTCUT == ZSHORTCUT.Z_PK;
+            """)
+        except sqlite3.OperationalError:
+            # Table ZSHORTCUT does not exist
+            self.log.info("Invalid shortcut database format, skipping...")
+            cur.close()
+            conn.close()
+            return
+
         names = [description[0] for description in cur.description]
 
         for item in cur:
