@@ -4,11 +4,10 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
 import stat
 import datetime
 
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import AndroidExtraction
 
@@ -31,8 +30,8 @@ class Files(AndroidExtraction):
         # Run find command with correct args and parse results.
 
         # Check that full file printf options are suppported on first run.
-        if self.full_find == None:
-            output = self._adb_command(f"find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
+        if self.full_find is None:
+            output = self._adb_command("find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
             if not (output or output.strip().splitlines()):
                 # Full  find command failed to generate output, fallback to basic file arguments
                 self.full_find = False
@@ -40,7 +39,7 @@ class Files(AndroidExtraction):
                 self.full_find = True
 
         found_files = []
-        if self.full_find == True:
+        if self.full_find is True:
             # Run full file command and collect additonal file information.
             output = self._adb_command(f"find '{file_path}' -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
             for file_line in output.splitlines():

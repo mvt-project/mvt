@@ -5,7 +5,6 @@
 
 import logging
 import os
-import io
 
 import click
 from rich.logging import RichHandler
@@ -294,6 +293,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
                 m.check_indicators()
             except NotImplementedError:
                 continue
+
 
 #==============================================================================
 # Command: download-iocs

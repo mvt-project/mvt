@@ -70,7 +70,7 @@ class ConfigurationProfiles(IOSExtraction):
             with open(conf_file_path, "rb") as handle:
                 try:
                     conf_plist = plistlib.load(handle)
-                except:
+                except Exception:
                     conf_plist = {}
 
             if "SignerCerts" in conf_plist:
