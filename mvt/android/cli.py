@@ -200,8 +200,8 @@ def check_backup(ctx, iocs, output, backup_path, serial):
         run_module(m)
 
 #==============================================================================
-# Command: download-indicators
+# Command: download-iocs
 #==============================================================================
-@cli.command("download-indicators", help="Download public STIX2 indicators")
+@cli.command("download-iocs", help="Download public STIX2 indicators")
 def download_indicators():
     download_indicators_files(log)

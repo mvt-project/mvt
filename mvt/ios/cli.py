@@ -296,8 +296,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
                 continue
 
 #==============================================================================
-# Command: download-indicators
+# Command: download-iocs
 #==============================================================================
-@cli.command("download-indicators", help="Download public STIX2 indicators")
+@cli.command("download-iocs", help="Download public STIX2 indicators")
 def download_indicators():
     download_indicators_files(log)
