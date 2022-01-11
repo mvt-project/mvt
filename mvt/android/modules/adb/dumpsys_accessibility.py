@@ -32,11 +32,11 @@ class DumpsysAccessibility(AndroidExtraction):
                 in_services = True
                 continue
 
-            if in_services and line.strip() == "}":
-                break
-
             if not in_services:
                 continue
+
+            if line.strip() == "}":
+                break
 
             service = line.split(":")[1].strip()
             log.info("Found installed accessibility service \"%s\"", service)
