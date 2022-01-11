@@ -3,9 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import io
 import logging
 import os
-import io
 
 from .base import AndroidExtraction
 

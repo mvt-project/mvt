@@ -9,11 +9,10 @@ import os
 import click
 from rich.logging import RichHandler
 
-from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
-from mvt.common.help import HELP_MSG_FAST, HELP_MSG_OUTPUT, HELP_MSG_LIST_MODULES
-from mvt.common.help import HELP_MSG_SERIAL
-from mvt.common.indicators import Indicators
-from mvt.common.indicators import download_indicators_files
+from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
+                             HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
+                             HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
+from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 

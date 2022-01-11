@@ -16,13 +16,13 @@ from .net_datausage import Datausage
 from .osanalytics_addaily import OSAnalyticsADDaily
 from .safari_browserstate import SafariBrowserState
 from .safari_history import SafariHistory
+from .shortcuts import Shortcuts
 from .sms import SMS
 from .sms_attachments import SMSAttachments
 from .tcc import TCC
 from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
-from .shortcuts import Shortcuts
 
 MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
                  FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,

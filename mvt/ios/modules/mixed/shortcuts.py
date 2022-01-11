@@ -3,12 +3,13 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import sqlite3
 import io
-import plistlib
 import itertools
+import plistlib
+import sqlite3
 
-from mvt.common.utils import check_for_links, convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
+                              convert_timestamp_to_iso)
 
 from ..base import IOSExtraction
 

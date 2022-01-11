@@ -6,6 +6,7 @@
 import io
 import json
 import os
+
 import requests
 from appdirs import user_data_dir
 

@@ -7,6 +7,7 @@
 import os
 import plistlib
 from base64 import b64encode
+
 from mvt.common.utils import convert_timestamp_to_iso
 
 from ..base import IOSExtraction

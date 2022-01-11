@@ -3,9 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import datetime
 import logging
 import stat
-import datetime
 
 from mvt.common.utils import convert_timestamp_to_iso
 

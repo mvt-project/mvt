@@ -10,11 +10,10 @@ import click
 from rich.logging import RichHandler
 from rich.prompt import Prompt
 
-from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
-from mvt.common.help import HELP_MSG_FAST, HELP_MSG_OUTPUT
-from mvt.common.help import HELP_MSG_LIST_MODULES
-from mvt.common.indicators import Indicators
-from mvt.common.indicators import download_indicators_files
+from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
+                             HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
+                             HELP_MSG_OUTPUT)
+from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
