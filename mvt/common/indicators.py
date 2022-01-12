@@ -271,7 +271,7 @@ class Indicators:
 
         return False
 
-    def check_filename(self, file_path) -> bool:
+    def check_file_name(self, file_path) -> bool:
         """Check the provided file path against the list of file indicators.
 
         :param file_path: File path or file name to check against file
@@ -307,6 +307,7 @@ class Indicators:
             # Strip any trailing slash from indicator paths to match directories.
             if file_path.startswith(ioc_file.rstrip("/")):
                 return True
+
         return False
 
     def check_profile(self, profile_uuid) -> bool:
