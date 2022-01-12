@@ -290,6 +290,9 @@ class Indicators:
 
         return False
 
+    # TODO: The difference between check_file_name() and check_file_path()
+    #       needs to be more explicit and clear. Probably, the two should just
+    #       be combined into one function.
     def check_file_path(self, file_path) -> bool:
         """Check the provided file path against the list of file indicators.
 
