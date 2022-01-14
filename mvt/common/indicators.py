@@ -57,7 +57,7 @@ class Indicators:
             else:
                 self.log.info("Invalid STIX2 path %s in MVT_STIX2 environment variable", path)
 
-    def load_indicators_files(self, files):
+    def load_indicators_files(self, files=[]):
         """
         Load a list of indicators files.
         """
