@@ -45,7 +45,7 @@ class Indicators:
 
     def _check_stix2_env_variable(self):
         """
-        Checks if a variable MVT_STIX2 contains path to STIX Files
+        Checks if a variable MVT_STIX2 contains path to STIX Files.
         """
         if "MVT_STIX2" not in os.environ:
             return False
@@ -59,7 +59,7 @@ class Indicators:
 
     def load_indicators_files(self, files):
         """
-        Load a list of indicators files
+        Load a list of indicators files.
         """
         for file_path in files:
             if os.path.isfile(file_path):
@@ -67,7 +67,7 @@ class Indicators:
             else:
                 self.log.warning("This indicators file %s does not exist", file_path)
 
-        # Load downloaded indicators and any indicators from env variable
+        # Load downloaded indicators and any indicators from env variable.
         self._load_downloaded_indicators()
         self._check_stix2_env_variable()
         self.log.info("Loaded a total of %d unique indicators", self.ioc_count)
@@ -330,7 +330,7 @@ class Indicators:
 
 def download_indicators_files(log):
     """
-    Download indicators from repo into MVT app data directory
+    Download indicators from repo into MVT app data directory.
     """
     data_dir = user_data_dir("mvt")
     if not os.path.isdir(data_dir):
