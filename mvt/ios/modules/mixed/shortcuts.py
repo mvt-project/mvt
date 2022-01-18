@@ -34,13 +34,21 @@ class Shortcuts(IOSExtraction):
         found_urls = ""
         if record["action_urls"]:
             found_urls = "- URLs in actions: {}".format(", ".join(record["action_urls"]))
+        desc = ""
+        if record["description"]:
+            desc = record["description"].decode('utf-8', errors='ignore')
 
-        return {
+        return [{
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
-            "event": "shortcut",
-            "data": f"iOS Shortcut '{record['shortcut_name']}': {record['description']} {found_urls}"
-        }
+            "event": "shortcut_created",
+            "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
+        }, {
+            "timestamp": record["modified_date"],
+            "module": self.__class__.__name__,
+            "event": "shortcut_modified",
+            "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
+        }]
 
     def check_indicators(self):
         if not self.indicators:
@@ -99,7 +107,6 @@ class Shortcuts(IOSExtraction):
                 action["urls"] = [url.rstrip("',") for url in extracted_urls]
                 actions.append(action)
 
-            # pprint.pprint(actions)
             shortcut["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut.pop("created_date")))
             shortcut["modified_date"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut["modified_date"]))
             shortcut["parsed_actions"] = len(actions)
