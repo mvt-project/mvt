@@ -1,6 +1,12 @@
+# Mobile Verification Toolkit (MVT)
+# Copyright (c) 2021 The MVT Project Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
+
 import os
 
-from stix2.v21 import (Indicator, Malware, Relationship, Bundle)
+from stix2.v21 import Bundle, Indicator, Malware, Relationship
+
 
 def generate_test_stix_file(file_path):
     if os.path.isfile(file_path):
