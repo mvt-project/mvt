@@ -25,7 +25,7 @@ requires = (
     "packaging>=21.0",
     "appdirs>=1.4.4",
     # iOS dependencies:
-    "iOSbackup>=0.9.913",
+    "iOSbackup>=0.9.921",
     # Android dependencies:
     "adb-shell>=0.4.2",
     "libusb1>=2.0.1",
