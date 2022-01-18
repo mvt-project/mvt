@@ -100,10 +100,10 @@ class Shortcuts(IOSExtraction):
                 action["identifier"] = action_entry["WFWorkflowActionIdentifier"]
                 action["parameters"] = action_entry["WFWorkflowActionParameters"]
 
-                # URLs might be in multiple fields, do a simple regex search across the parameters
+                # URLs might be in multiple fields, do a simple regex search across the parameters.
                 extracted_urls = check_for_links(str(action["parameters"]))
 
-                # Remove quoting characters that may have been captured by the regex
+                # Remove quoting characters that may have been captured by the regex.
                 action["urls"] = [url.rstrip("',") for url in extracted_urls]
                 actions.append(action)
 
