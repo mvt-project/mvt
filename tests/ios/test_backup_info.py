@@ -16,4 +16,4 @@ class TestBackupInfoModule:
         m = BackupInfo(base_folder=get_backup_folder(), log=logging)
         run_module(m)
         assert m.results["Build Version"] == "18C66"
-        assert m.results["IMEI"] == '42'
+        assert m.results["IMEI"] == "42"

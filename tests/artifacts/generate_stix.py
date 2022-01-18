@@ -23,22 +23,22 @@ def generate_test_stix_file(file_path):
     for d in domains:
         i = Indicator(indicator_types=["malicious-activity"], pattern="[domain-name:value='{}']".format(d), pattern_type="stix")
         res.append(i)
-        res.append(Relationship(i, 'indicates', malware))
+        res.append(Relationship(i, "indicates", malware))
 
     for p in processes:
         i = Indicator(indicator_types=["malicious-activity"], pattern="[process:name='{}']".format(p), pattern_type="stix")
         res.append(i)
-        res.append(Relationship(i, 'indicates', malware))
+        res.append(Relationship(i, "indicates", malware))
 
     for f in filenames:
         i = Indicator(indicator_types=["malicious-activity"], pattern="[file:name='{}']".format(f), pattern_type="stix")
         res.append(i)
-        res.append(Relationship(i, 'indicates', malware))
+        res.append(Relationship(i, "indicates", malware))
 
     for e in emails:
         i = Indicator(indicator_types=["malicious-activity"], pattern="[email-addr:value='{}']".format(e), pattern_type="stix")
         res.append(i)
-        res.append(Relationship(i, 'indicates', malware))
+        res.append(Relationship(i, "indicates", malware))
 
     bundle = Bundle(objects=res)
     with open(file_path, "w+") as f:

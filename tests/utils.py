@@ -23,5 +23,6 @@ def get_artifact_folder():
 def get_backup_folder():
     return os.path.join(os.path.dirname(__file__), "artifacts", "ios_backup")
 
+
 def get_indicator_file():
-    print("PYTEST env", os.getenv('PYTEST_CURRENT_TEST'))
+    print("PYTEST env", os.getenv("PYTEST_CURRENT_TEST"))

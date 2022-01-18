@@ -21,6 +21,6 @@ def indicator_file(request, tmp_path_factory):
 @pytest.fixture(scope="session", autouse=True)
 def clean_test_env(request, tmp_path_factory):
     try:
-        del os.environ['MVT_STIX2']
+        del os.environ["MVT_STIX2"]
     except KeyError:
         pass
