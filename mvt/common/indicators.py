@@ -25,6 +25,7 @@ class Indicators:
         self.ioc_processes = []
         self.ioc_emails = []
         self.ioc_files = []
+        self.ioc_file_paths = []
         self.ioc_files_sha256 = []
         self.ioc_app_ids = []
         self.ios_profile_ids = []
@@ -108,6 +109,9 @@ class Indicators:
             elif key == "file:name":
                 self._add_indicator(ioc=value,
                                     iocs_list=self.ioc_files)
+            elif key == "file:path":
+                self._add_indicator(ioc=value,
+                                    iocs_list=self.ioc_file_paths)
             elif key == "app:id":
                 self._add_indicator(ioc=value,
                                     iocs_list=self.ioc_app_ids)
@@ -271,30 +275,26 @@ class Indicators:
 
         return False
 
-    def check_file_name(self, file_path) -> bool:
-        """Check the provided file path against the list of file indicators.
+    def check_file_name(self, file_name) -> bool:
+        """Check the provided file name against the list of file indicators.
 
-        :param file_path: File path or file name to check against file
+        :param file_name: File name to check against file
         indicators
-        :type file_path: str
-        :returns: True if the file path matched an indicator, otherwise False
+        :type file_name: str
+        :returns: True if the file name matched an indicator, otherwise False
         :rtype: bool
 
         """
-        if not file_path:
+        if not file_name:
             return False
 
-        file_name = os.path.basename(file_path)
         if file_name in self.ioc_files:
             return True
 
         return False
 
-    # TODO: The difference between check_file_name() and check_file_path()
-    #       needs to be more explicit and clear. Probably, the two should just
-    #       be combined into one function.
     def check_file_path(self, file_path) -> bool:
-        """Check the provided file path against the list of file indicators.
+        """Check the provided file path against the list of file indicators (both path and name).
 
         :param file_path: File path or file name to check against file
         indicators
@@ -306,7 +306,10 @@ class Indicators:
         if not file_path:
             return False
 
-        for ioc_file in self.ioc_files:
+        if self.check_file_name(os.path.basename(file_path)):
+            return True
+
+        for ioc_file in self.ioc_file_paths:
             # Strip any trailing slash from indicator paths to match directories.
             if file_path.startswith(ioc_file.rstrip("/")):
                 return True

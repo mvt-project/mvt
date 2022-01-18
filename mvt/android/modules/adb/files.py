@@ -89,10 +89,6 @@ class Files(AndroidExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_file_name(result["path"]):
-                self.log.warning("Found a known suspicous filename at path: \"%s\"", result["path"])
-                self.detected.append(result)
-
             if self.indicators.check_file_path(result["path"]):
                 self.log.warning("Found a known suspicous file at path: \"%s\"", result["path"])
                 self.detected.append(result)

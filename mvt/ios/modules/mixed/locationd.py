@@ -41,13 +41,13 @@ class LocationdClients(IOSExtraction):
 
     def serialize(self, record):
         records = []
-        for ts in self.timestamps:
-            if ts in record.keys():
+        for timestamp in self.timestamps:
+            if timestamp in record.keys():
                 records.append({
-                    "timestamp": record[ts],
+                    "timestamp": record[timestamp],
                     "module": self.__class__.__name__,
-                    "event": ts,
-                    "data": f"{ts} from {record['package']}"
+                    "event": timestamp,
+                    "data": f"{timestamp} from {record['package']}"
                 })
 
         return records
@@ -61,7 +61,31 @@ class LocationdClients(IOSExtraction):
             proc_name = parts[len(parts)-1]
 
             if self.indicators.check_process(proc_name):
+                self.log.warning("Found a suspicious process name in LocationD entry %s",
+                                 result["package"])
                 self.detected.append(result)
+                continue
+
+            if "BundlePath" in result:
+                if self.indicators.check_file_path(result["BundlePath"]):
+                    self.log.warning("Found a suspicious file path in Location D: %s",
+                                     result["BundlePath"])
+                    self.detected.append(result)
+                    continue
+
+            if "Executable" in result:
+                if self.indicators.check_file_path(result["Executable"]):
+                    self.log.warning("Found a suspicious file path in Location D: %s",
+                                     result["Executable"])
+                    self.detected.append(result)
+                    continue
+
+            if "Registered" in result:
+                if self.indicators.check_file_path(result["Registered"]):
+                    self.log.warning("Found a suspicious file path in Location D: %s",
+                                     result["Registered"])
+                    self.detected.append(result)
+                    continue
 
     def _extract_locationd_entries(self, file_path):
         with open(file_path, "rb") as handle:
