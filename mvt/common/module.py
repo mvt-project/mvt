@@ -30,7 +30,7 @@ class MVTModule(object):
     slug = None
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
-                 fast_mode=False, log=None, results=[]):
+                 fast_mode=False, log=None, results=None):
         """Initialize module.
 
         :param file_path: Path to the module's database file, if there is any
@@ -51,7 +51,7 @@ class MVTModule(object):
         self.fast_mode = fast_mode
         self.log = log
         self.indicators = None
-        self.results = results
+        self.results = results if results else []
         self.detected = []
         self.timeline = []
         self.timeline_detected = []
