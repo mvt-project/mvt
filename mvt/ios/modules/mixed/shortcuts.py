@@ -3,12 +3,13 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import sqlite3
 import io
-import plistlib
 import itertools
+import plistlib
+import sqlite3
 
-from mvt.common.utils import check_for_links, convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
+                              convert_timestamp_to_iso)
 
 from ..base import IOSExtraction
 
@@ -33,13 +34,21 @@ class Shortcuts(IOSExtraction):
         found_urls = ""
         if record["action_urls"]:
             found_urls = "- URLs in actions: {}".format(", ".join(record["action_urls"]))
+        desc = ""
+        if record["description"]:
+            desc = record["description"].decode('utf-8', errors='ignore')
 
-        return {
+        return [{
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
-            "event": "shortcut",
-            "data": f"iOS Shortcut '{record['shortcut_name']}': {record['description']} {found_urls}"
-        }
+            "event": "shortcut_created",
+            "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
+        }, {
+            "timestamp": record["modified_date"],
+            "module": self.__class__.__name__,
+            "event": "shortcut_modified",
+            "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
+        }]
 
     def check_indicators(self):
         if not self.indicators:
@@ -57,17 +66,25 @@ class Shortcuts(IOSExtraction):
         conn = sqlite3.connect(self.file_path)
         conn.text_factory = bytes
         cur = conn.cursor()
-        cur.execute("""
-              SELECT
-                  ZSHORTCUT.Z_PK as "shortcut_id",
-                  ZSHORTCUT.ZNAME as "shortcut_name",
-                  ZSHORTCUT.ZCREATIONDATE as "created_date",
-                  ZSHORTCUT.ZMODIFICATIONDATE as "modified_date",
-                  ZSHORTCUT.ZACTIONSDESCRIPTION as "description",
-                  ZSHORTCUTACTIONS.ZDATA as "action_data"
-              FROM ZSHORTCUT
-              LEFT JOIN ZSHORTCUTACTIONS ON ZSHORTCUTACTIONS.ZSHORTCUT == ZSHORTCUT.Z_PK;
-        """)
+        try:
+            cur.execute("""
+                SELECT
+                    ZSHORTCUT.Z_PK as "shortcut_id",
+                    ZSHORTCUT.ZNAME as "shortcut_name",
+                    ZSHORTCUT.ZCREATIONDATE as "created_date",
+                    ZSHORTCUT.ZMODIFICATIONDATE as "modified_date",
+                    ZSHORTCUT.ZACTIONSDESCRIPTION as "description",
+                    ZSHORTCUTACTIONS.ZDATA as "action_data"
+                FROM ZSHORTCUT
+                LEFT JOIN ZSHORTCUTACTIONS ON ZSHORTCUTACTIONS.ZSHORTCUT == ZSHORTCUT.Z_PK;
+            """)
+        except sqlite3.OperationalError:
+            # Table ZSHORTCUT does not exist
+            self.log.info("Invalid shortcut database format, skipping...")
+            cur.close()
+            conn.close()
+            return
+
         names = [description[0] for description in cur.description]
 
         for item in cur:
@@ -90,7 +107,6 @@ class Shortcuts(IOSExtraction):
                 action["urls"] = [url.rstrip("',") for url in extracted_urls]
                 actions.append(action)
 
-            # pprint.pprint(actions)
             shortcut["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut.pop("created_date")))
             shortcut["modified_date"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut["modified_date"]))
             shortcut["parsed_actions"] = len(actions)

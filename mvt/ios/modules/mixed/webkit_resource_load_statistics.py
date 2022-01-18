@@ -77,7 +77,8 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 for backup_file in self._get_backup_files_from_manifest(relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
                     db_path = self._get_backup_file_from_id(backup_file["file_id"])
                     key = f"{backup_file['domain']}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}"
-                    self._process_observations_db(db_path=db_path, key=key)
+                    if db_path:
+                        self._process_observations_db(db_path=db_path, key=key)
             except Exception as e:
                 self.log.info("Unable to search for WebKit observations.db: %s", e)
         elif self.is_fs_dump:

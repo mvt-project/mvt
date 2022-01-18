@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from .chrome_history import ChromeHistory
+from .dumpsys_accessibility import DumpsysAccessibility
 from .dumpsys_batterystats import DumpsysBatterystats
 from .dumpsys_full import DumpsysFull
 from .dumpsys_packages import DumpsysPackages
@@ -18,6 +19,6 @@ from .sms import SMS
 from .whatsapp import Whatsapp
 
 ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes,
-               DumpsysBatterystats, DumpsysProcstats,
+               DumpsysAccessibility, DumpsysBatterystats, DumpsysProcstats,
                DumpsysPackages, DumpsysReceivers, DumpsysFull,
                Packages, RootBinaries, Logcat, Files]

@@ -5,17 +5,15 @@
 
 import logging
 import os
-import io
 
 import click
 from rich.logging import RichHandler
 from rich.prompt import Prompt
 
-from mvt.common.help import HELP_MSG_MODULE, HELP_MSG_IOC
-from mvt.common.help import HELP_MSG_FAST, HELP_MSG_OUTPUT
-from mvt.common.help import HELP_MSG_LIST_MODULES
-from mvt.common.indicators import Indicators
-from mvt.common.indicators import download_indicators_files
+from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
+                             HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
+                             HELP_MSG_OUTPUT)
+from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 from mvt.common.options import MutuallyExclusiveOption
@@ -295,9 +293,10 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
             except NotImplementedError:
                 continue
 
+
 #==============================================================================
-# Command: download-indicators
+# Command: download-iocs
 #==============================================================================
-@cli.command("download-indicators", help="Download public STIX2 indicators")
-def download_indicators():
+@cli.command("download-iocs", help="Download public STIX2 indicators")
+def download_iocs():
     download_indicators_files(log)

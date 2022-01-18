@@ -7,6 +7,7 @@
 import os
 import plistlib
 from base64 import b64encode
+
 from mvt.common.utils import convert_timestamp_to_iso
 
 from ..base import IOSExtraction
@@ -70,7 +71,7 @@ class ConfigurationProfiles(IOSExtraction):
             with open(conf_file_path, "rb") as handle:
                 try:
                     conf_plist = plistlib.load(handle)
-                except:
+                except Exception:
                     conf_plist = {}
 
             if "SignerCerts" in conf_plist:

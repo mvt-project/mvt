@@ -6,6 +6,7 @@
 import io
 import json
 import os
+
 import requests
 from appdirs import user_data_dir
 
@@ -44,7 +45,7 @@ class Indicators:
 
     def _check_stix2_env_variable(self):
         """
-        Checks if a variable MVT_STIX2 contains path to STIX Files
+        Checks if a variable MVT_STIX2 contains path to STIX Files.
         """
         if "MVT_STIX2" not in os.environ:
             return False
@@ -58,7 +59,7 @@ class Indicators:
 
     def load_indicators_files(self, files, load_default=True):
         """
-        Load a list of indicators files
+        Load a list of indicators files.
         """
         for file_path in files:
             if os.path.isfile(file_path):
@@ -271,7 +272,7 @@ class Indicators:
 
         return False
 
-    def check_filename(self, file_path) -> bool:
+    def check_file_name(self, file_path) -> bool:
         """Check the provided file path against the list of file indicators.
 
         :param file_path: File path or file name to check against file
@@ -290,6 +291,9 @@ class Indicators:
 
         return False
 
+    # TODO: The difference between check_file_name() and check_file_path()
+    #       needs to be more explicit and clear. Probably, the two should just
+    #       be combined into one function.
     def check_file_path(self, file_path) -> bool:
         """Check the provided file path against the list of file indicators.
 
@@ -307,6 +311,7 @@ class Indicators:
             # Strip any trailing slash from indicator paths to match directories.
             if file_path.startswith(ioc_file.rstrip("/")):
                 return True
+
         return False
 
     def check_profile(self, profile_uuid) -> bool:
@@ -326,7 +331,7 @@ class Indicators:
 
 def download_indicators_files(log):
     """
-    Download indicators from repo into MVT app data directory
+    Download indicators from repo into MVT app data directory.
     """
     data_dir = user_data_dir("mvt")
     if not os.path.isdir(data_dir):
