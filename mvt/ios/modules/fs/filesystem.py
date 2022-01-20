@@ -37,10 +37,6 @@ class Filesystem(IOSExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_file(result["path"]):
-                self.log.warning("Found a known malicious file name at path: %s", result["path"])
-                self.detected.append(result)
-
             if self.indicators.check_file_path(result["path"]):
                 self.log.warning("Found a known malicious file path at path: %s", result["path"])
                 self.detected.append(result)

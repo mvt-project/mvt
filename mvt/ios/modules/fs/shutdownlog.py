@@ -34,12 +34,19 @@ class ShutdownLog(IOSExtraction):
             return
 
         for result in self.results:
+            if self.indicators.check_file_path(result["client"]):
+                    self.log.warning("Found mention of a known malicious file \"%s\" in shutdown.log",
+                                     result["client"])
+                    self.detected.append(result)
+                    continue
+
             for ioc in self.indicators.ioc_processes:
                 parts = result["client"].split("/")
                 if ioc in parts:
                     self.log.warning("Found mention of a known malicious process \"%s\" in shutdown.log",
                                      ioc)
                     self.detected.append(result)
+                    continue
 
     def process_shutdownlog(self, content):
         current_processes = []
