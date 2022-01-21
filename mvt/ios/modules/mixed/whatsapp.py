@@ -35,6 +35,7 @@ class Whatsapp(IOSExtraction):
         links_text = ""
         if record["links"]:
             links_text = " - Embedded links: " + ", ".join(record["links"])
+
         return {
             "timestamp": record.get("isodate"),
             "module": self.__class__.__name__,
@@ -47,7 +48,7 @@ class Whatsapp(IOSExtraction):
             return
 
         for message in self.results:
-            if self.indicators.check_domains(message["links"]):
+            if self.indicators.check_domains(message.get("links", [])):
                 self.detected.append(message)
 
     def run(self):
@@ -83,14 +84,15 @@ class Whatsapp(IOSExtraction):
             message["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(message.get("ZMESSAGEDATE")))
             message["ZTEXT"] = message["ZTEXT"] if message["ZTEXT"] else ""
 
-            # Extract links from the WhatsApp message. URLs can be stored in multiple fields/columns. Check each of them!
+            # Extract links from the WhatsApp message. URLs can be stored in multiple fields/columns.
+            # Check each of them!
             message_links = []
             fields_with_links = ["ZTEXT", "ZMATCHEDTEXT", "ZMEDIAURL", "ZCONTENT1", "ZCONTENT2"]
             for field in fields_with_links:
                 if message.get(field):
                     message_links.extend(check_for_links(message.get(field, "")))
 
-            # Remove WhatsApp internal media URLs
+            # Remove WhatsApp internal media URLs.
             filtered_links = []
             for link in message_links:
                 if not (link.startswith("https://mmg-fna.whatsapp.net/") or link.startswith("https://mmg.whatsapp.net/")):

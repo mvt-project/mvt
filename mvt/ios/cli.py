@@ -168,7 +168,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
         m = backup_module(base_folder=backup_path, output_folder=output, fast_mode=fast,
                           log=logging.getLogger(backup_module.__module__))
         m.is_backup = True
-        if indicators.ioc_count:
+        if indicators.total_ioc_count > 0:
             m.indicators = indicators
             m.indicators.log = m.log
 
@@ -225,7 +225,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
                       log=logging.getLogger(fs_module.__module__))
 
         m.is_fs_dump = True
-        if indicators.ioc_count:
+        if indicators.total_ioc_count > 0:
             m.indicators = indicators
             m.indicators.log = m.log
 
@@ -245,14 +245,14 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 #==============================================================================
 @cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], required=True, help=HELP_MSG_IOC)
+              default=[], help=HELP_MSG_IOC)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
     all_modules = []
-    for entry in BACKUP_MODULES + FS_MODULES:
+    for entry in BACKUP_MODULES + FS_MODULES + MIXED_MODULES:
         if entry not in all_modules:
             all_modules.append(entry)
 
@@ -284,7 +284,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 
             m = iocs_module.from_json(file_path,
                                       log=logging.getLogger(iocs_module.__module__))
-            if indicators.ioc_count:
+            if indicators.total_ioc_count > 0:
                 m.indicators = indicators
                 m.indicators.log = m.log
 

@@ -37,20 +37,20 @@ class Analytics(IOSExtraction):
             return
 
         for result in self.results:
-            for ioc in self.indicators.ioc_processes:
-                for key in result.keys():
-                    if ioc == result[key]:
-                        self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
-                                         ioc, result["artifact"], result["timestamp"])
-                        self.detected.append(result)
-                        break
-            for ioc in self.indicators.ioc_domains:
-                for key in result.keys():
-                    if ioc in str(result[key]):
-                        self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
-                                         ioc, result["artifact"], result["timestamp"])
-                        self.detected.append(result)
-                        break
+            for value in result.values():
+                if not isinstance(value, str):
+                    continue
+
+                if self.indicators.check_process(value):
+                    self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
+                                     value, result["artifact"], result["timestamp"])
+                    self.detected.append(result)
+                    continue
+
+                if self.indicators.check_domain(value):
+                    self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
+                                     value, result["artifact"], result["timestamp"])
+                    self.detected.append(result)
 
     def _extract_analytics_data(self):
         artifact = self.file_path.split("/")[-1]
@@ -101,6 +101,7 @@ class Analytics(IOSExtraction):
                 timestamp = ""
                 data = plistlib.loads(row[1])
                 data["timestamp"] = timestamp
+
             data["artifact"] = artifact
 
             self.results.append(data)

@@ -21,20 +21,8 @@ class Indicators:
     def __init__(self, log=None):
         self.data_dir = user_data_dir("mvt")
         self.log = log
-        self.ioc_domains = []
-        self.ioc_processes = []
-        self.ioc_emails = []
         self.ioc_files = []
-        self.ioc_file_paths = []
-        self.ioc_files_sha256 = []
-        self.ioc_app_ids = []
-        self.ios_profile_ids = []
-        self.ioc_count = 0
-
-    def _add_indicator(self, ioc, iocs_list):
-        if ioc not in iocs_list:
-            iocs_list.append(ioc)
-            self.ioc_count += 1
+        self.total_ioc_count = 0
 
     def _load_downloaded_indicators(self):
         if not os.path.isdir(self.data_dir):
@@ -58,6 +46,102 @@ class Indicators:
             else:
                 self.log.info("Invalid STIX2 path %s in MVT_STIX2 environment variable", path)
 
+    def _generate_indicators_file(self):
+        return {
+            "name": "",
+            "description": "",
+            "file_name": "",
+            "file_path": "",
+            "domains": [],
+            "processes": [],
+            "emails": [],
+            "file_names": [],
+            "file_paths": [],
+            "files_sha256": [],
+            "app_ids": [],
+            "ios_profile_ids": [],
+            "count": 0,
+        }
+
+    def _add_indicator(self, ioc, ioc_file, iocs_list):
+        if ioc not in iocs_list:
+            iocs_list.append(ioc)
+            ioc_file["count"] += 1
+            self.total_ioc_count += 1
+
+    def parse_stix2(self, file_path):
+        """Extract indicators from a STIX2 file.
+
+        :param file_path: Path to the STIX2 file to parse
+        :type file_path: str
+
+        """
+        self.log.info("Parsing STIX2 indicators file at path %s", file_path)
+
+        ioc_file = self._generate_indicators_file()
+        ioc_file["file_path"] = file_path
+        ioc_file["file_name"] = os.path.basename(file_path)
+
+        with open(file_path, "r") as handle:
+            try:
+                data = json.load(handle)
+            except json.decoder.JSONDecodeError:
+                self.log.critical("Unable to parse STIX2 indicator file. The file is malformed or in the wrong format.")
+                return
+
+        for entry in data.get("objects", []):
+            entry_type = entry.get("type", "")
+            if entry_type == "malware":
+                ioc_file["name"] = entry.get("name", "") or ioc_file["file_name"]
+                ioc_file["description"] = entry.get("description", "") or ioc_file["file_name"]
+                continue
+
+            if entry_type != "indicator":
+                continue
+
+            key, value = entry.get("pattern", "").strip("[]").split("=")
+            value = value.strip("'")
+
+            if key == "domain-name:value":
+                # We force domain names to lower case.
+                self._add_indicator(ioc=value.lower(),
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["domains"])
+            elif key == "process:name":
+                self._add_indicator(ioc=value,
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["processes"])
+            elif key == "email-addr:value":
+                # We force email addresses to lower case.
+                self._add_indicator(ioc=value.lower(),
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["emails"])
+            elif key == "file:name":
+                self._add_indicator(ioc=value,
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["file_names"])
+            elif key == "file:path":
+                self._add_indicator(ioc=value,
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["file_paths"])
+            elif key == "file:hashes.sha256":
+                self._add_indicator(ioc=value,
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["files_sha256"])
+            elif key == "app:id":
+                self._add_indicator(ioc=value,
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["app_ids"])
+            elif key == "configuration-profile:id":
+                self._add_indicator(ioc=value,
+                                    ioc_file=ioc_file,
+                                    iocs_list=ioc_file["ios_profile_ids"])
+
+        self.log.info("Loaded %d indicators from \"%s\" indicators file",
+                      ioc_file["count"], ioc_file["name"])
+
+        self.ioc_files.append(ioc_file)
+
     def load_indicators_files(self, files, load_default=True):
         """
         Load a list of indicators files.
@@ -68,60 +152,20 @@ class Indicators:
             else:
                 self.log.warning("This indicators file %s does not exist", file_path)
 
-        # Load downloaded indicators and any indicators from env variable
+        # Load downloaded indicators and any indicators from env variable.
         if load_default:
             self._load_downloaded_indicators()
+
         self._check_stix2_env_variable()
-        self.log.info("Loaded a total of %d unique indicators", self.ioc_count)
+        self.log.info("Loaded a total of %d unique indicators", self.total_ioc_count)
 
-    def parse_stix2(self, file_path):
-        """Extract indicators from a STIX2 file.
-
-        :param file_path: Path to the STIX2 file to parse
-        :type file_path: str
-
-        """
-        self.log.info("Parsing STIX2 indicators file at path %s", file_path)
-        with open(file_path, "r") as handle:
-            try:
-                data = json.load(handle)
-            except json.decoder.JSONDecodeError:
-                self.log.critical("Unable to parse STIX2 indicator file. The file is malformed or in the wrong format.")
-                return
-
-        for entry in data.get("objects", []):
-            if entry.get("type", "") != "indicator":
-                continue
-
-            key, value = entry.get("pattern", "").strip("[]").split("=")
-            value = value.strip("'")
-
-            if key == "domain-name:value":
-                # We force domain names to lower case.
-                self._add_indicator(ioc=value.lower(),
-                                    iocs_list=self.ioc_domains)
-            elif key == "process:name":
-                self._add_indicator(ioc=value,
-                                    iocs_list=self.ioc_processes)
-            elif key == "email-addr:value":
-                # We force email addresses to lower case.
-                self._add_indicator(ioc=value.lower(),
-                                    iocs_list=self.ioc_emails)
-            elif key == "file:name":
-                self._add_indicator(ioc=value,
-                                    iocs_list=self.ioc_files)
-            elif key == "file:path":
-                self._add_indicator(ioc=value,
-                                    iocs_list=self.ioc_file_paths)
-            elif key == "app:id":
-                self._add_indicator(ioc=value,
-                                    iocs_list=self.ioc_app_ids)
-            elif key == "configuration-profile:id":
-                self._add_indicator(ioc=value,
-                                    iocs_list=self.ios_profile_ids)
-            elif key == "file:hashes.sha256":
-                self._add_indicator(ioc=value,
-                                    iocs_list=self.ioc_files_sha256)
+    def get_iocs(self, ioc_type):
+        for ioc_file in self.ioc_files:
+            for ioc in ioc_file.get(ioc_type, []):
+                yield {
+                    "value": ioc,
+                    "name": ioc_file["name"]
+                }
 
     def check_domain(self, url) -> bool:
         """Check if a given URL matches any of the provided domain indicators.
@@ -133,7 +177,7 @@ class Indicators:
 
         """
         # TODO: If the IOC domain contains a subdomain, it is not currently
-        # being matched.
+        #       being matched.
         if not url:
             return False
 
@@ -163,33 +207,36 @@ class Indicators:
         except Exception:
             # If URL parsing failed, we just try to do a simple substring
             # match.
-            for ioc in self.ioc_domains:
-                if ioc.lower() in url:
-                    self.log.warning("Maybe found a known suspicious domain: %s", url)
+            for ioc in self.get_iocs("domains"):
+                if ioc["value"].lower() in url:
+                    self.log.warning("Maybe found a known suspicious domain %s matching indicators from \"%s\"",
+                                     url, ioc["name"])
                     return True
 
             # If nothing matched, we can quit here.
             return False
 
         # If all parsing worked, we start walking through available domain indicators.
-        for ioc in self.ioc_domains:
+        for ioc in self.get_iocs("domains"):
             # First we check the full domain.
-            if final_url.domain.lower() == ioc:
+            if final_url.domain.lower() == ioc["value"]:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a known suspicious domain %s shortened as %s",
-                                     final_url.url, orig_url.url)
+                    self.log.warning("Found a known suspicious domain %s shortened as %s matching indicators from \"%s\"",
+                                     final_url.url, orig_url.url, ioc["name"])
                 else:
-                    self.log.warning("Found a known suspicious domain: %s", final_url.url)
+                    self.log.warning("Found a known suspicious domain %s matching indicators from \"%s\"",
+                                     final_url.url, ioc["name"])
 
                 return True
 
             # Then we just check the top level domain.
-            if final_url.top_level.lower() == ioc:
+            if final_url.top_level.lower() == ioc["value"]:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a sub-domain matching a known suspicious top level %s shortened as %s",
-                                     final_url.url, orig_url.url)
+                    self.log.warning("Found a sub-domain with suspicious top level %s shortened as %s matching indicators from \"%s\"",
+                                     final_url.url, orig_url.url, ioc["name"])
                 else:
-                    self.log.warning("Found a sub-domain matching a known suspicious top level: %s", final_url.url)
+                    self.log.warning("Found a sub-domain with a suspicious top level %s matching indicators from \"%s\"",
+                                     final_url.url, ioc["name"])
 
                 return True
 
@@ -227,14 +274,16 @@ class Indicators:
             return False
 
         proc_name = os.path.basename(process)
-        if proc_name in self.ioc_processes:
-            self.log.warning("Found a known suspicious process name \"%s\"", process)
-            return True
+        for ioc in self.get_iocs("processes"):
+            if proc_name == ioc["value"]:
+                self.log.warning("Found a known suspicious process name \"%s\" matching indicators from \"%s\"",
+                                 process, ioc["name"])
+                return True
 
-        if len(proc_name) == 16:
-            for bad_proc in self.ioc_processes:
-                if bad_proc.startswith(proc_name):
-                    self.log.warning("Found a truncated known suspicious process name \"%s\"", process)
+            if len(proc_name) == 16:
+                if ioc["value"].startswith(proc_name):
+                    self.log.warning("Found a truncated known suspicious process name \"%s\" matching indicators from \"%s\"",
+                                     process, ioc["name"])
                     return True
 
         return False
@@ -270,9 +319,11 @@ class Indicators:
         if not email:
             return False
 
-        if email.lower() in self.ioc_emails:
-            self.log.warning("Found a known suspicious email address: \"%s\"", email)
-            return True
+        for ioc in self.get_iocs("emails"):
+            if email.lower() == ioc["value"].lower():
+                self.log.warning("Found a known suspicious email address \"%s\" matching indicators from \"%s\"",
+                                 email, ioc["name"])
+                return True
 
         return False
 
@@ -289,8 +340,11 @@ class Indicators:
         if not file_name:
             return False
 
-        if file_name in self.ioc_files:
-            return True
+        for ioc in self.get_iocs("file_names"):
+            if ioc["value"] == file_name:
+                self.log.warning("Found a known suspicious file name \"%s\" matching indicators from \"%s\"",
+                                 file_name, ioc["name"])
+                return True
 
         return False
 
@@ -310,9 +364,11 @@ class Indicators:
         if self.check_file_name(os.path.basename(file_path)):
             return True
 
-        for ioc_file in self.ioc_file_paths:
+        for ioc in self.get_iocs("file_paths"):
             # Strip any trailing slash from indicator paths to match directories.
-            if file_path.startswith(ioc_file.rstrip("/")):
+            if file_path.startswith(ioc["value"].rstrip("/")):
+                self.log.warning("Found a known suspicious file path \"%s\" matching indicators form \"%s\"",
+                                 file_path, ioc["name"])
                 return True
 
         return False
@@ -326,8 +382,11 @@ class Indicators:
         :rtype: bool
 
         """
-        if profile_uuid in self.ios_profile_ids:
-            return True
+        for ioc in self.get_iocs("ios_profile_ids"):
+            if profile_uuid in ioc["value"]:
+                self.log.warning("Found a known suspicious profile ID \"%s\" matching indicators from \"%s\"",
+                                 profile_uuid, ioc["name"])
+                return True
 
         return False
 
@@ -361,4 +420,5 @@ def download_indicators_files(log):
         # Write file to disk. This will overwrite any older version of the STIX2 file.
         with io.open(ioc_path, "w") as f:
             f.write(res.text)
+
         log.info("Saved indicator file to '%s'", os.path.basename(ioc_path))

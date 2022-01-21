@@ -37,19 +37,20 @@ class Filesystem(IOSExtraction):
             return
 
         for result in self.results:
+            if "path" not in result:
+                continue
+
             if self.indicators.check_file_path(result["path"]):
-                self.log.warning("Found a known malicious file path at path: %s", result["path"])
                 self.detected.append(result)
 
-            # If we are instructed to run fast, we skip this.
+            # If we are instructed to run fast, we skip the rest.
             if self.fast_mode:
-                self.log.info("Flag --fast was enabled: skipping extended search for suspicious files/processes")
-            else:
-                for ioc in self.indicators.ioc_processes:
-                    parts = result["path"].split("/")
-                    if ioc in parts:
-                        self.log.warning("Found a known malicious file/process at path: %s", result["path"])
-                        self.detected.append(result)
+                continue
+
+            for ioc in ioc_file.get_iocs("processes"):
+                parts = result["path"].split("/")
+                if ioc in parts:
+                    self.detected.append(result)
 
     def run(self):
         for root, dirs, files in os.walk(self.base_folder):

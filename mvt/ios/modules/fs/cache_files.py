@@ -34,13 +34,13 @@ class CacheFiles(IOSExtraction):
             return
 
         self.detected = {}
-        for key, items in self.results.items():
-            for item in items:
-                if self.indicators.check_domain(item["url"]):
+        for key, values in self.results.items():
+            for value in values:
+                if self.indicators.check_domain(value["url"]):
                     if key not in self.detected:
-                        self.detected[key] = [item, ]
+                        self.detected[key] = [value, ]
                     else:
-                        self.detected[key].append(item)
+                        self.detected[key].append(value)
 
     def _process_cache_file(self, file_path):
         self.log.info("Processing cache file at path: %s", file_path)

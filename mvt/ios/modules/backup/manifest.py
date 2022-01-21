@@ -72,9 +72,7 @@ class Manifest(IOSExtraction):
             return
 
         for result in self.results:
-            if "relative_path" not in result:
-                continue
-            if not result["relative_path"]:
+            if not result.get("relative_path"):
                 continue
 
             if result["domain"]:
@@ -84,15 +82,14 @@ class Manifest(IOSExtraction):
                     continue
 
             if self.indicators.check_file_path("/" + result["relative_path"]):
-                self.log.warning("Found a known malicious file at path: %s", result["relative_path"])
                 self.detected.append(result)
                 continue
 
-            relPath = result["relative_path"].lower()
-            for ioc in self.indicators.ioc_domains:
-                if ioc.lower() in relPath:
+            rel_path = result["relative_path"].lower()
+            for ioc in self.indicators.get_iocs("domains"):
+                if ioc["value"].lower() in rel_path:
                     self.log.warning("Found mention of domain \"%s\" in a backup file with path: %s",
-                                     ioc, relPath)
+                                     ioc["value"], rel_path)
                     self.detected.append(result)
 
     def run(self):

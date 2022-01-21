@@ -139,7 +139,7 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
 
         m = adb_module(output_folder=output, fast_mode=fast,
                        log=logging.getLogger(adb_module.__module__))
-        if indicators.ioc_count:
+        if indicators.total_ioc_count:
             m.indicators = indicators
             m.indicators.log = m.log
         if serial:
@@ -190,7 +190,7 @@ def check_backup(ctx, iocs, output, backup_path, serial):
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,
                    log=logging.getLogger(module.__module__))
-        if indicators.ioc_count:
+        if indicators.total_ioc_count:
             m.indicators = indicators
             m.indicators.log = m.log
         if serial:

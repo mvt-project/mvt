@@ -24,8 +24,7 @@ class TestManifestModule:
         m = Manifest(base_folder=get_backup_folder(), log=logging, results=[])
         ind = Indicators(log=logging)
         ind.parse_stix2(indicator_file)
-        # Adds a file that exists in the manifest
-        ind.ioc_files[0] = "com.apple.CoreBrightness.plist"
+        ind.ioc_files[0]["file_names"].append("com.apple.CoreBrightness.plist")
         m.indicators = ind
         run_module(m)
         assert len(m.detected) == 1
