@@ -182,6 +182,10 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
         if len(timeline_detected) > 0:
             save_timeline(timeline_detected, os.path.join(output, "timeline_detected.csv"))
 
+    if len(timeline_detected) > 0:
+        log.warning("The analysis of the backup produced %d detections!",
+                len(timeline_detected))
+
 
 #==============================================================================
 # Command: check-fs
@@ -239,6 +243,9 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
         if len(timeline_detected) > 0:
             save_timeline(timeline_detected, os.path.join(output, "timeline_detected.csv"))
 
+    if len(timeline_detected) > 0:
+        log.warning("The analysis of the filesystem produced %d detections!",
+                    len(timeline_detected))
 
 #==============================================================================
 # Command: check-iocs
@@ -268,6 +275,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
 
+    total_detections = 0
     for file_name in os.listdir(folder):
         name_only, ext = os.path.splitext(file_name)
         file_path = os.path.join(folder, file_name)
@@ -292,6 +300,12 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
                 m.check_indicators()
             except NotImplementedError:
                 continue
+            else:
+                total_detections += len(m.detected)
+
+    if total_detections > 0:
+        log.warning("The check of the results produced %d detections!",
+                    total_detections)
 
 
 #==============================================================================
