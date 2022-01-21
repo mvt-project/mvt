@@ -95,6 +95,9 @@ class Packages(AndroidExtraction):
         self._adb_connect()
 
         packages = self._adb_command("pm list packages -U -u -i -f")
+        if packages.strip() == "Error: Unknown option: -U":
+            packages = self._adb_command("pm list packages -u -i -f")
+
         for line in packages.split("\n"):
             line = line.strip()
             if not line.startswith("package:"):
