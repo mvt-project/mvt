@@ -47,9 +47,11 @@ class Filesystem(IOSExtraction):
             if self.fast_mode:
                 continue
 
-            for ioc in ioc_file.get_iocs("processes"):
+            for ioc in self.indicators.get_iocs("processes"):
                 parts = result["path"].split("/")
-                if ioc in parts:
+                if ioc["value"] in parts:
+                    self.log.warning("Found known suspicious process name mentioned in file at path \"%s\" matching indicators from \"%s\"",
+                                     result["path"], ioc["name"])
                     self.detected.append(result)
 
     def run(self):
