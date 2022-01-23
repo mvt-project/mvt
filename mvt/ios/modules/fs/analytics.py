@@ -41,15 +41,19 @@ class Analytics(IOSExtraction):
                 if not isinstance(value, str):
                     continue
 
-                if self.indicators.check_process(value):
+                ioc = self.indicators.check_process(value)
+                if ioc:
                     self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
                                      value, result["artifact"], result["timestamp"])
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
-                if self.indicators.check_domain(value):
+                ioc = self.indicators.check_domain(value)
+                if ioc:
                     self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
                                      value, result["artifact"], result["timestamp"])
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
 
     def _extract_analytics_data(self):

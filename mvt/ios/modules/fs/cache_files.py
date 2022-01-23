@@ -36,7 +36,9 @@ class CacheFiles(IOSExtraction):
         self.detected = {}
         for key, values in self.results.items():
             for value in values:
-                if self.indicators.check_domain(value["url"]):
+                ioc = self.indicators.check_domain(value["url"])
+                if ioc:
+                    value["matched_indicator"] = ioc
                     if key not in self.detected:
                         self.detected[key] = [value, ]
                     else:

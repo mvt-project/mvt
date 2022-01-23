@@ -71,8 +71,9 @@ class TCC(IOSExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_process(result["client"]):
-                self.log.warning("Found malicious process in TCC database: %s", result["client"])
+            ioc = self.indicators.check_process(result["client"])
+            if ioc:
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
 
     def process_db(self, file_path):

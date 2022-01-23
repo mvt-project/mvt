@@ -44,7 +44,9 @@ class FirefoxHistory(IOSExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_domain(result["url"]):
+            ioc = self.indicators.check_domain(result["url"])
+            if ioc:
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
 
     def run(self):

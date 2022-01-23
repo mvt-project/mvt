@@ -37,7 +37,9 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         self.detected = {}
         for key, items in self.results.items():
             for item in items:
-                if self.indicators.check_domain(item["registrable_domain"]):
+                ioc = self.indicators.check_domain(item["registrable_domain"])
+                if ioc:
+                    item["matched_indicator"] = ioc
                     if key not in self.detected:
                         self.detected[key] = [item, ]
                     else:

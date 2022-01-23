@@ -26,7 +26,7 @@ class Indicators:
 
     def _load_downloaded_indicators(self):
         if not os.path.isdir(self.data_dir):
-            return False
+            return
 
         for f in os.listdir(self.data_dir):
             if f.lower().endswith(".stix2"):
@@ -37,7 +37,7 @@ class Indicators:
         Checks if a variable MVT_STIX2 contains path to STIX Files.
         """
         if "MVT_STIX2" not in os.environ:
-            return False
+            return
 
         paths = os.environ["MVT_STIX2"].split(":")
         for path in paths:
@@ -164,10 +164,11 @@ class Indicators:
             for ioc in ioc_file.get(ioc_type, []):
                 yield {
                     "value": ioc,
+                    "type": ioc_type,
                     "name": ioc_file["name"]
                 }
 
-    def check_domain(self, url) -> bool:
+    def check_domain(self, url):
         """Check if a given URL matches any of the provided domain indicators.
 
         :param url: URL to match against domain indicators
@@ -179,7 +180,7 @@ class Indicators:
         # TODO: If the IOC domain contains a subdomain, it is not currently
         #       being matched.
         if not url:
-            return False
+            return None
 
         try:
             # First we use the provided URL.
@@ -211,10 +212,10 @@ class Indicators:
                 if ioc["value"].lower() in url:
                     self.log.warning("Maybe found a known suspicious domain %s matching indicators from \"%s\"",
                                      url, ioc["name"])
-                    return True
+                    return ioc
 
             # If nothing matched, we can quit here.
-            return False
+            return None
 
         # If all parsing worked, we start walking through available domain indicators.
         for ioc in self.get_iocs("domains"):
@@ -227,7 +228,7 @@ class Indicators:
                     self.log.warning("Found a known suspicious domain %s matching indicators from \"%s\"",
                                      final_url.url, ioc["name"])
 
-                return True
+                return ioc
 
             # Then we just check the top level domain.
             if final_url.top_level.lower() == ioc["value"]:
@@ -238,11 +239,9 @@ class Indicators:
                     self.log.warning("Found a sub-domain with a suspicious top level %s matching indicators from \"%s\"",
                                      final_url.url, ioc["name"])
 
-                return True
+                return ioc
 
-        return False
-
-    def check_domains(self, urls) -> bool:
+    def check_domains(self, urls):
         """Check a list of URLs against the provided list of domain indicators.
 
         :param urls: List of URLs to check against domain indicators
@@ -252,15 +251,14 @@ class Indicators:
 
         """
         if not urls:
-            return False
+            return None
 
         for url in urls:
-            if self.check_domain(url):
-                return True
+            check = self.check_domain(url)
+            if check:
+                return check
 
-        return False
-
-    def check_process(self, process) -> bool:
+    def check_process(self, process):
         """Check the provided process name against the list of process
         indicators.
 
@@ -271,24 +269,22 @@ class Indicators:
 
         """
         if not process:
-            return False
+            return None
 
         proc_name = os.path.basename(process)
         for ioc in self.get_iocs("processes"):
             if proc_name == ioc["value"]:
                 self.log.warning("Found a known suspicious process name \"%s\" matching indicators from \"%s\"",
                                  process, ioc["name"])
-                return True
+                return ioc
 
             if len(proc_name) == 16:
                 if ioc["value"].startswith(proc_name):
                     self.log.warning("Found a truncated known suspicious process name \"%s\" matching indicators from \"%s\"",
                                      process, ioc["name"])
-                    return True
+                    return ioc
 
-        return False
-
-    def check_processes(self, processes) -> bool:
+    def check_processes(self, processes):
         """Check the provided list of processes against the list of
         process indicators.
 
@@ -299,15 +295,14 @@ class Indicators:
 
         """
         if not processes:
-            return False
+            return None
 
         for process in processes:
-            if self.check_process(process):
-                return True
+            check = self.check_process(process)
+            if check:
+                return check
 
-        return False
-
-    def check_email(self, email) -> bool:
+    def check_email(self, email):
         """Check the provided email against the list of email indicators.
 
         :param email: Email address to check against email indicators
@@ -317,17 +312,15 @@ class Indicators:
 
         """
         if not email:
-            return False
+            return None
 
         for ioc in self.get_iocs("emails"):
             if email.lower() == ioc["value"].lower():
                 self.log.warning("Found a known suspicious email address \"%s\" matching indicators from \"%s\"",
                                  email, ioc["name"])
-                return True
+                return ioc
 
-        return False
-
-    def check_file_name(self, file_name) -> bool:
+    def check_file_name(self, file_name):
         """Check the provided file name against the list of file indicators.
 
         :param file_name: File name to check against file
@@ -338,17 +331,15 @@ class Indicators:
 
         """
         if not file_name:
-            return False
+            return None
 
         for ioc in self.get_iocs("file_names"):
             if ioc["value"] == file_name:
                 self.log.warning("Found a known suspicious file name \"%s\" matching indicators from \"%s\"",
                                  file_name, ioc["name"])
-                return True
+                return ioc
 
-        return False
-
-    def check_file_path(self, file_path) -> bool:
+    def check_file_path(self, file_path):
         """Check the provided file path against the list of file indicators (both path and name).
 
         :param file_path: File path or file name to check against file
@@ -359,21 +350,20 @@ class Indicators:
 
         """
         if not file_path:
-            return False
+            return None
 
-        if self.check_file_name(os.path.basename(file_path)):
-            return True
+        ioc = self.check_file_name(os.path.basename(file_path))
+        if ioc:
+            return ioc
 
         for ioc in self.get_iocs("file_paths"):
             # Strip any trailing slash from indicator paths to match directories.
             if file_path.startswith(ioc["value"].rstrip("/")):
                 self.log.warning("Found a known suspicious file path \"%s\" matching indicators form \"%s\"",
                                  file_path, ioc["name"])
-                return True
+                return ioc
 
-        return False
-
-    def check_profile(self, profile_uuid) -> bool:
+    def check_profile(self, profile_uuid):
         """Check the provided configuration profile UUID against the list of indicators.
 
         :param profile_uuid: Profile UUID to check against configuration profile indicators
@@ -386,9 +376,7 @@ class Indicators:
             if profile_uuid in ioc["value"]:
                 self.log.warning("Found a known suspicious profile ID \"%s\" matching indicators from \"%s\"",
                                  profile_uuid, ioc["name"])
-                return True
-
-        return False
+                return ioc
 
 
 def download_indicators_files(log):

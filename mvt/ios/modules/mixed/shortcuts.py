@@ -54,9 +54,11 @@ class Shortcuts(IOSExtraction):
         if not self.indicators:
             return
 
-        for action in self.results:
-            if self.indicators.check_domains(action["action_urls"]):
-                self.detected.append(action)
+        for result in self.results:
+            ioc = self.indicators.check_domains(result["action_urls"])
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def run(self):
         self._find_ios_database(backup_ids=SHORTCUT_BACKUP_IDS,

@@ -66,7 +66,9 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                 all_origins = set([entry["origin"]] + source_domains + destination_domains)
 
-                if self.indicators.check_domains(all_origins):
+                ioc = self.indicators.check_domains(all_origins)
+                if ioc:
+                    entry["matched_indicator"] = ioc
                     self.detected.append(entry)
 
                     redirect_path = ""

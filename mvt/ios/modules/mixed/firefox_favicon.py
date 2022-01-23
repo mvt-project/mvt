@@ -40,8 +40,12 @@ class FirefoxFavicon(IOSExtraction):
             return
 
         for result in self.results:
-            if (self.indicators.check_domain(result.get("url", "")) or
-                    self.indicators.check_domain(result.get("history_url", ""))):
+            ioc = self.indicators.check_domain(result.get("url", ""))
+            if not ioc:
+                ioc = self.indicators.check_domain(result.get("history_url", ""))
+
+            if ioc:
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
 
     def run(self):

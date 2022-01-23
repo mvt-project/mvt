@@ -43,7 +43,9 @@ class IDStatusCache(IOSExtraction):
         for result in self.results:
             if result.get("user", "").startswith("mailto:"):
                 email = result["user"][7:].strip("'")
-                if self.indicators.check_email(email):
+                ioc = self.indicators.check_email(email)
+                if ioc:
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 

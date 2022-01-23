@@ -46,8 +46,10 @@ class ConfigurationProfiles(IOSExtraction):
                 payload_content = result["plist"]["PayloadContent"][0]
 
                 # Alert on any known malicious configuration profiles in the indicator list.
-                if self.indicators.check_profile(result["plist"]["PayloadUUID"]):
+                ioc = self.indicators.check_profile(result["plist"]["PayloadUUID"])
+                if ioc:
                     self.log.warning(f"Found a known malicious configuration profile \"{result['plist']['PayloadDisplayName']}\" with UUID '{result['plist']['PayloadUUID']}'.")
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 

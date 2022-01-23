@@ -44,16 +44,22 @@ class SafariBrowserState(IOSExtraction):
             return
 
         for result in self.results:
-            if "tab_url" in result and self.indicators.check_domain(result["tab_url"]):
-                self.detected.append(result)
-                continue
+            if "tab_url" in result:
+                ioc = self.indicators.check_domain(result["tab_url"])
+                if ioc:
+                    result["matched_indicator"] = ioc
+                    self.detected.append(result)
+                    continue
 
             if "session_data" not in result:
                 continue
 
             for session_entry in result["session_data"]:
-                if "entry_url" in session_entry and self.indicators.check_domain(session_entry["entry_url"]):
-                    self.detected.append(result)
+                if "entry_url" in session_entry:
+                    ioc = self.indicators.check_domain(session_entry["entry_url"])
+                    if ioc:
+                        result["matched_indicator"] = ioc
+                        self.detected.append(result)
 
     def _process_browser_state_db(self, db_path):
         conn = sqlite3.connect(db_path)

@@ -18,9 +18,11 @@ class WebkitBase(IOSExtraction):
         if not self.indicators:
             return
 
-        for item in self.results:
-            if self.indicators.check_domain(item["url"]):
-                self.detected.append(item)
+        for result in self.results:
+            ioc = self.indicators.check_domain(result["url"])
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def _process_webkit_folder(self, root_paths):
         for found_path in self._get_fs_files_from_patterns(root_paths):

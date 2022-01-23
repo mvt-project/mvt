@@ -47,9 +47,11 @@ class Whatsapp(IOSExtraction):
         if not self.indicators:
             return
 
-        for message in self.results:
-            if self.indicators.check_domains(message.get("links", [])):
-                self.detected.append(message)
+        for result in self.results:
+            ioc = self.indicators.check_domains(result.get("links", []))
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def run(self):
         self._find_ios_database(backup_ids=WHATSAPP_BACKUP_IDS,

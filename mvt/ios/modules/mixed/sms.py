@@ -41,10 +41,12 @@ class SMS(IOSExtraction):
         if not self.indicators:
             return
 
-        for message in self.results:
-            message_links = check_for_links(message.get("text", ""))
-            if self.indicators.check_domains(message_links):
-                self.detected.append(message)
+        for result in self.results:
+            message_links = check_for_links(result.get("text", ""))
+            ioc = self.indicators.check_domains(message_links)
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def run(self):
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS,

@@ -60,30 +60,38 @@ class LocationdClients(IOSExtraction):
             parts = result["package"].split("/")
             proc_name = parts[len(parts)-1]
 
-            if self.indicators.check_process(proc_name):
+            ioc = self.indicators.check_process(proc_name)
+            if ioc:
                 self.log.warning("Found a suspicious process name in LocationD entry %s",
                                  result["package"])
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
                 continue
 
             if "BundlePath" in result:
-                if self.indicators.check_file_path(result["BundlePath"]):
+                ioc = self.indicators.check_file_path(result["BundlePath"])
+                if ioc:
                     self.log.warning("Found a suspicious file path in Location D: %s",
                                      result["BundlePath"])
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
             if "Executable" in result:
-                if self.indicators.check_file_path(result["Executable"]):
+                ioc = self.indicators.check_file_path(result["Executable"])
+                if ioc:
                     self.log.warning("Found a suspicious file path in Location D: %s",
                                      result["Executable"])
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
             if "Registered" in result:
-                if self.indicators.check_file_path(result["Registered"]):
+                ioc = self.indicators.check_file_path(result["Registered"])
+                if ioc:
                     self.log.warning("Found a suspicious file path in Location D: %s",
                                      result["Registered"])
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 

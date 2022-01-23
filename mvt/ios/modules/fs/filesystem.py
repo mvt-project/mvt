@@ -40,7 +40,9 @@ class Filesystem(IOSExtraction):
             if "path" not in result:
                 continue
 
-            if self.indicators.check_file_path(result["path"]):
+            ioc = self.indicators.check_file_path(result["path"])
+            if ioc:
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
 
             # If we are instructed to run fast, we skip the rest.
@@ -52,6 +54,7 @@ class Filesystem(IOSExtraction):
                 if ioc["value"] in parts:
                     self.log.warning("Found known suspicious process name mentioned in file at path \"%s\" matching indicators from \"%s\"",
                                      result["path"], ioc["name"])
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
 
     def run(self):

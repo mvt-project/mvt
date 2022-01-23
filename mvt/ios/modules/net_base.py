@@ -237,5 +237,7 @@ class NetBase(IOSExtraction):
             if not result["proc_id"]:
                 continue
 
-            if self.indicators.check_process(proc_name):
+            ioc = self.indicators.check_process(proc_name)
+            if ioc:
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
