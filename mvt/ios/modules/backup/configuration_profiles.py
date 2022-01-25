@@ -1,4 +1,3 @@
-
 # Mobile Verification Toolkit (MVT)
 # Copyright (c) 2021 The MVT Project Authors.
 # Use of this software is governed by the MVT License 1.1 that can be found at
@@ -78,6 +77,9 @@ class ConfigurationProfiles(IOSExtraction):
 
             if "SignerCerts" in conf_plist:
                 conf_plist["SignerCerts"] = [b64encode(x) for x in conf_plist["SignerCerts"]]
+            if "OTAProfileStub" in conf_plist:
+                if "SignerCerts" in conf_plist["OTAProfileStub"]:
+                    conf_plist["OTAProfileStub"]["SignerCerts"] = [b64encode(x) for x in conf_plist["OTAProfileStub"]["SignerCerts"]]
             if "PushTokenDataSentToServerKey" in conf_plist:
                 conf_plist["PushTokenDataSentToServerKey"] = b64encode(conf_plist["PushTokenDataSentToServerKey"])
             if "LastPushTokenHash" in conf_plist:
