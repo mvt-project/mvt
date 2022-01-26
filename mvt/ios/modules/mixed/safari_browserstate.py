@@ -62,6 +62,7 @@ class SafariBrowserState(IOSExtraction):
                         self.detected.append(result)
 
     def _process_browser_state_db(self, db_path):
+        self._recover_sqlite_db_if_needed(db_path)
         conn = sqlite3.connect(db_path)
 
         cur = conn.cursor()
@@ -92,8 +93,12 @@ class SafariBrowserState(IOSExtraction):
             if row[4]:
                 # Skip a 4 byte header before the plist content.
                 session_plist = row[4][4:]
-                session_data = plistlib.load(io.BytesIO(session_plist))
-                session_data = keys_bytes_to_string(session_data)
+                session_data = {}
+                try:
+                    session_data = plistlib.load(io.BytesIO(session_plist))
+                    session_data = keys_bytes_to_string(session_data)
+                except plistlib.InvalidFileException:
+                    pass
 
                 if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
                     for session_entry in session_data["SessionHistory"].get("SessionHistoryEntries"):
@@ -114,7 +119,6 @@ class SafariBrowserState(IOSExtraction):
             })
 
     def run(self):
-
         if self.is_backup:
             for backup_file in self._get_backup_files_from_manifest(relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH):
                 self.file_path = self._get_backup_file_from_id(backup_file["file_id"])
