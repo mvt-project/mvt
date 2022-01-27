@@ -35,7 +35,7 @@ class WebkitSessionResourceLog(IOSExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
-        self.results = {}
+        self.results = {} if not results else results
 
     @staticmethod
     def _extract_domains(entries):

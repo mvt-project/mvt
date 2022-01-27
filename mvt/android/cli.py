@@ -200,6 +200,72 @@ def check_backup(ctx, iocs, output, backup_path, serial):
 
 
 #==============================================================================
+# Command: check-iocs
+#==============================================================================
+@cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
+@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
+              default=[], help=HELP_MSG_IOC)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.argument("FOLDER", type=click.Path(exists=True))
+@click.pass_context
+def check_iocs(ctx, iocs, list_modules, module, folder):
+    all_modules = []
+    for entry in BACKUP_MODULES + ADB_MODULES:
+        if entry not in all_modules:
+            all_modules.append(entry)
+
+    if list_modules:
+        log.info("Following is the list of available check-iocs modules:")
+        for iocs_module in all_modules:
+            log.info(" - %s", iocs_module.__name__)
+
+        return
+
+    log.info("Checking stored results against provided indicators...")
+
+    indicators = Indicators(log=log)
+    indicators.load_indicators_files(iocs)
+
+    total_detections = 0
+    for file_name in os.listdir(folder):
+        name_only, ext = os.path.splitext(file_name)
+        file_path = os.path.join(folder, file_name)
+
+        # TODO: Skipping processing of result files that are not json.
+        #       We might want to revisit this eventually.
+        if ext != ".json":
+            continue
+
+        for iocs_module in all_modules:
+            if module and iocs_module.__name__ != module:
+                continue
+
+            if iocs_module().get_slug() != name_only:
+                continue
+
+            log.info("Loading results from \"%s\" with module %s", file_name,
+                     iocs_module.__name__)
+
+            m = iocs_module.from_json(file_path,
+                                      log=logging.getLogger(iocs_module.__module__))
+            if indicators.total_ioc_count > 0:
+                m.indicators = indicators
+                m.indicators.log = m.log
+
+            try:
+                m.check_indicators()
+            except NotImplementedError:
+                continue
+            else:
+                total_detections += len(m.detected)
+
+    if total_detections > 0:
+        log.warning("The check of the results produced %d detections!",
+                    total_detections)
+
+
+#==============================================================================
 # Command: download-iocs
 #==============================================================================
 @cli.command("download-iocs", help="Download public STIX2 indicators")

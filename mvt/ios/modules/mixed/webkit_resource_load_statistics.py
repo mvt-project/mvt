@@ -28,7 +28,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
-        self.results = {}
+        self.results = {} if not results else results
 
     def check_indicators(self):
         if not self.indicators:

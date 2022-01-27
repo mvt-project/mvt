@@ -24,6 +24,21 @@ class DumpsysReceivers(AndroidExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
+    def check_indicators(self):
+        for result in self.results:
+            if result["activity"] == ACTION_NEW_OUTGOING_SMS:
+                self.log.info("Found a receiver to intercept outgoing SMS messages: \"%s\"",
+                              result["receiver"])
+            elif result["activity"] == ACTION_SMS_RECEIVED:
+                self.log.info("Found a receiver to intercept incoming SMS messages: \"%s\"",
+                              result["receiver"])
+            elif result["activity"] == ACTION_DATA_SMS_RECEIVED:
+                self.log.info("Found a receiver to intercept incoming data SMS message: \"%s\"",
+                              result["receiver"])
+            elif result["activity"] == ACTION_PHONE_STATE:
+                self.log.info("Found a receiver monitoring telephony state: \"%s\"",
+                              result["receiver"])
+
     def run(self):
         self._adb_connect()
 
@@ -64,19 +79,6 @@ class DumpsysReceivers(AndroidExtraction):
             package_name = receiver.split("/")[0]
             if package_name == "com.google.android.gms":
                 continue
-
-            if activity == ACTION_NEW_OUTGOING_SMS:
-                self.log.info("Found a receiver to intercept outgoing SMS messages: \"%s\"",
-                              receiver)
-            elif activity == ACTION_SMS_RECEIVED:
-                self.log.info("Found a receiver to intercept incoming SMS messages: \"%s\"",
-                              receiver)
-            elif activity == ACTION_DATA_SMS_RECEIVED:
-                self.log.info("Found a receiver to intercept incoming data SMS message: \"%s\"",
-                              receiver)
-            elif activity == ACTION_PHONE_STATE:
-                self.log.info("Found a receiver monitoring telephony state: \"%s\"",
-                              receiver)
 
             self.results.append({
                 "activity": activity,
