@@ -22,30 +22,16 @@ class Files(AndroidExtraction):
         super().__init__(file_path=file_path, base_folder=base_folder,
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
-        self.full_find = None
+        self.full_find = False
 
-    def find_path(self, file_path):
-        """Checks if Android system supports full find command output"""
-        # Check find command params on first run
-        # Run find command with correct args and parse results.
-
-        # Check that full file printf options are suppported on first run.
-        if self.full_find is None:
-            output = self._adb_command("find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
-            if not (output or output.strip().splitlines()):
-                # Full  find command failed to generate output, fallback to basic file arguments
-                self.full_find = False
-            else:
-                self.full_find = True
-
-        found_files = []
-        if self.full_find is True:
-            # Run full file command and collect additonal file information.
+    def find_files(self, file_path):
+        if self.full_find:
             output = self._adb_command(f"find '{file_path}' -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
+
             for file_line in output.splitlines():
                 [unix_timestamp, mode, size, owner, group, full_path] = file_line.rstrip().split(" ", 5)
                 mod_time = convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(int(float(unix_timestamp))))
-                found_files.append({
+                self.results.append({
                     "path": full_path,
                     "modified_time": mod_time,
                     "mode": mode,
@@ -56,14 +42,9 @@ class Files(AndroidExtraction):
                     "group": group,
                 })
         else:
-            # Run a basic listing of file paths.
             output = self._adb_command(f"find '{file_path}' 2> /dev/null")
             for file_line in output.splitlines():
-                found_files.append({
-                    "path": file_line.rstrip()
-                })
-
-        return found_files
+                self.results.append({"path": file_line.rstrip()})
 
     def serialize(self, record):
         if "modified_time" in record:
@@ -85,6 +66,7 @@ class Files(AndroidExtraction):
     def check_indicators(self):
         """Check file list for known suspicious files or suspicious properties"""
         self.check_suspicious()
+
         if not self.indicators:
             return
 
@@ -95,25 +77,21 @@ class Files(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-        found_file_paths = []
 
-        DATA_PATHS = ["/data/local/tmp/", "/sdcard/", "/tmp/"]
-        for path in DATA_PATHS:
-            file_info = self.find_path(path)
-            found_file_paths.extend(file_info)
+        output = self._adb_command("find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
+        if output or output.strip().splitlines():
+            self.full_find = True
 
-        # Store results
-        self.results.extend(found_file_paths)
-        self.log.info("Found %s files in primary Android data directories.", len(found_file_paths))
+        for data_path in ["/data/local/tmp/", "/sdcard/", "/tmp/"]:
+            self.find_files(data_path)
+
+        self.log.info("Found %s files in primary Android data directories", len(self.results))
 
         if self.fast_mode:
             self.log.info("Flag --fast was enabled: skipping full file listing")
         else:
-            self.log.info("Flag --fast was not enabled: processing full file listing. "
-                          "This may take a while...")
-            output = self.find_path("/")
-            if output and self.output_folder:
-                self.results.extend(output)
-                log.info("List of visible files stored in files.json")
+            self.log.info("Processing full file listing. This may take a while...")
+            self.find_files("/")
+            self.log.info("Found %s total files", len(self.results))
 
         self._adb_disconnect()

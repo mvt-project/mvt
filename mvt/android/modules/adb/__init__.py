@@ -13,12 +13,13 @@ from .dumpsys_receivers import DumpsysReceivers
 from .files import Files
 from .logcat import Logcat
 from .packages import Packages
+from .getprop import Getprop
 from .processes import Processes
-from .rootbinaries import RootBinaries
+from .root_binaries import RootBinaries
 from .sms import SMS
 from .whatsapp import Whatsapp
 
-ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes,
+ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes, Getprop,
                DumpsysAccessibility, DumpsysBatterystats, DumpsysProcstats,
                DumpsysPackages, DumpsysReceivers, DumpsysFull,
                Packages, RootBinaries, Logcat, Files]

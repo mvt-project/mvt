@@ -173,8 +173,7 @@ class Indicators:
 
         :param url: URL to match against domain indicators
         :type url: str
-        :returns: True if the URL matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         # TODO: If the IOC domain contains a subdomain, it is not currently
@@ -246,8 +245,7 @@ class Indicators:
 
         :param urls: List of URLs to check against domain indicators
         :type urls: list
-        :returns: True if any URL matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         if not urls:
@@ -264,8 +262,7 @@ class Indicators:
 
         :param process: Process name to check against process indicators
         :type process: str
-        :returns: True if process matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         if not process:
@@ -290,8 +287,7 @@ class Indicators:
 
         :param processes: List of processes to check against process indicators
         :type processes: list
-        :returns: True if process matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         if not processes:
@@ -307,8 +303,7 @@ class Indicators:
 
         :param email: Email address to check against email indicators
         :type email: str
-        :returns: True if email address matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         if not email:
@@ -326,8 +321,7 @@ class Indicators:
         :param file_name: File name to check against file
         indicators
         :type file_name: str
-        :returns: True if the file name matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         if not file_name:
@@ -345,8 +339,7 @@ class Indicators:
         :param file_path: File path or file name to check against file
         indicators
         :type file_path: str
-        :returns: True if the file path matched an indicator, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
         if not file_path:
@@ -368,14 +361,51 @@ class Indicators:
 
         :param profile_uuid: Profile UUID to check against configuration profile indicators
         :type profile_uuid: str
-        :returns: True if the UUID in indicator list, otherwise False
-        :rtype: bool
+        :returns: Indicator details if matched, otherwise None
 
         """
+        if not profile_uuid:
+            return None
+
         for ioc in self.get_iocs("ios_profile_ids"):
             if profile_uuid in ioc["value"]:
                 self.log.warning("Found a known suspicious profile ID \"%s\" matching indicators from \"%s\"",
                                  profile_uuid, ioc["name"])
+                return ioc
+
+    def check_file_hash(self, file_hash):
+        """Check the provided SHA256 file hash against the list of indicators.
+
+        :param file_hash: SHA256 hash to check
+        :type file_hash: str
+        :returns: Indicator details if matched, otherwise None
+
+        """
+        if not file_hash:
+            return None
+
+        for ioc in self.get_iocs("files_sha256"):
+            if file_hash.lower() == ioc["value"].lower():
+                self.log.warning("Found a known suspicious file with hash \"%s\" matching indicators from \"%s\"",
+                                 file_hash, ioc["name"])
+                return ioc
+
+    def check_app_id(self, app_id):
+        """Check the provided app identifier (typically an Android package name)
+        against the list of indicators.
+
+        :param app_id: App ID to check against the list of indicators
+        :type app_id: str
+        :returns: Indicator details if matched, otherwise None
+
+        """
+        if not app_id:
+            return None
+
+        for ioc in self.get_iocs("app_ids"):
+            if app_id.lower() == ioc["value"].lower():
+                self.log.warning("Found a known suspicious app with ID \"%s\" matching indicators from \"%s\"",
+                                 app_id, ioc["name"])
                 return ioc
 
 

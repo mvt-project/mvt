@@ -42,9 +42,6 @@ class Packages(AndroidExtraction):
         return records
 
     def check_indicators(self):
-        if not self.indicators:
-            return
-
         root_packages_path = os.path.join("..", "..", "data", "root_packages.txt")
         root_packages_string = pkg_resources.resource_string(__name__, root_packages_path)
         root_packages = root_packages_string.decode("utf-8").split("\n")
@@ -55,16 +52,19 @@ class Packages(AndroidExtraction):
                 self.log.warning("Found an installed package related to rooting/jailbreaking: \"%s\"",
                                  result["package_name"])
                 self.detected.append(result)
-            if result["package_name"] in self.indicators.ioc_app_ids:
-                self.log.warning("Found a malicious package name: \"%s\"",
-                                 result["package_name"])
+                continue
+
+            ioc = self.indicators.check_app_id(result.get("package_name"))
+            if ioc:
+                result["matched_indicators"] = ioc
                 self.detected.append(result)
-                for file in result["files"]:
-                    if file["sha256"] in self.indicators.ioc_files_sha256:
-                        self.log.warning("Found a malicious APK: \"%s\" %s",
-                                         result["package_name"],
-                                         file["sha256"])
-                        self.detected.append(result)
+                continue
+
+            for package_file in result["files"]:
+                ioc = self.indicators.check_file_hash(package_file["sha256"])
+                if ioc:
+                    result["matched_indicators"] = ioc
+                    self.detected.append(result)
 
     def _get_files_for_package(self, package_name):
         output = self._adb_command(f"pm path {package_name}")
