@@ -28,7 +28,7 @@ class Getprop(AndroidExtraction):
 
         rxp = re.compile("\\[(.+?)\\]: \\[(.+?)\\]")
         out = self._adb_command("getprop")
-        for line in out.split("\n"):
+        for line in out.splitlines():
             line = line.strip()
             if line == "":
                 continue

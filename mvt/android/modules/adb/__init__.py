@@ -15,11 +15,12 @@ from .logcat import Logcat
 from .packages import Packages
 from .getprop import Getprop
 from .processes import Processes
+from .settings import Settings
 from .root_binaries import RootBinaries
 from .sms import SMS
 from .whatsapp import Whatsapp
 
-ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes, Getprop,
+ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes, Getprop, Settings,
                DumpsysAccessibility, DumpsysBatterystats, DumpsysProcstats,
                DumpsysPackages, DumpsysReceivers, DumpsysFull,
                Packages, RootBinaries, Logcat, Files]
