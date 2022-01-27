@@ -28,6 +28,11 @@ class Settings(AndroidExtraction):
 
         dangerous = [
             {
+                "description": "disabled Google Play Services apps verification",
+                "key": "verifier_verify_adb_installs",
+                "value": "0",
+            }
+            {
                 "description": "disabled Google Play Protect",
                 "key": "package_verifier_enable",
                 "value": "-1",
@@ -46,6 +51,11 @@ class Settings(AndroidExtraction):
                 "description": "enabled installation of non-market apps",
                 "key": "install_non_market_apps",
                 "value": "1",
+            },
+            {
+                "description": "disabled confirmation of adb apps installation",
+                "key": "adb_install_need_confirm",
+                "value": "0",
             },
             {
                 "description": "disabled sharing of security reports",
@@ -86,5 +96,6 @@ class Settings(AndroidExtraction):
                     if danger["key"] == fields[0] and danger["value"] == fields[1]:
                         self.log.warning("Found suspicious setting \"%s = %s\" (%s)",
                                          fields[0], fields[1], danger["description"])
+                        break
 
         self._adb_disconnect()
