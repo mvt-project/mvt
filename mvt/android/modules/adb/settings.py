@@ -12,6 +12,54 @@ from .base import AndroidExtraction
 log = logging.getLogger(__name__)
 
 
+ANDROID_DANGEROUS_SETTINGS = [
+    {
+        "description": "disabled Google Play Services apps verification",
+        "key": "verifier_verify_adb_installs",
+        "safe_value": "1",
+    },
+    {
+        "description": "disabled Google Play Protect",
+        "key": "package_verifier_enable",
+        "safe_value": "1",
+    },
+    {
+        "description": "disabled Google Play Protect",
+        "key": "package_verifier_user_consent",
+        "safe_value": "1",
+    },
+    {
+        "description": "disabled Google Play Protect",
+        "key": "upload_apk_enable",
+        "safe_value": "1",
+    },
+    {
+        "description": "enabled installation of non-market apps",
+        "key": "install_non_market_apps",
+        "safe_value": "0",
+    },
+    {
+        "description": "disabled confirmation of adb apps installation",
+        "key": "adb_install_need_confirm",
+        "safe_value": "1",
+    },
+    {
+        "description": "disabled sharing of security reports",
+        "key": "send_security_reports",
+        "safe_value": "1",
+    },
+    {
+        "description": "disabled sharing of crash logs with manufacturer",
+        "key": "samsung_errorlog_agree",
+        "safe_value": "1",
+    },
+    {
+        "description": "disabled applications errors reports",
+        "key": "send_action_app_error",
+        "safe_value": "1",
+    },
+]
+
 class Settings(AndroidExtraction):
     """This module extracts Android system settings."""
 
@@ -25,54 +73,6 @@ class Settings(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-
-        dangerous = [
-            {
-                "description": "disabled Google Play Services apps verification",
-                "key": "verifier_verify_adb_installs",
-                "value": "0",
-            },
-            {
-                "description": "disabled Google Play Protect",
-                "key": "package_verifier_enable",
-                "value": "-1",
-            },
-            {
-                "description": "disabled Google Play Protect",
-                "key": "package_verifier_user_consent",
-                "value": "-1",
-            },
-            {
-                "description": "disabled Google Play Protect",
-                "key": "upload_apk_enable",
-                "value": "0",
-            },
-            {
-                "description": "enabled installation of non-market apps",
-                "key": "install_non_market_apps",
-                "value": "1",
-            },
-            {
-                "description": "disabled confirmation of adb apps installation",
-                "key": "adb_install_need_confirm",
-                "value": "0",
-            },
-            {
-                "description": "disabled sharing of security reports",
-                "key": "send_security_reports",
-                "value": "0",
-            },
-            {
-                "description": "disabled sharing of crash logs with manufacturer",
-                "key": "samsung_errorlog_agree",
-                "value": "0",
-            },
-            {
-                "description": "disabled applications errors reports",
-                "key": "send_action_app_error",
-                "value": "0",
-            },
-        ]
 
         for namespace in ["system", "secure", "global"]:
             out = self._adb_command(f"cmd settings list {namespace}")
@@ -92,8 +92,10 @@ class Settings(AndroidExtraction):
                 except IndexError:
                     continue
 
-                for danger in dangerous:
-                    if danger["key"] == fields[0] and danger["value"] == fields[1]:
+                for danger in ANDROID_DANGEROUS_SETTINGS:
+                    # Check if one of the dangerous settings is using an unsafe
+                    # value (different than the one specified).
+                    if danger["key"] == fields[0] and danger["safe_value"] != fields[1]:
                         self.log.warning("Found suspicious setting \"%s = %s\" (%s)",
                                          fields[0], fields[1], danger["description"])
                         break
