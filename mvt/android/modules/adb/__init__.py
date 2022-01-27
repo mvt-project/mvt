@@ -11,12 +11,12 @@ from .dumpsys_packages import DumpsysPackages
 from .dumpsys_procstats import DumpsysProcstats
 from .dumpsys_receivers import DumpsysReceivers
 from .files import Files
+from .getprop import Getprop
 from .logcat import Logcat
 from .packages import Packages
-from .getprop import Getprop
 from .processes import Processes
-from .settings import Settings
 from .root_binaries import RootBinaries
+from .settings import Settings
 from .sms import SMS
 from .whatsapp import Whatsapp
 

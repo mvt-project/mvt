@@ -3,9 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import re
 import logging
 import os
+import re
 
 from .base import AndroidExtraction
 
@@ -31,7 +31,7 @@ class Settings(AndroidExtraction):
                 "description": "disabled Google Play Services apps verification",
                 "key": "verifier_verify_adb_installs",
                 "value": "0",
-            }
+            },
             {
                 "description": "disabled Google Play Protect",
                 "key": "package_verifier_enable",
