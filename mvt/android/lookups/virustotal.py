@@ -39,6 +39,10 @@ def get_virustotal_report(hashes):
 
 
 def virustotal_lookup(packages):
+    # NOTE: This is temporary, until we resolved the issue.
+    log.error("Unfortunately VirusTotal lookup is disabled until further notice, due to unresolved issues with the API service.")
+    return
+
     log.info("Looking up all extracted files on VirusTotal (www.virustotal.com)")
 
     unique_hashes = []
