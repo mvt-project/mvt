@@ -8,9 +8,10 @@ import os
 
 import pkg_resources
 
-from .base import AndroidExtraction
 from mvt.android.lookups.koodous import koodous_lookup
 from mvt.android.lookups.virustotal import virustotal_lookup
+
+from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
