@@ -9,6 +9,8 @@ import os
 import pkg_resources
 
 from .base import AndroidExtraction
+from mvt.android.lookups.koodous import koodous_lookup
+from mvt.android.lookups.virustotal import virustotal_lookup
 
 log = logging.getLogger(__name__)
 
@@ -157,12 +159,18 @@ class Packages(AndroidExtraction):
                     if result["package_name"] == package_name:
                         self.results[i][cmd["field"]] = True
 
+        packages_to_lookup = []
         for result in self.results:
             if result["system"]:
                 continue
 
+            packages_to_lookup.append(result)
             self.log.info("Found non-system package with name \"%s\" installed by \"%s\" on %s",
                           result["package_name"], result["installer"], result["timestamp"])
+
+        if not self.fast_mode:
+            virustotal_lookup(packages_to_lookup)
+            koodous_lookup(packages_to_lookup)
 
         self.log.info("Extracted at total of %d installed package names",
                       len(self.results))
