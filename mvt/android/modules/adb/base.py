@@ -15,7 +15,7 @@ from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
-                                  UsbReadFailedError)
+                                  UsbReadFailedError, UsbDeviceNotFoundError)
 from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.common.module import InsufficientPrivileges, MVTModule
@@ -65,7 +65,11 @@ class AndroidExtraction(MVTModule):
         # If no serial was specified or if the serial does not seem to be
         # a HOST:PORT definition, we use the USB transport.
         if not self.serial or ":" not in self.serial:
-            self.device = AdbDeviceUsb(serial=self.serial)
+            try:
+                self.device = AdbDeviceUsb(serial=self.serial)
+            except UsbDeviceNotFoundError:
+                log.critical("No device found. Make sure it is connected and unlocked.")
+                sys.exit(-1)
         # Otherwise we try to use the TCP transport.
         else:
             addr = self.serial.split(":")
