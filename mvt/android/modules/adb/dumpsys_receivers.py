@@ -44,8 +44,11 @@ class DumpsysReceivers(AndroidExtraction):
                               result["receiver"])
 
     def parse_dumpsys_package(self, data):
-        """
-        Parse content of dumpsys package
+        """Parse output of dumpsys package.
+
+        :param data: Output of dumpsys packages command.
+        :type data: str
+
         """
         activity = None
         for line in data:
@@ -96,5 +99,7 @@ class DumpsysReceivers(AndroidExtraction):
         output = self._adb_command("dumpsys package")
         if not output:
             return
+
         self.parse_dumpsys_package(output.split("\n"))
+
         self._adb_disconnect()
