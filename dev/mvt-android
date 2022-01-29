@@ -6,10 +6,6 @@
 
 import os
 import sys
-import importlib
-
-importlib.reload(sys)
-print(sys.getdefaultencoding())
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
