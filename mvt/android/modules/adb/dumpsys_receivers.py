@@ -43,15 +43,12 @@ class DumpsysReceivers(AndroidExtraction):
                 self.log.info("Found a receiver monitoring outgoing calls: \"%s\"",
                               result["receiver"])
 
-    def run(self):
-        self._adb_connect()
-
-        output = self._adb_command("dumpsys package")
-        if not output:
-            return
-
+    def parse_dumpsys_package(self, data):
+        """
+        Parse content of dumpsys package
+        """
         activity = None
-        for line in output.split("\n"):
+        for line in data:
             # Find activity block markers.
             if line.strip().startswith(INTENT_NEW_OUTGOING_SMS):
                 activity = INTENT_NEW_OUTGOING_SMS
@@ -93,4 +90,11 @@ class DumpsysReceivers(AndroidExtraction):
                 "receiver": receiver,
             })
 
+    def run(self):
+        self._adb_connect()
+
+        output = self._adb_command("dumpsys package")
+        if not output:
+            return
+        self.parse_dumpsys_package(output.split("\n"))
         self._adb_disconnect()
