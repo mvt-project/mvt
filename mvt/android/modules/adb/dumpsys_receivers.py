@@ -46,7 +46,7 @@ class DumpsysReceivers(AndroidExtraction):
     def parse_dumpsys_package(self, data):
         """Parse output of dumpsys package.
 
-        :param data: Output of dumpsys packages command.
+        :param data: Output of dumpsys package command.
         :type data: str
 
         """
