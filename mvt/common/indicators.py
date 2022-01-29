@@ -82,7 +82,7 @@ class Indicators:
         ioc_file["file_path"] = file_path
         ioc_file["file_name"] = os.path.basename(file_path)
 
-        with open(file_path, "r") as handle:
+        with open(file_path, "r", encoding="utf-8") as handle:
             try:
                 data = json.load(handle)
             except json.decoder.JSONDecodeError:

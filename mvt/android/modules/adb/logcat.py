@@ -31,7 +31,7 @@ class Logcat(AndroidExtraction):
         if self.output_folder:
             logcat_path = os.path.join(self.output_folder,
                                        "logcat.txt")
-            with open(logcat_path, "w") as handle:
+            with open(logcat_path, "w", encoding="utf-8") as handle:
                 handle.write(output)
 
             log.info("Current logcat logs stored at %s",
@@ -39,7 +39,7 @@ class Logcat(AndroidExtraction):
 
             logcat_last_path = os.path.join(self.output_folder,
                                             "logcat_last.txt")
-            with open(logcat_last_path, "w") as handle:
+            with open(logcat_last_path, "w", encoding="utf-8") as handle:
                 handle.write(last_output)
 
             log.info("Logcat logs prior to last reboot stored at %s",

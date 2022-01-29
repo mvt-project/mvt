@@ -34,7 +34,7 @@ class IOSVersionHistory(IOSExtraction):
 
     def run(self):
         for found_path in self._get_fs_files_from_patterns(IOS_ANALYTICS_JOURNAL_PATHS):
-            with open(found_path, "r") as analytics_log:
+            with open(found_path, "r", encoding="utf-8") as analytics_log:
                 log_line = json.loads(analytics_log.readline().strip())
 
                 timestamp = datetime.datetime.strptime(log_line["timestamp"],

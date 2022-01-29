@@ -27,7 +27,7 @@ class DumpsysBatterystats(AndroidExtraction):
         if self.output_folder:
             stats_path = os.path.join(self.output_folder,
                                       "dumpsys_batterystats.txt")
-            with open(stats_path, "w") as handle:
+            with open(stats_path, "w", encoding="utf-8") as handle:
                 handle.write(stats)
 
             log.info("Records from dumpsys batterystats stored at %s",
@@ -37,7 +37,7 @@ class DumpsysBatterystats(AndroidExtraction):
         if self.output_folder:
             history_path = os.path.join(self.output_folder,
                                         "dumpsys_batterystats_history.txt")
-            with open(history_path, "w") as handle:
+            with open(history_path, "w", encoding="utf-8") as handle:
                 handle.write(history)
 
             log.info("History records from dumpsys batterystats stored at %s",

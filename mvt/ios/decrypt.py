@@ -185,7 +185,7 @@ class DecryptBackup:
             return
 
         try:
-            with open(key_path, 'w') as handle:
+            with open(key_path, 'w', encoding="utf-8") as handle:
                 handle.write(self._decryption_key)
         except Exception as e:
             log.exception(e)
