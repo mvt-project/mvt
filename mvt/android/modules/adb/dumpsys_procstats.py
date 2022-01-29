@@ -27,7 +27,7 @@ class DumpsysProcstats(AndroidExtraction):
         if self.output_folder:
             procstats_path = os.path.join(self.output_folder,
                                           "dumpsys_procstats.txt")
-            with open(procstats_path, "w") as handle:
+            with open(procstats_path, "w", encoding="utf-8") as handle:
                 handle.write(output)
 
             log.info("Records from dumpsys procstats stored at %s",

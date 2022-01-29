@@ -41,7 +41,7 @@ def generate_test_stix_file(file_path):
         res.append(Relationship(i, "indicates", malware))
 
     bundle = Bundle(objects=res)
-    with open(file_path, "w+") as f:
+    with open(file_path, "w+", encoding="utf-8") as f:
         f.write(bundle.serialize(pretty=True))
 
 

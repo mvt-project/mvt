@@ -58,7 +58,7 @@ class MVTModule(object):
 
     @classmethod
     def from_json(cls, json_path, log=None):
-        with open(json_path, "r") as handle:
+        with open(json_path, "r", encoding="utf-8") as handle:
             results = json.load(handle)
             if log:
                 log.info("Loaded %d results from \"%s\"",

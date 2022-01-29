@@ -86,5 +86,5 @@ class ShutdownLog(IOSExtraction):
     def run(self):
         self._find_ios_database(root_paths=SHUTDOWN_LOG_PATH)
         self.log.info("Found shutdown log at path: %s", self.file_path)
-        with open(self.file_path, "r") as handle:
+        with open(self.file_path, "r", encoding="utf-8") as handle:
             self.process_shutdownlog(handle.read())

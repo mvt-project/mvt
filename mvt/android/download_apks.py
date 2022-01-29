@@ -57,7 +57,7 @@ class DownloadAPKs(AndroidExtraction):
         :param json_path: Path to the apks.json file to parse.
 
         """
-        with open(json_path, "r") as handle:
+        with open(json_path, "r", encoding="utf-8") as handle:
             packages = json.load(handle)
             return cls(packages=packages)
 
@@ -173,7 +173,7 @@ class DownloadAPKs(AndroidExtraction):
     def save_json(self):
         """Save the results to the package.json file."""
         json_path = os.path.join(self.output_folder, "apks.json")
-        with open(json_path, "w") as handle:
+        with open(json_path, "w", encoding="utf-8") as handle:
             json.dump(self.packages, handle, indent=4)
 
     def run(self):

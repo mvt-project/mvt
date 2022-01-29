@@ -28,7 +28,7 @@ class DumpsysPackages(AndroidExtraction):
         if self.output_folder:
             packages_path = os.path.join(self.output_folder,
                                          "dumpsys_packages.txt")
-            with open(packages_path, "w") as handle:
+            with open(packages_path, "w", encoding="utf-8") as handle:
                 handle.write(output)
 
             log.info("Records from dumpsys package stored at %s",
