@@ -184,7 +184,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 
     if len(timeline_detected) > 0:
         log.warning("The analysis of the backup produced %d detections!",
-                len(timeline_detected))
+                    len(timeline_detected))
 
 
 #==============================================================================
@@ -246,6 +246,7 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
     if len(timeline_detected) > 0:
         log.warning("The analysis of the filesystem produced %d detections!",
                     len(timeline_detected))
+
 
 #==============================================================================
 # Command: check-iocs

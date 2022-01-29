@@ -4,8 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
-import re
 
 from .base import AndroidExtraction
 
@@ -59,6 +57,7 @@ ANDROID_DANGEROUS_SETTINGS = [
         "safe_value": "1",
     },
 ]
+
 
 class Settings(AndroidExtraction):
     """This module extracts Android system settings."""

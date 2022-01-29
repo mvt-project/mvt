@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import csv
-import io
 import os
 import re
 
@@ -91,7 +90,7 @@ class MVTModule(object):
         if self.results:
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.output_folder, results_file_name)
-            with io.open(results_json_path, "w", encoding="utf-8") as handle:
+            with open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
                     json.dump(self.results, handle, indent=4, default=str)
                 except Exception as e:
@@ -101,7 +100,7 @@ class MVTModule(object):
         if self.detected:
             detected_file_name = f"{name}_detected.json"
             detected_json_path = os.path.join(self.output_folder, detected_file_name)
-            with io.open(detected_json_path, "w", encoding="utf-8") as handle:
+            with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
     def serialize(self, record):
@@ -192,7 +191,7 @@ def save_timeline(timeline, timeline_path):
     :param timeline_path: Path to the csv file to store the timeline to
 
     """
-    with io.open(timeline_path, "a+", encoding="utf-8") as handle:
+    with open(timeline_path, "a+", encoding="utf-8") as handle:
         csvoutput = csv.writer(handle, delimiter=",", quotechar="\"")
         csvoutput.writerow(["UTC Timestamp", "Plugin", "Event", "Description"])
         for event in sorted(timeline, key=lambda x: x["timestamp"] if x["timestamp"] is not None else ""):

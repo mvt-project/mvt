@@ -97,7 +97,6 @@ class TCC(IOSExtraction):
                     FROM access;""")
                 db_version = "v1"
 
-
         for row in cur:
             service = row[0]
             client = row[1]
@@ -113,7 +112,7 @@ class TCC(IOSExtraction):
                 if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
                     device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
                     self.log.info("Found client \"%s\" with access %s to %s on %s by %s",
-                                client, auth_value_desc, device, last_modified, auth_reason_desc)
+                                  client, auth_value_desc, device, last_modified, auth_reason_desc)
 
                 self.results.append({
                     "service": service,
@@ -132,7 +131,7 @@ class TCC(IOSExtraction):
                     if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
                         device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
                         self.log.info("Found client \"%s\" with access %s to %s at %s",
-                                    client, allowed_desc, device, last_modified)
+                                      client, allowed_desc, device, last_modified)
                     self.results.append({
                         "service": service,
                         "client": client,
@@ -145,7 +144,7 @@ class TCC(IOSExtraction):
                     if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
                         device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
                         self.log.info("Found client \"%s\" with access %s to %s",
-                                    client, allowed_desc, device)
+                                      client, allowed_desc, device)
                     self.results.append({
                         "service": service,
                         "client": client,

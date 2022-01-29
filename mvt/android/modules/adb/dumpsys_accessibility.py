@@ -3,7 +3,6 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import io
 import logging
 import os
 
@@ -42,9 +41,8 @@ class DumpsysAccessibility(AndroidExtraction):
             log.info("Found installed accessibility service \"%s\"", service)
 
         if self.output_folder:
-            acc_path = os.path.join(self.output_folder,
-                                      "dumpsys_accessibility.txt")
-            with io.open(acc_path, "w", encoding="utf-8") as handle:
+            acc_path = os.path.join(self.output_folder, "dumpsys_accessibility.txt")
+            with open(acc_path, "w", encoding="utf-8") as handle:
                 handle.write(stats)
 
             log.info("Records from dumpsys accessibility stored at %s",

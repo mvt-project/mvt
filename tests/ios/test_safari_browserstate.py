@@ -17,7 +17,7 @@ class TestSafariBrowserStateModule:
         m = SafariBrowserState(base_folder=get_backup_folder(), log=logging, results=[])
         m.is_backup = True
         run_module(m)
-        assert m.file_path != None
+        assert m.file_path is not None
         assert len(m.results) == 1
         assert len(m.timeline) == 1
         assert len(m.detected) == 0

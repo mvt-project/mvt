@@ -3,7 +3,6 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import io
 import json
 import os
 
@@ -436,7 +435,7 @@ def download_indicators_files(log):
         ioc_path = os.path.join(data_dir, clean_file_name)
 
         # Write file to disk. This will overwrite any older version of the STIX2 file.
-        with io.open(ioc_path, "w") as f:
+        with open(ioc_path, "w", encoding="utf-8") as f:
             f.write(res.text)
 
         log.info("Saved indicator file to '%s'", os.path.basename(ioc_path))
