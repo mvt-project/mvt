@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
 
 from .base import AndroidExtraction
 
@@ -24,7 +23,7 @@ class DumpsysBatteryDaily(AndroidExtraction):
         return {
             "timestamp": record["from"],
             "module": self.__class__.__name__,
-            "event": f"battery_daily",
+            "event": "battery_daily",
             "data": f"Recorded update of package {record['package']} with vers {record['vers']}"
         }
 
