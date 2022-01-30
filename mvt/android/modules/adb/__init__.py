@@ -9,6 +9,7 @@ from .dumpsys_activities import DumpsysActivities
 from .dumpsys_battery_history import DumpsysBatteryHistory
 from .dumpsys_full import DumpsysFull
 from .dumpsys_receivers import DumpsysReceivers
+from .dumpsys_battery_daily import DumpsysBatteryDaily
 from .files import Files
 from .getprop import Getprop
 from .logcat import Logcat
@@ -20,6 +21,6 @@ from .sms import SMS
 from .whatsapp import Whatsapp
 
 ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes, Getprop, Settings,
-               DumpsysAccessibility, DumpsysBatteryHistory, DumpsysReceivers,
-               DumpsysActivities, DumpsysFull, Packages, RootBinaries, Logcat,
-               Files]
+               DumpsysBatteryHistory, DumpsysBatteryDaily, DumpsysReceivers,
+               DumpsysActivities, DumpsysAccessibility, DumpsysFull,
+               Packages, RootBinaries, Logcat, Files]

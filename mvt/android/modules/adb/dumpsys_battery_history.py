@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class DumpsysBatteryHistory(AndroidExtraction):
-    """This module extracts stats on battery consumption by processes."""
+    """This module extracts records from battery history events."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  serial=None, fast_mode=False, log=None, results=[]):
