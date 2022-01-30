@@ -59,14 +59,14 @@ class Packages(AndroidExtraction):
 
             ioc = self.indicators.check_app_id(result.get("package_name"))
             if ioc:
-                result["matched_indicators"] = ioc
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
                 continue
 
             for package_file in result["files"]:
                 ioc = self.indicators.check_file_hash(package_file["sha256"])
                 if ioc:
-                    result["matched_indicators"] = ioc
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
 
     def _get_files_for_package(self, package_name):

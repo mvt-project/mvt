@@ -26,7 +26,7 @@ class DumpsysActivities(AndroidExtraction):
             for activity in activities:
                 ioc = self.indicators.check_app_id(activity["package"])
                 if ioc:
-                    activity["matched_indicators"] = ioc
+                    activity["matched_indicator"] = ioc
                     self.detected.append({intent: activity})
                     continue
 

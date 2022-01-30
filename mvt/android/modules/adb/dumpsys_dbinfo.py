@@ -28,7 +28,7 @@ class DumpsysDBInfo(AndroidExtraction):
             for part in path.split("/"):
                 ioc = self.indicators.check_app_id(part)
                 if ioc:
-                    result["matched_indicators"] = ioc
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 

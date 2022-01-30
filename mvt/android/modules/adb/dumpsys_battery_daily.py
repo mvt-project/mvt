@@ -31,7 +31,7 @@ class DumpsysBatteryDaily(AndroidExtraction):
         for result in self.results:
             ioc = self.indicators.check_app_id(result["package"])
             if ioc:
-                result["matched_indicators"] = ioc
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
                 continue
 

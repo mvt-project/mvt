@@ -48,7 +48,7 @@ class DumpsysReceivers(AndroidExtraction):
 
             ioc = self.indicators.check_app_id(receiver["package"])
             if ioc:
-                receiver["matched_indicators"] = ioc
+                receiver["matched_indicator"] = ioc
                 self.detected.append({intent: receiver})
                 continue
 
