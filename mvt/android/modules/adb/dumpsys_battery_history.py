@@ -55,11 +55,15 @@ class DumpsysBatteryHistory(AndroidExtraction):
                 uid = line[line.find("=")+1:line.find(":")]
                 service = line[line.find(":")+1:].strip('"')
                 package = service.split("/")[0]
-            else:
+            elif event == "wake":
                 uid = line[line.find("=")+1:line.find(":")]
-                service = line[line.find("*walarm*:")+9:line.find(" ")].strip('"')
-                package = service.split("/")[0]
+                service = line[line.find("*walarm*:")+9:].split(" ")[0].strip('"').strip()
+                if service == "" or "/" not in service:
+                    continue
 
+                package = service.split("/")[0]
+            else:
+                continue
 
             self.results.append({
                 "time_elapsed": time_elapsed,
