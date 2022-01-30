@@ -40,12 +40,8 @@ class DumpsysAccessibility(AndroidExtraction):
             service = line.split(":")[1].strip()
             log.info("Found installed accessibility service \"%s\"", service)
 
-        if self.output_folder:
-            acc_path = os.path.join(self.output_folder, "dumpsys_accessibility.txt")
-            with open(acc_path, "w", encoding="utf-8") as handle:
-                handle.write(stats)
+            self.results.append(service)
 
-            log.info("Records from dumpsys accessibility stored at %s",
-                     acc_path)
+        log.info("Identified a total of %d accessibility services", len(self.results))
 
         self._adb_disconnect()
