@@ -20,6 +20,14 @@ class DumpsysAccessibility(AndroidExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
+    def check_indicators(self):
+        for result in self.results:
+            ioc = self.indicators.check_app_id(result["package"])
+            if ioc:
+                result["matched_indicators"] = ioc
+                self.detected.append(result)
+                continue
+
     def run(self):
         self._adb_connect()
 
@@ -40,7 +48,10 @@ class DumpsysAccessibility(AndroidExtraction):
             service = line.split(":")[1].strip()
             log.info("Found installed accessibility service \"%s\"", service)
 
-            self.results.append(service)
+            self.results.append({
+                "package": service.split("/")[0],
+                "service": service,
+            })
 
         log.info("Identified a total of %d accessibility services", len(self.results))
 

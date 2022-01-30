@@ -21,6 +21,15 @@ class DumpsysActivities(AndroidExtraction):
 
         self.results = results if results else {}
 
+    def check_indicators(self):
+        for intent, activities in self.results.items():
+            for activity in activities:
+                ioc = self.indicators.check_app_id(activity["package"])
+                if ioc:
+                    activity["matched_indicators"] = ioc
+                    self.detected.append({intent: activity})
+                    continue
+
     def parse_activity_resolver_table(self, data):
         """Parse output of dumpsys package.
 
@@ -72,10 +81,10 @@ class DumpsysActivities(AndroidExtraction):
             # If we got this far, we are processing receivers for the
             # activities we are interested in.
             activity = line.strip().split(" ")[1]
-            package_name = activity.split("/")[0]
+            package = activity.split("/")[0]
 
             self.results[intent].append({
-                "package_name": package_name,
+                "package": package,
                 "activity": activity,
             })
 

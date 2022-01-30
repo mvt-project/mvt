@@ -46,6 +46,12 @@ class DumpsysReceivers(AndroidExtraction):
                     self.log.info("Found a receiver monitoring outgoing calls: \"%s\"",
                                   receiver["receiver"])
 
+            ioc = self.indicators.check_app_id(receiver["package"])
+            if ioc:
+                receiver["matched_indicators"] = ioc
+                self.detected.append({intent: receiver})
+                continue
+
     def parse_receiver_resolver_table(self, data):
         """Parse output of dumpsys package.
 
@@ -96,10 +102,10 @@ class DumpsysReceivers(AndroidExtraction):
             # If we got this far, we are processing receivers for the
             # activities we are interested in.
             receiver = line.strip().split(" ")[1]
-            package_name = receiver.split("/")[0]
+            package = receiver.split("/")[0]
 
             self.results[intent].append({
-                "package_name": package_name,
+                "package": package,
                 "receiver": receiver,
             })
 
