@@ -23,12 +23,12 @@ class DumpsysFull(AndroidExtraction):
     def run(self):
         self._adb_connect()
 
-        stats = self._adb_command("dumpsys")
+        output = self._adb_command("dumpsys")
         if self.output_folder:
-            stats_path = os.path.join(self.output_folder, "dumpsys.txt")
-            with open(stats_path, "w", encoding="utf-8") as handle:
-                handle.write(stats)
+            output_path = os.path.join(self.output_folder, "dumpsys.txt")
+            with open(output_path, "w", encoding="utf-8") as handle:
+                handle.write(output)
 
-            log.info("Full dumpsys output stored at %s", stats_path)
+            log.info("Full dumpsys output stored at %s", output_path)
 
         self._adb_disconnect()
