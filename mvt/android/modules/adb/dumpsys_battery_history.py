@@ -27,7 +27,10 @@ class DumpsysBatteryHistory(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-    def process_battery_history(self, output):
+    @staticmethod
+    def parse_battery_history(output):
+        results = []
+
         for line in output.split("\n")[1:]:
             if line.strip() == "":
                 break
@@ -64,7 +67,7 @@ class DumpsysBatteryHistory(AndroidExtraction):
             else:
                 continue
 
-            self.results.append({
+            results.append({
                 "time_elapsed": time_elapsed,
                 "event": event,
                 "uid": uid,
@@ -72,12 +75,14 @@ class DumpsysBatteryHistory(AndroidExtraction):
                 "service": service,
             })
 
-        self.log.info("Extracted %d records from battery history", len(self.results))
+        return results
 
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys batterystats --history")
-        self.process_battery_history(output)
+        self.results = self.parse_battery_history(output)
+
+        self.log.info("Extracted %d records from battery history", len(self.results))
 
         self._adb_disconnect()

@@ -27,7 +27,10 @@ class DumpsysAccessibility(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-    def process_accessibility(self, output):
+    @staticmethod
+    def parse_accessibility(output):
+        results = []
+
         in_services = False
         for line in output.split("\n"):
             if line.strip().startswith("installed services:"):
@@ -43,17 +46,19 @@ class DumpsysAccessibility(AndroidExtraction):
             service = line.split(":")[1].strip()
             log.info("Found installed accessibility service \"%s\"", service)
 
-            self.results.append({
+            results.append({
                 "package": service.split("/")[0],
                 "service": service,
             })
 
-        log.info("Identified a total of %d accessibility services", len(self.results))
+        return results
 
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys accessibility")
-        self.process_accessibility(output)
+        self.results = self.parse_accessibility(output)
+
+        self.log.info("Identified a total of %d accessibility services", len(self.results))
 
         self._adb_disconnect()

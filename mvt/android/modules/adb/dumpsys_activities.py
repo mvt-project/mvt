@@ -30,7 +30,10 @@ class DumpsysActivities(AndroidExtraction):
                     self.detected.append({intent: activity})
                     continue
 
-    def parse_activity_resolver_table(self, output):
+    @staticmethod
+    def parse_activity_resolver_table(output):
+        results = {}
+
         in_activity_resolver_table = False
         in_non_data_actions = False
         intent = None
@@ -57,7 +60,7 @@ class DumpsysActivities(AndroidExtraction):
             # We detect the action name.
             if line.startswith(" " * 6) and not line.startswith(" " * 8) and ":" in line:
                 intent = line.strip().replace(":", "")
-                self.results[intent] = []
+                results[intent] = []
                 continue
 
             # If we are not in an intent block yet, skip.
@@ -76,15 +79,17 @@ class DumpsysActivities(AndroidExtraction):
             activity = line.strip().split(" ")[1]
             package = activity.split("/")[0]
 
-            self.results[intent].append({
+            results[intent].append({
                 "package": package,
                 "activity": activity,
             })
+
+        return results
 
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys package")
-        self.parse_activity_resolver_table(output)
+        self.results = self.parse_activity_resolver_table(output)
 
         self._adb_disconnect()
