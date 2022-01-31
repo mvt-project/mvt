@@ -30,18 +30,11 @@ class DumpsysActivities(AndroidExtraction):
                     self.detected.append({intent: activity})
                     continue
 
-    def parse_activity_resolver_table(self, data):
-        """Parse output of dumpsys package.
-
-        :param data: Output of dumpsys package command.
-        :type data: str
-
-        """
-
+    def parse_activity_resolver_table(self, output):
         in_activity_resolver_table = False
         in_non_data_actions = False
         intent = None
-        for line in data:
+        for line in output.split("\n"):
             if line.startswith("Activity Resolver Table:"):
                 in_activity_resolver_table = True
                 continue
@@ -92,9 +85,6 @@ class DumpsysActivities(AndroidExtraction):
         self._adb_connect()
 
         output = self._adb_command("dumpsys package")
-        if not output:
-            return
-
-        self.parse_activity_resolver_table(output.split("\n"))
+        self.parse_activity_resolver_table(output)
 
         self._adb_disconnect()

@@ -52,17 +52,11 @@ class DumpsysReceivers(AndroidExtraction):
                 self.detected.append({intent: receiver})
                 continue
 
-    def parse_receiver_resolver_table(self, data):
-        """Parse output of dumpsys package.
-
-        :param data: Output of dumpsys package command.
-        :type data: str
-
-        """
+    def parse_receiver_resolver_table(self, output):
         in_receiver_resolver_table = False
         in_non_data_actions = False
         intent = None
-        for line in data:
+        for line in output.split("\n"):
             if line.startswith("Receiver Resolver Table:"):
                 in_receiver_resolver_table = True
                 continue
@@ -113,9 +107,6 @@ class DumpsysReceivers(AndroidExtraction):
         self._adb_connect()
 
         output = self._adb_command("dumpsys package")
-        if not output:
-            return
-
-        self.parse_receiver_resolver_table(output.split("\n"))
+        self.parse_receiver_resolver_table(output)
 
         self._adb_disconnect()
