@@ -21,7 +21,7 @@ class DumpsysBatteryHistory(AndroidExtraction):
 
     def check_indicators(self):
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package"])
+            ioc = self.indicators.check_app_id(result["package_name"])
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
@@ -56,14 +56,14 @@ class DumpsysBatteryHistory(AndroidExtraction):
             if event in ["start_job", "end_job"]:
                 uid = line[line.find("=")+1:line.find(":")]
                 service = line[line.find(":")+1:].strip('"')
-                package = service.split("/")[0]
+                package_name = service.split("/")[0]
             elif event == "wake":
                 uid = line[line.find("=")+1:line.find(":")]
                 service = line[line.find("*walarm*:")+9:].split(" ")[0].strip('"').strip()
                 if service == "" or "/" not in service:
                     continue
 
-                package = service.split("/")[0]
+                package_name = service.split("/")[0]
             else:
                 continue
 
@@ -71,7 +71,7 @@ class DumpsysBatteryHistory(AndroidExtraction):
                 "time_elapsed": time_elapsed,
                 "event": event,
                 "uid": uid,
-                "package": package,
+                "package_name": package_name,
                 "service": service,
             })
 

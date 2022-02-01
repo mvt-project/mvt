@@ -24,7 +24,7 @@ class DumpsysActivities(AndroidExtraction):
     def check_indicators(self):
         for intent, activities in self.results.items():
             for activity in activities:
-                ioc = self.indicators.check_app_id(activity["package"])
+                ioc = self.indicators.check_app_id(activity["package_name"])
                 if ioc:
                     activity["matched_indicator"] = ioc
                     self.detected.append({intent: activity})
@@ -77,10 +77,10 @@ class DumpsysActivities(AndroidExtraction):
             # If we got this far, we are processing receivers for the
             # activities we are interested in.
             activity = line.strip().split(" ")[1]
-            package = activity.split("/")[0]
+            package_name = activity.split("/")[0]
 
             results[intent].append({
-                "package": package,
+                "package_name": package_name,
                 "activity": activity,
             })
 

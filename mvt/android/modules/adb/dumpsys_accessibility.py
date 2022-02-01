@@ -21,7 +21,7 @@ class DumpsysAccessibility(AndroidExtraction):
 
     def check_indicators(self):
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package"])
+            ioc = self.indicators.check_app_id(result["package_name"])
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
@@ -47,7 +47,7 @@ class DumpsysAccessibility(AndroidExtraction):
             log.info("Found installed accessibility service \"%s\"", service)
 
             results.append({
-                "package": service.split("/")[0],
+                "package_name": service.split("/")[0],
                 "service": service,
             })
 

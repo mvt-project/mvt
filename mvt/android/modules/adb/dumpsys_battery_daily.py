@@ -24,12 +24,12 @@ class DumpsysBatteryDaily(AndroidExtraction):
             "timestamp": record["from"],
             "module": self.__class__.__name__,
             "event": "battery_daily",
-            "data": f"Recorded update of package {record['package']} with vers {record['vers']}"
+            "data": f"Recorded update of package {record['package_name']} with vers {record['vers']}"
         }
 
     def check_indicators(self):
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package"])
+            ioc = self.indicators.check_app_id(result["package_name"])
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
@@ -59,12 +59,12 @@ class DumpsysBatteryDaily(AndroidExtraction):
                 continue
 
             line = line.strip().replace("Update ", "")
-            package, vers = line.split(" ", 1)
+            package_name, vers = line.split(" ", 1)
             vers_nr = vers.split("=", 1)[1]
 
             already_seen = False
             for update in daily_updates:
-                if package == update["package"] and vers_nr == update["vers"]:
+                if package_name == update["package_name"] and vers_nr == update["vers"]:
                     already_seen = True
                     break
 
@@ -73,7 +73,7 @@ class DumpsysBatteryDaily(AndroidExtraction):
                     "action": "update",
                     "from": daily["from"],
                     "to": daily["to"],
-                    "package": package,
+                    "package_name": package_name,
                     "vers": vers_nr,
                 })
 
