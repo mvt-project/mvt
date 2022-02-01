@@ -22,6 +22,9 @@ class DumpsysActivities(AndroidExtraction):
         self.results = results if results else {}
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         for intent, activities in self.results.items():
             for activity in activities:
                 ioc = self.indicators.check_app_id(activity["package_name"])

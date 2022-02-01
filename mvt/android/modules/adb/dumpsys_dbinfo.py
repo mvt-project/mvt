@@ -23,6 +23,9 @@ class DumpsysDBInfo(AndroidExtraction):
                          log=log, results=results)
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         for result in self.results:
             path = result.get("path", "")
             for part in path.split("/"):

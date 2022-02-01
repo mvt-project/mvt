@@ -80,6 +80,9 @@ class Packages(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
+            if not self.indicators:
+                continue
+
             ioc = self.indicators.check_app_id(result.get("package_name"))
             if ioc:
                 result["matched_indicator"] = ioc

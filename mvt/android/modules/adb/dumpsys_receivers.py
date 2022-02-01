@@ -28,6 +28,9 @@ class DumpsysReceivers(AndroidExtraction):
         self.results = results if results else {}
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         for intent, receivers in self.results.items():
             for receiver in receivers:
                 if intent == INTENT_NEW_OUTGOING_SMS:

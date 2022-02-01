@@ -28,6 +28,9 @@ class DumpsysBatteryDaily(AndroidExtraction):
         }
 
     def check_indicators(self):
+        if not self.indicators:
+            return
+
         for result in self.results:
             ioc = self.indicators.check_app_id(result["package_name"])
             if ioc:
