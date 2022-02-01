@@ -24,9 +24,9 @@ class Files(AndroidExtraction):
                          log=log, results=results)
         self.full_find = False
 
-    def find_files(self, file_path):
+    def find_files(self, folder):
         if self.full_find:
-            output = self._adb_command(f"find '{file_path}' -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
+            output = self._adb_command(f"find '{folder}' -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
 
             for file_line in output.splitlines():
                 [unix_timestamp, mode, size, owner, group, full_path] = file_line.rstrip().split(" ", 5)
@@ -42,7 +42,7 @@ class Files(AndroidExtraction):
                     "group": group,
                 })
         else:
-            output = self._adb_command(f"find '{file_path}' 2> /dev/null")
+            output = self._adb_command(f"find '{folder}' 2> /dev/null")
             for file_line in output.splitlines():
                 self.results.append({"path": file_line.rstrip()})
 
