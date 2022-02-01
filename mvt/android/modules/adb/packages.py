@@ -95,7 +95,8 @@ class Packages(AndroidExtraction):
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
 
-    def _get_package_details(self, package_name):
+    @staticmethod
+    def parse_package_for_details(output):
         details = {
             "uid": "",
             "version_name": "",
@@ -107,7 +108,7 @@ class Packages(AndroidExtraction):
         }
 
         in_permissions = False
-        for line in self._adb_command(f"dumpsys package {package_name}").split("\n"):
+        for line in output.split("\n"):
             if in_permissions:
                 if line.startswith(" " * 4) and not line.startswith(" " * 6):
                     in_permissions = False
@@ -191,7 +192,8 @@ class Packages(AndroidExtraction):
                 "files": package_files,
             }
 
-            package_details = self._get_package_details(package_name)
+            dumpsys_package = self._adb_command(f"dumpsys package {package_name}")
+            package_details = self.parse_package_for_details(dumpsys_package)
             new_package.update(package_details)
 
             self.results.append(new_package)
