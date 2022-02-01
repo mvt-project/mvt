@@ -10,6 +10,11 @@ cd mvt
 docker build -t mvt .
 ```
 
+Optionally, you may need to specify your platform to Docker in order to build successfully (Apple M1)
+```bash
+docker build --platform amd64 -t mvt .
+```
+
 Test if the image was created successfully:
 
 ```bash
