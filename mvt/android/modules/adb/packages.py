@@ -15,6 +15,29 @@ from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
+DANGEROUS_PERMISSIONS_THRESHOLD = 10
+DANGEROUS_PERMISSIONS = [
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.AUTHENTICATE_ACCOUNTS",
+    "android.permission.CAMERA",
+    "android.permission.DISABLE_KEYGUARD",
+    "android.permission.PROCESS_OUTGOING_CALLS",
+    "android.permission.READ_CALENDAR",
+    "android.permission.READ_CALL_LOG",
+    "android.permission.READ_CONTACTS",
+    "android.permission.READ_PHONE_STATE",
+    "android.permission.READ_SMS",
+    "android.permission.RECEIVE_MMS",
+    "android.permission.RECEIVE_SMS",
+    "android.permission.RECEIVE_WAP_PUSH",
+    "android.permission.RECORD_AUDIO",
+    "android.permission.SEND_SMS",
+    "android.permission.SYSTEM_ALERT_WINDOW",
+    "android.permission.USE_CREDENTIALS",
+    "android.permission.USE_SIP",
+    "com.android.browser.permission.READ_HISTORY_BOOKMARKS",
+]
 
 class Packages(AndroidExtraction):
     """This module extracts the list of installed packages."""
@@ -69,6 +92,45 @@ class Packages(AndroidExtraction):
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
 
+    def _get_package_details(self, package_name):
+        details = {
+            "uid": "",
+            "version_name": "",
+            "version_code": "",
+            "timestamp": "",
+            "first_install_time": "",
+            "last_update_time": "",
+            "requested_permissions": [],
+        }
+
+        in_permissions = False
+        for line in self._adb_command(f"dumpsys package {package_name}").split("\n"):
+            if in_permissions:
+                if line.startswith(" " * 4) and not line.startswith(" " * 6):
+                    in_permissions = False
+                    continue
+
+                permission = line.strip().split(":")[0]
+                details["requested_permissions"].append(permission)
+
+            if line.strip().startswith("userId="):
+                details["uid"] = line.split("=")[1].strip()
+            elif line.strip().startswith("versionName="):
+                details["version_name"] = line.split("=")[1].strip()
+            elif line.strip().startswith("versionCode="):
+                details["version_code"] = line.split("=", 1)[1].strip()
+            elif line.strip().startswith("timeStamp="):
+                details["timestamp"] = line.split("=")[1].strip()
+            elif line.strip().startswith("firstInstallTime="):
+                details["first_install_time"] = line.split("=")[1].strip()
+            elif line.strip().startswith("lastUpdateTime="):
+                details["last_update_time"] = line.split("=")[1].strip()
+            elif line.strip() == "requested permissions:":
+                in_permissions = True
+                continue
+
+        return details
+
     def _get_files_for_package(self, package_name):
         output = self._adb_command(f"pm path {package_name}")
         output = output.strip().replace("package:", "")
@@ -97,9 +159,7 @@ class Packages(AndroidExtraction):
     def run(self):
         self._adb_connect()
 
-        packages = self._adb_command("pm list packages -U -u -i -f")
-        if packages.strip() == "Error: Unknown option: -U":
-            packages = self._adb_command("pm list packages -u -i -f")
+        packages = self._adb_command("pm list packages -u -i -f")
 
         for line in packages.split("\n"):
             line = line.strip()
@@ -117,31 +177,21 @@ class Packages(AndroidExtraction):
                 if installer == "null":
                     installer = None
 
-            try:
-                uid = fields[2].split(":")[1].strip()
-            except IndexError:
-                uid = None
-
-            dumpsys = self._adb_command(f"dumpsys package {package_name} | grep -A2 timeStamp").split("\n")
-            timestamp = dumpsys[0].split("=")[1].strip()
-            first_install = dumpsys[1].split("=")[1].strip()
-            last_update = dumpsys[2].split("=")[1].strip()
-
             package_files = self._get_files_for_package(package_name)
-
-            self.results.append({
+            new_package = {
                 "package_name": package_name,
                 "file_name": file_name,
                 "installer": installer,
-                "timestamp": timestamp,
-                "first_install_time": first_install,
-                "last_update_time": last_update,
-                "uid": uid,
                 "disabled": False,
                 "system": False,
                 "third_party": False,
                 "files": package_files,
-            })
+            }
+
+            package_details = self._get_package_details(package_name)
+            new_package.update(package_details)
+
+            self.results.append(new_package)
 
         cmds = [
             {"field": "disabled", "arg": "-d"},
@@ -159,6 +209,19 @@ class Packages(AndroidExtraction):
                 for i, result in enumerate(self.results):
                     if result["package_name"] == package_name:
                         self.results[i][cmd["field"]] = True
+
+        for result in self.results:
+            if not result["third_party"]:
+                continue
+
+            dangerous_permissions_count = 0
+            for perm in result["requested_permissions"]:
+                if perm in DANGEROUS_PERMISSIONS:
+                    dangerous_permissions_count += 1
+
+            if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
+                self.log.info("Third-party package \"%s\" requested %d potentially dangerous permissions",
+                              result["package_name"], dangerous_permissions_count)
 
         packages_to_lookup = []
         for result in self.results:
