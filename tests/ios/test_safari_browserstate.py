@@ -28,7 +28,7 @@ class TestSafariBrowserStateModule:
         ind = Indicators(log=logging)
         ind.parse_stix2(indicator_file)
         # Adds a file that exists in the manifest.
-        ind.ioc_files[0]["domains"].append("en.wikipedia.org")
+        ind.ioc_collections[0]["domains"].append("en.wikipedia.org")
         m.indicators = ind
         run_module(m)
         assert len(m.detected) == 1
