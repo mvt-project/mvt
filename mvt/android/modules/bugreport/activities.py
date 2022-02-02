@@ -44,14 +44,14 @@ class Activities(BugReportModule):
         if not content:
             return
 
-        in_activities = False
         lines = []
+        in_package = False
         for line in content.decode().split("\n"):
             if line.strip() == "DUMP OF SERVICE package:":
-                in_activities = True
+                in_package = True
                 continue
 
-            if not in_activities:
+            if not in_package:
                 continue
 
             if line.strip() == "------------------------------------------------------------------------------":

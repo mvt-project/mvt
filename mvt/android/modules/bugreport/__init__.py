@@ -8,7 +8,8 @@ from .activities import Activities
 from .battery_daily import BatteryDaily
 from .battery_history import BatteryHistory
 from .dbinfo import DBInfo
+from .packages import Packages
 from .receivers import Receivers
 
 BUGREPORT_MODULES = [Accessibility, Activities, BatteryDaily, BatteryHistory,
-                     DBInfo, Receivers]
+                     DBInfo, Packages, Receivers]

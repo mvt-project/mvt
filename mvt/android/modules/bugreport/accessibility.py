@@ -41,8 +41,8 @@ class Accessibility(BugReportModule):
         if not content:
             return
 
-        in_accessibility = False
         lines = []
+        in_accessibility = False
         for line in content.decode().split("\n"):
             if line.strip() == "DUMP OF SERVICE accessibility:":
                 in_accessibility = True
