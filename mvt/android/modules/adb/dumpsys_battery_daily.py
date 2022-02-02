@@ -5,9 +5,9 @@
 
 import logging
 
-from .base import AndroidExtraction
-
 from mvt.android.parsers import parse_dumpsys_battery_daily
+
+from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 

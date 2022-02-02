@@ -6,6 +6,7 @@
 import logging
 
 from mvt.android.parsers import parse_dumpsys_activity_resolver_table
+
 from .base import BugReportModule
 
 log = logging.getLogger(__name__)

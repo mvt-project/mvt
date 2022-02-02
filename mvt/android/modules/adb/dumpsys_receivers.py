@@ -5,8 +5,9 @@
 
 import logging
 
-from .base import AndroidExtraction
 from mvt.android.parsers import parse_dumpsys_receiver_resolver_table
+
+from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 

@@ -6,8 +6,9 @@
 import logging
 import re
 
-from .base import AndroidExtraction
 from mvt.android.parsers import parse_dumpsys_dbinfo
+
+from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
 
