@@ -5,7 +5,7 @@
 
 import logging
 
-from mvt.android.modules.adb.dumpsys_battery_daily import DumpsysBatteryDaily
+from mvt.android.parsers import parse_dumpsys_battery_daily
 
 from .base import BugReportModule
 
@@ -73,4 +73,4 @@ class BatteryDaily(BugReportModule):
 
             lines.append(line)
 
-        self.results = DumpsysBatteryDaily.parse_battery_daily("\n".join(lines))
+        self.results = parse_dumpsys_battery_daily("\n".join(lines))

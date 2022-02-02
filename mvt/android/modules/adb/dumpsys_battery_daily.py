@@ -5,6 +5,8 @@
 
 import logging
 
+from mvt.android.parsers import parse_dumpsys_battery_daily
+
 from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
@@ -38,54 +40,11 @@ class DumpsysBatteryDaily(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-    @staticmethod
-    def parse_battery_daily(output):
-        results = []
-        daily = None
-        daily_updates = []
-        for line in output.splitlines()[1:]:
-            if line.startswith("  Daily from "):
-                if len(daily_updates) > 0:
-                    results.extend(daily_updates)
-                    daily_updates = []
-
-                timeframe = line[13:].strip()
-                date_from, date_to = timeframe.strip(":").split(" to ", 1)
-                daily = {"from": date_from[0:10], "to": date_to[0:10]}
-                continue
-
-            if not daily:
-                continue
-
-            if not line.strip().startswith("Update "):
-                continue
-
-            line = line.strip().replace("Update ", "")
-            package_name, vers = line.split(" ", 1)
-            vers_nr = vers.split("=", 1)[1]
-
-            already_seen = False
-            for update in daily_updates:
-                if package_name == update["package_name"] and vers_nr == update["vers"]:
-                    already_seen = True
-                    break
-
-            if not already_seen:
-                daily_updates.append({
-                    "action": "update",
-                    "from": daily["from"],
-                    "to": daily["to"],
-                    "package_name": package_name,
-                    "vers": vers_nr,
-                })
-
-        return results
-
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys batterystats --daily")
-        self.results = self.parse_battery_daily(output)
+        self.results = parse_dumpsys_battery_daily(output)
 
         self.log.info("Extracted %d records from battery daily stats", len(self.results))
 

@@ -5,7 +5,7 @@
 
 import logging
 
-from mvt.android.modules.adb.dumpsys_accessibility import DumpsysAccessibility
+from mvt.android.parsers import parse_dumpsys_accessibility
 
 from .base import BugReportModule
 
@@ -56,7 +56,7 @@ class Accessibility(BugReportModule):
 
             lines.append(line)
 
-        self.results = DumpsysAccessibility.parse_accessibility("\n".join(lines))
+        self.results = parse_dumpsys_accessibility("\n".join(lines))
         for result in self.results:
             log.info("Found installed accessibility service \"%s\"", result.get("service"))
 

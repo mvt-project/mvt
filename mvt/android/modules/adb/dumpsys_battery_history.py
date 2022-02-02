@@ -5,6 +5,8 @@
 
 import logging
 
+from mvt.android.parsers import parse_dumpsys_battery_history
+
 from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
@@ -30,61 +32,11 @@ class DumpsysBatteryHistory(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-    @staticmethod
-    def parse_battery_history(output):
-        results = []
-
-        for line in output.splitlines()[1:]:
-            if line.strip() == "":
-                break
-
-            time_elapsed, rest = line.strip().split(" ", 1)
-
-            start = line.find(" 100 ")
-            if start == -1:
-                continue
-
-            line = line[start+5:]
-
-            event = ""
-            if line.startswith("+job"):
-                event = "start_job"
-            elif line.startswith("-job"):
-                event = "end_job"
-            elif line.startswith("+running +wake_lock="):
-                event = "wake"
-            else:
-                continue
-
-            if event in ["start_job", "end_job"]:
-                uid = line[line.find("=")+1:line.find(":")]
-                service = line[line.find(":")+1:].strip('"')
-                package_name = service.split("/")[0]
-            elif event == "wake":
-                uid = line[line.find("=")+1:line.find(":")]
-                service = line[line.find("*walarm*:")+9:].split(" ")[0].strip('"').strip()
-                if service == "" or "/" not in service:
-                    continue
-
-                package_name = service.split("/")[0]
-            else:
-                continue
-
-            results.append({
-                "time_elapsed": time_elapsed,
-                "event": event,
-                "uid": uid,
-                "package_name": package_name,
-                "service": service,
-            })
-
-        return results
-
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys batterystats --history")
-        self.results = self.parse_battery_history(output)
+        self.results = parse_dumpsys_battery_history(output)
 
         self.log.info("Extracted %d records from battery history", len(self.results))
 

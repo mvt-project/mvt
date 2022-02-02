@@ -6,6 +6,8 @@
 import logging
 import re
 
+from mvt.android.parsers import parse_dumpsys_dbinfo
+
 from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
@@ -35,45 +37,11 @@ class DumpsysDBInfo(AndroidExtraction):
                     self.detected.append(result)
                     continue
 
-    @staticmethod
-    def parse_dbinfo(output):
-        results = []
-
-        rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\".*path\=(.*?$)')
-
-        in_operations = False
-        for line in output.splitlines():
-            if line.strip() == "Most recently executed operations:":
-                in_operations = True
-                continue
-
-            if not in_operations:
-                continue
-
-            if not line.startswith("        "):
-                in_operations = False
-                continue
-
-            matches = rxp.findall(line)
-            if not matches:
-                continue
-
-            match = matches[0]
-            results.append({
-                "isodate": match[0],
-                "pid": match[1],
-                "action": match[2],
-                "sql": match[3],
-                "path": match[4],
-            })
-
-        return results
-
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys dbinfo")
-        self.results = self.parse_dbinfo(output)
+        self.results = parse_dumpsys_dbinfo(output)
 
         self.log.info("Extracted a total of %d records from database information",
                       len(self.results))

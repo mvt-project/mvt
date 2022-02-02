@@ -5,8 +5,7 @@
 
 import logging
 
-from mvt.android.modules.adb.dumpsys_battery_history import \
-    DumpsysBatteryHistory
+from mvt.android.parsers import parse_dumpsys_battery_history
 
 from .base import BugReportModule
 
@@ -66,4 +65,4 @@ class BatteryHistory(BugReportModule):
 
             lines.append(line)
 
-        self.results = DumpsysBatteryHistory.parse_battery_history("\n".join(lines))
+        self.results = parse_dumpsys_battery_history("\n".join(lines))

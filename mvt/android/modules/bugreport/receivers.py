@@ -5,7 +5,7 @@
 
 import logging
 
-from mvt.android.modules.adb.dumpsys_receivers import DumpsysReceivers
+from mvt.android.parsers import parse_dumpsys_receiver_resolver_table
 
 from .base import BugReportModule
 
@@ -81,4 +81,4 @@ class Receivers(BugReportModule):
 
             lines.append(line)
 
-        self.results = DumpsysReceivers.parse_receiver_resolver_table("\n".join(lines))
+        self.results = parse_dumpsys_receiver_resolver_table("\n".join(lines))

@@ -5,7 +5,7 @@
 
 import logging
 
-from mvt.android.modules.adb.dumpsys_dbinfo import DumpsysDBInfo
+from mvt.android.parsers import parse_dumpsys_dbinfo
 
 from .base import BugReportModule
 
@@ -60,4 +60,4 @@ class DBInfo(BugReportModule):
 
             lines.append(line)
 
-        self.results = DumpsysDBInfo.parse_dbinfo("\n".join(lines))
+        self.results = parse_dumpsys_dbinfo("\n".join(lines))
