@@ -6,7 +6,7 @@
 import logging
 import re
 
-from mvt.android.modules.adb.getprop import Getprop as GP
+from mvt.android.parsers import parse_getprop
 
 from .base import BugReportModule
 
@@ -48,6 +48,6 @@ class Getprop(BugReportModule):
 
             lines.append(line)
 
-        self.results = GP.parse_getprop("\n".join(lines))
+        self.results = parse_getprop("\n".join(lines))
 
         self.log.info("Extracted %d Android system properties", len(self.results))

@@ -6,6 +6,8 @@
 import logging
 import re
 
+from mvt.android.parsers import parse_getprop
+
 from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
@@ -22,31 +24,11 @@ class Getprop(AndroidExtraction):
 
         self.results = {} if not results else results
 
-    @staticmethod
-    def parse_getprop(output):
-        results = {}
-        rxp = re.compile(r"\[(.+?)\]: \[(.+?)\]")
-
-        for line in output.splitlines():
-            line = line.strip()
-            if line == "":
-                continue
-
-            matches = re.findall(rxp, line)
-            if not matches or len(matches[0]) != 2:
-                continue
-
-            key = matches[0][0]
-            value = matches[0][1]
-            results[key] = value
-
-        return results
-
     def run(self):
         self._adb_connect()
         output = self._adb_command("getprop")
         self._adb_disconnect()
 
-        self.results = self.parse_getprop(output)
+        self.results = parse_getprop(output)
 
         self.log.info("Extracted %d Android system properties", len(self.results))
