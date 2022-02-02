@@ -174,6 +174,8 @@ class Indicators:
                                         ioc_coll=collection,
                                         ioc_coll_list=collection["ios_profile_ids"])
 
+                break
+
         for coll in collections:
             self.log.info("Extracted %d indicators for collection with name \"%s\"",
                           coll["count"], coll["name"])
