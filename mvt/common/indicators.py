@@ -85,7 +85,7 @@ class Indicators:
             try:
                 data = json.load(handle)
             except json.decoder.JSONDecodeError:
-                self.log.critical("Unable to parse STIX2 indicator file. " \
+                self.log.critical("Unable to parse STIX2 indicator file. "
                                   "The file is corrupted or in the wrong format!")
                 return
 
@@ -115,8 +115,6 @@ class Indicators:
         # We loop through all indicators.
         for indicator in indicators:
             malware_id = None
-            malware_name = None
-            malware_description = None
 
             # We loop through all relationships and find the one pertinent to
             # the current indicator.
@@ -127,8 +125,6 @@ class Indicators:
                 # Look for a malware definition with the correct identifier.
                 if relationship["target_ref"] in malware.keys():
                     malware_id = relationship["target_ref"]
-                    malware_name = malware[relationship["target_ref"]].get("name", "")
-                    malware_description = malware[relationship["target_ref"]].get("description", "")
                     break
 
             # Now we look for the correct collection matching the malware ID we
