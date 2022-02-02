@@ -7,6 +7,7 @@ import logging
 import re
 
 from mvt.android.modules.adb.packages import Packages as PCK
+
 from .base import BugReportModule
 
 log = logging.getLogger(__name__)
