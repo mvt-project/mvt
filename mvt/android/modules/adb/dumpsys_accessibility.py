@@ -5,6 +5,8 @@
 
 import logging
 
+from mvt.android.parsers import parse_dumpsys_accessibility
+
 from .base import AndroidExtraction
 
 log = logging.getLogger(__name__)
@@ -30,36 +32,11 @@ class DumpsysAccessibility(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-    @staticmethod
-    def parse_accessibility(output):
-        results = []
-
-        in_services = False
-        for line in output.splitlines():
-            if line.strip().startswith("installed services:"):
-                in_services = True
-                continue
-
-            if not in_services:
-                continue
-
-            if line.strip() == "}":
-                break
-
-            service = line.split(":")[1].strip()
-
-            results.append({
-                "package_name": service.split("/")[0],
-                "service": service,
-            })
-
-        return results
-
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys accessibility")
-        self.results = self.parse_accessibility(output)
+        self.results = parse_dumpsys_accessibility(output)
 
         for result in self.results:
             log.info("Found installed accessibility service \"%s\"", result.get("service"))

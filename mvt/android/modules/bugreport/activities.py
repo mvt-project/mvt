@@ -5,8 +5,7 @@
 
 import logging
 
-from mvt.android.modules.adb.dumpsys_activities import DumpsysActivities
-
+from mvt.android.parsers import parse_dumpsys_activity_resolver_table
 from .base import BugReportModule
 
 log = logging.getLogger(__name__)
@@ -59,4 +58,4 @@ class Activities(BugReportModule):
 
             lines.append(line)
 
-        self.results = DumpsysActivities.parse_activity_resolver_table("\n".join(lines))
+        self.results = parse_dumpsys_activity_resolver_table("\n".join(lines))
