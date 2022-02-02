@@ -60,7 +60,7 @@ class Packages(BugReportModule):
         package_name = None
         package = {}
         lines = []
-        for line in output.split("\n"):
+        for line in output.splitlines():
             if line.startswith("  Package ["):
                 if len(lines) > 0:
                     details = PCK.parse_package_for_details("\n".join(lines))
@@ -95,7 +95,7 @@ class Packages(BugReportModule):
         in_package = False
         in_packages_list = False
         lines = []
-        for line in content.decode().split("\n"):
+        for line in content.decode().splitlines():
             if line.strip() == "DUMP OF SERVICE package:":
                 in_package = True
                 continue

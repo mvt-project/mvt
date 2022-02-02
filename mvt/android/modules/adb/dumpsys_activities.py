@@ -40,7 +40,7 @@ class DumpsysActivities(AndroidExtraction):
         in_activity_resolver_table = False
         in_non_data_actions = False
         intent = None
-        for line in output.split("\n"):
+        for line in output.splitlines():
             if line.startswith("Activity Resolver Table:"):
                 in_activity_resolver_table = True
                 continue

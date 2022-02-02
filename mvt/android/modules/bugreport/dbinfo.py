@@ -47,7 +47,7 @@ class DBInfo(BugReportModule):
 
         in_dbinfo = False
         lines = []
-        for line in content.decode().split("\n"):
+        for line in content.decode().splitlines():
             if line.strip() == "DUMP OF SERVICE dbinfo:":
                 in_dbinfo = True
                 continue

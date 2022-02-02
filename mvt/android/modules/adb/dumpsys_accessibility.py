@@ -35,7 +35,7 @@ class DumpsysAccessibility(AndroidExtraction):
         results = []
 
         in_services = False
-        for line in output.split("\n"):
+        for line in output.splitlines():
             if line.strip().startswith("installed services:"):
                 in_services = True
                 continue

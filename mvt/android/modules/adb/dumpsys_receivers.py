@@ -62,7 +62,7 @@ class DumpsysReceivers(AndroidExtraction):
         in_receiver_resolver_table = False
         in_non_data_actions = False
         intent = None
-        for line in output.split("\n"):
+        for line in output.splitlines():
             if line.startswith("Receiver Resolver Table:"):
                 in_receiver_resolver_table = True
                 continue

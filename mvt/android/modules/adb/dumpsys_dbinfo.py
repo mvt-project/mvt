@@ -42,7 +42,7 @@ class DumpsysDBInfo(AndroidExtraction):
         rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\".*path\=(.*?$)')
 
         in_operations = False
-        for line in output.split("\n"):
+        for line in output.splitlines():
             if line.strip() == "Most recently executed operations:":
                 in_operations = True
                 continue

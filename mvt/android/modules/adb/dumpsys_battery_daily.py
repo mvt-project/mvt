@@ -43,7 +43,7 @@ class DumpsysBatteryDaily(AndroidExtraction):
         results = []
         daily = None
         daily_updates = []
-        for line in output.split("\n")[1:]:
+        for line in output.splitlines()[1:]:
             if line.startswith("  Daily from "):
                 if len(daily_updates) > 0:
                     results.extend(daily_updates)

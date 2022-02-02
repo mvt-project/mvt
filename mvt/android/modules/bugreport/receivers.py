@@ -68,7 +68,7 @@ class Receivers(BugReportModule):
 
         in_receivers = False
         lines = []
-        for line in content.decode().split("\n"):
+        for line in content.decode().splitlines():
             if line.strip() == "DUMP OF SERVICE package:":
                 in_receivers = True
                 continue

@@ -34,7 +34,7 @@ class DumpsysBatteryHistory(AndroidExtraction):
     def parse_battery_history(output):
         results = []
 
-        for line in output.split("\n")[1:]:
+        for line in output.splitlines()[1:]:
             if line.strip() == "":
                 break
 

@@ -46,7 +46,7 @@ class Activities(BugReportModule):
 
         lines = []
         in_package = False
-        for line in content.decode().split("\n"):
+        for line in content.decode().splitlines():
             if line.strip() == "DUMP OF SERVICE package:":
                 in_package = True
                 continue

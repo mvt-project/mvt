@@ -71,7 +71,7 @@ class Packages(AndroidExtraction):
     def check_indicators(self):
         root_packages_path = os.path.join("..", "..", "data", "root_packages.txt")
         root_packages_string = pkg_resources.resource_string(__name__, root_packages_path)
-        root_packages = root_packages_string.decode("utf-8").split("\n")
+        root_packages = root_packages_string.decode("utf-8").splitlines()
         root_packages = [rp.strip() for rp in root_packages]
 
         for result in self.results:
@@ -109,7 +109,7 @@ class Packages(AndroidExtraction):
         }
 
         in_permissions = False
-        for line in output.split("\n"):
+        for line in output.splitlines():
             if in_permissions:
                 if line.startswith(" " * 4) and not line.startswith(" " * 6):
                     in_permissions = False
@@ -143,7 +143,7 @@ class Packages(AndroidExtraction):
             return []
 
         package_files = []
-        for file_path in output.split("\n"):
+        for file_path in output.splitlines():
             file_path = file_path.strip()
 
             md5 = self._adb_command(f"md5sum {file_path}").split(" ")[0]
@@ -166,7 +166,7 @@ class Packages(AndroidExtraction):
 
         packages = self._adb_command("pm list packages -u -i -f")
 
-        for line in packages.split("\n"):
+        for line in packages.splitlines():
             line = line.strip()
             if not line.startswith("package:"):
                 continue
@@ -206,7 +206,7 @@ class Packages(AndroidExtraction):
         ]
         for cmd in cmds:
             output = self._adb_command(f"pm list packages {cmd['arg']}")
-            for line in output.split("\n"):
+            for line in output.splitlines():
                 line = line.strip()
                 if not line.startswith("package:"):
                     continue

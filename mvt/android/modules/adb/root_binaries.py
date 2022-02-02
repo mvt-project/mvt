@@ -25,7 +25,7 @@ class RootBinaries(AndroidExtraction):
     def run(self):
         root_binaries_path = os.path.join("..", "..", "data", "root_binaries.txt")
         root_binaries_string = pkg_resources.resource_string(__name__, root_binaries_path)
-        root_binaries = root_binaries_string.decode("utf-8").split("\n")
+        root_binaries = root_binaries_string.decode("utf-8").splitlines()
 
         self._adb_connect()
 

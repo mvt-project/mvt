@@ -24,7 +24,7 @@ class Processes(AndroidExtraction):
 
         output = self._adb_command("ps -e")
 
-        for line in output.split("\n")[1:]:
+        for line in output.splitlines()[1:]:
             line = line.strip()
             if line == "":
                 continue

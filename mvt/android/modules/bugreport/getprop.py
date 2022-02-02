@@ -6,12 +6,13 @@
 import logging
 import re
 
-from .base import AndroidExtraction
+from .base import BugReportModule
+from mvt.android.modules.adb.getprop import Getprop as GP
 
 log = logging.getLogger(__name__)
 
 
-class Getprop(AndroidExtraction):
+class Getprop(BugReportModule):
     """This module extracts device properties from getprop command."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
@@ -22,31 +23,31 @@ class Getprop(AndroidExtraction):
 
         self.results = {} if not results else results
 
-    @staticmethod
-    def parse_getprop(output):
-        results = {}
-        rxp = re.compile(r"\[(.+?)\]: \[(.+?)\]")
-
-        for line in output.splitlines():
-            line = line.strip()
-            if line == "":
-                continue
-
-            matches = re.findall(rxp, line)
-            if not matches or len(matches[0]) != 2:
-                continue
-
-            key = matches[0][0]
-            value = matches[0][1]
-            results[key] = value
-
-        return results
-
     def run(self):
-        self._adb_connect()
-        output = self._adb_command("getprop")
-        self._adb_disconnect()
+        dumpstate_files = self._get_files_by_pattern("dumpstate-*")
+        if not dumpstate_files:
+            return
 
-        self.results = self.parse_getprop(output)
+        content = self._get_file_content(dumpstate_files[0])
+        if not content:
+            return
+
+        lines = []
+        in_getprop = False
+        for line in content.decode().splitlines():
+            if line.strip() == "------ SYSTEM PROPERTIES (getprop) ------":
+                in_getprop = True
+                continue
+
+            if not in_getprop:
+                continue
+
+            if line.strip() == "------":
+                break
+
+            lines.append(line)
+
+        self.results = GP.parse_getprop("\n".join(lines))
 
         self.log.info("Extracted %d Android system properties", len(self.results))
+
