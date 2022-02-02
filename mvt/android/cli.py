@@ -5,8 +5,8 @@
 
 import logging
 import os
-from zipfile import ZipFile
 from pathlib import Path
+from zipfile import ZipFile
 
 import click
 from rich.logging import RichHandler
