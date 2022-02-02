@@ -19,6 +19,16 @@ class Processes(AndroidExtraction):
                          output_folder=output_folder, fast_mode=fast_mode,
                          log=log, results=results)
 
+    def check_indicators(self):
+        if not self.indicators:
+            return
+
+        for result in self.results:
+            ioc = self.indicators.check_app_id(result.get("name", ""))
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
+
     def run(self):
         self._adb_connect()
 
