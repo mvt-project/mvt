@@ -5,12 +5,14 @@
 
 import logging
 
-from .base import AndroidExtraction
+from mvt.android.modules.adb.dumpsys_accessibility import DumpsysAccessibility
+
+from .base import BugReportModule
 
 log = logging.getLogger(__name__)
 
 
-class DumpsysAccessibility(AndroidExtraction):
+class Accessibility(BugReportModule):
     """This module extracts stats on accessibility."""
 
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
@@ -30,40 +32,32 @@ class DumpsysAccessibility(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-    @staticmethod
-    def parse_accessibility(output):
-        results = []
+    def run(self):
+        dumpstate_files = self._get_files_by_pattern("dumpstate-*")
+        if not dumpstate_files:
+            return
 
-        in_services = False
-        for line in output.split("\n"):
-            if line.strip().startswith("installed services:"):
-                in_services = True
+        content = self._get_file_content(dumpstate_files[0])
+        if not content:
+            return
+
+        lines = []
+        in_accessibility = False
+        for line in content.decode().split("\n"):
+            if line.strip() == "DUMP OF SERVICE accessibility:":
+                in_accessibility = True
                 continue
 
-            if not in_services:
+            if not in_accessibility:
                 continue
 
-            if line.strip() == "}":
+            if line.strip() == "------------------------------------------------------------------------------":
                 break
 
-            service = line.split(":")[1].strip()
+            lines.append(line)
 
-            results.append({
-                "package_name": service.split("/")[0],
-                "service": service,
-            })
-
-        return results
-
-    def run(self):
-        self._adb_connect()
-
-        output = self._adb_command("dumpsys accessibility")
-        self.results = self.parse_accessibility(output)
-
+        self.results = DumpsysAccessibility.parse_accessibility("\n".join(lines))
         for result in self.results:
             log.info("Found installed accessibility service \"%s\"", result.get("service"))
 
         self.log.info("Identified a total of %d accessibility services", len(self.results))
-
-        self._adb_disconnect()

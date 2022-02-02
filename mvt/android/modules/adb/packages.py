@@ -39,6 +39,7 @@ DANGEROUS_PERMISSIONS = [
     "com.android.browser.permission.READ_HISTORY_BOOKMARKS",
 ]
 
+
 class Packages(AndroidExtraction):
     """This module extracts the list of installed packages."""
 

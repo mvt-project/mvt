@@ -73,7 +73,7 @@ def check_for_links(text):
     :returns: Search results.
 
     """
-    return re.findall("(?P<url>https?://[^\s]+)", text, re.IGNORECASE)
+    return re.findall(r"(?P<url>https?://[^\s]+)", text, re.IGNORECASE)
 
 
 def get_sha256_from_file_path(file_path):

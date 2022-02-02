@@ -39,23 +39,22 @@ class DumpsysBatteryDaily(AndroidExtraction):
                 continue
 
     @staticmethod
-    def parse_battery_history(output):
+    def parse_battery_daily(output):
         results = []
         daily = None
         daily_updates = []
         for line in output.split("\n")[1:]:
             if line.startswith("  Daily from "):
+                if len(daily_updates) > 0:
+                    results.extend(daily_updates)
+                    daily_updates = []
+
                 timeframe = line[13:].strip()
                 date_from, date_to = timeframe.strip(":").split(" to ", 1)
                 daily = {"from": date_from[0:10], "to": date_to[0:10]}
-
-            if not daily:
                 continue
 
-            if line.strip() == "":
-                results.extend(daily_updates)
-                daily = None
-                daily_updates = []
+            if not daily:
                 continue
 
             if not line.strip().startswith("Update "):
@@ -86,7 +85,7 @@ class DumpsysBatteryDaily(AndroidExtraction):
         self._adb_connect()
 
         output = self._adb_command("dumpsys batterystats --daily")
-        self.results = self.parse_battery_history(output)
+        self.results = self.parse_battery_daily(output)
 
         self.log.info("Extracted %d records from battery daily stats", len(self.results))
 

@@ -5,6 +5,8 @@
 
 import logging
 import os
+from pathlib import Path
+from zipfile import ZipFile
 
 import click
 from rich.logging import RichHandler
@@ -21,6 +23,7 @@ from .lookups.koodous import koodous_lookup
 from .lookups.virustotal import virustotal_lookup
 from .modules.adb import ADB_MODULES
 from .modules.backup import BACKUP_MODULES
+from .modules.bugreport import BUGREPORT_MODULES
 
 # Setup logging using Rich.
 LOG_FORMAT = "[%(name)s] %(message)s"
@@ -46,7 +49,7 @@ def version():
 
 
 #==============================================================================
-# Download APKs
+# Command: download-apks
 #==============================================================================
 @cli.command("download-apks", help="Download all or non-safelisted installed APKs installed on the device")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
@@ -99,7 +102,7 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
 
 
 #==============================================================================
-# Checks through ADB
+# Command: check-adb
 #==============================================================================
 @cli.command("check-adb", help="Check an Android device over adb")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
@@ -157,7 +160,81 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
 
 
 #==============================================================================
-# Check ADB backup
+# Command: check-bugreport
+#==============================================================================
+@cli.command("check-bugreport", help="Check an Android Bug Report")
+@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
+              default=[], help=HELP_MSG_IOC)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
+@click.pass_context
+def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
+    if list_modules:
+        log.info("Following is the list of available check-bugreport modules:")
+        for adb_module in BUGREPORT_MODULES:
+            log.info(" - %s", adb_module.__name__)
+
+        return
+
+    log.info("Checking an Android Bug Report located at: %s", bugreport_path)
+
+    if output and not os.path.exists(output):
+        try:
+            os.makedirs(output)
+        except Exception as e:
+            log.critical("Unable to create output folder %s: %s", output, e)
+            ctx.exit(1)
+
+    indicators = Indicators(log=log)
+    indicators.load_indicators_files(iocs)
+
+    if os.path.isfile(bugreport_path):
+        bugreport_format = "zip"
+        zip_archive = ZipFile(bugreport_path)
+        zip_files = []
+        for file_name in zip_archive.namelist():
+            zip_files.append(file_name)
+    elif os.path.isdir(bugreport_path):
+        bugreport_format = "dir"
+        folder_files = []
+        parent_path = Path(bugreport_path).absolute().as_posix()
+        for root, subdirs, subfiles in os.walk(os.path.abspath(bugreport_path)):
+            for file_name in subfiles:
+                folder_files.append(os.path.relpath(os.path.join(root, file_name), parent_path))
+
+    timeline = []
+    timeline_detected = []
+    for bugreport_module in BUGREPORT_MODULES:
+        if module and bugreport_module.__name__ != module:
+            continue
+
+        m = bugreport_module(base_folder=bugreport_path, output_folder=output,
+                             log=logging.getLogger(bugreport_module.__module__))
+
+        if bugreport_format == "zip":
+            m.from_zip(zip_archive, zip_files)
+        else:
+            m.from_folder(bugreport_path, folder_files)
+
+        if indicators.total_ioc_count:
+            m.indicators = indicators
+            m.indicators.log = m.log
+
+        run_module(m)
+        timeline.extend(m.timeline)
+        timeline_detected.extend(m.timeline_detected)
+
+    if output:
+        if len(timeline) > 0:
+            save_timeline(timeline, os.path.join(output, "timeline.csv"))
+        if len(timeline_detected) > 0:
+            save_timeline(timeline_detected, os.path.join(output, "timeline_detected.csv"))
+
+
+#==============================================================================
+# Command: check-backup
 #==============================================================================
 @cli.command("check-backup", help="Check an Android Backup")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
