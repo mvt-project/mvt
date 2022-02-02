@@ -17,8 +17,9 @@ class BugReportModule(MVTModule):
 
     zip_archive = None
 
-    def from_folder(self, extract_path):
+    def from_folder(self, extract_path, extract_files):
         self.extract_path = extract_path
+        self.extract_files = extract_files
 
     def from_zip(self, zip_archive, zip_files):
         self.zip_archive = zip_archive
@@ -30,7 +31,7 @@ class BugReportModule(MVTModule):
             for zip_file in self.zip_files:
                 file_names.append(zip_file)
         else:
-            file_names = self.files
+            file_names = self.extract_files
 
         return fnmatch.filter(file_names, pattern)
 
@@ -38,7 +39,7 @@ class BugReportModule(MVTModule):
         if self.zip_archive:
             handle = self.zip_archive.open(file_path)
         else:
-            handle = open(os.path.join(self.parent_path, file_path), "rb")
+            handle = open(os.path.join(self.extract_path, file_path), "rb")
 
         data = handle.read()
         handle.close()

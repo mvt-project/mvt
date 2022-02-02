@@ -6,6 +6,7 @@
 import logging
 import os
 from zipfile import ZipFile
+from pathlib import Path
 
 import click
 from rich.logging import RichHandler
@@ -189,10 +190,19 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
 
-    zip_archive = ZipFile(bugreport_path)
-    zip_files = []
-    for file_name in zip_archive.namelist():
-        zip_files.append(file_name)
+    if os.path.isfile(bugreport_path):
+        bugreport_format = "zip"
+        zip_archive = ZipFile(bugreport_path)
+        zip_files = []
+        for file_name in zip_archive.namelist():
+            zip_files.append(file_name)
+    elif os.path.isdir(bugreport_path):
+        bugreport_format = "dir"
+        folder_files = []
+        parent_path = Path(bugreport_path).absolute().as_posix()
+        for root, subdirs, subfiles in os.walk(os.path.abspath(bugreport_path)):
+            for file_name in subfiles:
+                folder_files.append(os.path.relpath(os.path.join(root, file_name), parent_path))
 
     timeline = []
     timeline_detected = []
@@ -203,7 +213,10 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
         m = bugreport_module(base_folder=bugreport_path, output_folder=output,
                              log=logging.getLogger(bugreport_module.__module__))
 
-        m.from_zip(zip_archive, zip_files)
+        if bugreport_format == "zip":
+            m.from_zip(zip_archive, zip_files)
+        else:
+            m.from_folder(bugreport_path, folder_files)
 
         if indicators.total_ioc_count:
             m.indicators = indicators
