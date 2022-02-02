@@ -207,6 +207,7 @@ class Indicators:
                     "value": ioc,
                     "type": ioc_type,
                     "name": ioc_collection["name"],
+                    "stix2_file_name": ioc_collection["stix2_file_name"],
                 }
 
     def check_domain(self, url):
