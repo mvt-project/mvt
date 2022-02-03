@@ -137,33 +137,28 @@ def parse_dumpsys_battery_history(output):
     results = []
 
     for line in output.splitlines():
+        if line.startswith("Battery History "):
+            continue
+
         if line.strip() == "":
             break
 
-        time_elapsed, rest = line.strip().split(" ", 1)
-
-        start = line.find(" 100 ")
-        if start == -1:
-            continue
-
-        line = line[start+5:]
+        time_elapsed = line.strip().split(" ", 1)[0]
 
         event = ""
-        if line.startswith("+job"):
+        if line.find("+job") > 0:
             event = "start_job"
-        elif line.startswith("-job"):
-            event = "end_job"
-        elif line.startswith("+running +wake_lock="):
-            event = "wake"
-        else:
-            continue
-
-        if event in ["start_job", "end_job"]:
-            uid = line[line.find("=")+1:line.find(":")]
+            uid = line[line.find("+job")+5:line.find(":")]
             service = line[line.find(":")+1:].strip('"')
             package_name = service.split("/")[0]
-        elif event == "wake":
-            uid = line[line.find("=")+1:line.find(":")]
+        elif line.find("-job") > 0:
+            event = "end_job"
+            uid = line[line.find("-job")+5:line.find(":")]
+            service = line[line.find(":")+1:].strip('"')
+            package_name = service.split("/")[0]
+        elif line.find("+running +wake_lock=") > 0:
+            uid = line[line.find("+running +wake_lock=")+21:line.find(":")]
+            event = "wake"
             service = line[line.find("*walarm*:")+9:].split(" ")[0].strip('"').strip()
             if service == "" or "/" not in service:
                 continue
@@ -186,10 +181,18 @@ def parse_dumpsys_battery_history(output):
 def parse_dumpsys_dbinfo(output):
     results = []
 
-    rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\".*path\=(.*?$)')
+    rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\"')
+    rxp_no_pid = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\"')
 
+    pool = None
     in_operations = False
     for line in output.splitlines():
+        if line.startswith("Connection pool for "):
+            pool = line.replace("Connection pool for ", "").rstrip(":")
+
+        if not pool:
+            continue
+
         if line.strip() == "Most recently executed operations:":
             in_operations = True
             continue
@@ -199,20 +202,31 @@ def parse_dumpsys_dbinfo(output):
 
         if not line.startswith("        "):
             in_operations = False
+            pool = None
             continue
 
         matches = rxp.findall(line)
         if not matches:
-            continue
-
-        match = matches[0]
-        results.append({
-            "isodate": match[0],
-            "pid": match[1],
-            "action": match[2],
-            "sql": match[3],
-            "path": match[4],
-        })
+            matches = rxp_no_pid.findall(line)
+            if not matches:
+                continue
+            else:
+                match = matches[0]
+                results.append({
+                    "isodate": match[0],
+                    "action": match[1],
+                    "sql": match[2],
+                    "path": pool,
+                })
+        else:
+            match = matches[0]
+            results.append({
+                "isodate": match[0],
+                "pid": match[1],
+                "action": match[2],
+                "sql": match[3],
+                "path": pool,
+            })
 
     return results
 
