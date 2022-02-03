@@ -35,6 +35,12 @@ class BugReportModule(MVTModule):
 
         return fnmatch.filter(file_names, pattern)
 
+    def _get_files_by_patterns(self, patterns):
+        for pattern in patterns:
+            matches = self._get_files_by_pattern(pattern)
+            if matches:
+                return matches
+
     def _get_file_content(self, file_path):
         if self.zip_archive:
             handle = self.zip_archive.open(file_path)

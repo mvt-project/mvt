@@ -25,7 +25,7 @@ class Getprop(BugReportModule):
         self.results = {} if not results else results
 
     def run(self):
-        dumpstate_files = self._get_files_by_pattern("dumpstate-*")
+        dumpstate_files = self._get_files_by_patterns(["dumpstate-*", "dumpState_*"])
         if not dumpstate_files:
             return
 
