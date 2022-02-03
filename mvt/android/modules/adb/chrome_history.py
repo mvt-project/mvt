@@ -78,5 +78,8 @@ class ChromeHistory(AndroidExtraction):
         log.info("Extracted a total of %d history items", len(self.results))
 
     def run(self):
-        self._adb_process_file(os.path.join("/", CHROME_HISTORY_PATH),
-                               self._parse_db)
+        try:
+            self._adb_process_file(os.path.join("/", CHROME_HISTORY_PATH),
+                                   self._parse_db)
+        except Exception as e:
+            self.log.error(e)

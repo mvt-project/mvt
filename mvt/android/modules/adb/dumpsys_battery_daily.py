@@ -42,10 +42,9 @@ class DumpsysBatteryDaily(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-
         output = self._adb_command("dumpsys batterystats --daily")
+        self._adb_disconnect()
+
         self.results = parse_dumpsys_battery_daily(output)
 
         self.log.info("Extracted %d records from battery daily stats", len(self.results))
-
-        self._adb_disconnect()

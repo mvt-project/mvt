@@ -34,8 +34,9 @@ class DumpsysAccessibility(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-
         output = self._adb_command("dumpsys accessibility")
+        self._adb_disconnect()
+
         self.results = parse_dumpsys_accessibility(output)
 
         for result in self.results:
@@ -43,4 +44,3 @@ class DumpsysAccessibility(AndroidExtraction):
 
         self.log.info("Identified a total of %d accessibility services", len(self.results))
 
-        self._adb_disconnect()

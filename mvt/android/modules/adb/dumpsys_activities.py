@@ -37,8 +37,9 @@ class DumpsysActivities(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-
         output = self._adb_command("dumpsys package")
+        self._adb_disconnect()
+
         self.results = parse_dumpsys_activity_resolver_table(output)
 
-        self._adb_disconnect()
+        self.log.info("Extracted activities for %d intents", len(self.results))

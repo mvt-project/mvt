@@ -34,10 +34,9 @@ class DumpsysBatteryHistory(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-
         output = self._adb_command("dumpsys batterystats --history")
+        self._adb_disconnect()
+
         self.results = parse_dumpsys_battery_history(output)
 
         self.log.info("Extracted %d records from battery history", len(self.results))
-
-        self._adb_disconnect()

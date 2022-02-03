@@ -39,11 +39,11 @@ class DumpsysDBInfo(AndroidExtraction):
 
     def run(self):
         self._adb_connect()
-
         output = self._adb_command("dumpsys dbinfo")
+        self._adb_disconnect()
+
         self.results = parse_dumpsys_dbinfo(output)
 
         self.log.info("Extracted a total of %d records from database information",
                       len(self.results))
 
-        self._adb_disconnect()
