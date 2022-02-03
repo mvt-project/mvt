@@ -91,7 +91,7 @@ def parse_dumpsys_battery_daily(output):
     results = []
     daily = None
     daily_updates = []
-    for line in output.splitlines()[1:]:
+    for line in output.splitlines():
         if line.startswith("  Daily from "):
             if len(daily_updates) > 0:
                 results.extend(daily_updates)
@@ -127,13 +127,16 @@ def parse_dumpsys_battery_daily(output):
                 "vers": vers_nr,
             })
 
+    if len(daily_updates) > 0:
+        results.extend(daily_updates)
+
     return results
 
 
 def parse_dumpsys_battery_history(output):
     results = []
 
-    for line in output.splitlines()[1:]:
+    for line in output.splitlines():
         if line.strip() == "":
             break
 
