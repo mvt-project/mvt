@@ -85,4 +85,7 @@ class Whatsapp(AndroidExtraction):
         self.results = messages
 
     def run(self):
-        self._adb_process_file(os.path.join("/", WHATSAPP_PATH), self._parse_db)
+        try:
+            self._adb_process_file(os.path.join("/", WHATSAPP_PATH), self._parse_db)
+        except Exception as e:
+            self.log.error(e)
