@@ -52,7 +52,7 @@ class BatteryDaily(BugReportModule):
         lines = []
         in_batterystats = False
         in_daily = False
-        for line in content.decode().splitlines():
+        for line in content.decode(errors="ignore").splitlines():
             if line.strip() == "DUMP OF SERVICE batterystats:":
                 in_batterystats = True
                 continue

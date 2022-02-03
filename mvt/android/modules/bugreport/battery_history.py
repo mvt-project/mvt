@@ -44,7 +44,7 @@ class BatteryHistory(BugReportModule):
         lines = []
         in_batterystats = False
         in_history = False
-        for line in content.decode().splitlines():
+        for line in content.decode(errors="ignore").splitlines():
             if line.strip() == "********** Print latest newbatterystats **********":
                 in_batterystats = True
                 continue
