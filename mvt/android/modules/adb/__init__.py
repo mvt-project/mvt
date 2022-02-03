@@ -17,11 +17,13 @@ from .logcat import Logcat
 from .packages import Packages
 from .processes import Processes
 from .root_binaries import RootBinaries
+from .selinux_status import SELinuxStatus
 from .settings import Settings
 from .sms import SMS
 from .whatsapp import Whatsapp
 
 ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes, Getprop, Settings,
-               DumpsysBatteryHistory, DumpsysBatteryDaily, DumpsysReceivers,
-               DumpsysActivities, DumpsysAccessibility, DumpsysDBInfo,
-               DumpsysFull, Packages, RootBinaries, Logcat, Files]
+               SELinuxStatus, DumpsysBatteryHistory, DumpsysBatteryDaily,
+               DumpsysReceivers, DumpsysActivities, DumpsysAccessibility,
+               DumpsysDBInfo, DumpsysFull, Packages, Logcat, RootBinaries,
+               Files]
