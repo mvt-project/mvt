@@ -116,3 +116,5 @@ class Packages(BugReportModule):
             lines.append(line)
 
         self.results = self.parse_packages_list("\n".join(lines))
+
+        self.log.info("Extracted details on %d packages", len(self.results))

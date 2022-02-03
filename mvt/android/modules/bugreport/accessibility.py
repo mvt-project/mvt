@@ -51,7 +51,7 @@ class Accessibility(BugReportModule):
             if not in_accessibility:
                 continue
 
-            if line.strip() == "------------------------------------------------------------------------------":
+            if line.strip().startswith("------------------------------------------------------------------------------"):
                 break
 
             lines.append(line)

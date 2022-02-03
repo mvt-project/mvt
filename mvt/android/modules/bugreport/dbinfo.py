@@ -55,9 +55,12 @@ class DBInfo(BugReportModule):
             if not in_dbinfo:
                 continue
 
-            if line.strip() == "------------------------------------------------------------------------------":
+            if line.strip().startswith("------------------------------------------------------------------------------"):
                 break
 
             lines.append(line)
 
         self.results = parse_dumpsys_dbinfo("\n".join(lines))
+
+        self.log.info("Extracted a total of %d database connection pool records",
+                      len(self.results))

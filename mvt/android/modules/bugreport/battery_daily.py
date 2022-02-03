@@ -74,3 +74,6 @@ class BatteryDaily(BugReportModule):
             lines.append(line)
 
         self.results = parse_dumpsys_battery_daily("\n".join(lines))
+
+        self.log.info("Extracted a total of %d battery daily stats",
+                      len(self.results))

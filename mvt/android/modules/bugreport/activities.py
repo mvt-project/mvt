@@ -54,9 +54,11 @@ class Activities(BugReportModule):
             if not in_package:
                 continue
 
-            if line.strip() == "------------------------------------------------------------------------------":
+            if line.strip().startswith("------------------------------------------------------------------------------"):
                 break
 
             lines.append(line)
 
         self.results = parse_dumpsys_activity_resolver_table("\n".join(lines))
+
+        self.log.info("Extracted activities for %d intents", len(self.results))

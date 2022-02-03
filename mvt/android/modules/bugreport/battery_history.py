@@ -66,3 +66,6 @@ class BatteryHistory(BugReportModule):
             lines.append(line)
 
         self.results = parse_dumpsys_battery_history("\n".join(lines))
+
+        self.log.info("Extracted a total of %d battery history records",
+                      len(self.results))

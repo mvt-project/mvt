@@ -76,9 +76,11 @@ class Receivers(BugReportModule):
             if not in_receivers:
                 continue
 
-            if line.strip() == "------------------------------------------------------------------------------":
+            if line.strip().startswith("------------------------------------------------------------------------------"):
                 break
 
             lines.append(line)
 
         self.results = parse_dumpsys_receiver_resolver_table("\n".join(lines))
+
+        self.log.info("Extracted receivers for %d intents", len(self.results))
