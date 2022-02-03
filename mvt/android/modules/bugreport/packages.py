@@ -84,7 +84,7 @@ class Packages(BugReportModule):
         return results
 
     def run(self):
-        dumpstate_files = self._get_files_by_patterns(["dumpstate-*", "dumpState_*"])
+        dumpstate_files = self._get_files_by_patterns(["dumpstate-*.txt", "dumpState_*.log", "bugreport-*.txt"])
         if not dumpstate_files:
             return
 
