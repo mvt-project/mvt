@@ -42,16 +42,8 @@ class BatteryHistory(BugReportModule):
             return
 
         lines = []
-        in_batterystats = False
         in_history = False
         for line in content.decode(errors="ignore").splitlines():
-            if line.strip() == "********** Print latest newbatterystats **********":
-                in_batterystats = True
-                continue
-
-            if not in_batterystats:
-                continue
-
             if line.strip().startswith("Battery History "):
                 lines.append(line)
                 in_history = True

@@ -43,4 +43,3 @@ class DumpsysAccessibility(AndroidExtraction):
             log.info("Found installed accessibility service \"%s\"", result.get("service"))
 
         self.log.info("Identified a total of %d accessibility services", len(self.results))
-

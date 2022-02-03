@@ -46,4 +46,3 @@ class DumpsysDBInfo(AndroidExtraction):
 
         self.log.info("Extracted a total of %d records from database information",
                       len(self.results))
-
