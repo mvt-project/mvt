@@ -41,12 +41,9 @@ class BatteryDaily(BugReportModule):
                 continue
 
     def run(self):
-        dumpstate_files = self._get_files_by_patterns(["dumpstate-*.txt", "dumpState_*.log", "bugreport-*.txt"])
-        if not dumpstate_files:
-            return
-
-        content = self._get_file_content(dumpstate_files[0])
+        content = self._get_dumpstate_file()
         if not content:
+            self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")
             return
 
         lines = []

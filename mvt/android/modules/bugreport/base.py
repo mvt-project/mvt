@@ -51,3 +51,20 @@ class BugReportModule(MVTModule):
         handle.close()
 
         return data
+
+    def _get_dumpstate_file(self):
+        main = self._get_files_by_pattern("main_entry.txt")
+        if main:
+            main_content = self._get_file_content(main[0])
+            try:
+                return self._get_file_content(main_content.decode().strip())
+            except KeyError:
+                return None
+        else:
+            dumpstate_logs = self._get_files_by_pattern("dumpState_*.log")
+            if not dumpstate_logs:
+                return None
+
+            return self._get_file_content(dumpstate_logs[0])
+
+        return None
