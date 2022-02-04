@@ -51,7 +51,7 @@ def version():
 #==============================================================================
 # Command: download-apks
 #==============================================================================
-@cli.command("download-apks", help="Download all or non-safelisted installed APKs installed on the device")
+@cli.command("download-apks", help="Download all or only non-system installed APKs")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True,
               help="Extract all packages installed on the phone, including system packages")
