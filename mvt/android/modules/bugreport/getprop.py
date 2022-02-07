@@ -5,6 +5,7 @@
 
 import logging
 import re
+from datetime import datetime, timedelta
 
 from mvt.android.parsers import parse_getprop
 
@@ -46,5 +47,14 @@ class Getprop(BugReportModule):
             lines.append(line)
 
         self.results = parse_getprop("\n".join(lines))
+
+        # Alert if phone is outdated
+        for entry in self.results:
+            if entry == "ro.build.version.security_patch":
+                last_patch = datetime.strptime(self.results[entry], "%Y-%m-%d")
+                if (datetime.now() - last_patch) > timedelta(days=6*31):
+                    self.log.warning("This phone has not received security updates for more than six months (last update: %s)", self.results[entry])
+
+
 
         self.log.info("Extracted %d Android system properties", len(self.results))
