@@ -252,5 +252,6 @@ def find_version_by_build(build):
         if build == version["build"]:
             return version["version"]
 
+
 def latest_ios_version():
     return IPHONE_IOS_VERSIONS[-1]
