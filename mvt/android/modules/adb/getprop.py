@@ -35,9 +35,9 @@ class Getprop(AndroidExtraction):
         # Alert if phone is outdated.
         security_patch = self.results.get("ro.build.version.security_patch", "")
         if security_patch:
-            patch_date = datetime.strptime(security_path, "%Y-%m-%d")
+            patch_date = datetime.strptime(security_patch, "%Y-%m-%d")
             if (datetime.now() - patch_date) > timedelta(days=6*30):
                 self.log.warning("This phone has not received security updates for more than "
-                                 "six months (last update: %s)", security_path)
+                                 "six months (last update: %s)", security_patch)
 
         self.log.info("Extracted %d Android system properties", len(self.results))
