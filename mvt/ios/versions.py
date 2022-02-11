@@ -237,6 +237,7 @@ IPHONE_IOS_VERSIONS = [
     {"build": "19C56", "version": "15.2"},
     {"build": "19C63", "version": "15.2.1"},
     {"build": "19D50", "version": "15.3"},
+    {"build": "19D52", "version": "15.3.1"}
 ]
 
 
