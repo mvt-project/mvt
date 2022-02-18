@@ -141,9 +141,9 @@ class SMS(AndroidExtraction):
         It is crucial to use the under-documented "-nocompress" flag to disable the non-standard Java compression
         algorithim. This module only supports an unencrypted ADB backup.
         """
-        Run ADB command to create a backup of SMS app
         self.log.warning("Please check phone and accept Android backup prompt. Do not set an encryption password. \a")
 
+        # Run ADB command to create a backup of SMS app
         # TODO: Base64 encoding as temporary fix to avoid byte-mangling over the shell transport...
         backup_output_b64 = self._adb_command("/system/bin/bu backup -nocompress com.android.providers.telephony | base64")
         backup_output = base64.b64decode(backup_output_b64)
