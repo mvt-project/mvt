@@ -10,7 +10,7 @@ import base64
 import getpass
 
 from mvt.common.utils import check_for_links, convert_timestamp_to_iso
-from mvt.android.parsers.backup import parse_ab_header, parse_sms_backup, InvalidBackupPassword
+from mvt.android.parsers.backup import parse_ab_header, parse_sms_backup, InvalidBackupPassword, AndroidBackupParsingError
 from mvt.common.module import InsufficientPrivileges
 
 from .base import AndroidExtraction
@@ -128,10 +128,6 @@ class SMS(AndroidExtraction):
             self.log.error("Extracting SMS via Android backup failed. No valid backup data found.")
             return
 
-        if header["compression"]:
-            self.log.error("The backup is compressed and cannot be parsed, quitting...")
-            return
-
         pwd = None
         if header["encryption"] != "none":
             pwd = getpass.getpass(prompt="Backup Password: ", stream=None)
@@ -140,8 +136,12 @@ class SMS(AndroidExtraction):
         try:
             self.results = parse_sms_backup(backup_output, password=pwd)
         except InvalidBackupPassword:
-            self.info.log("Invalid backup password")
+            self.log.info("Invalid backup password")
             return
+        except AndroidBackupParsingError:
+            self.log.info("Impossible to read SMS from the Android Backup, please extract the SMS and try extracting it with Android Backup Extractor")
+            return
+
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
     def run(self):

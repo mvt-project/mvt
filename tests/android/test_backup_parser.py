@@ -42,9 +42,17 @@ class TestBackupParsing:
         assert len(sms[0]["links"]) == 1
         assert sms[0]["links"][0] == "https://google.com/"
 
+    def test_parsing_compression(self):
+        file = get_artifact("android_backup/backup3.ab")
+        with open(file, "rb") as f:
+            data = f.read()
+        ddata = parse_backup_file(data)
 
-
-
-
-
-
+        m = hashlib.sha256()
+        m.update(ddata)
+        assert m.hexdigest() == "33e73df2ede9798dcb3a85c06200ee41c8f52dd2f2e50ffafcceb0407bc13e3a"
+        sms = parse_tar_for_sms(ddata)
+        assert isinstance(sms, list) == True
+        assert len(sms) == 1
+        assert len(sms[0]["links"]) == 1
+        assert sms[0]["links"][0] == "https://google.com/"

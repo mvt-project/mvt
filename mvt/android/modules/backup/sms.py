@@ -8,7 +8,7 @@ import getpass
 
 from mvt.common.module import MVTModule
 from mvt.common.utils import check_for_links
-from mvt.android.parsers.backup import parse_sms_file, parse_sms_backup, parse_ab_header, InvalidBackupPassword
+from mvt.android.parsers.backup import parse_sms_file, parse_sms_backup, parse_ab_header, InvalidBackupPassword, AndroidBackupParsingError
 
 
 class SMS(MVTModule):
@@ -48,10 +48,7 @@ class SMS(MVTModule):
             if not header["backup"]:
                 self.log.info("Not a valid Android Backup file, quitting...")
                 return
-            if header["compression"]:
-                self.log.info("MVT does not support compressed backups, either regenerate the backup with the -nocompress option or use ANdroid Backup Extractor to convert it to a tar file")
-                self.log.info("Quitting...")
-                return
+
             pwd = None
             if header["encryption"] != "none":
                 pwd = getpass.getpass(prompt="Backup Password: ", stream=None)
@@ -61,6 +58,11 @@ class SMS(MVTModule):
             except InvalidBackupPassword:
                 self.log.info("Invalid password, impossible de decrypt the backup, quitting...")
                 return
+            except AndroidBackupParsingError:
+                self.log.info("Impossible to extract data from this Android Backup, please regenerate the backup using the -nocompress option or extract it using Android Backup Extractor instead.")
+                self.log.info("Quitting...")
+                return
+
             self.results = messages
         else:
             app_folder = os.path.join(self.base_folder,

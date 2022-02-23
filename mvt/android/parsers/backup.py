@@ -16,15 +16,15 @@ from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 PBKDF2_KEY_SIZE = 32
 
 
-class AndroidBackupParseError(Exception):
+class AndroidBackupParsingError(Exception):
     """Exception raised file parsing an android backup file"""
 
 
-class AndroidBackupNotImplemented(AndroidBackupParseError):
+class AndroidBackupNotImplemented(AndroidBackupParsingError):
     pass
 
 
-class InvalidBackupPassword(AndroidBackupParseError):
+class InvalidBackupPassword(AndroidBackupParsingError):
     pass
 
 
@@ -106,13 +106,11 @@ def parse_backup_file(data, password=None):
     Inspired by https://github.com/FloatingOctothorpe/dump_android_backup
     """
     if not data.startswith(b"ANDROID BACKUP"):
-        raise AndroidBackupParseError("Invalid file header")
+        raise AndroidBackupParsingError("Invalid file header")
 
     [magic_header, version, is_compressed, encryption, tar_data] = data.split(b"\n", 4)
     version = int(version)
     is_compressed = int(is_compressed)
-    if is_compressed == 1:
-        raise AndroidBackupNotImplemented("Compression is not implemented")
 
     if encryption != b"none":
         if encryption != b"AES-256":
@@ -152,6 +150,12 @@ def parse_backup_file(data, password=None):
 
         decrypter = pyaes.Decrypter(pyaes.AESModeOfOperationCBC(master_key, master_iv))
         tar_data = decrypter.feed(encrypted_data)
+
+    if is_compressed == 1:
+        try:
+            tar_data = zlib.decompress(tar_data)
+        except zlib.error:
+            raise AndroidBackupParsingError("Impossible to decompress the file")
 
     return tar_data
 
