@@ -6,14 +6,11 @@
 import logging
 import os
 import sqlite3
-import tarfile
-import io
-import zlib
 import base64
-import json
-import datetime
+import getpass
 
 from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+from mvt.android.parsers.backup import parse_ab_header, parse_sms_backup, InvalidBackupPassword
 from mvt.common.module import InsufficientPrivileges
 
 from .base import AndroidExtraction
@@ -73,6 +70,7 @@ class SMS(AndroidExtraction):
             if "body" not in message:
                 continue
 
+            # FIXME: check links exported from the body previously
             message_links = check_for_links(message["body"])
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
@@ -86,9 +84,9 @@ class SMS(AndroidExtraction):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        if (self.SMS_DB_TYPE == 1):
+        if self.SMS_DB_TYPE == 1:
             cur.execute(SMS_BUGLE_QUERY)
-        elif (self.SMS_DB_TYPE == 2):
+        elif self.SMS_DB_TYPE == 2:
             cur.execute(SMS_MMSMS_QUERY)
 
         names = [description[0] for description in cur.description]
@@ -111,29 +109,6 @@ class SMS(AndroidExtraction):
 
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
-    def _extract_sms_from_backup_tar(self, tar_data):
-        # Extract data from generated tar file
-        tar_bytes = io.BytesIO(tar_data)
-        tar = tarfile.open(fileobj=tar_bytes, mode='r')
-        for member in tar.getmembers():
-            if not member.name.endswith("_sms_backup"):
-                continue
-
-            self.log.debug("Extracting SMS messages from backup file %s", member.name)
-            sms_part_zlib = zlib.decompress(tar.extractfile(member).read())
-            json_data = json.loads(sms_part_zlib)
-
-            # TODO: Copied from SMS module. Refactor to avoid duplication
-            for message in json_data:
-                utc_timestamp = datetime.datetime.utcfromtimestamp(int(message["date"]) / 1000)
-                message["isodate"] = convert_timestamp_to_iso(utc_timestamp)
-                message["direction"] = ("sent" if int(message["date_sent"]) else "received")
-
-                message_links = check_for_links(message["body"])
-                if message_links or message["body"].strip() == "":
-                    self.results.append(message)
-
-        log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
     def _extract_sms_adb(self):
         """Use the Android backup command to extract SMS data from the native SMS app
@@ -141,23 +116,33 @@ class SMS(AndroidExtraction):
         It is crucial to use the under-documented "-nocompress" flag to disable the non-standard Java compression
         algorithim. This module only supports an unencrypted ADB backup.
         """
+        # Run ADB command to create a backup of SMS app
         self.log.warning("Please check phone and accept Android backup prompt. Do not set an encryption password. \a")
 
         # Run ADB command to create a backup of SMS app
         # TODO: Base64 encoding as temporary fix to avoid byte-mangling over the shell transport...
         backup_output_b64 = self._adb_command("/system/bin/bu backup -nocompress com.android.providers.telephony | base64")
         backup_output = base64.b64decode(backup_output_b64)
-        if not backup_output.startswith(b"ANDROID BACKUP"):
+        header = parse_ab_header(backup_output)
+        if not header["backup"]:
             self.log.error("Extracting SMS via Android backup failed. No valid backup data found.")
             return
 
-        [magic_header, version, is_compressed, encryption, tar_data] = backup_output.split(b"\n", 4)
-        if encryption != b"none" or int(is_compressed):
-            self.log.error("The backup is encrypted or compressed and cannot be parsed. "
-                           "[version: %s, encryption: %s, compression: %s]", version, encryption, is_compressed)
+        if header["compression"]:
+            self.log.error("The backup is compressed and cannot be parsed, quitting...")
             return
 
-        self._extract_sms_from_backup_tar(tar_data)
+        pwd = None
+        if header["encryption"] != "none":
+            pwd = getpass.getpass(prompt="Backup Password: ", stream=None)
+
+
+        try:
+            self.results = parse_sms_backup(backup_output, password=pwd)
+        except InvalidBackupPassword:
+            self.info.log("Invalid backup password")
+            return
+        log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
     def run(self):
         try:

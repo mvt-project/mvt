@@ -20,8 +20,12 @@ def get_artifact_folder():
     return os.path.join(os.path.dirname(__file__), "artifacts")
 
 
-def get_backup_folder():
+def get_ios_backup_folder():
     return os.path.join(os.path.dirname(__file__), "artifacts", "ios_backup")
+
+
+def get_android_backup_folder():
+    return os.path.join(os.path.dirname(__file__), "artifacts", "android_backup")
 
 
 def get_indicator_file():

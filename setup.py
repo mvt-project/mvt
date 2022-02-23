@@ -29,6 +29,7 @@ requires = (
     # Android dependencies:
     "adb-shell>=0.4.2",
     "libusb1>=2.0.1",
+    "pyaes>=1.6.1"
 )
 
 

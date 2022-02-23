@@ -3,16 +3,15 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import json
 import os
-import zlib
+import getpass
 
 from mvt.common.module import MVTModule
 from mvt.common.utils import check_for_links
+from mvt.android.parsers.backup import parse_sms_file, parse_sms_backup, parse_ab_header, InvalidBackupPassword
 
 
 class SMS(MVTModule):
-
     def __init__(self, file_path=None, base_folder=None, output_folder=None,
                  fast_mode=False, log=None, results=[]):
         super().__init__(file_path=file_path, base_folder=base_folder,
@@ -35,30 +34,49 @@ class SMS(MVTModule):
         self.log.info("Processing SMS backup file at %s", file_path)
 
         with open(file_path, "rb") as handle:
-            data = zlib.decompress(handle.read())
-            json_data = json.loads(data)
+            data = handle.read()
 
-        for entry in json_data:
-            message_links = check_for_links(entry["body"])
-
-            # If we find links in the messages or if they are empty we add them to the list.
-            if message_links or entry["body"].strip() == "":
-                self.results.append(entry)
+        self.results = parse_sms_file(data)
 
     def run(self):
-        app_folder = os.path.join(self.base_folder,
-                                  "apps",
-                                  "com.android.providers.telephony",
-                                  "d_f")
-        if not os.path.exists(app_folder):
-            raise FileNotFoundError("Unable to find the SMS backup folder")
+        # FIXME: this should be done in the Module code if there are other modules on backups
+        if os.path.isfile(self.base_folder):
+            # ab file
+            with open(self.base_folder, "rb") as handle:
+                data = handle.read()
+            header = parse_ab_header(data)
+            if not header["backup"]:
+                self.log.info("Not a valid Android Backup file, quitting...")
+                return
+            if header["compression"]:
+                self.log.info("MVT does not support compressed backups, either regenerate the backup with the -nocompress option or use ANdroid Backup Extractor to convert it to a tar file")
+                self.log.info("Quitting...")
+                return
+            pwd = None
+            if header["encryption"] != "none":
+                pwd = getpass.getpass(prompt="Backup Password: ", stream=None)
 
-        for file_name in os.listdir(app_folder):
-            if not file_name.endswith("_sms_backup"):
-                continue
+            try:
+                messages = parse_sms_backup(data, password=pwd)
+            except InvalidBackupPassword:
+                self.log.info("Invalid password, impossible de decrypt the backup, quitting...")
+                return
+            self.results = messages
+        else:
+            app_folder = os.path.join(self.base_folder,
+                                      "apps",
+                                      "com.android.providers.telephony",
+                                      "d_f")
+            if not os.path.exists(app_folder):
+                self.log.info("Unable to find the SMS backup folder")
+                return
 
-            file_path = os.path.join(app_folder, file_name)
-            self._process_sms_file(file_path)
+            for file_name in os.listdir(app_folder):
+                if not file_name.endswith("_sms_backup"):
+                    continue
+
+                file_path = os.path.join(app_folder, file_name)
+                self._process_sms_file(file_path)
 
         self.log.info("Extracted a total of %d SMS messages containing links",
                       len(self.results))

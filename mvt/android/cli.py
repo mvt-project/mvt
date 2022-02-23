@@ -256,14 +256,6 @@ def check_backup(ctx, iocs, output, backup_path, serial):
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
 
-    if os.path.isfile(backup_path):
-        log.critical("The path you specified is a not a folder!")
-
-        if os.path.basename(backup_path) == "backup.ab":
-            log.info("You can use ABE (https://github.com/nelenkov/android-backup-extractor) "
-                     "to extract 'backup.ab' files!")
-        ctx.exit(1)
-
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,
                    log=logging.getLogger(module.__module__))
