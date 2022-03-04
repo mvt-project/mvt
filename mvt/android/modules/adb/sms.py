@@ -117,6 +117,9 @@ class SMS(AndroidExtraction):
         algorithim. This module only supports an unencrypted ADB backup.
         """
         backup_tar = self._generate_backup("com.android.providers.telephony")
+        if not backup_tar:
+            return
+
         try:
             self.results = parse_tar_for_sms(backup_tar)
         except AndroidBackupParsingError:

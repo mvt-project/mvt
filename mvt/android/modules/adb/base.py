@@ -10,6 +10,8 @@ import string
 import sys
 import tempfile
 import time
+import base64
+import getpass
 
 from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
@@ -19,7 +21,7 @@ from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
 from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.common.module import InsufficientPrivileges, MVTModule
-from mvt.android.parsers.backup import parse_ab_header, parse_backup_file
+from mvt.android.parsers.backup import parse_ab_header, parse_backup_file, InvalidBackupPassword
 
 log = logging.getLogger(__name__)
 
@@ -244,7 +246,7 @@ class AndroidExtraction(MVTModule):
         # Disconnect from the device.
         self._adb_disconnect()
 
-    def _generate_backup(package_name):
+    def _generate_backup(self, package_name):
         # Run ADB command to create a backup of SMS app
         self.log.warning("Please check phone and accept Android backup prompt. You may need to set a backup password. \a")
 
@@ -253,6 +255,7 @@ class AndroidExtraction(MVTModule):
         backup_output_b64 = self._adb_command("/system/bin/bu backup -nocompress '{}' | base64".format(package_name))
         backup_output = base64.b64decode(backup_output_b64)
         header = parse_ab_header(backup_output)
+
         if not header["backup"]:
             self.log.error("Extracting SMS via Android backup failed. No valid backup data found.")
             return
@@ -261,7 +264,7 @@ class AndroidExtraction(MVTModule):
             return parse_backup_file(backup_output, password=None)
 
         # Backup encrypted. Request password from user.
-        while password_retry in range(0, 3):
+        for password_retry in range(0, 3):
             backup_password = getpass.getpass(prompt="Backup Password: ", stream=None)
             try:
                 decrypted_backup_tar = parse_backup_file(backup_output, backup_password)

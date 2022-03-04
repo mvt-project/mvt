@@ -78,19 +78,19 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
     decryptor = cipher.decryptor()
     try:
         decryted_master_key_blob = decryptor.update(master_key_blob) + decryptor.finalize()
+
+        # Extract key and IV from decrypted blob.
+        key_blob = io.BytesIO(decryted_master_key_blob)
+        master_iv_length = ord(key_blob.read(1))
+        master_iv = key_blob.read(master_iv_length)
+
+        master_key_length = ord(key_blob.read(1))
+        master_key = key_blob.read(master_key_length)
+
+        master_key_checksum_length = ord(key_blob.read(1))
+        master_key_checksum = key_blob.read(master_key_checksum_length)
     except TypeError:
         raise InvalidBackupPassword()
-
-    # Extract key and IV from decrypted blob.
-    key_blob = io.BytesIO(decryted_master_key_blob)
-    master_iv_length = ord(key_blob.read(1))
-    master_iv = key_blob.read(master_iv_length)
-
-    master_key_length = ord(key_blob.read(1))
-    master_key = key_blob.read(master_key_length)
-
-    master_key_checksum_length = ord(key_blob.read(1))
-    master_key_checksum = key_blob.read(master_key_checksum_length)
 
     # Handle quirky encoding of master key bytes in Android original Java crypto code
     if format_version > 1:
