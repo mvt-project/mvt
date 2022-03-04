@@ -7,9 +7,11 @@ import io
 import zlib
 import json
 import tarfile
-import hashlib
 import datetime
-import pyaes
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
 from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 
 
@@ -28,37 +30,7 @@ class InvalidBackupPassword(AndroidBackupParsingError):
     pass
 
 
-def decrypt_master_key_blob(key, aes_iv, cipher_text):
-    """
-    Decrypt the master key blob with AES
-    From : https://github.com/FloatingOctothorpe/dump_android_backup
-    """
-
-    aes = pyaes.AESModeOfOperationCBC(key, aes_iv)
-
-    plain_text = b''
-    while len(plain_text) < len(cipher_text):
-        offset = len(plain_text)
-        plain_text += aes.decrypt(cipher_text[offset:(offset + 16)])
-
-    blob = io.BytesIO(plain_text)
-    master_iv_length = ord(blob.read(1))
-    master_iv = blob.read(master_iv_length)
-    master_key_length = ord(blob.read(1))
-    master_key = blob.read(master_key_length)
-    master_key_checksum_length = ord(blob.read(1))
-    master_key_checksum = blob.read(master_key_checksum_length)
-
-    return master_iv, master_key, master_key_checksum
-
-
 def to_utf8_bytes(input_bytes):
-    """Emulate bytes being converted into a "UTF8 byte array"
-    For more info see the Bouncy Castle Crypto package Strings.toUTF8ByteArray
-    method:
-      https://github.com/bcgit/bc-java/blob/master/core/src/main/java/org/bouncycastle/util/Strings.java#L142
-    From https://github.com/FloatingOctothorpe/dump_android_backup
-    """
     output = []
     for byte in input_bytes:
         if byte < ord(b'\x80'):
@@ -103,7 +75,6 @@ def parse_ab_header(data):
 def parse_backup_file(data, password=None):
     """
     Parse an ab file, returns a tar file
-    Inspired by https://github.com/FloatingOctothorpe/dump_android_backup
     """
     if not data.startswith(b"ANDROID BACKUP"):
         raise AndroidBackupParsingError("Invalid file header")
@@ -124,13 +95,25 @@ def parse_backup_file(data, password=None):
         user_iv = bytes.fromhex(user_iv.decode("utf-8"))
         master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
 
-        key = hashlib.pbkdf2_hmac('sha1',
-                                  password.encode('utf-8'),
-                                  user_salt,
-                                  pbkdf2_rounds,
-                                  PBKDF2_KEY_SIZE)
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA1(),
+            length=32,
+            salt=user_salt,
+            iterations=pbkdf2_rounds)
+        key = kdf.derive(password.encode("utf-8"))
+
+        cipher = Cipher(algorithms.AES(key), modes.CBC(user_iv))
+        decryptor = cipher.decryptor()
         try:
-            [master_iv, master_key, master_key_checksum] = decrypt_master_key_blob(key, user_iv, master_key_blob)
+            plain_text = decryptor.update(master_key_blob) + decryptor.finalize()
+
+            blob = io.BytesIO(plain_text)
+            master_iv_length = ord(blob.read(1))
+            master_iv = blob.read(master_iv_length)
+            master_key_length = ord(blob.read(1))
+            master_key = blob.read(master_key_length)
+            master_key_checksum_length = ord(blob.read(1))
+            master_key_checksum = blob.read(master_key_checksum_length)
         except TypeError:
             raise InvalidBackupPassword()
 
@@ -139,17 +122,21 @@ def parse_backup_file(data, password=None):
         else:
             hmac_mk = master_key
 
-        calculated_checksum = hashlib.pbkdf2_hmac('sha1',
-                                                  hmac_mk,
-                                                  checksum_salt,
-                                                  pbkdf2_rounds,
-                                                  PBKDF2_KEY_SIZE)
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA1(),
+            length=32,
+            salt=checksum_salt,
+            iterations=pbkdf2_rounds)
+        calculated_checksum = kdf.derive(hmac_mk)
 
         if  master_key_checksum != calculated_checksum:
             raise InvalidBackupPassword()
 
-        decrypter = pyaes.Decrypter(pyaes.AESModeOfOperationCBC(master_key, master_iv))
-        tar_data = decrypter.feed(encrypted_data)
+        cipher = Cipher(algorithms.AES(master_key), modes.CBC(master_iv))
+        decryptor = cipher.decryptor()
+        tar_data = decryptor.update(encrypted_data) + decryptor.finalize()
+        unpadder = padding.PKCS7(128).unpadder()
+        tar_data = data = unpadder.update(tar_data)
 
     if is_compressed == 1:
         try:
