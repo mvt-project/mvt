@@ -42,14 +42,6 @@ def to_utf8_bytes(input_bytes):
     return bytes(output)
 
 
-def parse_sms_backup(data, password=None):
-    """
-    Parse a backup file and returns SMS in it
-    """
-    tardata = parse_backup_file(data, password=password)
-    return parse_tar_for_sms(tardata)
-
-
 def parse_ab_header(data):
     """
     Parse the header of an Android Backup file

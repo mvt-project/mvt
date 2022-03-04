@@ -10,7 +10,7 @@ import base64
 import getpass
 
 from mvt.common.utils import check_for_links, convert_timestamp_to_iso
-from mvt.android.parsers.backup import parse_ab_header, parse_sms_backup, InvalidBackupPassword, AndroidBackupParsingError
+from mvt.android.parsers.backup import parse_tar_for_sms, AndroidBackupParsingError
 from mvt.common.module import InsufficientPrivileges
 
 from .base import AndroidExtraction
@@ -116,28 +116,9 @@ class SMS(AndroidExtraction):
         It is crucial to use the under-documented "-nocompress" flag to disable the non-standard Java compression
         algorithim. This module only supports an unencrypted ADB backup.
         """
-        # Run ADB command to create a backup of SMS app
-        self.log.warning("Please check phone and accept Android backup prompt. Do not set an encryption password. \a")
-
-        # Run ADB command to create a backup of SMS app
-        # TODO: Base64 encoding as temporary fix to avoid byte-mangling over the shell transport...
-        backup_output_b64 = self._adb_command("/system/bin/bu backup -nocompress com.android.providers.telephony | base64")
-        backup_output = base64.b64decode(backup_output_b64)
-        header = parse_ab_header(backup_output)
-        if not header["backup"]:
-            self.log.error("Extracting SMS via Android backup failed. No valid backup data found.")
-            return
-
-        pwd = None
-        if header["encryption"] != "none":
-            pwd = getpass.getpass(prompt="Backup Password: ", stream=None)
-
-
+        backup_tar = self._generate_backup("com.android.providers.telephony")
         try:
-            self.results = parse_sms_backup(backup_output, password=pwd)
-        except InvalidBackupPassword:
-            self.log.info("Invalid backup password")
-            return
+            self.results = parse_tar_for_sms(backup_tar)
         except AndroidBackupParsingError:
             self.log.info("Impossible to read SMS from the Android Backup, please extract the SMS and try extracting it with Android Backup Extractor")
             return
