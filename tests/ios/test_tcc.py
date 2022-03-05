@@ -9,12 +9,12 @@ from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 from mvt.ios.modules.mixed.tcc import TCC
 
-from ..utils import get_backup_folder
+from ..utils import get_ios_backup_folder
 
 
 class TestTCCtModule:
     def test_tcc(self):
-        m = TCC(base_folder=get_backup_folder(), log=logging, results=[])
+        m = TCC(base_folder=get_ios_backup_folder(), log=logging, results=[])
         run_module(m)
         assert len(m.results) == 11
         assert len(m.timeline) == 11
@@ -24,7 +24,7 @@ class TestTCCtModule:
         assert m.results[0]["auth_value"] == "allowed"
 
     def test_tcc_detection(self, indicator_file):
-        m = TCC(base_folder=get_backup_folder(), log=logging, results=[])
+        m = TCC(base_folder=get_ios_backup_folder(), log=logging, results=[])
         ind = Indicators(log=logging)
         ind.parse_stix2(indicator_file)
         m.indicators = ind

@@ -7,12 +7,12 @@ from click.testing import CliRunner
 
 from mvt.ios.cli import check_backup
 
-from .utils import get_backup_folder
+from .utils import get_ios_backup_folder
 
 
 class TestCheckBackupCommand:
     def test_check(self):
         runner = CliRunner()
-        path = get_backup_folder()
+        path = get_ios_backup_folder()
         result = runner.invoke(check_backup, [path])
         assert result.exit_code == 0

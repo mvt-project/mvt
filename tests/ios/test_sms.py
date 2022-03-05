@@ -9,19 +9,19 @@ from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 from mvt.ios.modules.mixed.sms import SMS
 
-from ..utils import get_backup_folder
+from ..utils import get_ios_backup_folder
 
 
 class TestSMSModule:
     def test_sms(self):
-        m = SMS(base_folder=get_backup_folder(), log=logging, results=[])
+        m = SMS(base_folder=get_ios_backup_folder(), log=logging, results=[])
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 1
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
-        m = SMS(base_folder=get_backup_folder(), log=logging, results=[])
+        m = SMS(base_folder=get_ios_backup_folder(), log=logging, results=[])
         ind = Indicators(log=logging)
         ind.parse_stix2(indicator_file)
         # Adds a file that exists in the manifest.

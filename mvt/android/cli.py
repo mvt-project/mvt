@@ -5,6 +5,9 @@
 
 import logging
 import os
+import getpass
+import io
+import tarfile
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -17,6 +20,8 @@ from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
+from mvt.android.parsers.backup import parse_ab_header, parse_backup_file
+from mvt.android.parsers.backup import InvalidBackupPassword, AndroidBackupParsingError
 
 from .download_apks import DownloadAPKs
 from .lookups.koodous import koodous_lookup
@@ -246,6 +251,44 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 def check_backup(ctx, iocs, output, backup_path, serial):
     log.info("Checking ADB backup located at: %s", backup_path)
 
+    if os.path.isfile(backup_path):
+        # AB File
+        backup_type = "ab"
+        with open(backup_path, "rb") as handle:
+            data = handle.read()
+        header = parse_ab_header(data)
+        if not header["backup"]:
+            log.critical("Invalid backup format, file should be in .ab format")
+            ctx.exit(1)
+        password = None
+        if header["encryption"] != "none":
+            password = getpass.getpass(prompt="Backup Password: ", stream=None)
+        try:
+            tardata = parse_backup_file(data, password=password)
+        except InvalidBackupPassword:
+            log.critical("Invalid backup password")
+            ctx.exit(1)
+        except AndroidBackupParsingError:
+            log.critical("Impossible to parse this backup file, please use Android Backup Extractor instead")
+            ctx.exit(1)
+
+        dbytes = io.BytesIO(tardata)
+        tar = tarfile.open(fileobj=dbytes)
+        files = []
+        for member in tar:
+            files.append(member.name)
+
+    elif os.path.isdir(backup_path):
+        backup_type = "folder"
+        backup_path = Path(backup_path).absolute().as_posix()
+        files = []
+        for root, subdirs, subfiles in os.walk(os.path.abspath(backup_path)):
+            for fname in subfiles:
+                files.append(os.path.relpath(os.path.join(root, fname), backup_path))
+    else:
+        log.critical("Invalid backup path, path should be a folder or an Android Backup (.ab) file")
+        ctx.exit(1)
+
     if output and not os.path.exists(output):
         try:
             os.makedirs(output)
@@ -256,14 +299,6 @@ def check_backup(ctx, iocs, output, backup_path, serial):
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
 
-    if os.path.isfile(backup_path):
-        log.critical("The path you specified is a not a folder!")
-
-        if os.path.basename(backup_path) == "backup.ab":
-            log.info("You can use ABE (https://github.com/nelenkov/android-backup-extractor) "
-                     "to extract 'backup.ab' files!")
-        ctx.exit(1)
-
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,
                    log=logging.getLogger(module.__module__))
@@ -272,6 +307,11 @@ def check_backup(ctx, iocs, output, backup_path, serial):
             m.indicators.log = m.log
         if serial:
             m.serial = serial
+
+        if backup_type == "folder":
+            m.from_folder(backup_path, files)
+        else:
+            m.from_ab(backup_path, tar, files)
 
         run_module(m)
 
