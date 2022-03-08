@@ -190,7 +190,7 @@ If indicators are provided through the command-line, they are checked against th
     Backup: :material-check:
     Full filesystem dump: :material-check:
 
-This JSON file is created by mvt-ios' `Datausage` module. The module extracts records from a SQLite database located */private/var/wireless/Library/Databases/DataUsage.sqlite*, which contains a history of data usage by processes running on the system. Besides the network statistics, these records are particularly important because they might show traces of malicious process executions and the relevant timeframe. In particular, processes which do not have a valid bundle ID might require particular attention.
+This JSON file is created by mvt-ios' `Datausage` module. The module extracts records from a SQLite database located */private/var/wireless/Library/Databases/DataUsage.sqlite*, which contains a history of network data usage by processes running on the system. It does not log network traffic through WiFi (the fields `WIFI_IN` and `WIFI_OUT` are always empty), and the `WWAN_IN` and `WWAN_OUT` fields are stored in bytes. Besides the network statistics, these records are particularly important because they might show traces of malicious process executions and the relevant timeframe. In particular, processes which do not have a valid bundle ID might require particular attention.
 
 If indicators are provided through the command-line, they are checked against the process names. Any matches are stored in *datausage_detected.json*. If running on a full filesystem dump and if the `--fast` flag was not enabled by command-line, mvt-ios will highlight processes which look suspicious and check the presence of a binary file of the same name in the dump.
 
