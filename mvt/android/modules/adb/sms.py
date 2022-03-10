@@ -110,7 +110,6 @@ class SMS(AndroidExtraction):
 
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
-
     def _extract_sms_adb(self):
         """Use the Android backup command to extract SMS data from the native SMS app
 

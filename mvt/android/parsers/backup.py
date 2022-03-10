@@ -64,6 +64,7 @@ def parse_ab_header(data):
         "encryption": None
     }
 
+
 def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_blob, format_version, checksum_salt):
     """Generate AES key from user password uisng PBKDF2
 
@@ -107,6 +108,7 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
 
     return master_key, master_iv
 
+
 def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_version):
     """
     Generate encryption keyffrom password and do decryption
@@ -136,6 +138,7 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
 
     unpadder = padding.PKCS7(128).unpadder()
     return unpadder.update(decrypted_tar)
+
 
 def parse_backup_file(data, password=None):
     """
