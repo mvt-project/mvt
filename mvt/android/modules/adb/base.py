@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import base64
+import getpass
 import logging
 import os
 import random
@@ -10,8 +12,6 @@ import string
 import sys
 import tempfile
 import time
-import base64
-import getpass
 
 from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
@@ -20,8 +20,9 @@ from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
                                   UsbDeviceNotFoundError, UsbReadFailedError)
 from usb1 import USBErrorAccess, USBErrorBusy
 
+from mvt.android.parsers.backup import (InvalidBackupPassword, parse_ab_header,
+                                        parse_backup_file)
 from mvt.common.module import InsufficientPrivileges, MVTModule
-from mvt.android.parsers.backup import parse_ab_header, parse_backup_file, InvalidBackupPassword
 
 log = logging.getLogger(__name__)
 

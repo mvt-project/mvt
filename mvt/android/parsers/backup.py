@@ -3,17 +3,17 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import datetime
 import io
-import zlib
 import json
 import tarfile
-import datetime
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+import zlib
 
+from cryptography.hazmat.primitives import hashes, padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 
 PBKDF2_KEY_SIZE = 32
 

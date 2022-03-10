@@ -3,14 +3,14 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import io
 import logging
 import os
 import tarfile
-import io
 
 from mvt.android.modules.backup.sms import SMS
-from mvt.common.module import run_module
 from mvt.android.parsers.backup import parse_backup_file
+from mvt.common.module import run_module
 
 from ..utils import get_android_backup_folder
 

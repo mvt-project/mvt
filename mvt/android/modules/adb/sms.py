@@ -3,15 +3,16 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import base64
+import getpass
 import logging
 import os
 import sqlite3
-import base64
-import getpass
 
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
-from mvt.android.parsers.backup import parse_tar_for_sms, AndroidBackupParsingError
+from mvt.android.parsers.backup import (AndroidBackupParsingError,
+                                        parse_tar_for_sms)
 from mvt.common.module import InsufficientPrivileges
+from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 
 from .base import AndroidExtraction
 

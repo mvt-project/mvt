@@ -4,8 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 from mvt.android.modules.backup.base import BackupExtraction
-from mvt.common.utils import check_for_links
 from mvt.android.parsers.backup import parse_sms_file
+from mvt.common.utils import check_for_links
 
 
 class SMS(BackupExtraction):

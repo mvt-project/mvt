@@ -3,10 +3,10 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
-import os
 import getpass
 import io
+import logging
+import os
 import tarfile
 from pathlib import Path
 from zipfile import ZipFile
@@ -14,14 +14,15 @@ from zipfile import ZipFile
 import click
 from rich.logging import RichHandler
 
+from mvt.android.parsers.backup import (AndroidBackupParsingError,
+                                        InvalidBackupPassword, parse_ab_header,
+                                        parse_backup_file)
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
                              HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
-from mvt.android.parsers.backup import parse_ab_header, parse_backup_file
-from mvt.android.parsers.backup import InvalidBackupPassword, AndroidBackupParsingError
 
 from .download_apks import DownloadAPKs
 from .lookups.koodous import koodous_lookup
