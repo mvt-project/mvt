@@ -1,0 +1,8 @@
+[flake8]
+max-complexit = 10
+max-line-length = 1000
+ignore =
+    C901,
+    E265,
+    E127,
+    F401
