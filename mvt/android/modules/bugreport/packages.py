@@ -6,8 +6,6 @@
 import logging
 import re
 
-from mvt.android.modules.adb.packages import Packages as PCK
-
 from .base import BugReportModule
 
 log = logging.getLogger(__name__)
@@ -53,7 +51,58 @@ class Packages(BugReportModule):
                 continue
 
     @staticmethod
-    def parse_packages_list(output):
+    def parse_package_for_details(output):
+        details = {
+            "uid": "",
+            "version_name": "",
+            "version_code": "",
+            "timestamp": "",
+            "first_install_time": "",
+            "last_update_time": "",
+            "requested_permissions": [],
+        }
+
+        in_install_permissions = False
+        in_runtime_permissions = False
+        for line in output.splitlines():
+            if in_install_permissions:
+                if line.startswith(" " * 4) and not line.startswith(" " * 6):
+                    in_install_permissions = False
+                    continue
+
+                permission = line.strip().split(":")[0]
+                if permission not in details["requested_permissions"]:
+                    details["requested_permissions"].append(permission)
+
+            if in_runtime_permissions:
+                if not line.startswith(" " * 8):
+                    in_runtime_permissions = False
+                    continue
+
+                permission = line.strip().split(":")[0]
+                if permission not in details["requested_permissions"]:
+                    details["requested_permissions"].append(permission)
+
+            if line.strip().startswith("userId="):
+                details["uid"] = line.split("=")[1].strip()
+            elif line.strip().startswith("versionName="):
+                details["version_name"] = line.split("=")[1].strip()
+            elif line.strip().startswith("versionCode="):
+                details["version_code"] = line.split("=", 1)[1].strip()
+            elif line.strip().startswith("timeStamp="):
+                details["timestamp"] = line.split("=")[1].strip()
+            elif line.strip().startswith("firstInstallTime="):
+                details["first_install_time"] = line.split("=")[1].strip()
+            elif line.strip().startswith("lastUpdateTime="):
+                details["last_update_time"] = line.split("=")[1].strip()
+            elif line.strip() == "install permissions:":
+                in_install_permissions = True
+            elif line.strip() == "runtime permissions:":
+                in_runtime_permissions = True
+
+        return details
+
+    def parse_packages_list(self, output):
         pkg_rxp = re.compile(r"  Package \[(.+?)\].*")
 
         results = []
@@ -63,9 +112,10 @@ class Packages(BugReportModule):
         for line in output.splitlines():
             if line.startswith("  Package ["):
                 if len(lines) > 0:
-                    details = PCK.parse_package_for_details("\n".join(lines))
+                    details = self.parse_package_for_details("\n".join(lines))
                     package.update(details)
                     results.append(package)
+                    lines = []
                     package = {}
 
                 matches = pkg_rxp.findall(line)
