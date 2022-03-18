@@ -88,9 +88,8 @@ class SMS(IOSExtraction):
             for index, value in enumerate(item):
                 # We base64 escape some of the attributes that could contain
                 # binary data.
-                if (names[index] == "attributedBody" or
-                        names[index] == "payload_data" or
-                        names[index] == "message_summary_info") and value:
+                if (names[index] == "attributedBody" or names[index] == "payload_data"
+                        or names[index] == "message_summary_info") and value:
                     value = b64encode(value).decode()
 
                 # We store the value of each column under the proper key.

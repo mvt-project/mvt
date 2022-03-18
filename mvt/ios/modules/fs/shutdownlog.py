@@ -64,7 +64,7 @@ class ShutdownLog(IOSExtraction):
                     mac_timestamp = int(line[line.find("[")+1:line.find("]")])
                 except ValueError:
                     try:
-                        start = line.find(" @")+2
+                        start = line.find(" @") + 2
                         mac_timestamp = int(line[start:start+10])
                     except Exception:
                         mac_timestamp = 0

@@ -248,12 +248,11 @@ class AndroidExtraction(MVTModule):
         self._adb_disconnect()
 
     def _generate_backup(self, package_name):
-        # Run ADB command to create a backup of SMS app
         self.log.warning("Please check phone and accept Android backup prompt. You may need to set a backup password. \a")
 
-        # Run ADB command to create a backup of SMS app
         # TODO: Base64 encoding as temporary fix to avoid byte-mangling over the shell transport...
-        backup_output_b64 = self._adb_command("/system/bin/bu backup -nocompress '{}' | base64".format(package_name))
+        backup_output_b64 = self._adb_command("/system/bin/bu backup -nocompress '{}' | base64".format(
+            package_name))
         backup_output = base64.b64decode(backup_output_b64)
         header = parse_ab_header(backup_output)
 
@@ -264,14 +263,13 @@ class AndroidExtraction(MVTModule):
         if header["encryption"] == "none":
             return parse_backup_file(backup_output, password=None)
 
-        # Backup encrypted. Request password from user.
         for password_retry in range(0, 3):
-            backup_password = getpass.getpass(prompt="Backup Password: ", stream=None)
+            backup_password = getpass.getpass(prompt="Backup password: ", stream=None)
             try:
                 decrypted_backup_tar = parse_backup_file(backup_output, backup_password)
                 return decrypted_backup_tar
             except InvalidBackupPassword:
-                self.log.info("Invalid backup password")
+                self.log.error("You provided the wrong password! Please try again...")
 
         self.log.warn("All attempts to decrypt backup with password failed!")
 

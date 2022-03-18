@@ -73,8 +73,8 @@ class SMSAttachments(IOSExtraction):
             attachment["service"] = attachment["service"] or "Unknown"
             attachment["filename"] = attachment["filename"] or "NULL"
 
-            if (attachment["filename"].startswith("/var/tmp/") and attachment["filename"].endswith("-1") and
-                    attachment["direction"] == "received"):
+            if (attachment["filename"].startswith("/var/tmp/") and attachment["filename"].endswith("-1")
+                    and attachment["direction"] == "received"):
                 self.log.warn(f"Suspicious iMessage attachment '{attachment['filename']}' on {attachment['isodate']}")
                 self.detected.append(attachment)
 
