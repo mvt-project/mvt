@@ -7,6 +7,7 @@ import binascii
 import glob
 import logging
 import os
+import os.path
 import shutil
 import sqlite3
 
@@ -27,7 +28,7 @@ class DecryptBackup:
         :param backup_path: Path to the encrypted backup folder
         :param dest_path: Path to the folder where to store the decrypted backup
         """
-        self.backup_path = backup_path
+        self.backup_path = os.path.abspath(backup_path)
         self.dest_path = dest_path
         self._backup = None
         self._decryption_key = None
