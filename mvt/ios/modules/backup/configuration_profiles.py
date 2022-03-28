@@ -74,12 +74,14 @@ class ConfigurationProfiles(IOSExtraction):
                     conf_plist = plistlib.load(handle)
                 except Exception:
                     conf_plist = {}
-
             if "SignerCerts" in conf_plist:
                 conf_plist["SignerCerts"] = [b64encode(x) for x in conf_plist["SignerCerts"]]
             if "OTAProfileStub" in conf_plist:
                 if "SignerCerts" in conf_plist["OTAProfileStub"]:
                     conf_plist["OTAProfileStub"]["SignerCerts"] = [b64encode(x) for x in conf_plist["OTAProfileStub"]["SignerCerts"]]
+                if "PayloadContent" in conf_plist["OTAProfileStub"]:
+                    if "EnrollmentIdentityPersistentID" in conf_plist["OTAProfileStub"]["PayloadContent"]:
+                        conf_plist["OTAProfileStub"]["PayloadContent"]["EnrollmentIdentityPersistentID"] = b64encode(conf_plist["OTAProfileStub"]["PayloadContent"]["EnrollmentIdentityPersistentID"])
             if "PushTokenDataSentToServerKey" in conf_plist:
                 conf_plist["PushTokenDataSentToServerKey"] = b64encode(conf_plist["PushTokenDataSentToServerKey"])
             if "LastPushTokenHash" in conf_plist:
@@ -88,6 +90,8 @@ class ConfigurationProfiles(IOSExtraction):
                 for x in range(len(conf_plist["PayloadContent"])):
                     if "PERSISTENT_REF" in conf_plist["PayloadContent"][x]:
                         conf_plist["PayloadContent"][x]["PERSISTENT_REF"] = b64encode(conf_plist["PayloadContent"][x]["PERSISTENT_REF"])
+                    if "IdentityPersistentRef" in conf_plist["PayloadContent"][x]:
+                        conf_plist["PayloadContent"][x]["IdentityPersistentRef"] = b64encode(conf_plist["PayloadContent"][x]["IdentityPersistentRef"])
 
             self.results.append({
                 "file_id": conf_file["file_id"],
