@@ -134,3 +134,6 @@ dmypy.json
 
 # IDEA Dev Environment
 .idea
+
+# Sublime Text project files
+*.sublime*
