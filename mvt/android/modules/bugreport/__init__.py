@@ -5,6 +5,7 @@
 
 from .accessibility import Accessibility
 from .activities import Activities
+from .appops import Appops
 from .battery_daily import BatteryDaily
 from .battery_history import BatteryHistory
 from .dbinfo import DBInfo
@@ -12,5 +13,5 @@ from .getprop import Getprop
 from .packages import Packages
 from .receivers import Receivers
 
-BUGREPORT_MODULES = [Accessibility, Activities, BatteryDaily, BatteryHistory,
-                     DBInfo, Getprop, Packages, Receivers]
+BUGREPORT_MODULES = [Accessibility, Activities, Appops, BatteryDaily,
+                     BatteryHistory, DBInfo, Getprop, Packages, Receivers]

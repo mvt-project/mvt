@@ -1,0 +1,126 @@
+Currently running services:
+  AAS
+  AODManagerService
+  CodecSolution
+  CustomFrequencyManagerService
+  DeviceRootKeyService
+  DirEncryptService
+  DisplaySolution
+  DockObserver
+  EngineeringModeService
+  FMPlayer
+  HcmManagerService
+  HermesService
+  HqmManagerService
+-------------------------------------------------------------------------------
+DUMP OF SERVICE AAS:
+--------- 0.002s was the duration of dumpsys AAS, ending at: 2022-03-29 23:14:26
+-------------------------------------------------------------------------------
+DUMP OF SERVICE appops:
+Current AppOps Service state:
+  Settings:
+    top_state_settle_time=+30s0ms
+    fg_service_state_settle_time=+10s0ms
+    bg_state_settle_time=+1s0ms
+
+  Op mode watchers:
+    Op COARSE_LOCATION:
+      #0: ModeCallback{b8f1a14 watchinguid=-1 flags=0x1 from uid=1000 pid=4098}
+      #1: ModeCallback{e9062d4 watchinguid=-1 flags=0x1 from uid=u0a12 pid=13172}
+    Op READ_CALL_LOG:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op WRITE_CALL_LOG:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op READ_SMS:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op RECEIVE_SMS:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op RECEIVE_MMS:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+
+  Uid 0:
+    state=cch
+    Package com.android.phone:
+      MANAGE_IPSEC_TUNNELS (allow):
+    Package com.sec.epdg:
+      MANAGE_IPSEC_TUNNELS (deny):
+  Uid 1000:
+    state=pers
+      LEGACY_STORAGE: mode=allow
+    Package com.samsung.android.provider.filterprovider:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+    Package com.samsung.android.smartswitchassistant:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+    Package com.samsung.clipboardsaveservice:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+      RUN_IN_BACKGROUND (allow):
+    Package com.skms.android.agent:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+    Package com.sec.factory.camera:
+      RECORD_AUDIO (allow):
+      RUN_IN_BACKGROUND (allow):
+          Access: [pers-s] 2022-03-29 18:37:30.315 (-4h50m23s772ms)
+  Uid u0a103:
+    state=cch
+      COARSE_LOCATION: mode=ignore
+      LEGACY_STORAGE: mode=allow
+    Package com.facebook.katana:
+      READ_CONTACTS (allow):
+          Access: [bg-tpd] 2022-03-07 18:05:34.325 (-22d4h22m19s762ms)
+      WRITE_SMS (ignore):
+          Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
+          Reject: [bg-s]2022-03-10 19:35:06.426 (-19d2h52m47s661ms)
+          Reject: [cch-s]2022-03-29 18:48:02.923 (-4h39m51s164ms)
+      WAKE_LOCK (allow):
+          Access: [fg-s] 2021-05-19 22:02:49.186 (-314d1h25m4s901ms)
+          Access: [bg-s] 2022-03-29 23:03:03.763 (-24m50s324ms) duration=+33ms
+          Access: [cch-s] 2022-03-07 14:57:11.635 (-22d7h30m42s452ms)
+      TOAST_WINDOW (allow):
+      READ_PHONE_STATE (allow):
+          Access: [fg-s] 2021-05-19 22:02:53.336 (-314d1h25m0s751ms)
+          Access: [bg-s] 2022-03-24 21:06:52.731 (-5d1h21m1s356ms)
+          Access: [cch-s] 2022-03-29 18:57:58.524 (-4h29m55s563ms)
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+      READ_DEVICE_IDENTIFIERS (deny):
+          Reject: [fg-s]2021-05-19 22:02:53.434 (-314d1h25m0s653ms)
+          Reject: [bg-s]2022-03-24 21:06:56.538 (-5d1h20m57s549ms)
+          Reject: [cch-s]2022-03-29 18:57:58.644 (-4h29m55s443ms)
+  Uid u0a104:
+    state=cch
+      COARSE_LOCATION: mode=ignore
+      LEGACY_STORAGE: mode=ignore
+    Package org.mozilla.firefox:
+      REQUEST_INSTALL_PACKAGES (allow):
+  Uid u0a105:
+    state=cch
+    Package com.android.carrierdefaultapp:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+  Uid u0a106:
+    state=cch
+      LEGACY_STORAGE: mode=allow
+    Package com.samsung.safetyinformation:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+  Uid u0a107:
+    state=cch
+      LEGACY_STORAGE: mode=allow
+    Package com.sec.android.app.clockpackage:
+      WAKE_LOCK (allow):
+          Access: [bg-s] 2022-03-29 18:38:31.440 (-4h49m22s647ms) duration=+126ms
+          Access: [cch-s] 2021-06-07 12:47:06.642 (-295d10h40m47s445ms)
+      TOAST_WINDOW (allow):
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+
+--------- 0.053s was the duration of dumpsys appops, ending at: 2022-03-29 23:14:27
+-------------------------------------------------------------------------------
+DUMP OF SERVICE appwidget:
+Providers:
+  [0] provider ProviderId{user:0, app:10107, cmp:ComponentInfo{com.sec.android.app.clockpackage/com.sec.android.app.clockpackage.alarmwidget.ClockAlarmWidgetProvider}}
+
