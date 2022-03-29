@@ -32,11 +32,6 @@ ANDROID_DANGEROUS_SETTINGS = [
         "safe_value": "1",
     },
     {
-        "description": "enabled installation of non-market apps",
-        "key": "install_non_market_apps",
-        "safe_value": "0",
-    },
-    {
         "description": "disabled confirmation of adb apps installation",
         "key": "adb_install_need_confirm",
         "safe_value": "1",
