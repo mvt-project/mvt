@@ -36,7 +36,7 @@ class DumpsysAppOps(AndroidExtraction):
                         "timestamp": entry["timestamp"],
                         "module": self.__class__.__name__,
                         "event": entry["access"],
-                        "data": f"{record['package_id']} access to {perm['name']} : {entry['access']}",
+                        "data": f"{record['package_name']} access to {perm['name']} : {entry['access']}",
                     })
 
         return records
@@ -49,11 +49,11 @@ class DumpsysAppOps(AndroidExtraction):
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
+
             for perm in result["permissions"]:
                 if perm["name"] == "REQUEST_INSTALL_PACKAGES" and perm["access"] == "allow":
-                    self.log.info("Package %s with REQUEST_INSTALL_PACKAGES permission", result["package_id"])
-
-
+                    self.log.info("Package %s with REQUEST_INSTALL_PACKAGES permission",
+                                  result["package_name"])
 
     def run(self):
         self._adb_connect()

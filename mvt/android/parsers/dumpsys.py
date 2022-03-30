@@ -5,6 +5,7 @@
 
 import re
 from datetime import datetime
+
 from mvt.common.utils import convert_timestamp_to_iso
 
 
@@ -304,53 +305,59 @@ def parse_dumpsys_appops(output):
         if not in_packages:
             continue
 
-        # In packages
         if line.startswith("  Uid "):
             uid = line[6:-1]
             continue
 
         if line.startswith("    Package "):
-            if entry != {}:
+            if entry:
                 perm["entries"].append(entry)
                 entry = {}
-            if package != {}:
-                if perm != {}:
+
+            if package:
+                if perm:
                     package["permissions"].append(perm)
+
                 perm = {}
                 results.append(package)
+
             package = {
-                    "package_id": line[12:-1],
-                    "permissions": [],
-                    "uid": uid,
+                "package_name": line[12:-1],
+                "permissions": [],
+                "uid": uid,
             }
             continue
 
         if line.startswith("      ") and line[6] != " ":
-            # Permission name READ_EXTERNAL_STORAGE (allow):
-            if entry != {}:
+            if entry:
                 perm["entries"].append(entry)
                 entry = {}
-            if perm != {}:
+            if perm:
                 package["permissions"].append(perm)
                 perm = {}
+
             perm["name"] = line.split()[0]
             perm["entries"] = []
             if len(line.split()) > 1:
                 perm["access"] = line.split()[1][1:-2]
+
             continue
 
         if line.startswith("          "):
-            # Permission entry like Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
-            if entry != {}:
+            # Permission entry like:
+            # Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
+            if entry:
                 perm["entries"].append(entry)
                 entry = {}
+
             entry["access"] = line.split(":")[0].strip()
             entry["type"] = line[line.find("[")+1:line.find("]")]
+
             try:
                 entry["timestamp"] = convert_timestamp_to_iso(
-                        datetime.strptime(
-                            line[line.find("]")+1:line.find("(")].strip(),
-                            "%Y-%m-%d %H:%M:%S.%f"))
+                    datetime.strptime(
+                        line[line.find("]")+1:line.find("(")].strip(),
+                        "%Y-%m-%d %H:%M:%S.%f"))
             except ValueError:
                 # Invalid date format
                 pass
@@ -358,10 +365,11 @@ def parse_dumpsys_appops(output):
         if line.strip() == "":
             break
 
-    if entry != {}:
+    if entry:
         perm["entries"].append(entry)
-    if perm != {}:
+    if perm:
         package["permissions"].append(perm)
-    if package != {}:
+    if package:
         results.append(package)
+
     return results

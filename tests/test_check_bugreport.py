@@ -4,11 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import os
+
 from click.testing import CliRunner
 
 from mvt.android.cli import check_bugreport
 
 from .utils import get_artifact_folder
+
 
 class TestCheckBugreportCommand:
     def test_check(self):
@@ -16,5 +18,3 @@ class TestCheckBugreportCommand:
         path = os.path.join(get_artifact_folder(), "android_data/bugreport/")
         result = runner.invoke(check_bugreport, [path])
         assert result.exit_code == 0
-
-
