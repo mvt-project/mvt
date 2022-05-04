@@ -29,7 +29,8 @@ requires = (
     # Android dependencies:
     "adb-shell>=0.4.2",
     "libusb1>=2.0.1",
-    "cryptography>=36.0.1"
+    "cryptography>=36.0.1",
+    "pure-python-adb"
 )
 
 

@@ -20,6 +20,8 @@ from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
                                   UsbDeviceNotFoundError, UsbReadFailedError)
 from usb1 import USBErrorAccess, USBErrorBusy
 
+from ppadb.client import Client as AdbClient
+
 from mvt.android.parsers.backup import (InvalidBackupPassword, parse_ab_header,
                                         parse_backup_file)
 from mvt.common.module import InsufficientPrivileges, MVTModule
@@ -41,6 +43,7 @@ class AndroidExtraction(MVTModule):
 
         self.device = None
         self.serial = None
+        self.ppadb = False
 
     @staticmethod
     def _adb_check_keys():
@@ -55,7 +58,19 @@ class AndroidExtraction(MVTModule):
             write_public_keyfile(ADB_KEY_PATH, ADB_PUB_KEY_PATH)
 
     def _adb_connect(self):
-        """Connect to the device over adb."""
+        """Connect wrapper."""
+        if self.ppadb:
+            self._adb_connect_ppadb()
+        else:
+            self._adb_connect_adbshell()
+            
+    def _adb_connect_ppadb(self):
+        """Connect to the device over adb using ppadb."""
+        client = AdbClient(host="127.0.0.1", port=5037)
+        self.device = client.device(self.serial)
+         
+    def _adb_connect_adbshell(self):
+        """Connect to the device over adb using adb-shell."""
         self._adb_check_keys()
 
         with open(ADB_KEY_PATH, "rb") as handle:
@@ -105,7 +120,8 @@ class AndroidExtraction(MVTModule):
 
     def _adb_disconnect(self):
         """Close adb connection to the device."""
-        self.device.close()
+        if not self.ppadb:
+            self.device.close()
 
     def _adb_reconnect(self):
         """Reconnect to device using adb."""
@@ -120,7 +136,10 @@ class AndroidExtraction(MVTModule):
         :returns: Output of command
 
         """
-        return self.device.shell(command, read_timeout_s=200.0)
+        if self.ppadb:
+            return self.device.shell(command)
+        else:
+            return self.device.shell(command, read_timeout_s=200.0)
 
     def _adb_check_if_root(self):
         """Check if we have a `su` binary on the Android device.
@@ -172,7 +191,10 @@ class AndroidExtraction(MVTModule):
 
         """
         try:
-            self.device.pull(remote_path, local_path, progress_callback)
+            if self.ppadb:
+                self.device.pull(remote_path, local_path)
+            else:
+                self.device.pull(remote_path, local_path, progress_callback)
         except AdbCommandFailureException as e:
             if retry_root:
                 self._adb_download_root(remote_path, local_path, progress_callback)

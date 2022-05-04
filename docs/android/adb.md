@@ -37,6 +37,15 @@ mvt-android check-adb --serial 192.168.1.20:5555 --output /path/to/results
 
 Where `192.168.1.20` is the correct IP address of your device.
 
+Connection may not work and fail with STLS error messages (if the TCP connection requires encryption what is not supported in the default adb-shell Python library).
+In this case switching to the [pure-python-adb (ppadb)](https://pypi.org/project/pure-python-adb/)
+ADB library is preferred. It requires an already running ADB server connected to the Android device. The ADB server should be available at
+`127.0.0.1:5037`. The ADB server connection to the device may be USB or Network, it does not matter. The ppadb method is included in MVT:
+
+```bash
+mvt-android check-adp --ppadb --serial 192.168.1.20:5555 --output /path/to/results
+```
+
 ## MVT modules requiring root privileges
 
 Of the currently available `mvt-android check-adb` modules a handful require root privileges to function correctly. This is because certain files, such as browser history and SMS messages databases are not accessible with user privileges through adb. These modules are to be considered OPTIONALLY available in case the device was already jailbroken. **Do NOT jailbreak your own device unless you are sure of what you are doing!** Jailbreaking your phone exposes it to considerable security risks!

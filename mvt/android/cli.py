@@ -58,6 +58,8 @@ def version():
 # Command: download-apks
 #==============================================================================
 @cli.command("download-apks", help="Download all or only non-system installed APKs")
+@click.option("--ppadb", "-p", is_flag=True,
+              help="Use pure-python-adb library on 127.0.0.1:5037 instead of adb-shell (useful for TCP instead of USB connection, ADB server should be up and connected)")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True,
               help="Extract all packages installed on the phone, including system packages")
@@ -90,6 +92,8 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
                                     log=logging.getLogger(DownloadAPKs.__module__))
             if serial:
                 download.serial = serial
+            if ppadb:
+                download.ppadb = True
             download.run()
 
         packages = download.packages
@@ -111,6 +115,8 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
 # Command: check-adb
 #==============================================================================
 @cli.command("check-adb", help="Check an Android device over adb")
+@click.option("--ppadb", "-p", is_flag=True,
+              help="Use pure-python-adb library on 127.0.0.1:5037 instead of adb-shell (useful for TCP instead of USB connection, ADB server should be up and connected)")
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
@@ -120,7 +126,7 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.pass_context
-def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
+def check_adb(ctx, iocs, output, fast, list_modules, module, serial, ppadb):
     if list_modules:
         log.info("Following is the list of available check-adb modules:")
         for adb_module in ADB_MODULES:
@@ -153,6 +159,8 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
             m.indicators.log = m.log
         if serial:
             m.serial = serial
+        if ppadb:
+            m.ppadb = True
 
         run_module(m)
         timeline.extend(m.timeline)
