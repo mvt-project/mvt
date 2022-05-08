@@ -5,8 +5,4 @@
 
 from setuptools import setup
 
-from mvt.common.version import MVT_VERSION
-
-setup(
-    version=MVT_VERSION,
-)
+setup()
