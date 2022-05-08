@@ -34,3 +34,5 @@ MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentat
 ## License
 
 The purpose of MVT is to facilitate the ***consensual forensic analysis*** of devices of those who might be targets of sophisticated mobile spyware attacks, especially members of civil society and marginalized communities. We do not want MVT to enable privacy violations of non-consenting individuals.  In order to achieve this, MVT is released under its own license. [Read more here.](https://docs.mvt.re/en/latest/license/)
+
+MVT was authored by [Claudio Guarnieri](https://nex.sx). For an up-to-date list of all contributors see [here](https://github.com/mvt-project/mvt/graphs/contributors).
