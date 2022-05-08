@@ -46,24 +46,11 @@ def get_package_data(package):
 
 
 setup(
-    name="mvt",
     version=MVT_VERSION,
-    description="Mobile Verification Toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/mvt-project/mvt",
-    entry_points={
-        "console_scripts": [
-            "mvt-ios = mvt.ios:cli",
-            "mvt-android = mvt.android:cli",
-        ],
-    },
     install_requires=requires,
     packages=find_packages(),
     package_data=get_package_data("mvt"),
     include_package_data=True,
-    keywords="security mobile forensics malware",
-    license="MVT v1.1",
-    classifiers=[
-    ],
 )

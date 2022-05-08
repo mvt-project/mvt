@@ -5,7 +5,8 @@
 
 from rich import print
 
-from .version import MVT_VERSION, check_for_updates
+from .version import MVT_VERSION
+from .updates import check_for_updates
 
 
 def logo():
