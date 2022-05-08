@@ -63,7 +63,7 @@ setup(
     package_data=get_package_data("mvt"),
     include_package_data=True,
     keywords="security mobile forensics malware",
-    license="MVT",
+    license="MVT v1.1",
     classifiers=[
     ],
 )
