@@ -14,24 +14,6 @@ readme_path = os.path.join(this_directory, "README.md")
 with open(readme_path, encoding="utf-8") as handle:
     long_description = handle.read()
 
-requires = (
-    # Base dependencies:
-    "click>=8.0.3",
-    "rich>=10.12.0",
-    "tld>=0.12.6",
-    "tqdm>=4.62.3",
-    "requests>=2.26.0",
-    "simplejson>=3.17.5",
-    "packaging>=21.0",
-    "appdirs>=1.4.4",
-    # iOS dependencies:
-    "iOSbackup>=0.9.921",
-    # Android dependencies:
-    "adb-shell>=0.4.2",
-    "libusb1>=2.0.1",
-    "cryptography>=36.0.1"
-)
-
 
 def get_package_data(package):
     walk = [(dirpath.replace(package + os.sep, "", 1), filenames)
@@ -49,7 +31,6 @@ setup(
     version=MVT_VERSION,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=requires,
     packages=find_packages(),
     package_data=get_package_data("mvt"),
     include_package_data=True,
