@@ -4,9 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
-
-import pkg_resources
 
 from .base import AndroidExtraction
 
@@ -23,9 +20,18 @@ class RootBinaries(AndroidExtraction):
                          log=log, results=results)
 
     def run(self):
-        root_binaries_path = os.path.join("..", "..", "data", "root_binaries.txt")
-        root_binaries_string = pkg_resources.resource_string(__name__, root_binaries_path)
-        root_binaries = root_binaries_string.decode("utf-8").splitlines()
+        root_binaries = [
+            "su",
+            "busybox",
+            "supersu",
+            "Superuser.apk",
+            "KingoUser.apk",
+            "SuperSu.apk",
+            "magisk",
+            "magiskhide",
+            "magiskinit",
+            "magiskpolicy",
+        ]
 
         self._adb_connect()
 

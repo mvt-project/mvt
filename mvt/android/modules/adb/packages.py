@@ -39,6 +39,34 @@ DANGEROUS_PERMISSIONS = [
     "com.android.browser.permission.READ_HISTORY_BOOKMARKS",
 ]
 
+ROOT_PACKAGES = [
+    "com.noshufou.android.su",
+    "com.noshufou.android.su.elite",
+    "eu.chainfire.supersu",
+    "com.koushikdutta.superuser",
+    "com.thirdparty.superuser",
+    "com.yellowes.su",
+    "com.koushikdutta.rommanager",
+    "com.koushikdutta.rommanager.license",
+    "com.dimonvideo.luckypatcher",
+    "com.chelpus.lackypatch",
+    "com.ramdroid.appquarantine",
+    "com.ramdroid.appquarantinepro",
+    "com.devadvance.rootcloak",
+    "com.devadvance.rootcloakplus",
+    "de.robv.android.xposed.installer",
+    "com.saurik.substrate",
+    "com.zachspong.temprootremovejb",
+    "com.amphoras.hidemyroot",
+    "com.amphoras.hidemyrootadfree",
+    "com.formyhm.hiderootPremium",
+    "com.formyhm.hideroot",
+    "me.phh.superuser",
+    "eu.chainfire.supersu.pro",
+    "com.kingouser.com",
+    "com.topjohnwu.magisk",
+]
+
 
 class Packages(AndroidExtraction):
     """This module extracts the list of installed packages."""
@@ -69,13 +97,8 @@ class Packages(AndroidExtraction):
         return records
 
     def check_indicators(self):
-        root_packages_path = os.path.join("..", "..", "data", "root_packages.txt")
-        root_packages_string = pkg_resources.resource_string(__name__, root_packages_path)
-        root_packages = root_packages_string.decode("utf-8").splitlines()
-        root_packages = [rp.strip() for rp in root_packages]
-
         for result in self.results:
-            if result["package_name"] in root_packages:
+            if result["package_name"] in ROOT_PACKAGES:
                 self.log.warning("Found an installed package related to rooting/jailbreaking: \"%s\"",
                                  result["package_name"])
                 self.detected.append(result)
