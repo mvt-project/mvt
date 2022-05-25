@@ -3,7 +3,6 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
 import sqlite3
 
 from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
@@ -11,7 +10,6 @@ from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
 
 from ..base import IOSExtraction
 
-log = logging.getLogger(__name__)
 
 WHATSAPP_BACKUP_IDS = [
     "7c7fba66680ef796b916b067077cc246adacf01d",
@@ -56,7 +54,7 @@ class Whatsapp(IOSExtraction):
     def run(self):
         self._find_ios_database(backup_ids=WHATSAPP_BACKUP_IDS,
                                 root_paths=WHATSAPP_ROOT_PATHS)
-        log.info("Found WhatsApp database at path: %s", self.file_path)
+        self.log.info("Found WhatsApp database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
@@ -108,4 +106,4 @@ class Whatsapp(IOSExtraction):
         cur.close()
         conn.close()
 
-        log.info("Extracted a total of %d WhatsApp messages containing links", len(self.results))
+        self.log.info("Extracted a total of %d WhatsApp messages containing links", len(self.results))

@@ -6,6 +6,7 @@
 import csv
 import os
 import re
+import logging
 
 import simplejson as json
 
@@ -54,6 +55,9 @@ class MVTModule(object):
         self.detected = []
         self.timeline = []
         self.timeline_detected = []
+
+        if output_folder and log:
+            save_logs(log, os.path.join(output_folder, "logs.txt"))
 
     @classmethod
     def from_json(cls, json_path, log=None):
@@ -201,3 +205,17 @@ def save_timeline(timeline, timeline_path):
                 event.get("event"),
                 event.get("data"),
             ])
+
+
+def save_logs(logger: logging.Logger, log_path: str) -> None:
+    """Save logs of the logger into a file
+
+    :param logger: logger object
+    :param log_path: path to store the file
+    """
+    fh = logging.FileHandler(log_path)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger

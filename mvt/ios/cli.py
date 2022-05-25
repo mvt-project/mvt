@@ -15,7 +15,7 @@ from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_OUTPUT)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
-from mvt.common.module import run_module, save_timeline
+from mvt.common.module import run_module, save_timeline, save_logs
 from mvt.common.options import MutuallyExclusiveOption
 
 from .decrypt import DecryptBackup
@@ -147,14 +147,17 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 
         return
 
-    log.info("Checking iTunes backup located at: %s", backup_path)
-
     if output and not os.path.exists(output):
         try:
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
+
+    if output:
+        save_logs(log, os.path.join(output, "logs.txt"))
+
+    log.info("Checking iTunes backup located at: %s", backup_path)
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
@@ -207,14 +210,17 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 
         return
 
-    log.info("Checking filesystem dump located at: %s", dump_path)
-
     if output and not os.path.exists(output):
         try:
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
+
+    if output:
+        save_logs(log, os.path.join(output, "logs.txt"))
+
+    log.info("Checking filesystem dump located at: %s", dump_path)
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)

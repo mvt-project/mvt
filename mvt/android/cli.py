@@ -22,7 +22,7 @@ from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
-from mvt.common.module import run_module, save_timeline
+from mvt.common.module import run_module, save_timeline, save_logs
 
 from .download_apks import DownloadAPKs
 from .lookups.koodous import koodous_lookup
@@ -128,14 +128,17 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
 
         return
 
-    log.info("Checking Android through adb bridge")
-
     if output and not os.path.exists(output):
         try:
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
+
+    if output:
+        save_logs(log, os.path.join(output, "logs.txt"))
+
+    log.info("Checking Android through adb bridge")
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
@@ -184,14 +187,17 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 
         return
 
-    log.info("Checking an Android Bug Report located at: %s", bugreport_path)
-
     if output and not os.path.exists(output):
         try:
             os.makedirs(output)
         except Exception as e:
             log.critical("Unable to create output folder %s: %s", output, e)
             ctx.exit(1)
+
+    if output:
+        save_logs(log, os.path.join(output, "logs.txt"))
+
+    log.info("Checking an Android Bug Report located at: %s", bugreport_path)
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
