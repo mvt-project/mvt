@@ -7,6 +7,9 @@ import csv
 import os
 import re
 import logging
+import typing
+import hashlib
+
 
 import simplejson as json
 
@@ -219,3 +222,33 @@ def save_logs(logger: logging.Logger, log_path: str) -> None:
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     return logger
+
+
+def save_file_hash(path: str, fh: typing.TextIO) -> None:
+    """ Save the file name a the hash of the given file in the file handler
+
+    :param path: path of the file
+    :param fh: file handler of the output file
+    """
+    m = hashlib.sha256()
+    with open(path, "rb") as f:
+        m.update(f.read())
+
+    fh.write(f"{path},{m.hexdigest()}\n")
+
+
+def save_hashes(path: str, log_path: str) -> None:
+    """Save a hash of all the files in a given folder
+
+    :param path: path of the input folder or file
+    :log_path: path of the output file
+    """
+    output_handler = open(log_path, "w+")
+
+    if os.path.isfile(path):
+        save_file_hash(path, output_handler)
+    elif os.path.isdir(path):
+        for (root, dirs, files) in os.walk(path):
+            for f in files:
+                fpath = os.path.join(root, f)
+                save_file_hash(fpath, output_handler)

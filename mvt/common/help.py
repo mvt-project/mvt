@@ -9,6 +9,7 @@ HELP_MSG_IOC = "Path to indicators file (can be invoked multiple time)"
 HELP_MSG_FAST = "Avoid running time/resource consuming features"
 HELP_MSG_LIST_MODULES = "Print list of available modules and exit"
 HELP_MSG_MODULE = "Name of a single module you would like to run instead of all"
+HELP_MSG_HASHES = "Generate hashes of the input file during the analysis (can be slow)"
 
 # Android-specific.
 HELP_MSG_SERIAL = "Specify a device serial number or HOST:PORT connection string"

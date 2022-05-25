@@ -12,10 +12,10 @@ from rich.prompt import Prompt
 
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT)
+                             HELP_MSG_OUTPUT, HELP_MSG_HASHES)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
-from mvt.common.module import run_module, save_timeline, save_logs
+from mvt.common.module import run_module, save_timeline, save_logs, save_hashes
 from mvt.common.options import MutuallyExclusiveOption
 
 from .decrypt import DecryptBackup
@@ -135,11 +135,12 @@ def extract_key(password, backup_path, key_file):
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
+def check_backup(ctx, iocs, output, fast, hashes, backup_path, list_modules, module):
     if list_modules:
         log.info("Following is the list of available check-backup modules:")
         for backup_module in BACKUP_MODULES + MIXED_MODULES:
@@ -158,6 +159,10 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
         save_logs(log, os.path.join(output, "logs.txt"))
 
     log.info("Checking iTunes backup located at: %s", backup_path)
+
+    if hashes and output:
+        log.info("Generating hashes of backup files, it can take some time")
+        save_hashes(backup_path, os.path.join(output, "hashes.csv"))
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
@@ -198,11 +203,12 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
+def check_fs(ctx, iocs, output, fast, hashes, dump_path, list_modules, module):
     if list_modules:
         log.info("Following is the list of available check-fs modules:")
         for fs_module in FS_MODULES + MIXED_MODULES:
@@ -221,6 +227,10 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
         save_logs(log, os.path.join(output, "logs.txt"))
 
     log.info("Checking filesystem dump located at: %s", dump_path)
+
+    if output and hashes:
+        log.info("Generating hashes of the filesystem dump, it can take some time")
+        save_hashes(dump_path, os.path.join(output, "hashes.txt"))
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
