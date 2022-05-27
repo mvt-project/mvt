@@ -15,7 +15,7 @@ from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_OUTPUT, HELP_MSG_HASHES)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
-from mvt.common.module import run_module, save_timeline, save_logs, save_hashes
+from mvt.common.module import run_module, save_timeline, save_logs, save_info
 from mvt.common.options import MutuallyExclusiveOption
 
 from .decrypt import DecryptBackup
@@ -160,12 +160,16 @@ def check_backup(ctx, iocs, output, fast, hashes, backup_path, list_modules, mod
 
     log.info("Checking iTunes backup located at: %s", backup_path)
 
-    if hashes and output:
-        log.info("Generating hashes of backup files, it can take some time")
-        save_hashes(backup_path, os.path.join(output, "hashes.csv"))
-
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
+
+    if output:
+        save_info(
+            backup_path,
+            os.path.join(output, "info.json"),
+            hashes,
+            indicators
+        )
 
     timeline = []
     timeline_detected = []
@@ -228,12 +232,16 @@ def check_fs(ctx, iocs, output, fast, hashes, dump_path, list_modules, module):
 
     log.info("Checking filesystem dump located at: %s", dump_path)
 
-    if output and hashes:
-        log.info("Generating hashes of the filesystem dump, it can take some time")
-        save_hashes(dump_path, os.path.join(output, "hashes.txt"))
-
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
+
+    if output:
+        save_info(
+            dump_path,
+            os.path.join(output, "info.json"),
+            hashes,
+            indicators
+        )
 
     timeline = []
     timeline_detected = []

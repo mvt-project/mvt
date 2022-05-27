@@ -22,7 +22,7 @@ from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
-from mvt.common.module import run_module, save_timeline, save_logs, save_hashes
+from mvt.common.module import run_module, save_timeline, save_logs, save_info
 
 from .download_apks import DownloadAPKs
 from .lookups.koodous import koodous_lookup
@@ -196,12 +196,19 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 
     if output:
         save_logs(log, os.path.join(output, "logs.txt"))
-        save_hashes(bugreport_path, os.path.join(output, "hashes.txt"))
 
     log.info("Checking an Android Bug Report located at: %s", bugreport_path)
 
     indicators = Indicators(log=log)
     indicators.load_indicators_files(iocs)
+
+    if output:
+        save_info(
+            bugreport_path,
+            os.path.join(output, "infos.json"),
+            True,
+            indicators
+        )
 
     if os.path.isfile(bugreport_path):
         bugreport_format = "zip"
@@ -269,8 +276,16 @@ def check_backup(ctx, iocs, output, backup_path, serial):
 
     log.info("Checking ADB backup located at: %s", backup_path)
 
+    indicators = Indicators(log=log)
+    indicators.load_indicators_files(iocs)
+
     if output:
-        save_hashes(backup_path, os.path.join(output, "hashes.txt"))
+        save_info(
+            backup_path,
+            os.path.join(output, "infos.json"),
+            True,
+            indicators
+        )
 
     if os.path.isfile(backup_path):
         # AB File
@@ -309,9 +324,6 @@ def check_backup(ctx, iocs, output, backup_path, serial):
     else:
         log.critical("Invalid backup path, path should be a folder or an Android Backup (.ab) file")
         ctx.exit(1)
-
-    indicators = Indicators(log=log)
-    indicators.load_indicators_files(iocs)
 
     for module in BACKUP_MODULES:
         m = module(base_folder=backup_path, output_folder=output,

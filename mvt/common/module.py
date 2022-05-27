@@ -7,11 +7,13 @@ import csv
 import os
 import re
 import logging
-import typing
 import hashlib
-
+from datetime import datetime
 
 import simplejson as json
+from mvt.common.version import MVT_VERSION
+from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.indicators import Indicators
 
 
 class DatabaseNotFoundError(Exception):
@@ -224,31 +226,41 @@ def save_logs(logger: logging.Logger, log_path: str) -> None:
     return logger
 
 
-def save_file_hash(path: str, fh: typing.TextIO) -> None:
-    """ Save the file name a the hash of the given file in the file handler
-
-    :param path: path of the file
-    :param fh: file handler of the output file
-    """
-    m = hashlib.sha256()
-    with open(path, "rb") as f:
-        m.update(f.read())
-
-    fh.write(f"{path},{m.hexdigest()}\n")
-
-
-def save_hashes(path: str, log_path: str) -> None:
-    """Save a hash of all the files in a given folder
+def save_info(path: str, log_path: str, hashes: bool, iocs: Indicators) -> None:
+    """Save a JSON file containings details on the analysis
 
     :param path: path of the input folder or file
-    :log_path: path of the output file
+    :param log_path: path of the output file
+    :param hashes: indicates if hashing of source file should be done
     """
-    output_handler = open(log_path, "w+")
+    info = {
+        "path": os.path.abspath(path),
+        "mvt_version": MVT_VERSION,
+        "date": convert_timestamp_to_iso(datetime.now()),
+        "indicator_files": []
+    }
 
-    if os.path.isfile(path):
-        save_file_hash(path, output_handler)
-    elif os.path.isdir(path):
-        for (root, dirs, files) in os.walk(path):
-            for f in files:
-                fpath = os.path.join(root, f)
-                save_file_hash(fpath, output_handler)
+    if iocs:
+        for collec in iocs.ioc_collections:
+            info["indicator_files"].append(collec["stix2_file_path"])
+
+    if hashes:
+        # Add hashes to the dictionnary
+        info["hashes"] = []
+        if os.path.isfile(path):
+            m = hashlib.sha256()
+            with open(path, "rb") as f:
+                m.update(f.read())
+            info["hashes"].append([path, m.hexdigest()])
+
+        elif os.path.isdir(path):
+            for (root, dirs, files) in os.walk(path):
+                for f in files:
+                    fpath = os.path.join(root, f)
+                    m = hashlib.sha256()
+                    with open(fpath, "rb") as f:
+                        m.update(f.read())
+                    info["hashes"].append([fpath, m.hexdigest()])
+
+    with open(log_path, "w+") as f:
+        f.write(json.dumps(info, indent=4))
