@@ -15,6 +15,10 @@ log = logging.getLogger(__name__)
 
 
 def koodous_lookup(packages):
+    # NOTE: This is temporary, until we resolved the issue.
+    log.error("Unfortunately Koodous lookup is disabled until further notice, due to unresolved issues with the API service.")
+    return
+
     log.info("Looking up all extracted files on Koodous (www.koodous.com)")
     log.info("This might take a while...")
 
