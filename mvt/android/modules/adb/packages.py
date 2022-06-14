@@ -7,9 +7,12 @@ import logging
 import os
 
 import pkg_resources
+from rich.console import Console
+from rich.progress import track
+from rich.table import Table
+from rich.text import Text
 
-from mvt.android.lookups.koodous import koodous_lookup
-from mvt.android.lookups.virustotal import virustotal_lookup
+from mvt.common.virustotal import VTNoKey, VTQuotaExceeded, virustotal_lookup
 
 from .base import AndroidExtraction
 
@@ -118,6 +121,59 @@ class Packages(AndroidExtraction):
                 if ioc:
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
+
+    @staticmethod
+    def check_virustotal(packages):
+        hashes = []
+        for package in packages:
+            for file in package.get("files", []):
+                if file["sha256"] not in hashes:
+                    hashes.append(file["sha256"])
+
+        total_hashes = len(hashes)
+        detections = {}
+
+        for i in track(range(total_hashes), description=f"Looking up {total_hashes} files..."):
+            try:
+                results = virustotal_lookup(hashes[i])
+            except VTNoKey as e:
+                log.info(e)
+                return
+            except VTQuotaExceeded as e:
+                log.error("Unable to continue: %s", e)
+                break
+
+            if not results:
+                continue
+
+            positives = results["attributes"]["last_analysis_stats"]["malicious"]
+            total = len(results["attributes"]["last_analysis_results"])
+
+            detections[hashes[i]] = f"{positives}/{total}"
+
+        table = Table(title="VirusTotal Packages Detections")
+        table.add_column("Package name")
+        table.add_column("File path")
+        table.add_column("Detections")
+
+        for package in packages:
+            for file in package.get("files", []):
+                row = [package["package_name"], file["path"]]
+
+                if file["sha256"] in detections:
+                    detection = detections[file["sha256"]]
+                    positives = detection.split("/")[0]
+                    if int(positives) > 0:
+                        row.append(Text(detection, "red bold"))
+                    else:
+                        row.append(detection)
+                else:
+                    row.append("not found")
+
+                table.add_row(*row)
+
+        console = Console()
+        console.print(table)
 
     @staticmethod
     def parse_package_for_details(output):
@@ -262,8 +318,7 @@ class Packages(AndroidExtraction):
                           result["package_name"], result["installer"], result["timestamp"])
 
         if not self.fast_mode:
-            virustotal_lookup(packages_to_lookup)
-            koodous_lookup(packages_to_lookup)
+            self.check_virustotal(packages_to_lookup)
 
         self.log.info("Extracted at total of %d installed package names",
                       len(self.results))

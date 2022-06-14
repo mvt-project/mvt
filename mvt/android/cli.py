@@ -25,9 +25,8 @@ from mvt.common.logo import logo
 from mvt.common.module import run_module, save_timeline
 
 from .download_apks import DownloadAPKs
-from .lookups.koodous import koodous_lookup
-from .lookups.virustotal import virustotal_lookup
 from .modules.adb import ADB_MODULES
+from .modules.adb.packages import Packages
 from .modules.backup import BACKUP_MODULES
 from .modules.bugreport import BUGREPORT_MODULES
 
@@ -62,14 +61,12 @@ def version():
 @click.option("--all-apks", "-a", is_flag=True,
               help="Extract all packages installed on the phone, including system packages")
 @click.option("--virustotal", "-v", is_flag=True, help="Check packages on VirusTotal")
-@click.option("--koodous", "-k", is_flag=True, help="Check packages on Koodous")
-@click.option("--all-checks", "-A", is_flag=True, help="Run all available checks")
 @click.option("--output", "-o", type=click.Path(exists=False),
               help="Specify a path to a folder where you want to store the APKs")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
 @click.pass_context
-def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_file, serial):
+def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
     try:
         if from_file:
             download = DownloadAPKs.from_json(from_file)
@@ -92,16 +89,20 @@ def download_apks(ctx, all_apks, virustotal, koodous, all_checks, output, from_f
                 download.serial = serial
             download.run()
 
-        packages = download.packages
+        packages_to_lookup = []
+        if all_apks:
+            packages_to_lookup = download.packages
+        else:
+            for package in download.packages:
+                if not package.get("system", False):
+                    packages_to_lookup.append(package)
 
-        if len(packages) == 0:
-            return
+            if len(packages_to_lookup) == 0:
+                return
 
-        if virustotal or all_checks:
-            virustotal_lookup(packages)
-
-        if koodous or all_checks:
-            koodous_lookup(packages)
+        if virustotal:
+            m = Packages()
+            m.check_virustotal(packages_to_lookup)
     except KeyboardInterrupt:
         print("")
         ctx.exit(1)
