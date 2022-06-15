@@ -14,18 +14,18 @@ log = logging.getLogger(__name__)
 class DumpsysFull(AndroidExtraction):
     """This module extracts stats on battery consumption by processes."""
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  serial=None, fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
     def run(self):
         self._adb_connect()
 
         output = self._adb_command("dumpsys")
-        if self.output_folder:
-            output_path = os.path.join(self.output_folder, "dumpsys.txt")
+        if self.results_path:
+            output_path = os.path.join(self.results_path, "dumpsys.txt")
             with open(output_path, "w", encoding="utf-8") as handle:
                 handle.write(output)
 

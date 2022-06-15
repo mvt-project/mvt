@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 
 from mvt.android.modules.bugreport.appops import Appops
-from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 
 from ..utils import get_artifact_folder

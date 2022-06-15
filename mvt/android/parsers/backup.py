@@ -70,11 +70,11 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
 
     The backup master key is extracted from the master key blog after decryption.
     """
-    # Derive key from password using PBKDF2
+    # Derive key from password using PBKDF2.
     kdf = PBKDF2HMAC(algorithm=hashes.SHA1(), length=32, salt=user_salt, iterations=pbkdf2_rounds)
     key = kdf.derive(password.encode("utf-8"))
 
-    # Decrypt master key blob
+    # Decrypt master key blob.
     cipher = Cipher(algorithms.AES(key), modes.CBC(user_iv))
     decryptor = cipher.decryptor()
     try:
@@ -93,7 +93,7 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
     except TypeError:
         raise InvalidBackupPassword()
 
-    # Handle quirky encoding of master key bytes in Android original Java crypto code
+    # Handle quirky encoding of master key bytes in Android original Java crypto code.
     if format_version > 1:
         hmac_mk = to_utf8_bytes(master_key)
     else:
@@ -112,6 +112,7 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
 def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_version):
     """
     Generate encryption keyffrom password and do decryption
+
     """
     if encryption_algo != b"AES-256":
         raise AndroidBackupNotImplemented("Encryption Algorithm not implemented")
@@ -126,12 +127,12 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
     user_iv = bytes.fromhex(user_iv.decode("utf-8"))
     master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
 
-    # Derive decryption master key from password
+    # Derive decryption master key from password.
     master_key, master_iv = decrypt_master_key(password=password, user_salt=user_salt, user_iv=user_iv,
                                                pbkdf2_rounds=pbkdf2_rounds, master_key_blob=master_key_blob,
                                                format_version=format_version, checksum_salt=checksum_salt)
 
-    # Decrypt and unpad backup data using derivied key
+    # Decrypt and unpad backup data using derivied key.
     cipher = Cipher(algorithms.AES(master_key), modes.CBC(master_iv))
     decryptor = cipher.decryptor()
     decrypted_tar = decryptor.update(encrypted_data) + decryptor.finalize()
@@ -143,6 +144,7 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
 def parse_backup_file(data, password=None):
     """
     Parse an ab file, returns a tar file
+
     """
     if not data.startswith(b"ANDROID BACKUP"):
         raise AndroidBackupParsingError("Invalid file header")

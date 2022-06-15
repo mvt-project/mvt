@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import hashlib
-import logging
 
 from mvt.android.parsers.backup import parse_backup_file, parse_tar_for_sms
 

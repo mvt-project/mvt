@@ -28,16 +28,16 @@ class MVTModule(object):
     enabled = True
     slug = None
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=None):
         """Initialize module.
 
         :param file_path: Path to the module's database file, if there is any
         :type file_path: str
-        :param base_folder: Path to the base folder (backup or filesystem dump)
+        :param target_path: Path to the target folder (backup or filesystem dump)
         :type file_path: str
-        :param output_folder: Folder where results will be stored
-        :type output_folder: str
+        :param results_path: Folder where results will be stored
+        :type results_path: str
         :param fast_mode: Flag to enable or disable slow modules
         :type fast_mode: bool
         :param log: Handle to logger
@@ -45,8 +45,8 @@ class MVTModule(object):
         :type results: list
         """
         self.file_path = file_path
-        self.base_folder = base_folder
-        self.output_folder = output_folder
+        self.target_path = target_path
+        self.results_path = results_path
         self.fast_mode = fast_mode
         self.log = log
         self.indicators = None
@@ -82,14 +82,14 @@ class MVTModule(object):
 
     def save_to_json(self):
         """Save the collected results to a json file."""
-        if not self.output_folder:
+        if not self.results_path:
             return
 
         name = self.get_slug()
 
         if self.results:
             results_file_name = f"{name}.json"
-            results_json_path = os.path.join(self.output_folder, results_file_name)
+            results_json_path = os.path.join(self.results_path, results_file_name)
             with open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
                     json.dump(self.results, handle, indent=4, default=str)
@@ -99,7 +99,7 @@ class MVTModule(object):
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
-            detected_json_path = os.path.join(self.output_folder, detected_file_name)
+            detected_json_path = os.path.join(self.results_path, detected_file_name)
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
