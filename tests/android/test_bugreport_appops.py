@@ -16,7 +16,7 @@ from ..utils import get_artifact_folder
 class TestAppopsModule:
     def test_appops_parsing(self):
         fpath = os.path.join(get_artifact_folder(), "android_data/bugreport/")
-        m = Appops(base_folder=fpath, log=logging, results=[])
+        m = Appops(target_path=fpath, log=logging, results=[])
         folder_files = []
         parent_path = Path(fpath).absolute().as_posix()
         for root, subdirs, subfiles in os.walk(os.path.abspath(fpath)):

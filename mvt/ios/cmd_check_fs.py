@@ -13,7 +13,7 @@ from .modules.mixed import MIXED_MODULES
 log = logging.getLogger(__name__)
 
 
-class CmdIOSChecKFS(Command):
+class CmdIOSCheckFS(Command):
 
     name = "check-fs"
     modules = FS_MODULES + MIXED_MODULES

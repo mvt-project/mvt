@@ -14,14 +14,14 @@ from ..utils import get_ios_backup_folder
 
 class TestManifestModule:
     def test_manifest(self):
-        m = Manifest(base_folder=get_ios_backup_folder(), log=logging, results=[])
+        m = Manifest(target_path=get_ios_backup_folder(), log=logging, results=[])
         run_module(m)
         assert len(m.results) == 3721
         assert len(m.timeline) == 5881
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
-        m = Manifest(base_folder=get_ios_backup_folder(), log=logging, results=[])
+        m = Manifest(target_path=get_ios_backup_folder(), log=logging, results=[])
         ind = Indicators(log=logging)
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["file_names"].append("com.apple.CoreBrightness.plist")

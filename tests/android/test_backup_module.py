@@ -18,7 +18,7 @@ from ..utils import get_android_backup_folder
 class TestBackupModule:
     def test_module_folder(self):
         backup_path = get_android_backup_folder()
-        mod = SMS(base_folder=backup_path, log=logging)
+        mod = SMS(target_path=backup_path, log=logging)
         files = []
         for root, subdirs, subfiles in os.walk(os.path.abspath(backup_path)):
             for fname in subfiles:
@@ -31,7 +31,7 @@ class TestBackupModule:
 
     def test_module_file(self):
         fpath = os.path.join(get_android_backup_folder(), "backup.ab")
-        mod = SMS(base_folder=fpath, log=logging)
+        mod = SMS(target_path=fpath, log=logging)
         with open(fpath, "rb") as f:
             data = f.read()
         tardata = parse_backup_file(data)
@@ -47,7 +47,7 @@ class TestBackupModule:
 
     def test_module_file2(self):
         fpath = os.path.join(get_android_backup_folder(), "backup2.ab")
-        mod = SMS(base_folder=fpath, log=logging)
+        mod = SMS(target_path=fpath, log=logging)
         with open(fpath, "rb") as f:
             data = f.read()
         tardata = parse_backup_file(data, password="123456")
@@ -63,7 +63,7 @@ class TestBackupModule:
 
     def test_module_file3(self):
         fpath = os.path.join(get_android_backup_folder(), "backup3.ab")
-        mod = SMS(base_folder=fpath, log=logging)
+        mod = SMS(target_path=fpath, log=logging)
         with open(fpath, "rb") as f:
             data = f.read()
         tardata = parse_backup_file(data)
