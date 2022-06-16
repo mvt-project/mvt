@@ -10,10 +10,11 @@ import click
 from rich.logging import RichHandler
 from rich.prompt import Prompt
 
+from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
                              HELP_MSG_OUTPUT)
-from mvt.common.indicators import Indicators, download_indicators_files
+from mvt.common.indicators import download_indicators_files
 from mvt.common.logo import logo
 from mvt.common.options import MutuallyExclusiveOption
 
@@ -197,54 +198,14 @@ def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
-    all_modules = []
-    for entry in BACKUP_MODULES + FS_MODULES + MIXED_MODULES:
-        if entry not in all_modules:
-            all_modules.append(entry)
+    cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
+    cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES
 
     if list_modules:
-        log.info("Following is the list of available check-iocs modules:")
-        for iocs_module in all_modules:
-            log.info(" - %s", iocs_module.__name__)
-
+        cmd.list_modules()
         return
 
-    log.info("Checking stored results against provided indicators...")
-
-    indicators = Indicators(log=log)
-    indicators.load_indicators_files(iocs)
-
-    total_detections = 0
-    for file_name in os.listdir(folder):
-        name_only, ext = os.path.splitext(file_name)
-        file_path = os.path.join(folder, file_name)
-
-        for iocs_module in all_modules:
-            if module and iocs_module.__name__ != module:
-                continue
-
-            if iocs_module().get_slug() != name_only:
-                continue
-
-            log.info("Loading results from \"%s\" with module %s", file_name,
-                     iocs_module.__name__)
-
-            m = iocs_module.from_json(file_path,
-                                      log=logging.getLogger(iocs_module.__module__))
-            if indicators.total_ioc_count > 0:
-                m.indicators = indicators
-                m.indicators.log = m.log
-
-            try:
-                m.check_indicators()
-            except NotImplementedError:
-                continue
-            else:
-                total_detections += len(m.detected)
-
-    if total_detections > 0:
-        log.warning("The check of the results produced %d detections!",
-                    total_detections)
+    cmd.run()
 
 
 #==============================================================================

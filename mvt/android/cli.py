@@ -9,10 +9,11 @@ import os
 import click
 from rich.logging import RichHandler
 
+from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
                              HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
-from mvt.common.indicators import Indicators, download_indicators_files
+from mvt.common.indicators import download_indicators_files
 from mvt.common.logo import logo
 
 from .cmd_check_adb import CmdAndroidCheckADB
@@ -22,6 +23,7 @@ from .cmd_download_apks import DownloadAPKs
 from .modules.adb import ADB_MODULES
 from .modules.adb.packages import Packages
 from .modules.backup import BACKUP_MODULES
+from .modules.bugreport import BUGREPORT_MODULES
 
 # Setup logging using Rich.
 LOG_FORMAT = "[%(name)s] %(message)s"
@@ -122,7 +124,13 @@ def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
         cmd.list_modules()
         return
 
+    log.info("Checking Android device over debug bridge")
+
     cmd.run()
+
+    if len(cmd.timeline_detected) > 0:
+        log.warning("The analysis of the Android device produced %d detections!",
+                    len(cmd.timeline_detected))
 
 
 #==============================================================================
@@ -144,7 +152,13 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
         cmd.list_modules()
         return
 
+    log.info("Checking Android bug report at path: %s", bugreport_path)
+
     cmd.run()
+
+    if len(cmd.timeline_detected) > 0:
+        log.warning("The analysis of the Android bug report produced %d detections!",
+                    len(cmd.timeline_detected))
 
 
 #==============================================================================
@@ -166,7 +180,13 @@ def check_backup(ctx, iocs, output, list_modules, backup_path, serial):
         cmd.list_modules()
         return
 
+    log.info("Checking Android backup at path: %s", backup_path)
+
     cmd.run()
+
+    if len(cmd.timeline_detected) > 0:
+        log.warning("The analysis of the Android backup produced %d detections!",
+                    len(cmd.timeline_detected))
 
 
 #==============================================================================
@@ -180,59 +200,14 @@ def check_backup(ctx, iocs, output, list_modules, backup_path, serial):
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
-    all_modules = []
-    for entry in BACKUP_MODULES + ADB_MODULES:
-        if entry not in all_modules:
-            all_modules.append(entry)
+    cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
+    cmd.modules = BACKUP_MODULES + ADB_MODULES + BUGREPORT_MODULES
 
     if list_modules:
-        log.info("Following is the list of available check-iocs modules:")
-        for iocs_module in all_modules:
-            log.info(" - %s", iocs_module.__name__)
-
+        cmd.list_modules()
         return
 
-    log.info("Checking stored results against provided indicators...")
-
-    indicators = Indicators(log=log)
-    indicators.load_indicators_files(iocs)
-
-    total_detections = 0
-    for file_name in os.listdir(folder):
-        name_only, ext = os.path.splitext(file_name)
-        file_path = os.path.join(folder, file_name)
-
-        # TODO: Skipping processing of result files that are not json.
-        #       We might want to revisit this eventually.
-        if ext != ".json":
-            continue
-
-        for iocs_module in all_modules:
-            if module and iocs_module.__name__ != module:
-                continue
-
-            if iocs_module().get_slug() != name_only:
-                continue
-
-            log.info("Loading results from \"%s\" with module %s", file_name,
-                     iocs_module.__name__)
-
-            m = iocs_module.from_json(file_path,
-                                      log=logging.getLogger(iocs_module.__module__))
-            if indicators.total_ioc_count > 0:
-                m.indicators = indicators
-                m.indicators.log = m.log
-
-            try:
-                m.check_indicators()
-            except NotImplementedError:
-                continue
-            else:
-                total_detections += len(m.detected)
-
-    if total_detections > 0:
-        log.warning("The check of the results produced %d detections!",
-                    total_detections)
+    cmd.run()
 
 
 #==============================================================================

@@ -114,7 +114,7 @@ class Packages(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-            for package_file in result["files"]:
+            for package_file in result.get("files", []):
                 ioc = self.indicators.check_file_hash(package_file["sha256"])
                 if ioc:
                     result["matched_indicator"] = ioc
