@@ -17,8 +17,8 @@ class CmdAndroidCheckADB(Command):
     name = "check-adb"
     modules = ADB_MODULES
 
-    def __init__(self, target_path=None, results_path=None, ioc_files=[], module_name=None,
-                 serial=None, fast_mode=False):
-        super().__init__(target_path=target_path, results_path=results_path, ioc_files=ioc_files,
-                         module_name=module_name, serial=serial,
-                         fast_mode=fast_mode, log=log)
+    def __init__(self, target_path=None, results_path=None, ioc_files=[],
+                 module_name=None, serial=None, fast_mode=False):
+        super().__init__(target_path=target_path, results_path=results_path,
+                         ioc_files=ioc_files, module_name=module_name,
+                         serial=serial, fast_mode=fast_mode, log=log)
