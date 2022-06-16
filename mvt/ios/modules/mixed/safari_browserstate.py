@@ -23,10 +23,10 @@ SAFARI_BROWSER_STATE_ROOT_PATHS = [
 class SafariBrowserState(IOSExtraction):
     """This module extracts all Safari browser state records."""
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self._session_history_count = 0
@@ -115,7 +115,7 @@ class SafariBrowserState(IOSExtraction):
                 "tab_visible_url": row[2],
                 "last_viewed_timestamp": convert_timestamp_to_iso(convert_mactime_to_unix(row[3])),
                 "session_data": session_entries,
-                "safari_browser_state_db": os.path.relpath(db_path, self.base_folder),
+                "safari_browser_state_db": os.path.relpath(db_path, self.target_path),
             })
 
     def run(self):

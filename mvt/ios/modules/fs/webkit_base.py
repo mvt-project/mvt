@@ -26,7 +26,7 @@ class WebkitBase(IOSExtraction):
 
     def _process_webkit_folder(self, root_paths):
         for found_path in self._get_fs_files_from_patterns(root_paths):
-            key = os.path.relpath(found_path, self.base_folder)
+            key = os.path.relpath(found_path, self.target_path)
 
             for name in os.listdir(found_path):
                 if not name.startswith("http"):

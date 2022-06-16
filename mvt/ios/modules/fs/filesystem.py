@@ -18,10 +18,10 @@ class Filesystem(IOSExtraction):
 
     """
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
     def serialize(self, record):
@@ -58,12 +58,12 @@ class Filesystem(IOSExtraction):
                     self.detected.append(result)
 
     def run(self):
-        for root, dirs, files in os.walk(self.base_folder):
+        for root, dirs, files in os.walk(self.target_path):
             for dir_name in dirs:
                 try:
                     dir_path = os.path.join(root, dir_name)
                     result = {
-                        "path": os.path.relpath(dir_path, self.base_folder),
+                        "path": os.path.relpath(dir_path, self.target_path),
                         "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(dir_path).st_mtime)),
                     }
                 except Exception:
@@ -75,7 +75,7 @@ class Filesystem(IOSExtraction):
                 try:
                     file_path = os.path.join(root, file_name)
                     result = {
-                        "path": os.path.relpath(file_path, self.base_folder),
+                        "path": os.path.relpath(file_path, self.target_path),
                         "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(file_path).st_mtime)),
                     }
                 except Exception:

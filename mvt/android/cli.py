@@ -9,15 +9,15 @@ import os
 import click
 from rich.logging import RichHandler
 
-from mvt.android.cmd_check_adb import CmdAndroidCheckADB
-from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
-from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
                              HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
 from mvt.common.indicators import Indicators, download_indicators_files
 from mvt.common.logo import logo
 
+from .cmd_check_adb import CmdAndroidCheckADB
+from .cmd_check_backup import CmdAndroidCheckBackup
+from .cmd_check_bugreport import CmdAndroidCheckBugreport
 from .cmd_download_apks import DownloadAPKs
 from .modules.adb import ADB_MODULES
 from .modules.adb.packages import Packages

@@ -11,10 +11,10 @@ from ..base import IOSExtraction
 
 class CacheFiles(IOSExtraction):
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
     def serialize(self, record):
@@ -55,7 +55,7 @@ class CacheFiles(IOSExtraction):
         except sqlite3.OperationalError:
             return
 
-        key_name = os.path.relpath(file_path, self.base_folder)
+        key_name = os.path.relpath(file_path, self.target_path)
         if key_name not in self.results:
             self.results[key_name] = []
 
@@ -71,7 +71,7 @@ class CacheFiles(IOSExtraction):
 
     def run(self):
         self.results = {}
-        for root, dirs, files in os.walk(self.base_folder):
+        for root, dirs, files in os.walk(self.target_path):
             for file_name in files:
                 if file_name != "Cache.db":
                     continue

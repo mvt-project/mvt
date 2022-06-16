@@ -16,10 +16,10 @@ from mvt.common.module import (DatabaseCorruptedError, DatabaseNotFoundError,
 class IOSExtraction(MVTModule):
     """This class provides a base for all iOS filesystem/backup extraction modules."""
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self.is_backup = False
@@ -73,7 +73,7 @@ class IOSExtraction(MVTModule):
         :param domain: Domain to use as filter from Manifest.db. (Default value = None)
 
         """
-        manifest_db_path = os.path.join(self.base_folder, "Manifest.db")
+        manifest_db_path = os.path.join(self.target_path, "Manifest.db")
         if not os.path.exists(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")
 
@@ -101,7 +101,7 @@ class IOSExtraction(MVTModule):
             }
 
     def _get_backup_file_from_id(self, file_id):
-        file_path = os.path.join(self.base_folder, file_id[0:2], file_id)
+        file_path = os.path.join(self.target_path, file_id[0:2], file_id)
         if os.path.exists(file_path):
             return file_path
 
@@ -109,7 +109,7 @@ class IOSExtraction(MVTModule):
 
     def _get_fs_files_from_patterns(self, root_paths):
         for root_path in root_paths:
-            for found_path in glob.glob(os.path.join(self.base_folder, root_path)):
+            for found_path in glob.glob(os.path.join(self.target_path, root_path)):
                 if not os.path.exists(found_path):
                     continue
 
