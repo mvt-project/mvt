@@ -13,8 +13,9 @@ from mvt.common.module import run_module, save_timeline
 
 class Command(object):
 
-    def __init__(self, target_path=None, results_path=None, ioc_files=[], module_name=None,
-                 serial=None, fast_mode=False, log=logging.getLogger(__name__)):
+    def __init__(self, target_path=None, results_path=None, ioc_files=[],
+                 module_name=None, serial=None, fast_mode=False,
+                 log=logging.getLogger(__name__)):
         self.target_path = target_path
         self.results_path = results_path
         self.ioc_files = ioc_files
