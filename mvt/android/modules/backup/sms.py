@@ -5,14 +5,13 @@
 
 from mvt.android.modules.backup.base import BackupExtraction
 from mvt.android.parsers.backup import parse_sms_file
-from mvt.common.utils import check_for_links
 
 
 class SMS(BackupExtraction):
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
         self.results = []
 

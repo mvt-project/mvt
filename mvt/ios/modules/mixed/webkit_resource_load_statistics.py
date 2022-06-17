@@ -22,10 +22,10 @@ class WebkitResourceLoadStatistics(IOSExtraction):
     """This module extracts records from WebKit ResourceLoadStatistics observations.db."""
     # TODO: Add serialize().
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self.results = {} if not results else results
@@ -85,4 +85,4 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 self.log.info("Unable to search for WebKit observations.db: %s", e)
         elif self.is_fs_dump:
             for db_path in self._get_fs_files_from_patterns(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
-                self._process_observations_db(db_path=db_path, key=os.path.relpath(db_path, self.base_folder))
+                self._process_observations_db(db_path=db_path, key=os.path.relpath(db_path, self.target_path))

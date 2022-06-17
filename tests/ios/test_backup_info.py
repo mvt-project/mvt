@@ -13,7 +13,7 @@ from ..utils import get_ios_backup_folder
 
 class TestBackupInfoModule:
     def test_manifest(self):
-        m = BackupInfo(base_folder=get_ios_backup_folder(), log=logging)
+        m = BackupInfo(target_path=get_ios_backup_folder(), log=logging)
         run_module(m)
         assert m.results["Build Version"] == "18C66"
         assert m.results["IMEI"] == "42"

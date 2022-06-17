@@ -15,10 +15,10 @@ from .base import IOSExtraction
 class NetBase(IOSExtraction):
     """This class provides a base for DataUsage and NetUsage extraction modules."""
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
     def _extract_net_data(self):
@@ -124,7 +124,7 @@ class NetBase(IOSExtraction):
         self.log.info("Extended search for suspicious processes ...")
 
         files = []
-        for posix_path in Path(self.base_folder).rglob("*"):
+        for posix_path in Path(self.target_path).rglob("*"):
             try:
                 if not posix_path.is_file():
                     continue

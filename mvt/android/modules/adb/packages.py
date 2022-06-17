@@ -4,9 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
 
-import pkg_resources
 from rich.console import Console
 from rich.progress import track
 from rich.table import Table
@@ -74,10 +72,10 @@ ROOT_PACKAGES = [
 class Packages(AndroidExtraction):
     """This module extracts the list of installed packages."""
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  serial=None, fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
     def serialize(self, record):
@@ -116,7 +114,7 @@ class Packages(AndroidExtraction):
                 self.detected.append(result)
                 continue
 
-            for package_file in result["files"]:
+            for package_file in result.get("files", []):
                 ioc = self.indicators.check_file_hash(package_file["sha256"])
                 if ioc:
                     result["matched_indicator"] = ioc

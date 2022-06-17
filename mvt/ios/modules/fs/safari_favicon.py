@@ -18,10 +18,10 @@ SAFARI_FAVICON_ROOT_PATHS = [
 class SafariFavicon(IOSExtraction):
     """This module extracts all Safari favicon records."""
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
     def serialize(self, record):

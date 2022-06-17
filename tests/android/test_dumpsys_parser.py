@@ -3,9 +3,6 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import hashlib
-import logging
-
 from mvt.android.parsers.dumpsys import parse_dumpsys_appops
 
 from ..utils import get_artifact

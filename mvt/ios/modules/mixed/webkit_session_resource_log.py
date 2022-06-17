@@ -29,10 +29,10 @@ class WebkitSessionResourceLog(IOSExtraction):
 
     """
 
-    def __init__(self, file_path=None, base_folder=None, output_folder=None,
+    def __init__(self, file_path=None, target_path=None, results_path=None,
                  fast_mode=False, log=None, results=[]):
-        super().__init__(file_path=file_path, base_folder=base_folder,
-                         output_folder=output_folder, fast_mode=fast_mode,
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self.results = {} if not results else results
@@ -128,7 +128,7 @@ class WebkitSessionResourceLog(IOSExtraction):
         elif self.is_fs_dump:
             for log_path in self._get_fs_files_from_patterns(WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS):
                 self.log.info("Found Safari browsing session resource log at path: %s", log_path)
-                key = os.path.relpath(log_path, self.base_folder)
+                key = os.path.relpath(log_path, self.target_path)
                 self.results[key] = self._extract_browsing_stats(log_path)
 
         self.log.info("Extracted records from %d Safari browsing session resource logs",

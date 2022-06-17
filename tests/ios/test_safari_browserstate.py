@@ -14,7 +14,7 @@ from ..utils import get_ios_backup_folder
 
 class TestSafariBrowserStateModule:
     def test_parsing(self):
-        m = SafariBrowserState(base_folder=get_ios_backup_folder(), log=logging, results=[])
+        m = SafariBrowserState(target_path=get_ios_backup_folder(), log=logging, results=[])
         m.is_backup = True
         run_module(m)
         assert m.file_path is not None
@@ -23,7 +23,7 @@ class TestSafariBrowserStateModule:
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
-        m = SafariBrowserState(base_folder=get_ios_backup_folder(), log=logging, results=[])
+        m = SafariBrowserState(target_path=get_ios_backup_folder(), log=logging, results=[])
         m.is_backup = True
         ind = Indicators(log=logging)
         ind.parse_stix2(indicator_file)
