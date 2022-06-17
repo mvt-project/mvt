@@ -116,7 +116,7 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.pass_context
-def check_adb(ctx, iocs, output, fast, list_modules, module, serial):
+def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
     cmd = CmdAndroidCheckADB(results_path=output, ioc_files=iocs,
                              module_name=module, serial=serial, fast_mode=fast)
 
@@ -172,7 +172,7 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, list_modules, backup_path, serial):
+def check_backup(ctx, serial, iocs, output, list_modules, backup_path):
     cmd = CmdAndroidCheckBackup(target_path=backup_path, results_path=output,
                                 ioc_files=iocs)
 

@@ -107,7 +107,7 @@ def decrypt_backup(ctx, destination, password, key_file, backup_path):
               required=False,
               type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-def extract_key(password, backup_path, key_file):
+def extract_key(password, key_file, backup_path):
     backup = DecryptBackup(backup_path)
 
     if password:
@@ -141,7 +141,7 @@ def extract_key(password, backup_path, key_file):
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
+def check_backup(ctx, iocs, output, fast, list_modules, module, backup_path):
     cmd = CmdIOSCheckBackup(target_path=backup_path, results_path=output,
                             ioc_files=iocs, module_name=module, fast_mode=fast)
 
@@ -170,7 +170,7 @@ def check_backup(ctx, iocs, output, fast, backup_path, list_modules, module):
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_fs(ctx, iocs, output, fast, dump_path, list_modules, module):
+def check_fs(ctx, iocs, output, fast, list_modules, module, dump_path):
     cmd = CmdIOSCheckFS(target_path=dump_path, results_path=output,
                         ioc_files=iocs, module_name=module, fast_mode=fast)
 
