@@ -47,7 +47,7 @@ class Command(object):
                 sys.exit(1)
 
     def _store_timeline(self):
-        if self.results_path:
+        if not self.results_path:
             return
 
         if len(self.timeline) > 0:
