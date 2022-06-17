@@ -11,6 +11,7 @@ from .utils import get_ios_backup_folder
 
 
 class TestCheckBackupCommand:
+
     def test_check(self):
         runner = CliRunner()
         path = get_ios_backup_folder()

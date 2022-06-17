@@ -11,6 +11,7 @@ from ..utils import get_artifact
 
 
 class TestBackupParsing:
+
     def test_parsing_noencryption(self):
         file = get_artifact("android_backup/backup.ab")
         with open(file, "rb") as f:

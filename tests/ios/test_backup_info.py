@@ -12,6 +12,7 @@ from ..utils import get_ios_backup_folder
 
 
 class TestBackupInfoModule:
+
     def test_manifest(self):
         m = BackupInfo(target_path=get_ios_backup_folder(), log=logging)
         run_module(m)

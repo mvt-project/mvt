@@ -113,4 +113,3 @@ class Command(object):
             self.timeline_detected.extend(m.timeline_detected)
 
         self._store_timeline()
-

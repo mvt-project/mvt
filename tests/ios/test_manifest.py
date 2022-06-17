@@ -13,6 +13,7 @@ from ..utils import get_ios_backup_folder
 
 
 class TestManifestModule:
+
     def test_manifest(self):
         m = Manifest(target_path=get_ios_backup_folder(), log=logging, results=[])
         run_module(m)
