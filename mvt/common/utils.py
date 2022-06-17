@@ -8,7 +8,7 @@ import hashlib
 import re
 
 
-def convert_mactime_to_unix(timestamp, from_2001=True):
+def convert_mactime_to_unix(timestamp, from_2001: bool = True):
     """Converts Mac Standard Time to a Unix timestamp.
 
     :param timestamp: MacTime timestamp (either int or float).

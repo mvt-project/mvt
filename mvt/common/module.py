@@ -4,8 +4,10 @@
 #   https://license.mvt.re/1.1/
 
 import csv
+import logging
 import os
 import re
+from typing import Callable
 
 import simplejson as json
 
@@ -28,8 +30,9 @@ class MVTModule(object):
     enabled = True
     slug = None
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=None):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = None):
         """Initialize module.
 
         :param file_path: Path to the module's database file, if there is any
@@ -56,7 +59,7 @@ class MVTModule(object):
         self.timeline_detected = []
 
     @classmethod
-    def from_json(cls, json_path, log=None):
+    def from_json(cls, json_path: str, log: logging.Logger = None):
         with open(json_path, "r", encoding="utf-8") as handle:
             results = json.load(handle)
             if log:
@@ -72,7 +75,7 @@ class MVTModule(object):
         sub = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", self.__class__.__name__)
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", sub).lower()
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         """Check the results of this module against a provided list of
         indicators.
 
@@ -80,7 +83,7 @@ class MVTModule(object):
         """
         raise NotImplementedError
 
-    def save_to_json(self):
+    def save_to_json(self) -> None:
         """Save the collected results to a json file."""
         if not self.results_path:
             return
@@ -103,11 +106,11 @@ class MVTModule(object):
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         raise NotImplementedError
 
     @staticmethod
-    def _deduplicate_timeline(timeline):
+    def _deduplicate_timeline(timeline: list) -> list:
         """Serialize entry as JSON to deduplicate repeated entries
 
         :param timeline: List of entries from timeline to deduplicate
@@ -118,7 +121,7 @@ class MVTModule(object):
             timeline_set.add(json.dumps(record, sort_keys=True))
         return [json.loads(record) for record in timeline_set]
 
-    def to_timeline(self):
+    def to_timeline(self) -> None:
         """Convert results into a timeline."""
         for result in self.results:
             record = self.serialize(result)
@@ -140,12 +143,12 @@ class MVTModule(object):
         self.timeline = self._deduplicate_timeline(self.timeline)
         self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
-    def run(self):
+    def run(self) -> None:
         """Run the main module procedure."""
         raise NotImplementedError
 
 
-def run_module(module):
+def run_module(module: Callable):
     module.log.info("Running module %s...", module.__class__.__name__)
 
     try:
@@ -184,7 +187,7 @@ def run_module(module):
         module.save_to_json()
 
 
-def save_timeline(timeline, timeline_path):
+def save_timeline(timeline: list, timeline_path: str):
     """Save the timeline in a csv file.
 
     :param timeline: List of records to order and store

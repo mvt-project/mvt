@@ -24,7 +24,7 @@ class DecryptBackup:
 
     """
 
-    def __init__(self, backup_path, dest_path=None):
+    def __init__(self, backup_path: str, dest_path: str = None) -> None:
         """Decrypts an encrypted iOS backup.
         :param backup_path: Path to the encrypted backup folder
         :param dest_path: Path to the folder where to store the decrypted backup
@@ -38,7 +38,7 @@ class DecryptBackup:
         return self._backup is not None
 
     @staticmethod
-    def is_encrypted(backup_path) -> bool:
+    def is_encrypted(backup_path: str) -> bool:
         """Query Manifest.db file to see if it's encrypted or not.
 
         :param backup_path: Path to the backup to decrypt
@@ -54,13 +54,14 @@ class DecryptBackup:
             log.critical("The backup does not seem encrypted!")
             return False
 
-    def _process_file(self, relative_path, domain, item, file_id, item_folder):
+    def _process_file(self, relative_path: str, domain: str, item,
+                      file_id: str, item_folder: str) -> None:
         self._backup.getFileDecryptedCopy(manifestEntry=item,
                                           targetName=file_id,
                                           targetFolder=item_folder)
         log.info("Decrypted file %s [%s] to %s/%s", relative_path, domain, item_folder, file_id)
 
-    def process_backup(self):
+    def process_backup(self) -> None:
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
 
@@ -111,7 +112,7 @@ class DecryptBackup:
                 shutil.copy(os.path.join(self.backup_path, file_name),
                             self.dest_path)
 
-    def decrypt_with_password(self, password):
+    def decrypt_with_password(self, password: str) -> None:
         """Decrypts an encrypted iOS backup.
 
         :param password: Password to use to decrypt the original backup
@@ -149,7 +150,7 @@ class DecryptBackup:
                 log.exception(e)
                 log.critical("Failed to decrypt backup. Did you provide the correct password? Did you point to the right backup path?")
 
-    def decrypt_with_key_file(self, key_file):
+    def decrypt_with_key_file(self, key_file: str) -> None:
         """Decrypts an encrypted iOS backup using a key file.
 
         :param key_file: File to read the key bytes to decrypt the backup
@@ -179,7 +180,7 @@ class DecryptBackup:
             log.exception(e)
             log.critical("Failed to decrypt backup. Did you provide the correct key file?")
 
-    def get_key(self):
+    def get_key(self) -> None:
         """Retrieve and prints the encryption key."""
         if not self._backup:
             return
@@ -188,7 +189,7 @@ class DecryptBackup:
         log.info("Derived decryption key for backup at path %s is: \"%s\"",
                  self.backup_path, self._decryption_key)
 
-    def write_key(self, key_path):
+    def write_key(self, key_path: str) -> None:
         """Save extracted key to file.
 
         :param key_path: Path to the file where to write the derived decryption key.

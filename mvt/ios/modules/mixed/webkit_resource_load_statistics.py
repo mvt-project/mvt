@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import datetime
+import logging
 import os
 import sqlite3
 
@@ -22,15 +23,16 @@ class WebkitResourceLoadStatistics(IOSExtraction):
     """This module extracts records from WebKit ResourceLoadStatistics observations.db."""
     # TODO: Add serialize().
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self.results = {} if not results else results
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         if not self.indicators:
             return
 
@@ -73,7 +75,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         if len(self.results[key]) > 0:
             self.log.info("Extracted a total of %d records from %s", len(self.results[key]), db_path)
 
-    def run(self):
+    def run(self) -> None:
         if self.is_backup:
             try:
                 for backup_file in self._get_backup_files_from_manifest(relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):

@@ -14,7 +14,7 @@ from ..base import IOSExtraction
 class WebkitBase(IOSExtraction):
     """This class is a base for other WebKit-related modules."""
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         if not self.indicators:
             return
 

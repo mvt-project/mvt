@@ -18,8 +18,9 @@ class CmdIOSCheckBackup(Command):
     name = "check-backup"
     modules = BACKUP_MODULES + MIXED_MODULES
 
-    def __init__(self, target_path=None, results_path=None, ioc_files=[],
-                 module_name=None, serial=None, fast_mode=False):
+    def __init__(self, target_path: str = None, results_path: str = None,
+                 ioc_files: list = [], module_name: str = None, serial: str = None,
+                 fast_mode: bool = False):
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)

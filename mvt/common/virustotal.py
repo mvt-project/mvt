@@ -21,7 +21,7 @@ class VTQuotaExceeded(Exception):
     pass
 
 
-def virustotal_lookup(file_hash):
+def virustotal_lookup(file_hash: str):
     if MVT_VT_API_KEY not in os.environ:
         raise VTNoKey("No VirusTotal API key provided: to use VirusTotal lookups please provide your API key with `export MVT_VT_API_KEY=<key>`")
 

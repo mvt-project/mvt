@@ -5,6 +5,7 @@
 
 import datetime
 import io
+import logging
 import os
 import plistlib
 import sqlite3
@@ -18,8 +19,9 @@ from ..base import IOSExtraction
 class Manifest(IOSExtraction):
     """This module extracts information from a backup Manifest.db file."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -47,7 +49,7 @@ class Manifest(IOSExtraction):
             timestamp = datetime.datetime.utcfromtimestamp(timestamp_or_unix_time_int)
             return convert_timestamp_to_iso(timestamp)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         records = []
         if "modified" not in record or "status_changed" not in record:
             return
@@ -67,7 +69,7 @@ class Manifest(IOSExtraction):
 
         return records
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         if not self.indicators:
             return
 
@@ -92,7 +94,7 @@ class Manifest(IOSExtraction):
                                      ioc["value"], rel_path)
                     self.detected.append(result)
 
-    def run(self):
+    def run(self) -> None:
         manifest_db_path = os.path.join(self.target_path, "Manifest.db")
         if not os.path.isfile(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")

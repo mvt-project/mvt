@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
 import operator
 import sqlite3
 from pathlib import Path
@@ -15,8 +16,9 @@ from .base import IOSExtraction
 class NetBase(IOSExtraction):
     """This class provides a base for DataUsage and NetUsage extraction modules."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -78,7 +80,7 @@ class NetBase(IOSExtraction):
 
         self.log.info("Extracted information on %d processes", len(self.results))
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         record_data = f"{record['proc_name']} (Bundle ID: {record['bundle_id']}, ID: {record['proc_id']})"
         record_data_usage = record_data + f" WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
             f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
@@ -214,7 +216,7 @@ class NetBase(IOSExtraction):
 
         self.results = sorted(self.results, key=operator.itemgetter("first_isodate"))
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         # Check for manipulated process records.
         # TODO: Catching KeyError for live_isodate for retro-compatibility.
         #       This is not very good.

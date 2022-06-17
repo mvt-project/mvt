@@ -17,8 +17,9 @@ log = logging.getLogger(__name__)
 class Files(AndroidExtraction):
     """This module extracts the list of files on the device."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 serial=None, fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -46,7 +47,7 @@ class Files(AndroidExtraction):
             for file_line in output.splitlines():
                 self.results.append({"path": file_line.rstrip()})
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         if "modified_time" in record:
             return {
                 "timestamp": record["modified_time"],
@@ -63,7 +64,7 @@ class Files(AndroidExtraction):
                                  result["path"])
                 self.detected.append(result)
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         """Check file list for known suspicious files or suspicious properties"""
         self.check_suspicious()
 
@@ -75,7 +76,7 @@ class Files(AndroidExtraction):
                 self.log.warning("Found a known suspicous file at path: \"%s\"", result["path"])
                 self.detected.append(result)
 
-    def run(self):
+    def run(self) -> None:
         self._adb_connect()
 
         output = self._adb_command("find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")

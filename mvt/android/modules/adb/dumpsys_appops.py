@@ -17,13 +17,14 @@ class DumpsysAppOps(AndroidExtraction):
 
     slug = "dumpsys_appops"
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 serial=None, fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         records = []
         for perm in record["permissions"]:
             if "entries" not in perm:
@@ -40,7 +41,7 @@ class DumpsysAppOps(AndroidExtraction):
 
         return records
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         for result in self.results:
             if self.indicators:
                 ioc = self.indicators.check_app_id(result.get("package_name"))
@@ -54,7 +55,7 @@ class DumpsysAppOps(AndroidExtraction):
                     self.log.info("Package %s with REQUEST_INSTALL_PACKAGES permission",
                                   result["package_name"])
 
-    def run(self):
+    def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("dumpsys appops")
         self._adb_disconnect()

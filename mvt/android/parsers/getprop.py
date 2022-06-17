@@ -6,7 +6,7 @@
 import re
 
 
-def parse_getprop(output):
+def parse_getprop(output: str) -> dict:
     results = {}
     rxp = re.compile(r"\[(.+?)\]: \[(.+?)\]")
 

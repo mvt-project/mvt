@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import json
+import logging
 import os
 
 import requests
@@ -17,13 +18,13 @@ class Indicators:
     functions to compare extracted artifacts to the indicators.
     """
 
-    def __init__(self, log=None):
+    def __init__(self, log=logging.Logger) -> None:
         self.data_dir = user_data_dir("mvt")
         self.log = log
         self.ioc_collections = []
         self.total_ioc_count = 0
 
-    def _load_downloaded_indicators(self):
+    def _load_downloaded_indicators(self) -> None:
         if not os.path.isdir(self.data_dir):
             return
 
@@ -31,7 +32,7 @@ class Indicators:
             if f.lower().endswith(".stix2"):
                 self.parse_stix2(os.path.join(self.data_dir, f))
 
-    def _check_stix2_env_variable(self):
+    def _check_stix2_env_variable(self) -> None:
         """
         Checks if a variable MVT_STIX2 contains path to a STIX files.
         """
@@ -46,8 +47,8 @@ class Indicators:
                 self.log.error("Path specified with env MVT_STIX2 is not a valid file: %s",
                                path)
 
-    def _new_collection(self, cid="", name="", description="", file_name="",
-                        file_path=""):
+    def _new_collection(self, cid: str = "", name: str = "", description: str = "",
+                        file_name: str = "", file_path: str = "") -> dict:
         return {
             "id": cid,
             "name": name,
@@ -65,14 +66,14 @@ class Indicators:
             "count": 0,
         }
 
-    def _add_indicator(self, ioc, ioc_coll, ioc_coll_list):
+    def _add_indicator(self, ioc: str, ioc_coll: dict, ioc_coll_list: list) -> None:
         ioc = ioc.strip("'")
         if ioc not in ioc_coll_list:
             ioc_coll_list.append(ioc)
             ioc_coll["count"] += 1
             self.total_ioc_count += 1
 
-    def parse_stix2(self, file_path):
+    def parse_stix2(self, file_path: str) -> None:
         """Extract indicators from a STIX2 file.
 
         :param file_path: Path to the STIX2 file to parse
@@ -178,7 +179,7 @@ class Indicators:
 
         self.ioc_collections.extend(collections)
 
-    def load_indicators_files(self, files, load_default=True):
+    def load_indicators_files(self, files: list, load_default: bool = True) -> None:
         """
         Load a list of indicators files.
         """
@@ -196,7 +197,7 @@ class Indicators:
         self._check_stix2_env_variable()
         self.log.info("Loaded a total of %d unique indicators", self.total_ioc_count)
 
-    def get_iocs(self, ioc_type):
+    def get_iocs(self, ioc_type: str) -> dict:
         for ioc_collection in self.ioc_collections:
             for ioc in ioc_collection.get(ioc_type, []):
                 yield {
@@ -206,7 +207,7 @@ class Indicators:
                     "stix2_file_name": ioc_collection["stix2_file_name"],
                 }
 
-    def check_domain(self, url):
+    def check_domain(self, url: str) -> dict:
         """Check if a given URL matches any of the provided domain indicators.
 
         :param url: URL to match against domain indicators
@@ -278,7 +279,7 @@ class Indicators:
 
                 return ioc
 
-    def check_domains(self, urls):
+    def check_domains(self, urls: list) -> dict:
         """Check a list of URLs against the provided list of domain indicators.
 
         :param urls: List of URLs to check against domain indicators
@@ -294,7 +295,7 @@ class Indicators:
             if check:
                 return check
 
-    def check_process(self, process):
+    def check_process(self, process: str) -> dict:
         """Check the provided process name against the list of process
         indicators.
 
@@ -319,7 +320,7 @@ class Indicators:
                                      process, ioc["name"])
                     return ioc
 
-    def check_processes(self, processes):
+    def check_processes(self, processes: list) -> dict:
         """Check the provided list of processes against the list of
         process indicators.
 
@@ -336,7 +337,7 @@ class Indicators:
             if check:
                 return check
 
-    def check_email(self, email):
+    def check_email(self, email: str) -> dict:
         """Check the provided email against the list of email indicators.
 
         :param email: Email address to check against email indicators
@@ -353,7 +354,7 @@ class Indicators:
                                  email, ioc["name"])
                 return ioc
 
-    def check_file_name(self, file_name):
+    def check_file_name(self, file_name: str) -> dict:
         """Check the provided file name against the list of file indicators.
 
         :param file_name: File name to check against file
@@ -371,7 +372,7 @@ class Indicators:
                                  file_name, ioc["name"])
                 return ioc
 
-    def check_file_path(self, file_path):
+    def check_file_path(self, file_path: str) -> dict:
         """Check the provided file path against the list of file indicators (both path and name).
 
         :param file_path: File path or file name to check against file
@@ -394,7 +395,7 @@ class Indicators:
                                  file_path, ioc["name"])
                 return ioc
 
-    def check_profile(self, profile_uuid):
+    def check_profile(self, profile_uuid: str) -> dict:
         """Check the provided configuration profile UUID against the list of indicators.
 
         :param profile_uuid: Profile UUID to check against configuration profile indicators
@@ -411,7 +412,7 @@ class Indicators:
                                  profile_uuid, ioc["name"])
                 return ioc
 
-    def check_file_hash(self, file_hash):
+    def check_file_hash(self, file_hash: str) -> dict:
         """Check the provided SHA256 file hash against the list of indicators.
 
         :param file_hash: SHA256 hash to check
@@ -428,7 +429,7 @@ class Indicators:
                                  file_hash, ioc["name"])
                 return ioc
 
-    def check_app_id(self, app_id):
+    def check_app_id(self, app_id: str) -> dict:
         """Check the provided app identifier (typically an Android package name)
         against the list of indicators.
 
@@ -447,7 +448,7 @@ class Indicators:
                 return ioc
 
 
-def download_indicators_files(log):
+def download_indicators_files(log: logging.Logger) -> None:
     """
     Download indicators from repo into MVT app data directory.
     """

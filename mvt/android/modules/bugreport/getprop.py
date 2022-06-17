@@ -16,15 +16,16 @@ log = logging.getLogger(__name__)
 class Getprop(BugReportModule):
     """This module extracts device properties from getprop command."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 serial=None, fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self.results = {} if not results else results
 
-    def run(self):
+    def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
             self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")

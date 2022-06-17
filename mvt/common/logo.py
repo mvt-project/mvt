@@ -9,7 +9,7 @@ from .updates import check_for_updates
 from .version import MVT_VERSION
 
 
-def logo():
+def logo() -> None:
     print("\n")
     print("\t[bold]MVT[/bold] - Mobile Verification Toolkit")
     print("\t\thttps://mvt.re")

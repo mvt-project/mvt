@@ -9,7 +9,7 @@ from datetime import datetime
 from mvt.common.utils import convert_timestamp_to_iso
 
 
-def parse_dumpsys_accessibility(output):
+def parse_dumpsys_accessibility(output: str) -> list:
     results = []
 
     in_services = False
@@ -34,7 +34,7 @@ def parse_dumpsys_accessibility(output):
     return results
 
 
-def parse_dumpsys_activity_resolver_table(output):
+def parse_dumpsys_activity_resolver_table(output: str) -> dict:
     results = {}
 
     in_activity_resolver_table = False
@@ -90,7 +90,7 @@ def parse_dumpsys_activity_resolver_table(output):
     return results
 
 
-def parse_dumpsys_battery_daily(output):
+def parse_dumpsys_battery_daily(output: str) -> list:
     results = []
     daily = None
     daily_updates = []
@@ -136,7 +136,7 @@ def parse_dumpsys_battery_daily(output):
     return results
 
 
-def parse_dumpsys_battery_history(output):
+def parse_dumpsys_battery_history(output: str) -> list:
     results = []
 
     for line in output.splitlines():
@@ -181,7 +181,7 @@ def parse_dumpsys_battery_history(output):
     return results
 
 
-def parse_dumpsys_dbinfo(output):
+def parse_dumpsys_dbinfo(output: str) -> list:
     results = []
 
     rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\"')
@@ -234,7 +234,7 @@ def parse_dumpsys_dbinfo(output):
     return results
 
 
-def parse_dumpsys_receiver_resolver_table(output):
+def parse_dumpsys_receiver_resolver_table(output: str) -> dict:
     results = {}
 
     in_receiver_resolver_table = False
@@ -290,7 +290,7 @@ def parse_dumpsys_receiver_resolver_table(output):
     return results
 
 
-def parse_dumpsys_appops(output):
+def parse_dumpsys_appops(output: str) -> list:
     results = []
     perm = {}
     package = {}

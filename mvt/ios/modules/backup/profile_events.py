@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
 import plistlib
 
 from mvt.common.utils import convert_timestamp_to_iso
@@ -18,14 +19,14 @@ class ProfileEvents(IOSExtraction):
 
 
     """
-
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         return {
             "timestamp": record.get("timestamp"),
             "module": self.__class__.__name__,
@@ -33,7 +34,7 @@ class ProfileEvents(IOSExtraction):
             "data": f"Process {record.get('process')} started operation {record.get('operation')} of profile {record.get('profile_id')}"
         }
 
-    def run(self):
+    def run(self) -> None:
         for events_file in self._get_backup_files_from_manifest(relative_path=CONF_PROFILES_EVENTS_RELPATH):
             events_file_path = self._get_backup_file_from_id(events_file["file_id"])
             if not events_file_path:

@@ -244,18 +244,19 @@ IPHONE_IOS_VERSIONS = [
 ]
 
 
-def get_device_desc_from_id(identifier, devices_list=IPHONE_MODELS):
+def get_device_desc_from_id(identifier: str,
+                            devices_list: list = IPHONE_MODELS) -> str:
     for model in IPHONE_MODELS:
         if identifier == model["identifier"]:
             return model["description"]
 
 
-def find_version_by_build(build):
+def find_version_by_build(build: str) -> str:
     build = build.upper()
     for version in IPHONE_IOS_VERSIONS:
         if build == version["build"]:
             return version["version"]
 
 
-def latest_ios_version():
+def latest_ios_version() -> str:
     return IPHONE_IOS_VERSIONS[-1]

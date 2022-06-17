@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import collections
+import logging
 import plistlib
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
@@ -22,13 +23,14 @@ IDSTATUSCACHE_ROOT_PATHS = [
 class IDStatusCache(IOSExtraction):
     """Extracts Apple Authentication information from idstatuscache.plist"""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -36,7 +38,7 @@ class IDStatusCache(IOSExtraction):
             "data": f"Lookup of {record['user']} within {record['package']} (Status {record['idstatus']})"
         }
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         if not self.indicators:
             return
 
@@ -83,7 +85,7 @@ class IDStatusCache(IOSExtraction):
             entry["occurrences"] = entry_counter[entry["user"]]
             self.results.append(entry)
 
-    def run(self):
+    def run(self) -> None:
 
         if self.is_backup:
             self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS)

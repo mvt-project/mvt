@@ -176,7 +176,7 @@ class DownloadAPKs(AndroidExtraction):
         with open(json_path, "w", encoding="utf-8") as handle:
             json.dump(self.packages, handle, indent=4)
 
-    def run(self):
+    def run(self) -> None:
         """Run all steps of fetch-apk."""
         self.get_packages()
         self._adb_connect()

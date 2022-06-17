@@ -57,15 +57,16 @@ ANDROID_DANGEROUS_SETTINGS = [
 class Settings(AndroidExtraction):
     """This module extracts Android system settings."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 serial=None, fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
         self.results = {} if not results else results
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         for namespace, settings in self.results.items():
             for key, value in settings.items():
                 for danger in ANDROID_DANGEROUS_SETTINGS:
@@ -76,7 +77,7 @@ class Settings(AndroidExtraction):
                                          key, value, danger["description"])
                         break
 
-    def run(self):
+    def run(self) -> None:
         self._adb_connect()
 
         for namespace in ["system", "secure", "global"]:

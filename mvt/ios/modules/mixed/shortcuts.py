@@ -5,6 +5,7 @@
 
 import io
 import itertools
+import logging
 import plistlib
 import sqlite3
 
@@ -24,13 +25,14 @@ SHORTCUT_ROOT_PATHS = [
 class Shortcuts(IOSExtraction):
     """This module extracts all info about SMS/iMessage attachments."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         found_urls = ""
         if record["action_urls"]:
             found_urls = "- URLs in actions: {}".format(", ".join(record["action_urls"]))
@@ -50,7 +52,7 @@ class Shortcuts(IOSExtraction):
             "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
         }]
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         if not self.indicators:
             return
 
@@ -60,7 +62,7 @@ class Shortcuts(IOSExtraction):
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
 
-    def run(self):
+    def run(self) -> None:
         self._find_ios_database(backup_ids=SHORTCUT_BACKUP_IDS,
                                 root_paths=SHORTCUT_ROOT_PATHS)
         self.log.info("Found Shortcuts database at path: %s", self.file_path)

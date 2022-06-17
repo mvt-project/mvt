@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
 import os
 import plistlib
 from base64 import b64encode
@@ -17,13 +18,14 @@ CONF_PROFILES_DOMAIN = "SysSharedContainerDomain-systemgroup.com.apple.configura
 class ConfigurationProfiles(IOSExtraction):
     """This module extracts the full plist data from configuration profiles."""
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record):
+    def serialize(self, record: dict) -> None:
         if not record["install_date"]:
             return
 
@@ -36,7 +38,7 @@ class ConfigurationProfiles(IOSExtraction):
             "data": f"{record['plist']['PayloadType']} installed: {record['plist']['PayloadUUID']} - {payload_name}: {payload_description}"
         }
 
-    def check_indicators(self):
+    def check_indicators(self) -> None:
         if not self.indicators:
             return
 
@@ -58,7 +60,7 @@ class ConfigurationProfiles(IOSExtraction):
                     self.detected.append(result)
                     continue
 
-    def run(self):
+    def run(self) -> None:
         for conf_file in self._get_backup_files_from_manifest(domain=CONF_PROFILES_DOMAIN):
             conf_rel_path = conf_file["relative_path"]
             # Filter out all configuration files that are not configuration profiles.

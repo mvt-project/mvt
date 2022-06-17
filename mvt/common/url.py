@@ -253,7 +253,7 @@ SHORTENER_DOMAINS = [
 
 class URL:
 
-    def __init__(self, url):
+    def __init__(self, url: str) -> None:
         if type(url) == bytes:
             url = url.decode()
 
@@ -262,7 +262,7 @@ class URL:
         self.top_level = self.get_top_level()
         self.is_shortened = False
 
-    def get_domain(self):
+    def get_domain(self) -> None:
         """Get the domain from a URL.
 
         :param url: URL to parse
@@ -273,11 +273,13 @@ class URL:
         """
         # TODO: Properly handle exception.
         try:
-            return get_tld(self.url, as_object=True, fix_protocol=True).parsed_url.netloc.lower().lstrip("www.")
+            return get_tld(self.url,
+                           as_object=True,
+                           fix_protocol=True).parsed_url.netloc.lower().lstrip("www.")
         except Exception:
             return None
 
-    def get_top_level(self):
+    def get_top_level(self) -> None:
         """Get only the top-level domain from a URL.
 
         :param url: URL to parse
@@ -306,7 +308,7 @@ class URL:
 
         return self.is_shortened
 
-    def unshorten(self):
+    def unshorten(self) -> None:
         """Unshorten the URL by requesting an HTTP HEAD response."""
         res = requests.head(self.url)
         if str(res.status_code).startswith("30"):

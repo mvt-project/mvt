@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
+
 from ..net_base import NetBase
 
 DATAUSAGE_BACKUP_IDS = [
@@ -20,13 +22,14 @@ class Datausage(NetBase):
 
     """
 
-    def __init__(self, file_path=None, target_path=None, results_path=None,
-                 fast_mode=False, log=None, results=[]):
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = None, results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def run(self):
+    def run(self) -> None:
         self._find_ios_database(backup_ids=DATAUSAGE_BACKUP_IDS,
                                 root_paths=DATAUSAGE_ROOT_PATHS)
         self.log.info("Found DataUsage database at path: %s", self.file_path)
