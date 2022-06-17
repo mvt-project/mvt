@@ -56,7 +56,7 @@ class Whatsapp(IOSExtraction):
     def run(self):
         self._find_ios_database(backup_ids=WHATSAPP_BACKUP_IDS,
                                 root_paths=WHATSAPP_ROOT_PATHS)
-        log.info("Found WhatsApp database at path: %s", self.file_path)
+        self.log.info("Found WhatsApp database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
@@ -108,4 +108,4 @@ class Whatsapp(IOSExtraction):
         cur.close()
         conn.close()
 
-        log.info("Extracted a total of %d WhatsApp messages containing links", len(self.results))
+        self.log.info("Extracted a total of %d WhatsApp messages containing links", len(self.results))
