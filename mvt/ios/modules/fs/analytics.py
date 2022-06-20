@@ -28,7 +28,7 @@ class Analytics(IOSExtraction):
 
     def serialize(self, record: dict) -> None:
         return {
-            "timestamp": record["timestamp"],
+            "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": record["artifact"],
             "data": f"{record}",
@@ -96,17 +96,17 @@ class Analytics(IOSExtraction):
 
         for row in cur:
             if row[0] and row[1]:
-                timestamp = convert_timestamp_to_iso(convert_mactime_to_unix(row[0], False))
+                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[0], False))
                 data = plistlib.loads(row[1])
-                data["timestamp"] = timestamp
+                data["isodate"] = isodate
             elif row[0]:
-                timestamp = convert_timestamp_to_iso(convert_mactime_to_unix(row[0], False))
+                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[0], False))
                 data = {}
-                data["timestamp"] = timestamp
+                data["isodate"] = isodate
             elif row[1]:
-                timestamp = ""
+                isodate = ""
                 data = plistlib.loads(row[1])
-                data["timestamp"] = timestamp
+                data["isodate"] = isodate
 
             data["artifact"] = artifact
 
@@ -127,4 +127,4 @@ class Analytics(IOSExtraction):
         self.log.info("Extracted %d records from analytics databases",
                       len(self.results))
 
-        self.results = sorted(self.results, key=lambda entry: entry["timestamp"])
+        self.results = sorted(self.results, key=lambda entry: entry["isodate"])
