@@ -109,7 +109,7 @@ class Command(object):
                             with open(file_path, "rb") as handle:
                                 h.update(handle.read())
                         except PermissionError:
-                            log.error("Failed to hash the file %s: permission denied", file_path)
+                            self.log.error("Failed to hash the file %s: permission denied", file_path)
                             continue
 
                         info["hashes"].append({
