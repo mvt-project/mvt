@@ -115,11 +115,14 @@ class Analytics(IOSExtraction):
         cur.close()
         conn.close()
 
-    def run(self) -> None:
+    def process_analytics_dbs(self):
         for file_path in self._get_fs_files_from_patterns(ANALYTICS_DB_PATH):
             self.file_path = file_path
             self.log.info("Found Analytics database file at path: %s", file_path)
             self._extract_analytics_data()
+
+    def run(self) -> None:
+        self.process_analytics_dbs()
 
         self.log.info("Extracted %d records from analytics databases",
                       len(self.results))

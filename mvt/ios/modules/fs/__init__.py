@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from .analytics import Analytics
+from .analytics_ios_versions import AnalyticsIOSVersions
 from .cache_files import CacheFiles
 from .filesystem import Filesystem
 from .net_netusage import Netusage
@@ -14,6 +15,6 @@ from .webkit_indexeddb import WebkitIndexedDB
 from .webkit_localstorage import WebkitLocalStorage
 from .webkit_safariviewservice import WebkitSafariViewService
 
-FS_MODULES = [CacheFiles, Filesystem, Netusage, Analytics, SafariFavicon, ShutdownLog,
-              IOSVersionHistory, WebkitIndexedDB, WebkitLocalStorage,
-              WebkitSafariViewService]
+FS_MODULES = [CacheFiles, Filesystem, Netusage, Analytics, AnalyticsIOSVersions,
+              SafariFavicon, ShutdownLog, IOSVersionHistory, WebkitIndexedDB,
+              WebkitLocalStorage, WebkitSafariViewService]
