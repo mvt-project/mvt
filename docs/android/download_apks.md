@@ -16,11 +16,13 @@ It might take several minutes to complete.
 Optionally, you can decide to enable lookups of the SHA256 hash of all the extracted APKs on [VirusTotal](https://www.virustotal.com). While these lookups do not provide any conclusive assessment on all of the extracted APKs, they might highlight any known malicious ones:
 
 ```bash
-mvt-android download-apks --output /path/to/folder --virustotal
+MVT_VT_API_KEY=<key> mvt-android download-apks --output /path/to/folder --virustotal
 ```
+
+Please note that in order to use VirusTotal lookups you are required to provide your own API key through the `MVT_VT_API_KEY` environment variable. You should also note that VirusTotal enforces strict API usage. Be mindful that MVT might consume your hourly search quota.
 
 In case you have a previous extraction of APKs you want to later check against VirusTotal, you can do so with the following arguments:
 
 ```bash
-mvt-android download-apks --from-file /path/to/folder/apks.json --virustotal
+MVT_VT_API_KEY=<key> mvt-android download-apks --from-file /path/to/folder/apks.json --virustotal
 ```

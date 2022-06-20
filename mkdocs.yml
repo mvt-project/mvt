@@ -1,7 +1,7 @@
 site_name: Mobile Verification Toolkit
 repo_url: https://github.com/mvt-project/mvt
 edit_uri: edit/main/docs/
-copyright: Copyright &copy; 2021 MVT Project Developers
+copyright: Copyright &copy; 2021-2022 MVT Project Developers
 site_description: Mobile Verification Toolkit Documentation
 markdown_extensions:
     - attr_list

@@ -18,7 +18,7 @@ If indicators are provided through the command-line, processes and domains are c
 
 ### `backup_info.json`
 
-!!! info "Availabiliy"
+!!! info "Availability"
     Backup: :material-check:
     Full filesystem dump: :material-close:
 

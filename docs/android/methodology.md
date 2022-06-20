@@ -8,8 +8,10 @@ However, not all is lost.
 
 Because malware attacks over Android typically take the form of malicious or backdoored apps, the very first thing you might want to do is to extract and verify all installed Android packages and triage quickly if there are any which stand out as malicious or which might be atypical.
 
-While it is out of the scope of this documentation to dwell into details on how to analyze Android apps, MVT does allow to easily and automatically extract information about installed apps, download copies of them, and quickly lookup services such as [VirusTotal](https://www.virustotal.com) or [Koodous](https://koodous.com) which might quickly indicate known bad apps.
+While it is out of the scope of this documentation to dwell into details on how to analyze Android apps, MVT does allow to easily and automatically extract information about installed apps, download copies of them, and quickly look them up on services such as [VirusTotal](https://www.virustotal.com).
 
+!!! info "Using VirusTotal"
+	Please note that in order to use VirusTotal lookups you are required to provide your own API key through the `MVT_VT_API_KEY` environment variable. You should also note that VirusTotal enforces strict API usage. Be mindful that MVT might consume your hourly search quota.
 
 ## Check the device over Android Debug Bridge
 
