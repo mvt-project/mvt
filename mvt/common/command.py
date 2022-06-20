@@ -89,7 +89,9 @@ class Command(object):
         for coll in self.iocs.ioc_collections:
             info["ioc_files"].append(coll.get("stix2_file_path", ""))
 
-        if self.target_path:
+        # TODO: Revisit if setting this from environment variable is good
+        #       enough.
+        if self.target_path and os.environ.get("MVT_HASH_FILES"):
             if os.path.isfile(self.target_path):
                 h = hashlib.sha256()
                 with open(self.target_path, "rb") as handle:
