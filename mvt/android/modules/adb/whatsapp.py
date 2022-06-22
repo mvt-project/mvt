@@ -48,7 +48,7 @@ class Whatsapp(AndroidExtraction):
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
 
-    def _parse_db(self, db_path):
+    def _parse_db(self, db_path: str) -> None:
         """Parse an Android msgstore.db WhatsApp database file.
 
         :param db_path: Path to the Android WhatsApp database file to process
