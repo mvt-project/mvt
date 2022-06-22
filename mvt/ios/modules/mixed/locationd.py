@@ -111,7 +111,6 @@ class LocationdClients(IOSExtraction):
             self.results.append(result)
 
     def run(self) -> None:
-
         if self.is_backup:
             self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS)
             self.log.info("Found Locationd Clients plist at path: %s", self.file_path)

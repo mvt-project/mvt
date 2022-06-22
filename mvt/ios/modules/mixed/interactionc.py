@@ -66,7 +66,8 @@ class InteractionC(IOSExtraction):
         return records
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=INTERACTIONC_BACKUP_IDS, root_paths=INTERACTIONC_ROOT_PATHS)
+        self._find_ios_database(backup_ids=INTERACTIONC_BACKUP_IDS,
+                                root_paths=INTERACTIONC_ROOT_PATHS)
         self.log.info("Found InteractionC database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
