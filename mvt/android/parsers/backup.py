@@ -172,13 +172,13 @@ def parse_tar_for_sms(data):
     """
     dbytes = io.BytesIO(data)
     tar = tarfile.open(fileobj=dbytes)
-    try:
-        member = tar.getmember("apps/com.android.providers.telephony/d_f/000000_sms_backup")
-    except KeyError:
-        return []
+    res = []
+    for member in tar.getmembers():
+        if member.name.startswith("apps/com.android.providers.telephony/d_f/") and member.name.endswith("_sms_backup"):
+            dhandler = tar.extractfile(member)
+            res.extend(parse_sms_file(dhandler.read()))
 
-    dhandler = tar.extractfile(member)
-    return parse_sms_file(dhandler.read())
+    return res
 
 
 def parse_sms_file(data):
