@@ -26,7 +26,7 @@ class TestBackupModule:
                 files.append(os.path.relpath(os.path.join(root, fname), backup_path))
         mod.from_folder(backup_path, files)
         run_module(mod)
-        assert len(mod.results) == 1
+        assert len(mod.results) == 2
         assert len(mod.results[0]["links"]) == 1
         assert mod.results[0]["links"][0] == "https://google.com/"
 
@@ -43,7 +43,7 @@ class TestBackupModule:
             files.append(member.name)
         mod.from_ab(fpath, tar, files)
         run_module(mod)
-        assert len(mod.results) == 1
+        assert len(mod.results) == 2
         assert len(mod.results[0]["links"]) == 1
 
     def test_module_file2(self):
