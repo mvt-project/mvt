@@ -37,7 +37,7 @@ def convert_mactime_to_unix(timestamp, from_2001: bool = True):
         return None
 
 
-def convert_chrometime_to_unix(timestamp):
+def convert_chrometime_to_unix(timestamp: int) -> int:
     """Converts Chrome timestamp to a Unix timestamp.
 
     :param timestamp: Chrome timestamp as int.
@@ -50,7 +50,7 @@ def convert_chrometime_to_unix(timestamp):
     return epoch_start + delta
 
 
-def convert_timestamp_to_iso(timestamp):
+def convert_timestamp_to_iso(timestamp: str) -> str:
     """Converts Unix timestamp to ISO string.
 
     :param timestamp: Unix timestamp.
@@ -65,7 +65,7 @@ def convert_timestamp_to_iso(timestamp):
         return None
 
 
-def check_for_links(text):
+def check_for_links(text: str) -> list:
     """Checks if a given text contains HTTP links.
 
     :param text: Any provided text.
@@ -76,7 +76,7 @@ def check_for_links(text):
     return re.findall(r"(?P<url>https?://[^\s]+)", text, re.IGNORECASE)
 
 
-def get_sha256_from_file_path(file_path):
+def get_sha256_from_file_path(file_path: str) -> str:
     """Calculate the SHA256 hash of a file from a file path.
 
     :param file_path: Path to the file to hash
@@ -93,7 +93,7 @@ def get_sha256_from_file_path(file_path):
 
 # Note: taken from here:
 # https://stackoverflow.com/questions/57014259/json-dumps-on-dictionary-with-bytes-for-keys
-def keys_bytes_to_string(obj):
+def keys_bytes_to_string(obj) -> str:
     """Convert object keys from bytes to string.
 
     :param obj: Object to convert from bytes to string.

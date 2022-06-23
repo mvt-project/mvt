@@ -9,7 +9,7 @@ from packaging import version
 from .version import MVT_VERSION
 
 
-def check_for_updates() -> None:
+def check_for_updates() -> str:
     res = requests.get("https://pypi.org/pypi/mvt/json")
     data = res.json()
     latest_version = data.get("info", {}).get("version", "")
@@ -17,4 +17,4 @@ def check_for_updates() -> None:
     if version.parse(latest_version) > version.parse(MVT_VERSION):
         return latest_version
 
-    return None
+    return ""

@@ -25,7 +25,7 @@ class Files(AndroidExtraction):
                          log=log, results=results)
         self.full_find = False
 
-    def find_files(self, folder):
+    def find_files(self, folder: str) -> None:
         if self.full_find:
             output = self._adb_command(f"find '{folder}' -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
 
@@ -56,7 +56,7 @@ class Files(AndroidExtraction):
                 "data": record["path"],
             }
 
-    def check_suspicious(self):
+    def check_suspicious(self) -> None:
         """Check for files with suspicious permissions"""
         for result in sorted(self.results, key=lambda item: item["path"]):
             if result.get("is_suid"):

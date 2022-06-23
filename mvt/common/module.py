@@ -67,7 +67,7 @@ class MVTModule(object):
                          len(results), json_path)
             return cls(results=results, log=log)
 
-    def get_slug(self):
+    def get_slug(self) -> str:
         """Use the module's class name to retrieve a slug"""
         if self.slug:
             return self.slug
@@ -148,7 +148,7 @@ class MVTModule(object):
         raise NotImplementedError
 
 
-def run_module(module: Callable):
+def run_module(module: Callable) -> None:
     module.log.info("Running module %s...", module.__class__.__name__)
 
     try:
@@ -187,7 +187,7 @@ def run_module(module: Callable):
         module.save_to_json()
 
 
-def save_timeline(timeline: list, timeline_path: str):
+def save_timeline(timeline: list, timeline_path: str) -> None:
     """Save the timeline in a csv file.
 
     :param timeline: List of records to order and store
