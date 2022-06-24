@@ -150,13 +150,13 @@ class NetBase(IOSExtraction):
                 else:
                     msg = f"Could not find the binary associated with the process with name {proc['proc_name']}"
                     if (proc["proc_name"] is None):
-                        msg = f"Found process entry with empty 'proc_name' : {proc['live_proc_id']} at {proc['live_isodate']}"
+                        msg = f"Found process entry with empty 'proc_name': {proc['live_proc_id']} at {proc['live_isodate']}"
                     elif len(proc["proc_name"]) == 16:
                         msg = msg + " (However, the process name might have been truncated in the database)"
 
                     self.log.warning(msg)
             if not proc["live_proc_id"]:
-                self.log.info(f"Found process entry in ZPROCESS but not in ZLIVEUSAGE : {proc['proc_name']} at {proc['live_isodate']}")
+                self.log.info(f"Found process entry in ZPROCESS but not in ZLIVEUSAGE: {proc['proc_name']} at {proc['live_isodate']}")
 
     def check_manipulated(self):
         """Check for missing or manipulate DB entries"""

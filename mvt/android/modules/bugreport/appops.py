@@ -34,7 +34,7 @@ class Appops(BugReportModule):
                         "timestamp": entry["timestamp"],
                         "module": self.__class__.__name__,
                         "event": entry["access"],
-                        "data": f"{record['package_name']} access to {perm['name']} : {entry['access']}",
+                        "data": f"{record['package_name']} access to {perm['name']}: {entry['access']}",
                     })
 
         return records
