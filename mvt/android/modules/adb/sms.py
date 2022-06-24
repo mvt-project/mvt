@@ -75,7 +75,7 @@ class SMS(AndroidExtraction):
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
 
-    def _parse_db(self, db_path):
+    def _parse_db(self, db_path: str) -> None:
         """Parse an Android bugle_db SMS database file.
 
         :param db_path: Path to the Android SMS database file to process
@@ -109,7 +109,7 @@ class SMS(AndroidExtraction):
 
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
-    def _extract_sms_adb(self):
+    def _extract_sms_adb(self) -> None:
         """Use the Android backup command to extract SMS data from the native SMS app
 
         It is crucial to use the under-documented "-nocompress" flag to disable the non-standard Java compression

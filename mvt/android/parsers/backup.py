@@ -172,26 +172,33 @@ def parse_tar_for_sms(data):
     """
     dbytes = io.BytesIO(data)
     tar = tarfile.open(fileobj=dbytes)
-    try:
-        member = tar.getmember("apps/com.android.providers.telephony/d_f/000000_sms_backup")
-    except KeyError:
-        return []
+    res = []
+    for member in tar.getmembers():
+        if member.name.startswith("apps/com.android.providers.telephony/d_f/") and \
+                (member.name.endswith("_sms_backup") or member.name.endswith("_mms_backup")):
+            dhandler = tar.extractfile(member)
+            res.extend(parse_sms_file(dhandler.read()))
 
-    dhandler = tar.extractfile(member)
-    return parse_sms_file(dhandler.read())
+    return res
 
 
 def parse_sms_file(data):
     """
-    Parse an SMS file extracted from a folder
-    Returns a list of SMS entries
+    Parse an SMS or MMS file extracted from a backup
+    Returns a list of SMS or MMS entries
     """
     res = []
     data = zlib.decompress(data)
     json_data = json.loads(data)
 
     for entry in json_data:
+        # Adapt MMS format to SMS format
+        if "mms_body" in entry:
+            entry["body"] = entry["mms_body"]
+            entry.pop("mms_body")
+
         message_links = check_for_links(entry["body"])
+
         utc_timestamp = datetime.datetime.utcfromtimestamp(int(entry["date"]) / 1000)
         entry["isodate"] = convert_timestamp_to_iso(utc_timestamp)
         entry["direction"] = ("sent" if int(entry["date_sent"]) else "received")

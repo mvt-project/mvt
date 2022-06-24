@@ -122,7 +122,7 @@ class Packages(AndroidExtraction):
                     self.detected.append(result)
 
     @staticmethod
-    def check_virustotal(packages):
+    def check_virustotal(packages: list) -> None:
         hashes = []
         for package in packages:
             for file in package.get("files", []):
@@ -175,7 +175,7 @@ class Packages(AndroidExtraction):
         console.print(table)
 
     @staticmethod
-    def parse_package_for_details(output):
+    def parse_package_for_details(output: str) -> dict:
         details = {
             "uid": "",
             "version_name": "",
@@ -214,7 +214,7 @@ class Packages(AndroidExtraction):
 
         return details
 
-    def _get_files_for_package(self, package_name):
+    def _get_files_for_package(self, package_name: str) -> list:
         output = self._adb_command(f"pm path {package_name}")
         output = output.strip().replace("package:", "")
         if not output:

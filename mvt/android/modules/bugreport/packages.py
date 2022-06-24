@@ -52,7 +52,7 @@ class Packages(BugReportModule):
                 continue
 
     @staticmethod
-    def parse_package_for_details(output):
+    def parse_package_for_details(output: str) -> dict:
         details = {
             "uid": "",
             "version_name": "",
@@ -103,7 +103,7 @@ class Packages(BugReportModule):
 
         return details
 
-    def parse_packages_list(self, output):
+    def parse_packages_list(self, output: str) -> list:
         pkg_rxp = re.compile(r"  Package \[(.+?)\].*")
 
         results = []

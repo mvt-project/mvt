@@ -24,3 +24,6 @@ class CmdIOSCheckBackup(Command):
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)
+
+    def module_init(self, module):
+        module.is_backup = True

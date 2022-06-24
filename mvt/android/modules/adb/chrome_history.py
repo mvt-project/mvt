@@ -43,7 +43,7 @@ class ChromeHistory(AndroidExtraction):
             if self.indicators.check_domain(result["url"]):
                 self.detected.append(result)
 
-    def _parse_db(self, db_path):
+    def _parse_db(self, db_path: str) -> None:
         """Parse a Chrome History database file.
 
         :param db_path: Path to the History database to process.
