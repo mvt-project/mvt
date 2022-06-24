@@ -457,7 +457,7 @@ def download_indicators_files(log: logging.Logger) -> None:
         os.makedirs(data_dir, exist_ok=True)
 
     # Download latest list of indicators from the MVT repo.
-    res = requests.get("https://github.com/mvt-project/mvt/raw/main/public_indicators.json")
+    res = requests.get("https://raw.githubusercontent.com/mvt-project/mvt-indicators/main/indicators.json")
     if res.status_code != 200:
         log.warning("Unable to find retrieve list of indicators from the MVT repository.")
         return
