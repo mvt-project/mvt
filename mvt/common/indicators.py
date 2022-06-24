@@ -98,7 +98,7 @@ class Indicators:
             if entry_type == "malware":
                 malware[entry["id"]] = {
                     "name": entry["name"],
-                    "description": entry["description"],
+                    "description": entry.get("description", ""),
                 }
             elif entry_type == "indicator":
                 indicators.append(entry)
