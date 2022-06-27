@@ -12,6 +12,9 @@ from appdirs import user_data_dir
 
 from .url import URL
 
+MVT_DATA_FOLDER = user_data_dir("mvt")
+MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
+
 
 class Indicators:
     """This class is used to parse indicators from a STIX2 file and provide
@@ -19,18 +22,17 @@ class Indicators:
     """
 
     def __init__(self, log=logging.Logger) -> None:
-        self.data_dir = user_data_dir("mvt")
         self.log = log
         self.ioc_collections = []
         self.total_ioc_count = 0
 
     def _load_downloaded_indicators(self) -> None:
-        if not os.path.isdir(self.data_dir):
+        if not os.path.isdir(MVT_INDICATORS_FOLDER):
             return
 
-        for f in os.listdir(self.data_dir):
-            if f.lower().endswith(".stix2"):
-                self.parse_stix2(os.path.join(self.data_dir, f))
+        for ioc_file_name in os.listdir(MVT_INDICATORS_FOLDER):
+            if ioc_file_name.lower().endswith(".stix2"):
+                self.parse_stix2(os.path.join(MVT_INDICATORS_FOLDER, ioc_file_name))
 
     def _check_stix2_env_variable(self) -> None:
         """
@@ -446,36 +448,3 @@ class Indicators:
                 self.log.warning("Found a known suspicious app with ID \"%s\" matching indicators from \"%s\"",
                                  app_id, ioc["name"])
                 return ioc
-
-
-def download_indicators_files(log: logging.Logger) -> None:
-    """
-    Download indicators from repo into MVT app data directory.
-    """
-    data_dir = user_data_dir("mvt")
-    if not os.path.isdir(data_dir):
-        os.makedirs(data_dir, exist_ok=True)
-
-    # Download latest list of indicators from the MVT repo.
-    res = requests.get("https://raw.githubusercontent.com/mvt-project/mvt-indicators/main/indicators.json")
-    if res.status_code != 200:
-        log.warning("Unable to find retrieve list of indicators from the MVT repository.")
-        return
-
-    for ioc_entry in res.json():
-        ioc_url = ioc_entry["stix2_url"]
-        log.info("Downloading indicator file %s from %s", ioc_entry["name"], ioc_url)
-
-        res = requests.get(ioc_url)
-        if res.status_code != 200:
-            log.warning("Could not find indicator file %s", ioc_url)
-            continue
-
-        clean_file_name = ioc_url.lstrip("https://").replace("/", "_")
-        ioc_path = os.path.join(data_dir, clean_file_name)
-
-        # Write file to disk. This will overwrite any older version of the STIX2 file.
-        with open(ioc_path, "w", encoding="utf-8") as handle:
-            handle.write(res.text)
-
-        log.info("Saved indicator file to %s", os.path.basename(ioc_path))
