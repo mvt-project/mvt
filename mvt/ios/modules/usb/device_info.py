@@ -3,8 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
 import base64
+import logging
 
 from mvt.ios.versions import latest_ios_version
 

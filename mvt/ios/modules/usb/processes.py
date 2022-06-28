@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+
 from pymobiledevice3.services.os_trace import OsTraceService
 
 from .base import IOSUSBExtraction

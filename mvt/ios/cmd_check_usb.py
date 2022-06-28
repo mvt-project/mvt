@@ -5,8 +5,9 @@
 
 import logging
 import sys
-from pymobiledevice3.lockdown import LockdownClient
+
 from pymobiledevice3.exceptions import ConnectionFailedError
+from pymobiledevice3.lockdown import LockdownClient
 
 from mvt.common.command import Command
 

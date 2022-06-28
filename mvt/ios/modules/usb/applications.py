@@ -4,7 +4,9 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from pymobiledevice3.services.installation_proxy import InstallationProxyService
+
+from pymobiledevice3.services.installation_proxy import \
+    InstallationProxyService
 
 from .base import IOSUSBExtraction
 

@@ -5,14 +5,14 @@
 
 import logging
 
+from pymobiledevice3.lockdown import LockdownClient
+
 from mvt.common.module import run_module
 from mvt.ios.modules.usb.device_info import DeviceInfo
-from pymobiledevice3.lockdown import LockdownClient
 
 
 class TestUSBDeviceInfo:
     def test_run(self, mocker):
-        # Mock
         mocker.patch("pymobiledevice3.usbmux.select_device")
         mocker.patch("pymobiledevice3.service_connection.ServiceConnection.create")
         mocker.patch(
