@@ -182,7 +182,6 @@ class IndicatorsUpdates:
         self.set_latest_check()
 
         latest_update = self.get_latest_update()
-
         latest_commit_ts = self._get_remote_file_latest_commit(self.index_owner,
                                                                self.index_repo,
                                                                self.index_branch,
