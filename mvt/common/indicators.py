@@ -7,7 +7,6 @@ import json
 import logging
 import os
 
-import requests
 from appdirs import user_data_dir
 
 from .url import URL

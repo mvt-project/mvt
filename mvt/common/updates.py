@@ -67,7 +67,7 @@ class IndicatorsUpdates:
         res = requests.get(url)
         if res.status_code != 200:
             log.error("Failed to retrieve indicators index located at %s (error %d)",
-                      index_url, res.status_code)
+                      url, res.status_code)
             return None
 
         return yaml.safe_load(res.content)

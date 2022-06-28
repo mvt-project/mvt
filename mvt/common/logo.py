@@ -38,6 +38,7 @@ def check_updates() -> None:
             print("\t\t[bold]There are updates to your indicators files! Run the `download-iocs` command to update!")
             return
 
+
 def logo() -> None:
     print("\n")
     print("\t[bold]MVT[/bold] - Mobile Verification Toolkit")
