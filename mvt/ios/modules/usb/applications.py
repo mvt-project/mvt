@@ -32,13 +32,14 @@ class Applications(IOSUSBExtraction):
 
     def run(self) -> None:
         user_apps = InstallationProxyService(lockdown=self.lockdown).get_apps("User")
-        for u in user_apps:
-            u["type"] = "user"
+        for user_app in user_apps:
+            user_app["type"] = "user"
 
         system_apps = InstallationProxyService(lockdown=self.lockdown).get_apps("System")
-        for s in system_apps:
-            s["type"] = "system"
+        for system_app in system_apps:
+            system_app["type"] = "system"
 
         self.results = user_apps + system_apps
 
-        self.log.info("{} applications identified on the phone".format(len(self.results)))
+        self.log.info("%d applications identified on the phone",
+                      len(self.results))

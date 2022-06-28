@@ -23,7 +23,6 @@ class DeviceInfo(IOSUSBExtraction):
     def run(self) -> None:
         self.results = self.lockdown.all_values
 
-        # Base64 encoding of bytes
         for entry in self.results:
             if isinstance(self.results[entry], bytes):
                 self.results[entry] = base64.b64encode(self.results[entry])

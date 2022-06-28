@@ -12,6 +12,7 @@ from .base import IOSUSBExtraction
 
 class Processes(IOSUSBExtraction):
     """This class extracts all processes running on the phone."""
+
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
                  log: logging.Logger = None, results: list = []) -> None:
@@ -31,10 +32,11 @@ class Processes(IOSUSBExtraction):
 
     def run(self) -> None:
         processes = OsTraceService(lockdown=self.lockdown).get_pid_list().get('Payload')
-        for p in processes:
+        for pid in processes:
             self.results.append({
-                "pid": p,
-                "name": processes[p]["ProcessName"]
+                "pid": pid,
+                "name": processes[pid]["ProcessName"]
             })
 
-        self.log.info("{} running processes identified on the phone".format(len(self.results)))
+        self.log.info("%d running processes identified on the phone",
+                      len(self.results))
