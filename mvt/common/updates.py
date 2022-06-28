@@ -107,6 +107,8 @@ class IndicatorsUpdates:
         return ioc_path
 
     def update(self) -> None:
+        self.set_latest_check()
+
         if not os.path.exists(MVT_INDICATORS_FOLDER):
             os.makedirs(MVT_INDICATORS_FOLDER)
 
