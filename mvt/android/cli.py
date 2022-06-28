@@ -13,8 +13,8 @@ from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
                              HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
-from mvt.common.indicators import download_indicators_files
 from mvt.common.logo import logo
+from mvt.common.updates import IndicatorsUpdates
 
 from .cmd_check_adb import CmdAndroidCheckADB
 from .cmd_check_backup import CmdAndroidCheckBackup
@@ -215,4 +215,5 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 #==============================================================================
 @cli.command("download-iocs", help="Download public STIX2 indicators")
 def download_indicators():
-    download_indicators_files(log)
+    ioc_updates = IndicatorsUpdates()
+    ioc_updates.update()
