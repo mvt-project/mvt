@@ -5,7 +5,7 @@
 
 from rich import print
 
-from .updates import MVTUpdates, IndicatorsUpdates
+from .updates import IndicatorsUpdates, MVTUpdates
 from .version import MVT_VERSION
 
 
@@ -29,6 +29,14 @@ def check_updates() -> None:
         print("\t\t[bold]You have not yet downloaded any indicators, check the `download-iocs` command!")
         return
 
+    # We only perform this check at a fixed frequency, in order to not
+    # overburden the user with too many lookups if the command is being run
+    # multiple times.
+    should_check, hours = ioc_updates.should_check()
+    if not should_check:
+        print(f"\t\tIndicators updates checked recently, next automatic check in {int(hours)} hours")
+        return
+
     try:
         ioc_to_update = ioc_updates.check()
     except Exception:
@@ -36,7 +44,8 @@ def check_updates() -> None:
     else:
         if ioc_to_update:
             print("\t\t[bold]There are updates to your indicators files! Run the `download-iocs` command to update!")
-            return
+        else:
+            print("\t\tYour indicators files seem to be up to date.")
 
 
 def logo() -> None:
