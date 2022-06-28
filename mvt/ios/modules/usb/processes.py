@@ -31,12 +31,12 @@ class Processes(IOSUSBExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        processes = OsTraceService(lockdown=self.lockdown).get_pid_list().get('Payload')
+        processes = OsTraceService(lockdown=self.lockdown).get_pid_list().get("Payload")
         for pid in processes:
             self.results.append({
                 "pid": pid,
                 "name": processes[pid]["ProcessName"]
             })
 
-        self.log.info("%d running processes identified on the phone",
+        self.log.info("Identified %d processes running on the device",
                       len(self.results))

@@ -13,6 +13,7 @@ from .base import IOSUSBExtraction
 
 class DeviceInfo(IOSUSBExtraction):
     """This class extracts all processes running on the phone."""
+
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
                  log: logging.Logger = None, results: list = []) -> None:

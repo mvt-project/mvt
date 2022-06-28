@@ -13,6 +13,7 @@ from .base import IOSUSBExtraction
 
 class Applications(IOSUSBExtraction):
     """This class extracts all applications installed on the phone"""
+
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
                  log: logging.Logger = None, results: list = []) -> None:
@@ -41,5 +42,5 @@ class Applications(IOSUSBExtraction):
 
         self.results = user_apps + system_apps
 
-        self.log.info("%d applications identified on the phone",
+        self.log.info("Identified %d applications installed on the device",
                       len(self.results))
