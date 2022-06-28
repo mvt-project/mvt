@@ -216,6 +216,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 def download_iocs():
     download_indicators_files(log)
 
+
 #==============================================================================
 # Command: check-usb
 #==============================================================================
@@ -232,7 +233,8 @@ def download_iocs():
 @click.pass_context
 def check_usb(ctx, serial, iocs, output, fast, list_modules, module):
     cmd = CmdIOSCheckUSB(results_path=output, ioc_files=iocs,
-            module_name=module, fast_mode=fast, serial=serial)
+                         module_name=module, fast_mode=fast,
+                         serial=serial)
 
     if list_modules:
         cmd.list_modules()
@@ -244,4 +246,3 @@ def check_usb(ctx, serial, iocs, output, fast, list_modules, module):
     if len(cmd.timeline_detected) > 0:
         log.warning("The analysis of the data produced %d detections!",
                     len(cmd.timeline_detected))
-
