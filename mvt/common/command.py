@@ -136,6 +136,9 @@ class Command(object):
     def module_init(self, module: Callable) -> None:
         raise NotImplementedError
 
+    def finish(self) -> None:
+        raise NotImplementedError
+
     def run(self) -> None:
         self._create_storage()
         self._add_log_file_handler(self.log)
@@ -176,3 +179,8 @@ class Command(object):
 
         self._store_timeline()
         self._store_info()
+
+        try:
+            self.finish()
+        except NotImplementedError:
+            pass
