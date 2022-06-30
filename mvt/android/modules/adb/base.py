@@ -18,7 +18,7 @@ from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
                                   UsbDeviceNotFoundError, UsbReadFailedError)
-from rich import Prompt
+from rich.prompt import Prompt
 from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.android.parsers.backup import (InvalidBackupPassword, parse_ab_header,

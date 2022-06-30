@@ -10,7 +10,7 @@ import sys
 import tarfile
 from pathlib import Path
 
-from rich import Prompt
+from rich.prompt import Prompt
 
 from mvt.android.parsers.backup import (AndroidBackupParsingError,
                                         InvalidBackupPassword, parse_ab_header,
