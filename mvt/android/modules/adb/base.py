@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import base64
-import getpass
 import logging
 import os
 import random
@@ -19,6 +18,7 @@ from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
                                   UsbDeviceNotFoundError, UsbReadFailedError)
+from rich import Prompt
 from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.android.parsers.backup import (InvalidBackupPassword, parse_ab_header,
@@ -270,7 +270,7 @@ class AndroidExtraction(MVTModule):
             return parse_backup_file(backup_output, password=None)
 
         for password_retry in range(0, 3):
-            backup_password = getpass.getpass(prompt="Backup password: ", stream=None)
+            backup_password = Prompt.ask("Enter backup password", password=True)
             try:
                 decrypted_backup_tar = parse_backup_file(backup_output, backup_password)
                 return decrypted_backup_tar

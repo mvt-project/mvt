@@ -3,13 +3,14 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import getpass
 import io
 import logging
 import os
 import sys
 import tarfile
 from pathlib import Path
+
+from rich import Prompt
 
 from mvt.android.parsers.backup import (AndroidBackupParsingError,
                                         InvalidBackupPassword, parse_ab_header,
@@ -50,7 +51,7 @@ class CmdAndroidCheckBackup(Command):
 
             password = None
             if header["encryption"] != "none":
-                password = getpass.getpass(prompt="Backup Password: ", stream=None)
+                password = Prompt.ask("Enter backup password", password=True)
             try:
                 tardata = parse_backup_file(data, password=password)
             except InvalidBackupPassword:
