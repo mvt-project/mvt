@@ -115,6 +115,7 @@ class DownloadAPKs(AndroidExtraction):
 
         m = Packages()
         m.log = self.log
+        m.serial = self.serial
         m.run()
 
         self.packages = m.results
