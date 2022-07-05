@@ -6,7 +6,8 @@
 import logging
 import sys
 
-from pymobiledevice3.exceptions import ConnectionFailedError
+from pymobiledevice3.exceptions import (ConnectionFailedError,
+                                        FatalPairingError, NotTrustedError)
 from pymobiledevice3.lockdown import LockdownClient
 
 from mvt.common.command import Command
@@ -35,11 +36,11 @@ class CmdIOSCheckUSB(Command):
                 self.lockdown = LockdownClient(udid=self.serial)
             else:
                 self.lockdown = LockdownClient()
-        except ConnectionRefusedError:
-            log.error("Unable to connect to the device over USB. Try to unplug, plug the device and start again.")
+        except NotTrustedError:
+            log.error("Trust this computer from the prompt appearing on the iOS device and try again")
             sys.exit(-1)
-        except ConnectionFailedError:
-            log.error("Unable to connect to the device %s", self.serial)
+        except (ConnectionRefusedError, ConnectionFailedError, FatalPairingError):
+            log.error("Unable to connect to the device over USB: try to unplug, plug the device and start again")
             sys.exit(-1)
 
     def module_init(self, module):

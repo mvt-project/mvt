@@ -5,6 +5,7 @@
 
 import datetime
 import hashlib
+import os
 import re
 
 
@@ -119,3 +120,14 @@ def keys_bytes_to_string(obj) -> str:
         new_obj[key] = value
 
     return new_obj
+
+
+def secure_delete(file_path, rounds=10):
+    file_size = os.path.getsize(file_path)
+
+    with open(file_path, "br+", buffering=-1) as handle:
+        for i in range(rounds):
+            handle.seek(0)
+            handle.write(os.urandom(file_size))
+
+    os.remove(file_path)

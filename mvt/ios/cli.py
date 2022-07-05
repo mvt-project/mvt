@@ -8,7 +8,8 @@ import os
 
 import click
 from rich.logging import RichHandler
-from rich.prompt import Prompt
+from rich.prompt import Confirm, Prompt
+from simple_term_menu import TerminalMenu
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
@@ -22,6 +23,7 @@ from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
 from .cmd_check_usb import CmdIOSCheckUSB
 from .decrypt import DecryptBackup
+from .lockdown import Lockdown
 from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
@@ -189,6 +191,83 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, dump_path):
 
 
 #==============================================================================
+# Command: check-usb
+#==============================================================================
+@cli.command("check-usb", help="Extract artifacts from a live iPhone through USB")
+@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
+@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
+              default=[], help=HELP_MSG_IOC)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.pass_context
+def check_usb(ctx, serial, iocs, output, fast, list_modules, module):
+    cmd = CmdIOSCheckUSB(results_path=output, ioc_files=iocs,
+                         module_name=module, fast_mode=fast,
+                         serial=serial)
+
+    if list_modules:
+        cmd.list_modules()
+        return
+
+    log.info("Checking iPhone through USB, this may take a while")
+    cmd.run()
+
+    if len(cmd.timeline_detected) > 0:
+        log.warning("The analysis of the data produced %d detections!",
+                    len(cmd.timeline_detected))
+
+
+#==============================================================================
+# Command: clear-certs
+#==============================================================================
+@cli.command("clear-certs", help="Clear iOS lockdown certificates")
+@click.pass_context
+def clear_certs(ctx):
+    lock = Lockdown()
+    certs = lock.find_certs()
+
+    if not certs:
+        log.info("No iOS lockdown certificates found")
+        return
+
+    choices = []
+    for cert in certs:
+        choices.append(os.path.basename(cert))
+        log.info("Found lockdown certificate at %s", cert)
+
+    choices.append("Cancel")
+
+    terminal_menu = TerminalMenu(
+        choices,
+        title="Select which certificates to delete:",
+        multi_select=True,
+        show_multi_select_hint=True,
+    )
+    terminal_menu.show()
+
+    if "Cancel" in terminal_menu.chosen_menu_entries:
+        log.info("Cancel, not proceeding")
+        return
+
+    confirmed = Confirm.ask(f"You have selected {', '.join(terminal_menu.chosen_menu_entries)}. "
+                             "Are you sure you want to proceed deleting them?")
+    if not confirmed:
+        log.info("Not proceeding")
+        return
+
+    for choice in terminal_menu.chosen_menu_entries:
+        try:
+            lock.delete_cert(choice)
+        except PermissionError:
+            log.error("Not enough permissions to delete certificate at \"%s\": "
+                      "try launching this command with sudo", choice)
+        else:
+            log.info("Deleted lockdown certificate \"%s\"", choice)
+
+
+#==============================================================================
 # Command: check-iocs
 #==============================================================================
 @cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
@@ -216,34 +295,3 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
-
-
-#==============================================================================
-# Command: check-usb
-#==============================================================================
-@cli.command("check-usb", help="Extract artifacts from a live iPhone through USB / lockdown")
-@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
-@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
-@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
-@click.option("--module", "-m", help=HELP_MSG_MODULE)
-# TODO: serial
-# @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-@click.pass_context
-def check_usb(ctx, serial, iocs, output, fast, list_modules, module):
-    cmd = CmdIOSCheckUSB(results_path=output, ioc_files=iocs,
-                         module_name=module, fast_mode=fast,
-                         serial=serial)
-
-    if list_modules:
-        cmd.list_modules()
-        return
-
-    log.info("Checking iPhone through USB, this may take a while")
-    cmd.run()
-
-    if len(cmd.timeline_detected) > 0:
-        log.warning("The analysis of the data produced %d detections!",
-                    len(cmd.timeline_detected))
