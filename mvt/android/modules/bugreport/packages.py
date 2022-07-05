@@ -6,6 +6,10 @@
 import logging
 import re
 
+from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
+                                              DANGEROUS_PERMISSIONS_THRESHOLD,
+                                              ROOT_PACKAGES)
+
 from .base import BugReportModule
 
 log = logging.getLogger(__name__)
@@ -41,11 +45,17 @@ class Packages(BugReportModule):
         return records
 
     def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
+            if result["package_name"] in ROOT_PACKAGES:
+                self.log.warning("Found an installed package related to rooting/jailbreaking: \"%s\"",
+                                 result["package_name"])
+                self.detected.append(result)
+                continue
+
+            if not self.indicators:
+                continue
+
+            ioc = self.indicators.check_app_id(result.get("package_name"))
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
@@ -164,5 +174,15 @@ class Packages(BugReportModule):
             lines.append(line)
 
         self.results = self.parse_packages_list("\n".join(lines))
+
+        for result in self.results:
+            dangerous_permissions_count = 0
+            for perm in result["requested_permissions"]:
+                if perm in DANGEROUS_PERMISSIONS:
+                    dangerous_permissions_count += 1
+
+            if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
+                self.log.info("Found package \"%s\" requested %d potentially dangerous permissions",
+                              result["package_name"], dangerous_permissions_count)
 
         self.log.info("Extracted details on %d packages", len(self.results))
