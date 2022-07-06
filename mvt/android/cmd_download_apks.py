@@ -6,6 +6,7 @@
 import json
 import logging
 import os
+from typing import Callable
 
 from tqdm import tqdm
 
@@ -36,23 +37,22 @@ class DownloadAPKs(AndroidExtraction):
 
     """
 
-    def __init__(self, output_folder=None, all_apks=False, log=None,
-                 packages=None):
+    def __init__(self, results_path: str = "", all_apks: bool = False,
+                 packages: list = []):
         """Initialize module.
-        :param output_folder: Path to the folder where data should be stored
+        :param results_path: Path to the folder where data should be stored
         :param all_apks: Boolean indicating whether to download all packages
                          or filter known-goods
         :param packages: Provided list of packages, typically for JSON checks
         """
-        super().__init__(log=log)
+        super().__init__(results_path=results_path, log=log)
 
         self.packages = packages
         self.all_apks = all_apks
-        self.output_folder_apk = None
-        self.output_folder = output_folder
+        self.results_path_apks = None
 
     @classmethod
-    def from_json(cls, json_path):
+    def from_json(cls, json_path: str) -> Callable:
         """Initialize this class from an existing apks.json file.
 
         :param json_path: Path to the apks.json file to parse.
@@ -62,7 +62,7 @@ class DownloadAPKs(AndroidExtraction):
             packages = json.load(handle)
             return cls(packages=packages)
 
-    def pull_package_file(self, package_name, remote_path):
+    def pull_package_file(self, package_name: str, remote_path: str) -> None:
         """Pull files related to specific package from the device.
 
         :param package_name: Name of the package to download
@@ -76,7 +76,7 @@ class DownloadAPKs(AndroidExtraction):
         if "==/" in remote_path:
             file_name = "_" + remote_path.split("==/")[1].replace(".apk", "")
 
-        local_path = os.path.join(self.output_folder_apk,
+        local_path = os.path.join(self.results_path_apks,
                                   f"{package_name}{file_name}.apk")
         name_counter = 0
         while True:
@@ -84,7 +84,7 @@ class DownloadAPKs(AndroidExtraction):
                 break
 
             name_counter += 1
-            local_path = os.path.join(self.output_folder_apk,
+            local_path = os.path.join(self.results_path_apks,
                                       f"{package_name}{file_name}_{name_counter}.apk")
 
         try:
@@ -105,11 +105,9 @@ class DownloadAPKs(AndroidExtraction):
 
         return local_path
 
-    def get_packages(self):
+    def get_packages(self) -> None:
         """Use the Packages adb module to retrieve the list of packages.
         We reuse the same extraction logic to then download the APKs.
-
-
         """
         self.log.info("Retrieving list of installed packages...")
 
@@ -120,12 +118,11 @@ class DownloadAPKs(AndroidExtraction):
 
         self.packages = m.results
 
-    def pull_packages(self):
-        """Download all files of all selected packages from the device."""
-        log.info("Starting extraction of installed APKs at folder %s", self.output_folder)
-
-        if not os.path.exists(self.output_folder):
-            os.mkdir(self.output_folder)
+    def pull_packages(self) -> None:
+        """Download all files of all selected packages from the device.
+        """
+        log.info("Starting extraction of installed APKs at folder %s",
+                 self.results_path)
 
         # If the user provided the flag --all-apks we select all packages.
         packages_selection = []
@@ -139,7 +136,7 @@ class DownloadAPKs(AndroidExtraction):
                 if not package.get("system", False):
                     packages_selection.append(package)
 
-            log.info("Selected only %d packages which are not marked as system",
+            log.info("Selected only %d packages which are not marked as \"system\"",
                      len(packages_selection))
 
         if len(packages_selection) == 0:
@@ -148,9 +145,9 @@ class DownloadAPKs(AndroidExtraction):
 
         log.info("Downloading packages from device. This might take some time ...")
 
-        self.output_folder_apk = os.path.join(self.output_folder, "apks")
-        if not os.path.exists(self.output_folder_apk):
-            os.mkdir(self.output_folder_apk)
+        self.results_path_apks = os.path.join(self.results_path, "apks")
+        if not os.path.exists(self.results_path_apks):
+            os.mkdirs(self.results_path_apks)
 
         counter = 0
         for package in packages_selection:
@@ -172,14 +169,12 @@ class DownloadAPKs(AndroidExtraction):
 
         log.info("Download of selected packages completed")
 
-    def save_json(self):
-        """Save the results to the package.json file."""
-        json_path = os.path.join(self.output_folder, "apks.json")
+    def save_json(self) -> None:
+        json_path = os.path.join(self.results_path, "apks.json")
         with open(json_path, "w", encoding="utf-8") as handle:
             json.dump(self.packages, handle, indent=4)
 
     def run(self) -> None:
-        """Run all steps of fetch-apk."""
         self.get_packages()
         self._adb_connect()
         self.pull_packages()

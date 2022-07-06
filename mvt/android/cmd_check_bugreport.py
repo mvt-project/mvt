@@ -6,6 +6,7 @@
 import logging
 import os
 from pathlib import Path
+from typing import Callable
 from zipfile import ZipFile
 
 from mvt.common.command import Command
@@ -31,7 +32,7 @@ class CmdAndroidCheckBugreport(Command):
         self.bugreport_archive = None
         self.bugreport_files = []
 
-    def init(self):
+    def init(self) -> None:
         if os.path.isfile(self.target_path):
             self.bugreport_format = "zip"
             self.bugreport_archive = ZipFile(self.target_path)
@@ -44,7 +45,7 @@ class CmdAndroidCheckBugreport(Command):
                 for file_name in subfiles:
                     self.bugreport_files.append(os.path.relpath(os.path.join(root, file_name), parent_path))
 
-    def module_init(self, module):
+    def module_init(self, module: Callable) -> None:
         if self.bugreport_format == "zip":
             module.from_zip(self.bugreport_archive, self.bugreport_files)
         else:

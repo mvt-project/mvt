@@ -71,15 +71,7 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
                 log.critical("You need to specify an output folder with --output!")
                 ctx.exit(1)
 
-            if not os.path.exists(output):
-                try:
-                    os.makedirs(output)
-                except Exception as e:
-                    log.critical("Unable to create output folder %s: %s", output, e)
-                    ctx.exit(1)
-
-            download = DownloadAPKs(output_folder=output, all_apks=all_apks,
-                                    log=logging.getLogger(DownloadAPKs.__module__))
+            download = DownloadAPKs(results_path=output, all_apks=all_apks)
             if serial:
                 download.serial = serial
             download.run()

@@ -9,6 +9,7 @@ import os
 import sys
 import tarfile
 from pathlib import Path
+from typing import Callable
 
 from rich.prompt import Prompt
 
@@ -38,7 +39,7 @@ class CmdAndroidCheckBackup(Command):
         self.backup_archive = None
         self.backup_files = []
 
-    def init(self):
+    def init(self) -> None:
         if os.path.isfile(self.target_path):
             self.backup_type = "ab"
             with open(self.target_path, "rb") as handle:
@@ -77,7 +78,7 @@ class CmdAndroidCheckBackup(Command):
             log.critical("Invalid backup path, path should be a folder or an Android Backup (.ab) file")
             sys.exit(1)
 
-    def module_init(self, module):
+    def module_init(self, module: Callable) -> None:
         if self.backup_type == "folder":
             module.from_folder(self.target_path, self.backup_files)
         else:
