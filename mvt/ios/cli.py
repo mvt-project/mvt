@@ -20,7 +20,6 @@ from mvt.common.updates import IndicatorsUpdates
 
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
-from .cmd_check_usb import CmdIOSCheckUSB
 from .decrypt import DecryptBackup
 from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
@@ -216,34 +215,3 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
-
-
-#==============================================================================
-# Command: check-usb
-#==============================================================================
-@cli.command("check-usb", help="Extract artifacts from a live iPhone through USB / lockdown")
-@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
-@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
-@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
-@click.option("--module", "-m", help=HELP_MSG_MODULE)
-# TODO: serial
-# @click.argument("BACKUP_PATH", type=click.Path(exists=True))
-@click.pass_context
-def check_usb(ctx, serial, iocs, output, fast, list_modules, module):
-    cmd = CmdIOSCheckUSB(results_path=output, ioc_files=iocs,
-                         module_name=module, fast_mode=fast,
-                         serial=serial)
-
-    if list_modules:
-        cmd.list_modules()
-        return
-
-    log.info("Checking iPhone through USB, this may take a while")
-    cmd.run()
-
-    if len(cmd.timeline_detected) > 0:
-        log.warning("The analysis of the data produced %d detections!",
-                    len(cmd.timeline_detected))
