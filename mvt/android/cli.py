@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
 
 import click
 from rich.logging import RichHandler
