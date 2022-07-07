@@ -8,3 +8,6 @@ dist:
 
 upload:
 	python3 -m twine upload dist/*
+
+test-upload:
+	python3 -m twine upload --repository testpypi dist/*
