@@ -8,7 +8,7 @@ import logging
 import os
 from typing import Callable
 
-from tqdm import tqdm
+from rich.progress import track
 
 from mvt.common.module import InsufficientPrivileges
 
@@ -16,18 +16,6 @@ from .modules.adb.base import AndroidExtraction
 from .modules.adb.packages import Packages
 
 log = logging.getLogger(__name__)
-
-
-# TODO: Would be better to replace tqdm with rich.progress to reduce
-#       the number of dependencies. Need to investigate whether
-#       it's possible to have a similar callback system.
-class PullProgress(tqdm):
-    """PullProgress is a tqdm update system for APK downloads."""
-
-    def update_to(self, file_name, current, total):
-        if total is not None:
-            self.total = total
-        self.update(current - self.n)
 
 
 class DownloadAPKs(AndroidExtraction):
@@ -88,10 +76,7 @@ class DownloadAPKs(AndroidExtraction):
                                       f"{package_name}{file_name}_{name_counter}.apk")
 
         try:
-            with PullProgress(unit='B', unit_divisor=1024, unit_scale=True,
-                              miniters=1) as pp:
-                self._adb_download(remote_path, local_path,
-                                   progress_callback=pp.update_to)
+            self._adb_download(remote_path, local_path)
         except InsufficientPrivileges:
             log.warn("Unable to pull package file from %s: insufficient privileges, it might be a system app",
                      remote_path)
@@ -147,13 +132,13 @@ class DownloadAPKs(AndroidExtraction):
 
         self.results_path_apks = os.path.join(self.results_path, "apks")
         if not os.path.exists(self.results_path_apks):
-            os.mkdirs(self.results_path_apks)
+            os.makedirs(self.results_path_apks, exist_ok=True)
 
-        counter = 0
-        for package in packages_selection:
-            counter += 1
+        for i in track(range(len(packages_selection)),
+                       description=f"Downloading {len(packages_selection)} packages..."):
+            package = packages_selection[i]
 
-            log.info("[%d/%d] Package: %s", counter, len(packages_selection),
+            log.info("[%d/%d] Package: %s", i, len(packages_selection),
                      package["package_name"])
 
             # Sometimes the package path contains multiple lines for multiple apks.
