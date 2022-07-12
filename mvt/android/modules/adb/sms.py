@@ -70,7 +70,7 @@ class SMS(AndroidExtraction):
             if "body" not in message:
                 continue
 
-            # FIXME: check links exported from the body previously
+            # TODO: check links exported from the body previously.
             message_links = check_for_links(message["body"])
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
@@ -110,10 +110,12 @@ class SMS(AndroidExtraction):
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
     def _extract_sms_adb(self) -> None:
-        """Use the Android backup command to extract SMS data from the native SMS app
+        """Use the Android backup command to extract SMS data from the native SMS
+        app.
 
-        It is crucial to use the under-documented "-nocompress" flag to disable the non-standard Java compression
-        algorithim. This module only supports an unencrypted ADB backup.
+        It is crucial to use the under-documented "-nocompress" flag to disable
+        the non-standard Java compression algorithm. This module only supports
+        an unencrypted ADB backup.
         """
         backup_tar = self._generate_backup("com.android.providers.telephony")
         if not backup_tar:
@@ -122,7 +124,8 @@ class SMS(AndroidExtraction):
         try:
             self.results = parse_tar_for_sms(backup_tar)
         except AndroidBackupParsingError:
-            self.log.info("Impossible to read SMS from the Android Backup, please extract the SMS and try extracting it with Android Backup Extractor")
+            self.log.info("Impossible to read SMS from the Android Backup, please extract "\
+                          "the SMS and try extracting it with Android Backup Extractor")
             return
 
         log.info("Extracted a total of %d SMS messages containing links", len(self.results))
@@ -139,5 +142,6 @@ class SMS(AndroidExtraction):
         except InsufficientPrivileges:
             pass
 
-        self.log.warn("No SMS database found. Trying extraction of SMS data using Android backup feature.")
+        self.log.warn("No SMS database found. Trying extraction of SMS data using " \
+                      "Android backup feature.")
         self._extract_sms_adb()
