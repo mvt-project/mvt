@@ -78,8 +78,8 @@ class DownloadAPKs(AndroidExtraction):
         try:
             self._adb_download(remote_path, local_path)
         except InsufficientPrivileges:
-            log.warn("Unable to pull package file from %s: insufficient privileges, it might be a system app",
-                     remote_path)
+            log.error("Unable to pull package file from %s: insufficient privileges, it might be a system app",
+                      remote_path)
             self._adb_reconnect()
             return None
         except Exception as e:
