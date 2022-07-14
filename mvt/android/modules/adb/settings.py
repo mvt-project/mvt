@@ -51,6 +51,11 @@ ANDROID_DANGEROUS_SETTINGS = [
         "key": "send_action_app_error",
         "safe_value": "1",
     },
+    {
+        "description": "enabled installation of non Google Play apps",
+        "key": "install_non_market_apps",
+        "safe_value": "0",
+    }
 ]
 
 
