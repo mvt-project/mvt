@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import requests
+from typing import Optional
 from tld import get_tld
 
 SHORTENER_DOMAINS = [
@@ -308,7 +309,7 @@ class URL:
 
         return self.is_shortened
 
-    def unshorten(self) -> None:
+    def unshorten(self) -> Optional[str]:
         """Unshorten the URL by requesting an HTTP HEAD response."""
         res = requests.head(self.url)
         if str(res.status_code).startswith("30"):
