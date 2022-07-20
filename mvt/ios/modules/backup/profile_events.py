@@ -52,11 +52,10 @@ class ProfileEvents(IOSExtraction):
                 self.detected.append(result)
 
     @staticmethod
-    def parse_profile_events(events_file_path) -> list:
+    def parse_profile_events(file_data: bytes) -> list:
         results = []
 
-        with open(events_file_path, "rb") as handle:
-            events_plist = plistlib.load(handle)
+        events_plist = plistlib.loads(file_data)
 
         if "ProfileEvents" not in events_plist:
             return results
@@ -90,7 +89,8 @@ class ProfileEvents(IOSExtraction):
 
             self.log.info("Found MCProfileEvents.plist file at %s", events_file_path)
 
-            self.results.extend(self.parse_profile_events(events_file_path))
+            with open(events_file_path, "rb") as handle:
+                self.results.extend(self.parse_profile_events(handle.read()))
 
         for result in self.results:
             self.log.info("On %s process \"%s\" started operation \"%s\" of profile \"%s\"",
