@@ -124,7 +124,7 @@ class SMS(AndroidExtraction):
         try:
             self.results = parse_tar_for_sms(backup_tar)
         except AndroidBackupParsingError:
-            self.log.info("Impossible to read SMS from the Android Backup, please extract "\
+            self.log.info("Impossible to read SMS from the Android Backup, please extract "
                           "the SMS and try extracting it with Android Backup Extractor")
             return
 
@@ -142,6 +142,6 @@ class SMS(AndroidExtraction):
         except InsufficientPrivileges:
             pass
 
-        self.log.warn("No SMS database found. Trying extraction of SMS data using " \
+        self.log.warn("No SMS database found. Trying extraction of SMS data using "
                       "Android backup feature.")
         self._extract_sms_adb()
