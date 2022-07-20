@@ -51,29 +51,50 @@ class ProfileEvents(IOSExtraction):
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
 
+    @staticmethod
+    def parse_profile_events(events_file_path) -> list:
+        results = []
+
+        with open(events_file_path, "rb") as handle:
+            events_plist = plistlib.load(handle)
+
+        if "ProfileEvents" not in events_plist:
+            return results
+
+        for event in events_plist["ProfileEvents"]:
+            key = list(event.keys())[0]
+
+            result = {
+                "profile_id": key,
+                "timestamp": "",
+                "operation": "",
+                "process": "",
+            }
+
+            for key, value in event[key].items():
+                key = key.lower()
+                if key == "timestamp":
+                    result["timestamp"] = str(convert_timestamp_to_iso(value))
+                else:
+                    result[key] = value
+
+            results.append(result)
+
+        return results
+
     def run(self) -> None:
         for events_file in self._get_backup_files_from_manifest(relative_path=CONF_PROFILES_EVENTS_RELPATH):
             events_file_path = self._get_backup_file_from_id(events_file["file_id"])
             if not events_file_path:
                 continue
 
-            with open(events_file_path, "rb") as handle:
-                events_plist = plistlib.load(handle)
+            self.log.info("Found MCProfileEvents.plist file at %s", events_file_path)
 
-            if "ProfileEvents" not in events_plist:
-                continue
+            self.results.extend(self.parse_profile_events(events_file_path))
 
-            for event in events_plist["ProfileEvents"]:
-                key = list(event.keys())[0]
-                self.log.info("On %s process \"%s\" started operation \"%s\" of profile \"%s\"",
-                              event[key].get("timestamp"), event[key].get("process"),
-                              event[key].get("operation"), key)
-
-                self.results.append({
-                    "profile_id": key,
-                    "timestamp": convert_timestamp_to_iso(event[key].get("timestamp")),
-                    "operation": event[key].get("operation"),
-                    "process": event[key].get("process"),
-                })
+        for result in self.results:
+            self.log.info("On %s process \"%s\" started operation \"%s\" of profile \"%s\"",
+                          result.get("timestamp"), result.get("process"),
+                          result.get("operation"), result.get("profile_id"))
 
         self.log.info("Extracted %d profile events", len(self.results))
