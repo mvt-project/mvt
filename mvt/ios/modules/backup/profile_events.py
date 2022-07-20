@@ -44,6 +44,12 @@ class ProfileEvents(IOSExtraction):
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
+                continue
+
+            ioc = self.indicators.check_profile(result.get("profile_id"))
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def run(self) -> None:
         for events_file in self._get_backup_files_from_manifest(relative_path=CONF_PROFILES_EVENTS_RELPATH):
