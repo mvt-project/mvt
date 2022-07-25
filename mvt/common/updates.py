@@ -43,6 +43,9 @@ class IndicatorsUpdates:
         self.index_branch = "main"
         self.index_path = "indicators.yaml"
 
+        if not os.path.exists(MVT_DATA_FOLDER):
+            os.makedirs(MVT_DATA_FOLDER)
+
         self.latest_update_path = os.path.join(MVT_DATA_FOLDER,
                                                "latest_indicators_update")
         self.latest_check_path = os.path.join(MVT_DATA_FOLDER,
