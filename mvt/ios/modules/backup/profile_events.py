@@ -31,7 +31,7 @@ class ProfileEvents(IOSExtraction):
             "timestamp": record.get("timestamp"),
             "module": self.__class__.__name__,
             "event": "profile_operation",
-            "data": f"Process {record.get('process')} started operation " \
+            "data": f"Process {record.get('process')} started operation "
                     f"{record.get('operation')} of profile {record.get('profile_id')}"
         }
 
