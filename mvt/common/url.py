@@ -3,8 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import requests
 from typing import Optional
+
+import requests
 from tld import get_tld
 
 SHORTENER_DOMAINS = [
