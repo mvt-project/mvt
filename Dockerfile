@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Ref. https://github.com/mvt-project/mvt
 
@@ -7,13 +7,12 @@ LABEL vcs-url="https://github.com/mvt-project/mvt"
 LABEL description="MVT is a forensic tool to look for signs of infection in smartphone devices."
 
 ENV PIP_NO_CACHE_DIR=1
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Fixing major OS dependencies
 # ----------------------------
 RUN apt update \
-  && apt install -y python3 python3-pip libusb-1.0-0-dev \
-  && apt install -y wget unzip\ 
-  && DEBIAN_FRONTEND=noninteractive apt-get -y install default-jre-headless \
+  && apt install -y python3 python3-pip libusb-1.0-0-dev wget unzip default-jre-headless adb \
 
 # Install build tools for libimobiledevice
 # ----------------------------------------
@@ -67,18 +66,9 @@ RUN mkdir /opt/abe \
 # Create alias for abe
   && echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
-# Install Android Platform Tools 
-# ------------------------------ 
-
-RUN mkdir /opt/android \
-  && wget -q https://dl.google.com/android/repository/platform-tools-latest-linux.zip \
-  && unzip platform-tools-latest-linux.zip -d /opt/android \
-# Create alias for adb 
-  && echo 'alias adb="/opt/android/platform-tools/adb"' >> ~/.bashrc 
-
 # Generate adb key folder 
 # ------------------------------ 
-RUN mkdir /root/.android && /opt/android/platform-tools/adb keygen /root/.android/adbkey
+RUN mkdir /root/.android && adb keygen /root/.android/adbkey
 
 # Setup investigations environment
 # --------------------------------
