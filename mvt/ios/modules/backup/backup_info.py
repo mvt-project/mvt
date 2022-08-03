@@ -8,7 +8,7 @@ import os
 import plistlib
 
 from mvt.common.module import DatabaseNotFoundError
-from mvt.ios.versions import latest_ios_version
+from mvt.ios.versions import latest_ios_version, get_device_desc_from_id
 
 from ..base import IOSExtraction
 
@@ -42,7 +42,15 @@ class BackupInfo(IOSExtraction):
 
         for field in fields:
             value = info.get(field, None)
-            self.log.info("%s: %s", field, value)
+            # Converting the product type in product name
+            if field == "Product Type" and value:
+                product_name = get_device_desc_from_id(value)
+                if product_name:
+                    self.log.info("%s: %s (%s)", field, value, product_name)
+                else:
+                    self.log.info("%s: %s", field, value)
+            else:
+                self.log.info("%s: %s", field, value)
             self.results[field] = value
 
         if "Product Version" in info:
