@@ -36,6 +36,10 @@ class Command(object):
         self.iocs = Indicators(log=log)
         self.iocs.load_indicators_files(ioc_files)
 
+        # This list will contain all executed modules.
+        # We can use this to reference e.g. self.executed[0].results.
+        self.executed = []
+
         self.timeline = []
         self.timeline_detected = []
 
@@ -173,6 +177,8 @@ class Command(object):
                 pass
 
             run_module(m)
+
+            self.executed.append(m)
 
             self.timeline.extend(m.timeline)
             self.timeline_detected.extend(m.timeline_detected)
