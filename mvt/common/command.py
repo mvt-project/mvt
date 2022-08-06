@@ -91,7 +91,9 @@ class Command(object):
         }
 
         for coll in self.iocs.ioc_collections:
-            info["ioc_files"].append(coll.get("stix2_file_path", ""))
+            ioc_file_path = coll.get("stix2_file_path", "")
+            if ioc_file_path and ioc_file_path not in info["ioc_files"]:
+                info["ioc_files"].append(ioc_file_path)
 
         # TODO: Revisit if setting this from environment variable is good
         #       enough.
