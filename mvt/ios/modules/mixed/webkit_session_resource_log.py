@@ -125,6 +125,7 @@ class WebkitSessionResourceLog(IOSExtraction):
                 log_path = self._get_backup_file_from_id(log_file["file_id"])
                 if not log_path:
                     continue
+
                 self.log.info("Found Safari browsing session resource log at path: %s", log_path)
                 self.results[log_path] = self._extract_browsing_stats(log_path)
         elif self.is_fs_dump:
