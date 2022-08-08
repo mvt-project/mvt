@@ -124,8 +124,12 @@ class SafariBrowserState(IOSExtraction):
         if self.is_backup:
             for backup_file in self._get_backup_files_from_manifest(relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH):
                 self.file_path = self._get_backup_file_from_id(backup_file["file_id"])
-                self.log.info("Found Safari browser state database at path: %s", self.file_path)
-                self._process_browser_state_db(self.file_path)
+                if self.file_path:
+                    self.log.info("Found Safari browser state database at path: %s", self.file_path)
+                    self._process_browser_state_db(self.file_path)
+                else:
+                    self.log.info("Safari browser state database exists in the manifest file (%s) but is not in the folder", backup_file["file_id"])
+
         elif self.is_fs_dump:
             for safari_browserstate_path in self._get_fs_files_from_patterns(SAFARI_BROWSER_STATE_ROOT_PATHS):
                 self.file_path = safari_browserstate_path
