@@ -35,7 +35,9 @@ class ConfigurationProfiles(IOSExtraction):
             "timestamp": record["install_date"],
             "module": self.__class__.__name__,
             "event": "configuration_profile_install",
-            "data": f"{record['plist']['PayloadType']} installed: {record['plist']['PayloadUUID']} - {payload_name}: {payload_description}"
+            "data": f"{record['plist']['PayloadType']} installed: "
+                    f"{record['plist']['PayloadUUID']} - "
+                    f"{payload_name}: {payload_description}"
         }
 
     def check_indicators(self) -> None:
@@ -46,24 +48,32 @@ class ConfigurationProfiles(IOSExtraction):
             if result["plist"].get("PayloadUUID"):
                 payload_content = result["plist"]["PayloadContent"][0]
 
-                # Alert on any known malicious configuration profiles in the indicator list.
+                # Alert on any known malicious configuration profiles in the
+                # indicator list.
                 ioc = self.indicators.check_profile(result["plist"]["PayloadUUID"])
                 if ioc:
-                    self.log.warning(f"Found a known malicious configuration profile \"{result['plist']['PayloadDisplayName']}\" with UUID '{result['plist']['PayloadUUID']}'.")
+                    self.log.warning(f"Found a known malicious configuration profile "
+                                     f"\"{result['plist']['PayloadDisplayName']}\" "
+                                     f"with UUID '{result['plist']['PayloadUUID']}'.")
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
-                # Highlight suspicious configuration profiles which may be used to hide notifications.
+                # Highlight suspicious configuration profiles which may be used
+                # to hide notifications.
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
-                    self.log.warning(f"Found a potentially suspicious configuration profile \"{result['plist']['PayloadDisplayName']}\" with payload type '{payload_content['PayloadType']}'.")
+                    self.log.warning(f"Found a potentially suspicious configuration profile "
+                                     f"\"{result['plist']['PayloadDisplayName']}\" with "
+                                     f"payload type '{payload_content['PayloadType']}'.")
                     self.detected.append(result)
                     continue
 
     def run(self) -> None:
         for conf_file in self._get_backup_files_from_manifest(domain=CONF_PROFILES_DOMAIN):
             conf_rel_path = conf_file["relative_path"]
-            # Filter out all configuration files that are not configuration profiles.
+
+            # Filter out all configuration files that are not configuration
+            # profiles.
             if not conf_rel_path or not os.path.basename(conf_rel_path).startswith("profile-"):
                 continue
 
@@ -76,22 +86,29 @@ class ConfigurationProfiles(IOSExtraction):
                     conf_plist = plistlib.load(handle)
                 except Exception:
                     conf_plist = {}
+
             if "SignerCerts" in conf_plist:
                 conf_plist["SignerCerts"] = [b64encode(x) for x in conf_plist["SignerCerts"]]
+
             if "OTAProfileStub" in conf_plist:
                 if "SignerCerts" in conf_plist["OTAProfileStub"]:
                     conf_plist["OTAProfileStub"]["SignerCerts"] = [b64encode(x) for x in conf_plist["OTAProfileStub"]["SignerCerts"]]
+
                 if "PayloadContent" in conf_plist["OTAProfileStub"]:
                     if "EnrollmentIdentityPersistentID" in conf_plist["OTAProfileStub"]["PayloadContent"]:
                         conf_plist["OTAProfileStub"]["PayloadContent"]["EnrollmentIdentityPersistentID"] = b64encode(conf_plist["OTAProfileStub"]["PayloadContent"]["EnrollmentIdentityPersistentID"])
+
             if "PushTokenDataSentToServerKey" in conf_plist:
                 conf_plist["PushTokenDataSentToServerKey"] = b64encode(conf_plist["PushTokenDataSentToServerKey"])
+
             if "LastPushTokenHash" in conf_plist:
                 conf_plist["LastPushTokenHash"] = b64encode(conf_plist["LastPushTokenHash"])
+
             if "PayloadContent" in conf_plist:
                 for x in range(len(conf_plist["PayloadContent"])):
                     if "PERSISTENT_REF" in conf_plist["PayloadContent"][x]:
                         conf_plist["PayloadContent"][x]["PERSISTENT_REF"] = b64encode(conf_plist["PayloadContent"][x]["PERSISTENT_REF"])
+
                     if "IdentityPersistentRef" in conf_plist["PayloadContent"][x]:
                         conf_plist["PayloadContent"][x]["IdentityPersistentRef"] = b64encode(conf_plist["PayloadContent"][x]["IdentityPersistentRef"])
 
