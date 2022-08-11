@@ -41,6 +41,8 @@ class DumpsysAccessibility(AndroidExtraction):
         self.results = parse_dumpsys_accessibility(output)
 
         for result in self.results:
-            log.info("Found installed accessibility service \"%s\"", result.get("service"))
+            self.log.info("Found installed accessibility service \"%s\"",
+                          result.get("service"))
 
-        self.log.info("Identified a total of %d accessibility services", len(self.results))
+        self.log.info("Identified a total of %d accessibility services",
+                      len(self.results))
