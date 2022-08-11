@@ -4,13 +4,10 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import fnmatch
-import logging
 import os
 from zipfile import ZipFile
 
 from mvt.common.module import MVTModule
-
-log = logging.getLogger(__name__)
 
 
 class BugReportModule(MVTModule):

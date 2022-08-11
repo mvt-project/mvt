@@ -8,15 +8,14 @@ import os
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 
 class Logcat(AndroidExtraction):
     """This module extracts details on installed packages."""
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -35,15 +34,15 @@ class Logcat(AndroidExtraction):
             with open(logcat_path, "w", encoding="utf-8") as handle:
                 handle.write(output)
 
-            log.info("Current logcat logs stored at %s",
-                     logcat_path)
+            self.log.info("Current logcat logs stored at %s",
+                          logcat_path)
 
             logcat_last_path = os.path.join(self.results_path,
                                             "logcat_last.txt")
             with open(logcat_last_path, "w", encoding="utf-8") as handle:
                 handle.write(last_output)
 
-            log.info("Logcat logs prior to last reboot stored at %s",
-                     logcat_last_path)
+            self.log.info("Logcat logs prior to last reboot stored at %s",
+                          logcat_last_path)
 
         self._adb_disconnect()

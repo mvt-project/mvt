@@ -14,8 +14,6 @@ from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 SMS_BUGLE_PATH = "data/data/com.google.android.apps.messaging/databases/bugle_db"
 SMS_BUGLE_QUERY = """
 SELECT
@@ -48,7 +46,8 @@ class SMS(AndroidExtraction):
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -107,7 +106,7 @@ class SMS(AndroidExtraction):
         cur.close()
         conn.close()
 
-        log.info("Extracted a total of %d SMS messages containing links", len(self.results))
+        self.log.info("Extracted a total of %d SMS messages containing links", len(self.results))
 
     def _extract_sms_adb(self) -> None:
         """Use the Android backup command to extract SMS data from the native SMS
@@ -128,7 +127,8 @@ class SMS(AndroidExtraction):
                           "the SMS and try extracting it with Android Backup Extractor")
             return
 
-        log.info("Extracted a total of %d SMS messages containing links", len(self.results))
+        self.log.info("Extracted a total of %d SMS messages containing links",
+                      len(self.results))
 
     def run(self) -> None:
         try:

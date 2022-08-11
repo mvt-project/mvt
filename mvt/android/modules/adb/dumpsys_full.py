@@ -8,15 +8,14 @@ import os
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 
 class DumpsysFull(AndroidExtraction):
     """This module extracts stats on battery consumption by processes."""
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -30,6 +29,6 @@ class DumpsysFull(AndroidExtraction):
             with open(output_path, "w", encoding="utf-8") as handle:
                 handle.write(output)
 
-            log.info("Full dumpsys output stored at %s", output_path)
+            self.log.info("Full dumpsys output stored at %s", output_path)
 
         self._adb_disconnect()

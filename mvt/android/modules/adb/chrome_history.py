@@ -12,8 +12,6 @@ from mvt.common.utils import (convert_chrometime_to_unix,
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 CHROME_HISTORY_PATH = "data/data/com.android.chrome/app_chrome/Default/History"
 
 
@@ -22,7 +20,8 @@ class ChromeHistory(AndroidExtraction):
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -32,7 +31,8 @@ class ChromeHistory(AndroidExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "visit",
-            "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, redirect source: {record['redirect_source']})"
+            "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, "
+                    f"redirect source: {record['redirect_source']})"
         }
 
     def check_indicators(self) -> None:
@@ -76,7 +76,8 @@ class ChromeHistory(AndroidExtraction):
         cur.close()
         conn.close()
 
-        log.info("Extracted a total of %d history items", len(self.results))
+        self.log.info("Extracted a total of %d history items",
+                      len(self.results))
 
     def run(self) -> None:
         try:

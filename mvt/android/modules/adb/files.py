@@ -12,8 +12,6 @@ from mvt.common.utils import convert_timestamp_to_iso
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 ANDROID_TMP_FOLDERS = [
     "/tmp/",
     "/data/local/tmp/",
@@ -29,7 +27,8 @@ class Files(AndroidExtraction):
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)

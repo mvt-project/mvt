@@ -14,8 +14,6 @@ from mvt.common.virustotal import VTNoKey, VTQuotaExceeded, virustotal_lookup
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 DANGEROUS_PERMISSIONS_THRESHOLD = 10
 DANGEROUS_PERMISSIONS = [
     "android.permission.ACCESS_COARSE_LOCATION",
@@ -74,7 +72,8 @@ class Packages(AndroidExtraction):
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -135,11 +134,10 @@ class Packages(AndroidExtraction):
         for i in track(range(total_hashes), description=f"Looking up {total_hashes} files..."):
             try:
                 results = virustotal_lookup(hashes[i])
-            except VTNoKey as e:
-                log.info(e)
+            except VTNoKey:
                 return
             except VTQuotaExceeded as e:
-                log.error("Unable to continue: %s", e)
+                print("Unable to continue: %s", e)
                 break
 
             if not results:

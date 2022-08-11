@@ -12,8 +12,6 @@ from mvt.common.utils import check_for_links, convert_timestamp_to_iso
 
 from .base import AndroidExtraction
 
-log = logging.getLogger(__name__)
-
 WHATSAPP_PATH = "data/data/com.whatsapp/databases/msgstore.db"
 
 
@@ -22,7 +20,8 @@ class Whatsapp(AndroidExtraction):
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = []) -> None:
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -82,7 +81,8 @@ class Whatsapp(AndroidExtraction):
         cur.close()
         conn.close()
 
-        log.info("Extracted a total of %d WhatsApp messages containing links", len(messages))
+        self.log.info("Extracted a total of %d WhatsApp messages containing links",
+                      len(messages))
         self.results = messages
 
     def run(self) -> None:
