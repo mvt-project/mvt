@@ -7,7 +7,6 @@ import logging
 
 from .base import AndroidExtraction
 
-
 ANDROID_DANGEROUS_SETTINGS = [
     {
         "description": "disabled Google Play Services apps verification",

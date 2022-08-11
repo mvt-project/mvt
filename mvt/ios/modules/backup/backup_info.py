@@ -8,7 +8,7 @@ import os
 import plistlib
 
 from mvt.common.module import DatabaseNotFoundError
-from mvt.ios.versions import latest_ios_version, get_device_desc_from_id
+from mvt.ios.versions import get_device_desc_from_id, latest_ios_version
 
 from ..base import IOSExtraction
 
