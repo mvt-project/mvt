@@ -39,4 +39,5 @@ class DumpsysBatteryHistory(AndroidExtraction):
 
         self.results = parse_dumpsys_battery_history(output)
 
-        self.log.info("Extracted %d records from battery history", len(self.results))
+        self.log.info("Extracted %d records from battery history",
+                      len(self.results))

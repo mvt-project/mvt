@@ -31,15 +31,17 @@ class SMS(BackupExtraction):
                 self.detected.append(message)
 
     def run(self) -> None:
-        for file in self._get_files_by_pattern("apps/com.android.providers.telephony/d_f/*_sms_backup"):
+        sms_path = "apps/com.android.providers.telephony/d_f/*_sms_backup"
+        for file in self._get_files_by_pattern(sms_path):
             self.log.info("Processing SMS backup file at %s", file)
             data = self._get_file_content(file)
             self.results.extend(parse_sms_file(data))
 
-        for file in self._get_files_by_pattern("apps/com.android.providers.telephony/d_f/*_mms_backup"):
+        mms_path = "apps/com.android.providers.telephony/d_f/*_mms_backup"
+        for file in self._get_files_by_pattern(mms_path):
             self.log.info("Processing MMS backup file at %s", file)
             data = self._get_file_content(file)
             self.results.extend(parse_sms_file(data))
 
-        self.log.info("Extracted a total of %d SMS & MMS messages containing links",
-                      len(self.results))
+        self.log.info("Extracted a total of %d SMS & MMS messages "
+                      "containing links", len(self.results))

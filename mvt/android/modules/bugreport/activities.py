@@ -38,7 +38,8 @@ class Activities(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. Did you provide a "
+                           "valid bug report archive?")
             return
 
         lines = []

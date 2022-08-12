@@ -27,7 +27,8 @@ class BatteryDaily(BugReportModule):
             "timestamp": record["from"],
             "module": self.__class__.__name__,
             "event": "battery_daily",
-            "data": f"Recorded update of package {record['package_name']} with vers {record['vers']}"
+            "data": f"Recorded update of package {record['package_name']} "
+                    f"with vers {record['vers']}"
         }
 
     def check_indicators(self) -> None:
@@ -44,7 +45,8 @@ class BatteryDaily(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. Did you provide a "
+                           "valid bug report archive?")
             return
 
         lines = []

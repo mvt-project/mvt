@@ -20,8 +20,8 @@ from mvt.common.version import MVT_VERSION
 class Command:
 
     def __init__(self, target_path: str = None, results_path: str = None,
-                 ioc_files: list = [], module_name: str = None, serial: str = None,
-                 fast_mode: bool = False,
+                 ioc_files: list = [], module_name: str = None,
+                 serial: str = None, fast_mode: bool = False,
                  log: logging.Logger = logging.getLogger(__name__)):
         self.name = ""
         self.modules = []
@@ -57,7 +57,8 @@ class Command:
         if not self.results_path:
             return
 
-        file_handler = logging.FileHandler(os.path.join(self.results_path, "command.log"))
+        file_handler = logging.FileHandler(os.path.join(self.results_path,
+                                                        "command.log"))
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
@@ -73,7 +74,8 @@ class Command:
 
         if len(self.timeline_detected) > 0:
             save_timeline(self.timeline_detected,
-                          os.path.join(self.results_path, "timeline_detected.csv"))
+                          os.path.join(self.results_path,
+                                       "timeline_detected.csv"))
 
     def _store_info(self) -> None:
         if not self.results_path:
@@ -118,10 +120,12 @@ class Command:
                             with open(file_path, "rb") as handle:
                                 sha256.update(handle.read())
                         except FileNotFoundError:
-                            self.log.error("Failed to hash the file %s: might be a symlink", file_path)
+                            self.log.error("Failed to hash the file %s: might be a symlink",
+                                           file_path)
                             continue
                         except PermissionError:
-                            self.log.error("Failed to hash the file %s: permission denied", file_path)
+                            self.log.error("Failed to hash the file %s: permission denied",
+                                           file_path)
                             continue
 
                         info["hashes"].append({
@@ -129,11 +133,13 @@ class Command:
                             "sha256": sha256.hexdigest(),
                         })
 
-        with open(os.path.join(self.results_path, "info.json"), "w+", encoding="utf-8") as handle:
+        info_path = os.path.join(self.results_path, "info.json")
+        with open(info_path, "w+", encoding="utf-8") as handle:
             json.dump(info, handle, indent=4)
 
     def list_modules(self) -> None:
-        self.log.info("Following is the list of available %s modules:", self.name)
+        self.log.info("Following is the list of available %s modules:",
+                      self.name)
         for module in self.modules:
             self.log.info(" - %s", module.__name__)
 

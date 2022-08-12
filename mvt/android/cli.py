@@ -58,14 +58,16 @@ def version():
 @click.option("--output", "-o", type=click.Path(exists=False),
               help="Specify a path to a folder where you want to store the APKs")
 @click.option("--from-file", "-f", type=click.Path(exists=True),
-              help="Instead of acquiring from phone, load an existing packages.json file for lookups (mainly for debug purposes)")
+              help="Instead of acquiring from phone, load an existing packages.json file for "
+                   "lookups (mainly for debug purposes)")
 @click.pass_context
 def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
     try:
         if from_file:
             download = DownloadAPKs.from_json(from_file)
         else:
-            # TODO: Do we actually want to be able to run without storing any file?
+            # TODO: Do we actually want to be able to run without storing any
+            #       file?
             if not output:
                 log.critical("You need to specify an output folder with --output!")
                 ctx.exit(1)
@@ -130,14 +132,16 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
 @cli.command("check-bugreport", help="Check an Android Bug Report")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--output", "-o", type=click.Path(exists=False),
+              help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
-    cmd = CmdAndroidCheckBugreport(target_path=bugreport_path, results_path=output,
-                                   ioc_files=iocs, module_name=module)
+    cmd = CmdAndroidCheckBugreport(target_path=bugreport_path,
+                                   results_path=output, ioc_files=iocs,
+                                   module_name=module)
 
     if list_modules:
         cmd.list_modules()
@@ -158,7 +162,8 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 @cli.command("check-backup", help="Check an Android Backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--output", "-o", type=click.Path(exists=False),
+              help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context

@@ -47,7 +47,8 @@ class Packages(BugReportModule):
     def check_indicators(self) -> None:
         for result in self.results:
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning("Found an installed package related to rooting/jailbreaking: \"%s\"",
+                self.log.warning("Found an installed package related to "
+                                 "rooting/jailbreaking: \"%s\"",
                                  result["package_name"])
                 self.detected.append(result)
                 continue
@@ -147,7 +148,8 @@ class Packages(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. Did you provide a "
+                           "valid bug report archive?")
             return
 
         in_package = False

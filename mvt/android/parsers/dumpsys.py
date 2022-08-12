@@ -61,7 +61,8 @@ def parse_dumpsys_activity_resolver_table(output: str) -> dict:
             break
 
         # We detect the action name.
-        if line.startswith(" " * 6) and not line.startswith(" " * 8) and ":" in line:
+        if (line.startswith(" " * 6) and not line.startswith(" " * 8)
+                and ":" in line):
             intent = line.strip().replace(":", "")
             results[intent] = []
             continue
@@ -117,7 +118,8 @@ def parse_dumpsys_battery_daily(output: str) -> list:
 
         already_seen = False
         for update in daily_updates:
-            if package_name == update["package_name"] and vers_nr == update["vers"]:
+            if (package_name == update["package_name"]
+                    and vers_nr == update["vers"]):
                 already_seen = True
                 break
 
@@ -261,7 +263,8 @@ def parse_dumpsys_receiver_resolver_table(output: str) -> dict:
             break
 
         # We detect the action name.
-        if line.startswith(" " * 6) and not line.startswith(" " * 8) and ":" in line:
+        if (line.startswith(" " * 6) and not line.startswith(" " * 8)
+                and ":" in line):
             intent = line.strip().replace(":", "")
             results[intent] = []
             continue

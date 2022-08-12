@@ -165,7 +165,8 @@ class IndicatorsUpdates:
             log.error("Failed to retrieve date of latest update to indicators index file")
             return -1
 
-        latest_commit_dt = datetime.strptime(latest_commit_date, '%Y-%m-%dT%H:%M:%SZ')
+        latest_commit_dt = datetime.strptime(latest_commit_date,
+                                             '%Y-%m-%dT%H:%M:%SZ')
         latest_commit_ts = int(latest_commit_dt.timestamp())
 
         return latest_commit_ts

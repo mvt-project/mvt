@@ -27,7 +27,8 @@ class DumpsysBatteryDaily(AndroidExtraction):
             "timestamp": record["from"],
             "module": self.__class__.__name__,
             "event": "battery_daily",
-            "data": f"Recorded update of package {record['package_name']} with vers {record['vers']}"
+            "data": f"Recorded update of package {record['package_name']} "
+                    f"with vers {record['vers']}"
         }
 
     def check_indicators(self) -> None:

@@ -26,8 +26,8 @@ log = logging.getLogger(__name__)
 class CmdAndroidCheckBackup(Command):
 
     def __init__(self, target_path: str = None, results_path: str = None,
-                 ioc_files: list = [], module_name: str = None, serial: str = None,
-                 fast_mode: bool = False):
+                 ioc_files: list = [], module_name: str = None,
+                 serial: str = None, fast_mode: bool = False):
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)
@@ -73,13 +73,16 @@ class CmdAndroidCheckBackup(Command):
             self.target_path = Path(self.target_path).absolute().as_posix()
             for root, subdirs, subfiles in os.walk(os.path.abspath(self.target_path)):
                 for fname in subfiles:
-                    self.backup_files.append(os.path.relpath(os.path.join(root, fname), self.target_path))
+                    self.backup_files.append(os.path.relpath(os.path.join(root, fname),
+                                                             self.target_path))
         else:
-            log.critical("Invalid backup path, path should be a folder or an Android Backup (.ab) file")
+            log.critical("Invalid backup path, path should be a folder or an "
+                         "Android Backup (.ab) file")
             sys.exit(1)
 
     def module_init(self, module: Callable) -> None:
         if self.backup_type == "folder":
             module.from_folder(self.target_path, self.backup_files)
         else:
-            module.from_ab(self.target_path, self.backup_archive, self.backup_files)
+            module.from_ab(self.target_path, self.backup_archive,
+                           self.backup_files)

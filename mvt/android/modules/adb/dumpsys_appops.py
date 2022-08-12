@@ -36,7 +36,8 @@ class DumpsysAppOps(AndroidExtraction):
                         "timestamp": entry["timestamp"],
                         "module": self.__class__.__name__,
                         "event": entry["access"],
-                        "data": f"{record['package_name']} access to {perm['name']}: {entry['access']}",
+                        "data": f"{record['package_name']} access to "
+                                f"{perm['name']}: {entry['access']}",
                     })
 
         return records
@@ -51,9 +52,10 @@ class DumpsysAppOps(AndroidExtraction):
                     continue
 
             for perm in result["permissions"]:
-                if perm["name"] == "REQUEST_INSTALL_PACKAGES" and perm["access"] == "allow":
-                    self.log.info("Package %s with REQUEST_INSTALL_PACKAGES permission",
-                                  result["package_name"])
+                if (perm["name"] == "REQUEST_INSTALL_PACKAGES"
+                        and perm["access"] == "allow"):
+                    self.log.info("Package %s with REQUEST_INSTALL_PACKAGES "
+                                  "permission", result["package_name"])
 
     def run(self) -> None:
         self._adb_connect()

@@ -18,7 +18,8 @@ def check_updates() -> None:
         pass
     else:
         if latest_version:
-            print(f"\t\t[bold]Version {latest_version} is available! Upgrade mvt![/bold]")
+            print(f"\t\t[bold]Version {latest_version} is available! "
+                  "Upgrade mvt![/bold]")
 
     # Then we check for indicators files updates.
     ioc_updates = IndicatorsUpdates()
@@ -26,7 +27,8 @@ def check_updates() -> None:
     # Before proceeding, we check if we have downloaded an indicators index.
     # If not, there's no point in proceeding with the updates check.
     if ioc_updates.get_latest_update() == 0:
-        print("\t\t[bold]You have not yet downloaded any indicators, check the `download-iocs` command![/bold]")
+        print("\t\t[bold]You have not yet downloaded any indicators, check "
+              "the `download-iocs` command![/bold]")
         return
 
     # We only perform this check at a fixed frequency, in order to not
@@ -34,7 +36,8 @@ def check_updates() -> None:
     # multiple times.
     should_check, hours = ioc_updates.should_check()
     if not should_check:
-        print(f"\t\tIndicators updates checked recently, next automatic check in {int(hours)} hours")
+        print(f"\t\tIndicators updates checked recently, next automatic check "
+              f"in {int(hours)} hours")
         return
 
     try:
@@ -43,7 +46,8 @@ def check_updates() -> None:
         pass
     else:
         if ioc_to_update:
-            print("\t\t[bold]There are updates to your indicators files! Run the `download-iocs` command to update![/bold]")
+            print("\t\t[bold]There are updates to your indicators files! "
+                  "Run the `download-iocs` command to update![/bold]")
         else:
             print("\t\tYour indicators files seem to be up to date.")
 

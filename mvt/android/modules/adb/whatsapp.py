@@ -73,22 +73,24 @@ class Whatsapp(AndroidExtraction):
             message["direction"] = ("send" if message["key_from_me"] == 1 else "received")
             message["isodate"] = convert_timestamp_to_iso(message["timestamp"])
 
-            # If we find links in the messages or if they are empty we add them to the list.
+            # If we find links in the messages or if they are empty we add them
+            # to the list.
             if check_for_links(message["data"]) or message["data"].strip() == "":
-                if message.get('thumb_image'):
-                    message['thumb_image'] = base64.b64encode(message['thumb_image'])
+                if message.get("thumb_image"):
+                    message["thumb_image"] = base64.b64encode(message["thumb_image"])
 
                 messages.append(message)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages containing links",
-                      len(messages))
+        self.log.info("Extracted a total of %d WhatsApp messages "
+                      "containing links", len(messages))
         self.results = messages
 
     def run(self) -> None:
         try:
-            self._adb_process_file(os.path.join("/", WHATSAPP_PATH), self._parse_db)
+            self._adb_process_file(os.path.join("/", WHATSAPP_PATH),
+                                                self._parse_db)
         except Exception as e:
             self.log.error(e)

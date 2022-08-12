@@ -30,6 +30,8 @@ class InvalidBackupPassword(AndroidBackupParsingError):
     pass
 
 
+# TODO: Need to clean all the following code and conform it to the coding style.
+
 def to_utf8_bytes(input_bytes):
     output = []
     for byte in input_bytes:
@@ -65,13 +67,15 @@ def parse_ab_header(data):
     }
 
 
-def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_blob, format_version, checksum_salt):
+def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds,
+                       master_key_blob, format_version, checksum_salt):
     """Generate AES key from user password uisng PBKDF2
 
     The backup master key is extracted from the master key blog after decryption.
     """
     # Derive key from password using PBKDF2.
-    kdf = PBKDF2HMAC(algorithm=hashes.SHA1(), length=32, salt=user_salt, iterations=pbkdf2_rounds)
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA1(), length=32, salt=user_salt,
+                     iterations=pbkdf2_rounds)
     key = kdf.derive(password.encode("utf-8"))
 
     # Decrypt master key blob.
@@ -100,7 +104,8 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
         hmac_mk = master_key
 
     # Derive checksum to confirm successful backup decryption.
-    kdf = PBKDF2HMAC(algorithm=hashes.SHA1(), length=32, salt=checksum_salt, iterations=pbkdf2_rounds)
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA1(), length=32, salt=checksum_salt,
+                     iterations=pbkdf2_rounds)
     calculated_checksum = kdf.derive(hmac_mk)
 
     if master_key_checksum != calculated_checksum:
@@ -109,7 +114,8 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds, master_key_b
     return master_key, master_iv
 
 
-def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_version):
+def decrypt_backup_data(encrypted_backup, password, encryption_algo,
+                        format_version):
     """
     Generate encryption keyffrom password and do decryption
 
@@ -120,7 +126,9 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
     if password is None:
         raise InvalidBackupPassword()
 
-    [user_salt, checksum_salt, pbkdf2_rounds, user_iv, master_key_blob, encrypted_data] = encrypted_backup.split(b"\n", 5)
+    [user_salt, checksum_salt, pbkdf2_rounds, user_iv,
+     master_key_blob, encrypted_data] = encrypted_backup.split(b"\n", 5)
+
     user_salt = bytes.fromhex(user_salt.decode("utf-8"))
     checksum_salt = bytes.fromhex(checksum_salt.decode("utf-8"))
     pbkdf2_rounds = int(pbkdf2_rounds)
@@ -128,9 +136,13 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
     master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
 
     # Derive decryption master key from password.
-    master_key, master_iv = decrypt_master_key(password=password, user_salt=user_salt, user_iv=user_iv,
-                                               pbkdf2_rounds=pbkdf2_rounds, master_key_blob=master_key_blob,
-                                               format_version=format_version, checksum_salt=checksum_salt)
+    master_key, master_iv = decrypt_master_key(password=password,
+                                               user_salt=user_salt,
+                                               user_iv=user_iv,
+                                               pbkdf2_rounds=pbkdf2_rounds,
+                                               master_key_blob=master_key_blob,
+                                               format_version=format_version,
+                                               checksum_salt=checksum_salt)
 
     # Decrypt and unpad backup data using derivied key.
     cipher = Cipher(algorithms.AES(master_key), modes.CBC(master_iv))
@@ -149,12 +161,15 @@ def parse_backup_file(data, password=None):
     if not data.startswith(b"ANDROID BACKUP"):
         raise AndroidBackupParsingError("Invalid file header")
 
-    [_, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
+    [_, version, is_compressed,
+     encryption_algo, tar_data] = data.split(b"\n", 4)
+
     version = int(version)
     is_compressed = int(is_compressed)
 
     if encryption_algo != b"none":
-        tar_data = decrypt_backup_data(tar_data, password, encryption_algo, format_version=version)
+        tar_data = decrypt_backup_data(tar_data, password, encryption_algo,
+                                       format_version=version)
 
     if is_compressed:
         try:
@@ -175,8 +190,9 @@ def parse_tar_for_sms(data):
     res = []
     with tarfile.open(fileobj=dbytes) as tar:
         for member in tar.getmembers():
-            if member.name.startswith("apps/com.android.providers.telephony/d_f/") and \
-                    (member.name.endswith("_sms_backup") or member.name.endswith("_mms_backup")):
+            if (member.name.startswith("apps/com.android.providers.telephony/d_f/")
+                    and (member.name.endswith("_sms_backup")
+                         or member.name.endswith("_mms_backup"))):
                 dhandler = tar.extractfile(member)
                 res.extend(parse_sms_file(dhandler.read()))
 
@@ -204,7 +220,8 @@ def parse_sms_file(data):
         entry["isodate"] = convert_timestamp_to_iso(utc_timestamp)
         entry["direction"] = ("sent" if int(entry["date_sent"]) else "received")
 
-        # If we find links in the messages or if they are empty we add them to the list.
+        # If we find links in the messages or if they are empty we add them to
+        # the list.
         if message_links or entry["body"].strip() == "":
             entry["links"] = message_links
             res.append(entry)

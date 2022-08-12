@@ -35,7 +35,8 @@ class Accessibility(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. Did you provide a "
+                           "valid bug report archive?")
             return
 
         lines = []
@@ -55,6 +56,8 @@ class Accessibility(BugReportModule):
 
         self.results = parse_dumpsys_accessibility("\n".join(lines))
         for result in self.results:
-            self.log.info("Found installed accessibility service \"%s\"", result.get("service"))
+            self.log.info("Found installed accessibility service \"%s\"",
+                          result.get("service"))
 
-        self.log.info("Identified a total of %d accessibility services", len(self.results))
+        self.log.info("Identified a total of %d accessibility services",
+                      len(self.results))

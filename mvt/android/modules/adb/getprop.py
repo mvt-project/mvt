@@ -36,7 +36,9 @@ class Getprop(AndroidExtraction):
         if security_patch:
             patch_date = datetime.strptime(security_patch, "%Y-%m-%d")
             if (datetime.now() - patch_date) > timedelta(days=6*30):
-                self.log.warning("This phone has not received security updates for more than "
-                                 "six months (last update: %s)", security_patch)
+                self.log.warning("This phone has not received security updates "
+                                 "for more than six months (last update: %s)",
+                                 security_patch)
 
-        self.log.info("Extracted %d Android system properties", len(self.results))
+        self.log.info("Extracted %d Android system properties",
+                      len(self.results))

@@ -23,14 +23,17 @@ class VTQuotaExceeded(Exception):
 
 def virustotal_lookup(file_hash: str):
     if MVT_VT_API_KEY not in os.environ:
-        raise VTNoKey("No VirusTotal API key provided: to use VirusTotal lookups please provide your API key with `export MVT_VT_API_KEY=<key>`")
+        raise VTNoKey("No VirusTotal API key provided: to use VirusTotal "
+                      "lookups please provide your API key with "
+                      "`export MVT_VT_API_KEY=<key>`")
 
     headers = {
         "User-Agent": "VirusTotal",
         "Content-Type": "application/json",
         "x-apikey": os.environ[MVT_VT_API_KEY],
     }
-    res = requests.get(f"https://www.virustotal.com/api/v3/files/{file_hash}", headers=headers)
+    res = requests.get(f"https://www.virustotal.com/api/v3/files/{file_hash}",
+                       headers=headers)
 
     if res.status_code == 200:
         report = res.json()
@@ -39,7 +42,8 @@ def virustotal_lookup(file_hash: str):
     if res.status_code == 404:
         log.info("Could not find results for file with hash %s", file_hash)
     elif res.status_code == 429:
-        raise VTQuotaExceeded("You have exceeded the quota for your VirusTotal API key")
+        raise VTQuotaExceeded("You have exceeded the quota for your "
+                              "VirusTotal API key")
     else:
         raise Exception(f"Unexpected response from VirusTotal: {res.status_code}")
 

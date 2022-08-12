@@ -73,13 +73,15 @@ class AndroidExtraction(MVTModule):
             try:
                 self.device = AdbDeviceUsb(serial=self.serial)
             except UsbDeviceNotFoundError:
-                self.log.critical("No device found. Make sure it is connected and unlocked.")
+                self.log.critical("No device found. Make sure it is connected "
+                                  "and unlocked.")
                 sys.exit(-1)
         # Otherwise we try to use the TCP transport.
         else:
             addr = self.serial.split(":")
             if len(addr) < 2:
-                raise ValueError("TCP serial number must follow the format: `address:port`")
+                raise ValueError("TCP serial number must follow the format: "
+                                 "`address:port`")
 
             self.device = AdbDeviceTcp(addr[0], int(addr[1]),
                                        default_transport_timeout_s=30.)
@@ -88,17 +90,21 @@ class AndroidExtraction(MVTModule):
             try:
                 self.device.connect(rsa_keys=[signer], auth_timeout_s=5)
             except (USBErrorBusy, USBErrorAccess):
-                self.log.critical("Device is busy, maybe run `adb kill-server` and try again.")
+                self.log.critical("Device is busy, maybe run `adb kill-server` "
+                                  "and try again.")
                 sys.exit(-1)
             except DeviceAuthError:
-                self.log.error("You need to authorize this computer on the Android device. Retrying in 5 seconds...")
+                self.log.error("You need to authorize this computer on the "
+                               "Android device. Retrying in 5 seconds...")
                 time.sleep(5)
             except UsbReadFailedError:
-                self.log.error("Unable to connect to the device over USB. Try to unplug, plug the device and start again.")
+                self.log.error("Unable to connect to the device over USB. "
+                               "Try to unplug, plug the device and start again.")
                 sys.exit(-1)
             except OSError as e:
                 if e.errno == 113 and self.serial:
-                    self.log.critical("Unable to connect to the device %s: did you specify the correct IP addres?",
+                    self.log.critical("Unable to connect to the device %s: "
+                                      "did you specify the correct IP addres?",
                                       self.serial)
                     sys.exit(-1)
             else:
@@ -135,7 +141,9 @@ class AndroidExtraction(MVTModule):
     def _adb_root_or_die(self) -> None:
         """Check if we have a `su` binary, otherwise raise an Exception."""
         if not self._adb_check_if_root():
-            raise InsufficientPrivileges("This module is optionally available in case the device is already rooted. Do NOT root your own device!")
+            raise InsufficientPrivileges("This module is optionally available "
+                                         "in case the device is already rooted."
+                                         " Do NOT root your own device!")
 
     def _adb_command_as_root(self, command):
         """Execute an adb shell command.
@@ -170,7 +178,8 @@ class AndroidExtraction(MVTModule):
 
         :param remote_path: Path to download from the device
         :param local_path: Path to where to locally store the copy of the file
-        :param progress_callback: Callback for download progress bar (Default value = None)
+        :param progress_callback: Callback for download progress bar
+                                  (Default value = None)
         :param retry_root: Default value = True)
 
         """
@@ -178,7 +187,8 @@ class AndroidExtraction(MVTModule):
             self.device.pull(remote_path, local_path, progress_callback)
         except AdbCommandFailureException as e:
             if retry_root:
-                self._adb_download_root(remote_path, local_path, progress_callback)
+                self._adb_download_root(remote_path, local_path,
+                                        progress_callback)
             else:
                 raise Exception(f"Unable to download file {remote_path}: {e}")
 
@@ -189,7 +199,10 @@ class AndroidExtraction(MVTModule):
             self._adb_root_or_die()
 
             # We generate a random temporary filename.
-            tmp_filename = "tmp_" + ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10))
+            allowed_chars = (string.ascii_uppercase
+                             + string.ascii_lowercase
+                             + string.digits)
+            tmp_filename = "tmp_" + ''.join(random.choices(allowed_chars, k=10))
 
             # We create a temporary local file.
             new_remote_path = f"/sdcard/{tmp_filename}"
@@ -203,7 +216,8 @@ class AndroidExtraction(MVTModule):
 
             # We download from /sdcard/ to the local temporary file.
             # If it doesn't work now, don't try again (retry_root=False)
-            self._adb_download(new_remote_path, local_path, progress_callback, retry_root=False)
+            self._adb_download(new_remote_path, local_path, progress_callback,
+                               retry_root=False)
 
             # Delete the copy on /sdcard/.
             self._adb_command(f"rm -rf {new_remote_path}")
@@ -253,27 +267,34 @@ class AndroidExtraction(MVTModule):
         self._adb_disconnect()
 
     def _generate_backup(self, package_name: str) -> bytes:
-        self.log.warning("Please check phone and accept Android backup prompt. You may need to set a backup password. \a")
+        self.log.warning("Please check phone and accept Android backup prompt. "
+                         "You may need to set a backup password. \a")
 
-        # TODO: Base64 encoding as temporary fix to avoid byte-mangling over the shell transport...
-        backup_output_b64 = self._adb_command(f"/system/bin/bu backup -nocompress '{package_name}' | base64")
+        # TODO: Base64 encoding as temporary fix to avoid byte-mangling over
+        #       the shell transport...
+        cmd = f"/system/bin/bu backup -nocompress '{package_name}' | base64"
+        backup_output_b64 = self._adb_command(cmd)
         backup_output = base64.b64decode(backup_output_b64)
         header = parse_ab_header(backup_output)
 
         if not header["backup"]:
-            self.log.error("Extracting SMS via Android backup failed. No valid backup data found.")
+            self.log.error("Extracting SMS via Android backup failed. "
+                           "No valid backup data found.")
             return None
 
         if header["encryption"] == "none":
             return parse_backup_file(backup_output, password=None)
 
         for _ in range(0, 3):
-            backup_password = Prompt.ask("Enter backup password", password=True)
+            backup_password = Prompt.ask("Enter backup password",
+                                         password=True)
             try:
-                decrypted_backup_tar = parse_backup_file(backup_output, backup_password)
+                decrypted_backup_tar = parse_backup_file(backup_output,
+                                                         backup_password)
                 return decrypted_backup_tar
             except InvalidBackupPassword:
-                self.log.error("You provided the wrong password! Please try again...")
+                self.log.error("You provided the wrong password! "
+                               "Please try again...")
 
         self.log.warn("All attempts to decrypt backup with password failed!")
 

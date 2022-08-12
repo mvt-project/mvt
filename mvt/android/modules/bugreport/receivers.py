@@ -36,19 +36,24 @@ class Receivers(BugReportModule):
         for intent, receivers in self.results.items():
             for receiver in receivers:
                 if intent == INTENT_NEW_OUTGOING_SMS:
-                    self.log.info("Found a receiver to intercept outgoing SMS messages: \"%s\"",
+                    self.log.info("Found a receiver to intercept "
+                                  "outgoing SMS messages: \"%s\"",
                                   receiver["receiver"])
                 elif intent == INTENT_SMS_RECEIVED:
-                    self.log.info("Found a receiver to intercept incoming SMS messages: \"%s\"",
+                    self.log.info("Found a receiver to intercept "
+                                  "incoming SMS messages: \"%s\"",
                                   receiver["receiver"])
                 elif intent == INTENT_DATA_SMS_RECEIVED:
-                    self.log.info("Found a receiver to intercept incoming data SMS message: \"%s\"",
+                    self.log.info("Found a receiver to intercept "
+                                  "incoming data SMS message: \"%s\"",
                                   receiver["receiver"])
                 elif intent == INTENT_PHONE_STATE:
-                    self.log.info("Found a receiver monitoring telephony state/incoming calls: \"%s\"",
+                    self.log.info("Found a receiver monitoring "
+                                  "telephony state/incoming calls: \"%s\"",
                                   receiver["receiver"])
                 elif intent == INTENT_NEW_OUTGOING_CALL:
-                    self.log.info("Found a receiver monitoring outgoing calls: \"%s\"",
+                    self.log.info("Found a receiver monitoring "
+                                  "outgoing calls: \"%s\"",
                                   receiver["receiver"])
 
                 ioc = self.indicators.check_app_id(receiver["package_name"])
@@ -60,7 +65,8 @@ class Receivers(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. Did you provide a "
+                           "valid bug report archive?")
             return
 
         in_receivers = False
