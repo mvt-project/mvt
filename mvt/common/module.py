@@ -7,7 +7,7 @@ import csv
 import logging
 import os
 import re
-from typing import Callable
+from typing import Callable, Union
 
 import simplejson as json
 
@@ -106,7 +106,7 @@ class MVTModule:
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         raise NotImplementedError
 
     @staticmethod

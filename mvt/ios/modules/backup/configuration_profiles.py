@@ -7,6 +7,7 @@ import logging
 import os
 import plistlib
 from base64 import b64encode
+from typing import Union
 
 from mvt.common.utils import convert_timestamp_to_iso
 
@@ -26,7 +27,7 @@ class ConfigurationProfiles(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         if not record["install_date"]:
             return {}
 

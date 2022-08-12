@@ -6,6 +6,7 @@
 import logging
 import os
 import sqlite3
+from typing import Union
 
 from mvt.android.parsers.backup import (AndroidBackupParsingError,
                                         parse_tar_for_sms)
@@ -54,7 +55,7 @@ class SMS(AndroidExtraction):
 
         self.sms_db_type = 0
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         body = record["body"].replace("\n", "\\n")
         return {
             "timestamp": record["isodate"],

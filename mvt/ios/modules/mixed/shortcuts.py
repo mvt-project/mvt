@@ -8,6 +8,7 @@ import itertools
 import logging
 import plistlib
 import sqlite3
+from typing import Union
 
 from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
                               convert_timestamp_to_iso)
@@ -33,7 +34,7 @@ class Shortcuts(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         found_urls = ""
         if record["action_urls"]:
             found_urls = f"- URLs in actions: {', '.join(record['action_urls'])}"

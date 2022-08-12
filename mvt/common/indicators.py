@@ -6,6 +6,7 @@
 import json
 import logging
 import os
+from typing import Union
 
 from appdirs import user_data_dir
 
@@ -198,7 +199,7 @@ class Indicators:
         self._check_stix2_env_variable()
         self.log.info("Loaded a total of %d unique indicators", self.total_ioc_count)
 
-    def get_iocs(self, ioc_type: str) -> dict | None:
+    def get_iocs(self, ioc_type: str) -> Union[dict, None]:
         for ioc_collection in self.ioc_collections:
             for ioc in ioc_collection.get(ioc_type, []):
                 yield {
@@ -208,7 +209,7 @@ class Indicators:
                     "stix2_file_name": ioc_collection["stix2_file_name"],
                 }
 
-    def check_domain(self, url: str) -> dict | None:
+    def check_domain(self, url: str) -> Union[dict, None]:
         """Check if a given URL matches any of the provided domain indicators.
 
         :param url: URL to match against domain indicators
@@ -282,7 +283,7 @@ class Indicators:
 
         return None
 
-    def check_domains(self, urls: list) -> dict | None:
+    def check_domains(self, urls: list) -> Union[dict, None]:
         """Check a list of URLs against the provided list of domain indicators.
 
         :param urls: List of URLs to check against domain indicators
@@ -300,7 +301,7 @@ class Indicators:
 
         return None
 
-    def check_process(self, process: str) -> dict | None:
+    def check_process(self, process: str) -> Union[dict, None]:
         """Check the provided process name against the list of process
         indicators.
 
@@ -327,7 +328,7 @@ class Indicators:
 
         return None
 
-    def check_processes(self, processes: list) -> dict | None:
+    def check_processes(self, processes: list) -> Union[dict, None]:
         """Check the provided list of processes against the list of
         process indicators.
 
@@ -346,7 +347,7 @@ class Indicators:
 
         return None
 
-    def check_email(self, email: str) -> dict | None:
+    def check_email(self, email: str) -> Union[dict, None]:
         """Check the provided email against the list of email indicators.
 
         :param email: Email address to check against email indicators
@@ -365,7 +366,7 @@ class Indicators:
 
         return None
 
-    def check_file_name(self, file_name: str) -> dict | None:
+    def check_file_name(self, file_name: str) -> Union[dict, None]:
         """Check the provided file name against the list of file indicators.
 
         :param file_name: File name to check against file
@@ -385,7 +386,7 @@ class Indicators:
 
         return None
 
-    def check_file_path(self, file_path: str) -> dict | None:
+    def check_file_path(self, file_path: str) -> Union[dict, None]:
         """Check the provided file path against the list of file indicators (both path and name).
 
         :param file_path: File path or file name to check against file
@@ -410,7 +411,7 @@ class Indicators:
 
         return None
 
-    def check_profile(self, profile_uuid: str) -> dict | None:
+    def check_profile(self, profile_uuid: str) -> Union[dict, None]:
         """Check the provided configuration profile UUID against the list of indicators.
 
         :param profile_uuid: Profile UUID to check against configuration profile indicators
@@ -429,7 +430,7 @@ class Indicators:
 
         return None
 
-    def check_file_hash(self, file_hash: str) -> dict | None:
+    def check_file_hash(self, file_hash: str) -> Union[dict, None]:
         """Check the provided SHA256 file hash against the list of indicators.
 
         :param file_hash: SHA256 hash to check
@@ -448,7 +449,7 @@ class Indicators:
 
         return None
 
-    def check_app_id(self, app_id: str) -> dict | None:
+    def check_app_id(self, app_id: str) -> Union[dict, None]:
         """Check the provided app identifier (typically an Android package name)
         against the list of indicators.
 

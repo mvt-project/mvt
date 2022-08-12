@@ -5,6 +5,7 @@
 
 import logging
 import sqlite3
+from typing import Union
 
 from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
 
@@ -42,7 +43,7 @@ class InteractionC(IOSExtraction):
             "last_outgoing_recipient_date",
         ]
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         records = []
         processed = []
         for timestamp in self.timestamps:

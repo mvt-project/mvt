@@ -6,6 +6,7 @@
 import datetime
 import json
 import logging
+from typing import Union
 
 from mvt.common.utils import convert_timestamp_to_iso
 
@@ -27,7 +28,7 @@ class IOSVersionHistory(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,

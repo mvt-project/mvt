@@ -5,6 +5,7 @@
 
 import logging
 import plistlib
+from typing import Union
 
 from mvt.common.utils import convert_timestamp_to_iso
 
@@ -29,7 +30,7 @@ class OSAnalyticsADDaily(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         record_data = f"{record['package']} WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
                       f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
         return {

@@ -6,6 +6,7 @@
 import logging
 import sqlite3
 from base64 import b64encode
+from typing import Union
 
 from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
                               convert_timestamp_to_iso)
@@ -31,7 +32,7 @@ class SMS(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         text = record["text"].replace("\n", "\\n")
         return {
             "timestamp": record["isodate"],

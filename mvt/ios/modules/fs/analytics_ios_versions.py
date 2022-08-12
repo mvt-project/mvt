@@ -5,6 +5,7 @@
 
 import logging
 from datetime import datetime
+from typing import Union
 
 from mvt.ios.versions import find_version_by_build
 
@@ -25,7 +26,7 @@ class AnalyticsIOSVersions(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,

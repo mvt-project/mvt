@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+from typing import Union
 
 from rich.console import Console
 from rich.progress import track
@@ -78,7 +79,7 @@ class Packages(AndroidExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         records = []
 
         timestamps = [

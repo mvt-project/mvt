@@ -5,6 +5,7 @@
 
 import logging
 import re
+from typing import Union
 
 from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
                                               DANGEROUS_PERMISSIONS_THRESHOLD,
@@ -24,7 +25,7 @@ class Packages(BugReportModule):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         records = []
 
         timestamps = [

@@ -6,6 +6,7 @@
 import logging
 import os
 import sqlite3
+from typing import Union
 
 from ..base import IOSExtraction
 
@@ -20,7 +21,7 @@ class CacheFiles(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> dict | list:
+    def serialize(self, record: dict) -> Union[dict, list]:
         records = []
         for item in self.results[record]:
             records.append({
