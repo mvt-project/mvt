@@ -58,11 +58,13 @@ def version():
 @click.option("--destination", "-d", required=True,
               help="Path to the folder where to store the decrypted backup")
 @click.option("--password", "-p", cls=MutuallyExclusiveOption,
-              help=f"Password to use to decrypt the backup (or, set {MVT_IOS_BACKUP_PASSWORD} environment variable)",
+              help="Password to use to decrypt the backup (or, set "
+                   f"{MVT_IOS_BACKUP_PASSWORD} environment variable)",
               mutually_exclusive=["key_file"])
 @click.option("--key-file", "-k", cls=MutuallyExclusiveOption,
               type=click.Path(exists=True),
-              help="File containing raw encryption key to use to decrypt the backup",
+              help="File containing raw encryption key to use to decrypt "
+                   "the backup",
               mutually_exclusive=["password"])
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
@@ -71,20 +73,22 @@ def decrypt_backup(ctx, destination, password, key_file, backup_path):
 
     if key_file:
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
-            log.info("Ignoring %s environment variable, using --key-file '%s' instead",
-                     MVT_IOS_BACKUP_PASSWORD, key_file)
+            log.info("Ignoring %s environment variable, using --key-file"
+                     "'%s' instead", MVT_IOS_BACKUP_PASSWORD, key_file)
 
         backup.decrypt_with_key_file(key_file)
     elif password:
-        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+        log.info("Your password may be visible in the process table because it "
+                 "was supplied on the command line!")
 
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
-            log.info("Ignoring %s environment variable, using --password argument instead",
-                     MVT_IOS_BACKUP_PASSWORD)
+            log.info("Ignoring %s environment variable, using --password"
+                     "argument instead", MVT_IOS_BACKUP_PASSWORD)
 
         backup.decrypt_with_password(password)
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:
-        log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
+        log.info("Using password from %s environment variable",
+                  MVT_IOS_BACKUP_PASSWORD)
         backup.decrypt_with_password(os.environ[MVT_IOS_BACKUP_PASSWORD])
     else:
         sekrit = Prompt.ask("Enter backup password", password=True)
@@ -101,23 +105,27 @@ def decrypt_backup(ctx, destination, password, key_file, backup_path):
 #==============================================================================
 @cli.command("extract-key", help="Extract decryption key from an iTunes backup")
 @click.option("--password", "-p",
-              help=f"Password to use to decrypt the backup (or, set {MVT_IOS_BACKUP_PASSWORD} environment variable)")
+              help="Password to use to decrypt the backup (or, set "
+                   f"{MVT_IOS_BACKUP_PASSWORD} environment variable)")
 @click.option("--key-file", "-k",
               help="Key file to be written (if unset, will print to STDOUT)",
               required=False,
-              type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
+              type=click.Path(exists=False, file_okay=True, dir_okay=False,
+                              writable=True))
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def extract_key(password, key_file, backup_path):
     backup = DecryptBackup(backup_path)
 
     if password:
-        log.info("Your password may be visible in the process table because it was supplied on the command line!")
+        log.info("Your password may be visible in the process table because it "
+                 "was supplied on the command line!")
 
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
-            log.info("Ignoring %s environment variable, using --password argument instead",
-                     MVT_IOS_BACKUP_PASSWORD)
+            log.info("Ignoring %s environment variable, using --password "
+                     "argument instead", MVT_IOS_BACKUP_PASSWORD)
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:
-        log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
+        log.info("Using password from %s environment variable",
+                 MVT_IOS_BACKUP_PASSWORD)
         password = os.environ[MVT_IOS_BACKUP_PASSWORD]
     else:
         password = Prompt.ask("Enter backup password", password=True)
@@ -135,7 +143,8 @@ def extract_key(password, key_file, backup_path):
 @cli.command("check-backup", help="Extract artifacts from an iTunes backup")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--output", "-o", type=click.Path(exists=False),
+              help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
@@ -164,7 +173,8 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, backup_path):
 @cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--output", "-o", type=click.Path(exists=False),
+              help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)

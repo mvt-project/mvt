@@ -15,7 +15,8 @@ from mvt.common.module import (DatabaseCorruptedError, DatabaseNotFoundError,
 
 
 class IOSExtraction(MVTModule):
-    """This class provides a base for all iOS filesystem/backup extraction modules."""
+    """This class provides a base for all iOS filesystem/backup extraction
+    modules."""
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
@@ -52,12 +53,17 @@ class IOSExtraction(MVTModule):
             if not recover:
                 return
 
-        self.log.info("Database at path %s is malformed. Trying to recover...", file_path)
+        self.log.info("Database at path %s is malformed. Trying to recover...",
+                      file_path)
 
         if not shutil.which("sqlite3"):
-            raise DatabaseCorruptedError("failed to recover without sqlite3 binary: please install sqlite3!")
+            raise DatabaseCorruptedError("failed to recover without sqlite3 "
+                                         "binary: please install sqlite3!")
         if '"' in file_path:
-            raise DatabaseCorruptedError(f"database at path '{file_path}' is corrupted. unable to recover because it has a quotation mark (\") in its name")
+            raise DatabaseCorruptedError(f"database at path '{file_path}' is "
+                                         "corrupted. unable to recover because "
+                                         "it has a quotation mark (\") in its "
+                                         "name")
 
         bak_path = f"{file_path}.bak"
         shutil.move(file_path, bak_path)
@@ -72,8 +78,10 @@ class IOSExtraction(MVTModule):
     def _get_backup_files_from_manifest(self, relative_path=None, domain=None):
         """Locate files from Manifest.db.
 
-        :param relative_path: Relative path to use as filter from Manifest.db. (Default value = None)
-        :param domain: Domain to use as filter from Manifest.db. (Default value = None)
+        :param relative_path: Relative path to use as filter from Manifest.db.
+                              (Default value = None)
+        :param domain: Domain to use as filter from Manifest.db.
+                       (Default value = None)
 
         """
         manifest_db_path = os.path.join(self.target_path, "Manifest.db")
@@ -90,7 +98,8 @@ class IOSExtraction(MVTModule):
                             (relative_path, domain))
             else:
                 if relative_path:
-                    cur.execute(f"{base_sql} relativePath = ?;", (relative_path,))
+                    cur.execute(f"{base_sql} relativePath = ?;",
+                                (relative_path,))
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
         except Exception as e:
@@ -112,7 +121,8 @@ class IOSExtraction(MVTModule):
 
     def _get_fs_files_from_patterns(self, root_paths):
         for root_path in root_paths:
-            for found_path in glob.glob(os.path.join(self.target_path, root_path)):
+            for found_path in glob.glob(os.path.join(self.target_path,
+                                                     root_path)):
                 if not os.path.exists(found_path):
                     continue
 
@@ -126,7 +136,8 @@ class IOSExtraction(MVTModule):
         you should use the helper functions above.
 
         :param backup_id: iTunes backup database file's ID (or hash).
-        :param root_paths: Glob patterns for files to seek in filesystem dump. (Default value = [])
+        :param root_paths: Glob patterns for files to seek in filesystem dump.
+                           (Default value = [])
         :param backup_ids: Default value = None)
 
         """
@@ -155,6 +166,7 @@ class IOSExtraction(MVTModule):
         if file_path:
             self.file_path = file_path
         else:
-            raise DatabaseNotFoundError("unable to find the module's database file")
+            raise DatabaseNotFoundError("unable to find the module's "
+                                        "database file")
 
         self._recover_sqlite_db_if_needed(self.file_path)

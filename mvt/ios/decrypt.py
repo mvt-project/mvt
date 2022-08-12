@@ -59,7 +59,8 @@ class DecryptBackup:
         self._backup.getFileDecryptedCopy(manifestEntry=item,
                                           targetName=file_id,
                                           targetFolder=item_folder)
-        log.info("Decrypted file %s [%s] to %s/%s", relative_path, domain, item_folder, file_id)
+        log.info("Decrypted file %s [%s] to %s/%s", relative_path, domain,
+                 item_folder, file_id)
 
     def process_backup(self) -> None:
         if not os.path.exists(self.dest_path):
@@ -79,8 +80,10 @@ class DecryptBackup:
                 relative_path = item["relativePath"]
                 domain = item["domain"]
 
-                # This may be a partial backup. Skip files from the manifest which do not exist locally.
-                source_file_path = os.path.join(self.backup_path, file_id[0:2], file_id)
+                # This may be a partial backup. Skip files from the manifest
+                # which do not exist locally.
+                source_file_path = os.path.join(self.backup_path, file_id[0:2],
+                                                file_id)
                 if not os.path.exists(source_file_path):
                     log.debug("Skipping file %s. File not found in encrypted backup directory.",
                               source_file_path)
@@ -128,7 +131,8 @@ class DecryptBackup:
                             self.backup_path, newpath)
                 self.backup_path = newpath
             elif len(possible) > 1:
-                log.critical("No Manifest.plist in %s, and %d Manifest.plist files in subdirs. Please choose one!",
+                log.critical("No Manifest.plist in %s, and %d Manifest.plist "
+                             "files in subdirs. Please choose one!",
                              self.backup_path, len(possible))
                 return
 
@@ -143,12 +147,16 @@ class DecryptBackup:
         except Exception as e:
             if isinstance(e, KeyError) and len(e.args) > 0 and e.args[0] == b"KEY":
                 log.critical("Failed to decrypt backup. Password is probably wrong.")
-            elif isinstance(e, FileNotFoundError) and os.path.basename(e.filename) == "Manifest.plist":
-                log.critical("Failed to find a valid backup at %s. Did you point to the right backup path?",
+            elif (isinstance(e, FileNotFoundError)
+                    and os.path.basename(e.filename) == "Manifest.plist"):
+                log.critical("Failed to find a valid backup at %s. "
+                             "Did you point to the right backup path?",
                              self.backup_path)
             else:
                 log.exception(e)
-                log.critical("Failed to decrypt backup. Did you provide the correct password? Did you point to the right backup path?")
+                log.critical("Failed to decrypt backup. Did you provide the "
+                             "correct password? Did you point to the right "
+                             "backup path?")
 
     def decrypt_with_key_file(self, key_file: str) -> None:
         """Decrypts an encrypted iOS backup using a key file.
@@ -168,7 +176,8 @@ class DecryptBackup:
 
         # Key should be 64 hex encoded characters (32 raw bytes)
         if len(key_bytes) != 64:
-            log.critical("Invalid key from key file. Did you provide the correct key file?")
+            log.critical("Invalid key from key file. Did you provide the "
+                         "correct key file?")
             return
 
         try:
@@ -178,7 +187,8 @@ class DecryptBackup:
                                      backuproot=os.path.dirname(self.backup_path))
         except Exception as e:
             log.exception(e)
-            log.critical("Failed to decrypt backup. Did you provide the correct key file?")
+            log.critical("Failed to decrypt backup. Did you provide the "
+                         "correct key file?")
 
     def get_key(self) -> None:
         """Retrieve and prints the encryption key."""
@@ -192,7 +202,8 @@ class DecryptBackup:
     def write_key(self, key_path: str) -> None:
         """Save extracted key to file.
 
-        :param key_path: Path to the file where to write the derived decryption key.
+        :param key_path: Path to the file where to write the derived decryption
+                         key.
 
         """
         if not self._decryption_key:
@@ -206,5 +217,6 @@ class DecryptBackup:
             log.critical("Failed to write key to file: %s", key_path)
             return
         else:
-            log.info("Wrote decryption key to file: %s. This file is equivalent to a plaintext password. Keep it safe!",
+            log.info("Wrote decryption key to file: %s. This file is "
+                     "equivalent to a plaintext password. Keep it safe!",
                      key_path)
