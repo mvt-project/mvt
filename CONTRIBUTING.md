@@ -14,6 +14,6 @@ When contributing code to
 
 - **Indentation**: we use 4-spaces tabs.
 
-- **Quotes**: we use double quotes (`"`) as a default. Single quotes (`'`) can be favored with nested strings instead of escaping (`\"`), or e.g. using using f-formatting.
+- **Quotes**: we use double quotes (`"`) as a default. Single quotes (`'`) can be favored with nested strings instead of escaping (`\"`), or when using f-formatting.
 
 - **Maximum line length**: we strongly encourage to respect a 80 characters long lines and to follow [PEP8 indentation guidelines](https://peps.python.org/pep-0008/#indentation) when having to wrap. However, if breaking at 80 is not possible or is detrimental to the readability of the code, exceptions are tolerated so long as they remain within a hard maximum length of 100 characters.
