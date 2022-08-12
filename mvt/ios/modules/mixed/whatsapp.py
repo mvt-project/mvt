@@ -30,7 +30,7 @@ class Whatsapp(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         text = record.get("ZTEXT", "").replace("\n", "\\n")
         links_text = ""
         if record["links"]:

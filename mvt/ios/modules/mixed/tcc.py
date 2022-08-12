@@ -56,18 +56,21 @@ class TCC(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         if "last_modified" in record:
             if "allowed_value" in record:
                 msg = f"Access to {record['service']} by {record['client']} {record['allowed_value']}"
             else:
                 msg = f"Access to {record['service']} by {record['client']} {record['auth_value']}"
+
             return {
                 "timestamp": record["last_modified"],
                 "module": self.__class__.__name__,
                 "event": "AccessRequest",
                 "data": msg
             }
+
+        return {}
 
     def check_indicators(self) -> None:
         if not self.indicators:

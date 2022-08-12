@@ -35,11 +35,12 @@ def virustotal_lookup(file_hash: str):
     if res.status_code == 200:
         report = res.json()
         return report["data"]
-    elif res.status_code == 404:
+
+    if res.status_code == 404:
         log.info("Could not find results for file with hash %s", file_hash)
     elif res.status_code == 429:
         raise VTQuotaExceeded("You have exceeded the quota for your VirusTotal API key")
     else:
-        raise Exception("Unexpected response from VirusTotal: %s", res.status_code)
+        raise Exception(f"Unexpected response from VirusTotal: {res.status_code}")
 
     return None

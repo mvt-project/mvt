@@ -42,27 +42,27 @@ class InteractionC(IOSExtraction):
             "last_outgoing_recipient_date",
         ]
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         records = []
         processed = []
-        for ts in self.timestamps:
+        for timestamp in self.timestamps:
             # Check if the record has the current timestamp.
-            if ts not in record or not record[ts]:
+            if timestamp not in record or not record[timestamp]:
                 continue
 
             # Check if the timestamp was already processed.
-            if record[ts] in processed:
+            if record[timestamp] in processed:
                 continue
 
             records.append({
-                "timestamp": record[ts],
+                "timestamp": record[timestamp],
                 "module": self.__class__.__name__,
-                "event": ts,
+                "event": timestamp,
                 "data": f"[{record['bundle_id']}] {record['account']} - from {record['sender_display_name']} "
                         f"({record['sender_identifier']}) to {record['recipient_display_name']} "
                         f"({record['recipient_identifier']}): {record['content']}"
             })
-            processed.append(record[ts])
+            processed.append(record[timestamp])
 
         return records
 

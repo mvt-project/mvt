@@ -94,7 +94,7 @@ class IOSExtraction(MVTModule):
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
         except Exception as e:
-            raise DatabaseCorruptedError("failed to query Manifest.db: %s", e)
+            raise DatabaseCorruptedError(f"failed to query Manifest.db: {e}")
 
         for row in cur:
             yield {

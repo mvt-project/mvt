@@ -25,7 +25,7 @@ class AnalyticsIOSVersions(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -45,25 +45,25 @@ class AnalyticsIOSVersions(IOSExtraction):
             if not build:
                 continue
 
-            ts = result.get("isodate", None)
-            if not ts:
+            isodate = result.get("isodate", None)
+            if not isodate:
                 continue
 
             if build not in builds.keys():
-                builds[build] = ts
+                builds[build] = isodate
                 continue
 
-            result_dt = datetime.strptime(ts, dt_format)
+            result_dt = datetime.strptime(isodate, dt_format)
             cur_dt = datetime.strptime(builds[build], dt_format)
 
             if result_dt < cur_dt:
-                builds[build] = ts
+                builds[build] = isodate
 
-        for build, ts in builds.items():
+        for build, isodate in builds.items():
             version = find_version_by_build(build)
 
             self.results.append({
-                "isodate": ts,
+                "isodate": isodate,
                 "build": build,
                 "version": version,
             })

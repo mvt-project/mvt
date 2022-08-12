@@ -26,7 +26,7 @@ class Whatsapp(AndroidExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         text = record["data"].replace("\n", "\\n")
         return {
             "timestamp": record["isodate"],
@@ -74,8 +74,9 @@ class Whatsapp(AndroidExtraction):
 
             # If we find links in the messages or if they are empty we add them to the list.
             if check_for_links(message["data"]) or message["data"].strip() == "":
-                if (message.get('thumb_image') is not None):
+                if message.get('thumb_image'):
                     message['thumb_image'] = base64.b64encode(message['thumb_image'])
+
                 messages.append(message)
 
         cur.close()

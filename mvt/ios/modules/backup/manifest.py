@@ -46,23 +46,24 @@ class Manifest(IOSExtraction):
         """
         if isinstance(timestamp_or_unix_time_int, datetime.datetime):
             return convert_timestamp_to_iso(timestamp_or_unix_time_int)
-        else:
-            timestamp = datetime.datetime.utcfromtimestamp(timestamp_or_unix_time_int)
-            return convert_timestamp_to_iso(timestamp)
 
-    def serialize(self, record: dict) -> None:
+        timestamp = datetime.datetime.utcfromtimestamp(timestamp_or_unix_time_int)
+        return convert_timestamp_to_iso(timestamp)
+
+    def serialize(self, record: dict) -> []:
         records = []
         if "modified" not in record or "status_changed" not in record:
-            return
-        for ts in set([record["created"], record["modified"], record["status_changed"]]):
+            return records
+
+        for timestamp in set([record["created"], record["modified"], record["status_changed"]]):
             macb = ""
-            macb += "M" if ts == record["modified"] else "-"
+            macb += "M" if timestamp == record["modified"] else "-"
             macb += "-"
-            macb += "C" if ts == record["status_changed"] else "-"
-            macb += "B" if ts == record["created"] else "-"
+            macb += "C" if timestamp == record["status_changed"] else "-"
+            macb += "B" if timestamp == record["created"] else "-"
 
             records.append({
-                "timestamp": ts,
+                "timestamp": timestamp,
                 "module": self.__class__.__name__,
                 "event": macb,
                 "data": f"{record['relative_path']} - {record['domain']}"
@@ -136,7 +137,6 @@ class Manifest(IOSExtraction):
                 except Exception:
                     self.log.exception("Error reading manifest file metadata for file with ID %s and relative path %s",
                                        file_data["fileID"], file_data["relativePath"])
-                    pass
 
             self.results.append(cleaned_metadata)
 

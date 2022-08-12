@@ -55,7 +55,7 @@ class IndicatorsUpdates:
         if not os.path.exists(self.latest_check_path):
             return 0
 
-        with open(self.latest_check_path, "r") as handle:
+        with open(self.latest_check_path, "r", encoding="utf-8") as handle:
             data = handle.read().strip()
             if data:
                 return int(data)
@@ -64,14 +64,14 @@ class IndicatorsUpdates:
 
     def set_latest_check(self) -> None:
         timestamp = int(datetime.utcnow().timestamp())
-        with open(self.latest_check_path, "w") as handle:
+        with open(self.latest_check_path, "w", encoding="utf-8") as handle:
             handle.write(str(timestamp))
 
     def get_latest_update(self) -> int:
         if not os.path.exists(self.latest_update_path):
             return 0
 
-        with open(self.latest_update_path, "r") as handle:
+        with open(self.latest_update_path, "r", encoding="utf-8") as handle:
             data = handle.read().strip()
             if data:
                 return int(data)
@@ -80,7 +80,7 @@ class IndicatorsUpdates:
 
     def set_latest_update(self) -> None:
         timestamp = int(datetime.utcnow().timestamp())
-        with open(self.latest_update_path, "w") as handle:
+        with open(self.latest_update_path, "w", encoding="utf-8") as handle:
             handle.write(str(timestamp))
 
     def get_remote_index(self) -> dict:
@@ -145,23 +145,25 @@ class IndicatorsUpdates:
         self.set_latest_update()
 
     def _get_remote_file_latest_commit(self, owner: str, repo: str,
-                                       branch: str, path: str) -> bool:
-        file_commit_url = f"https://api.github.com/repos/{self.index_owner}/{self.index_repo}/commits?path={self.index_path}"
+                                       branch: str, path: str) -> int:
+        # TODO: The branch is currently not taken into consideration.
+        #       How do we specify which branch to look up to the API?
+        file_commit_url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}"
         res = requests.get(file_commit_url)
         if res.status_code != 200:
             log.error("Failed to get details about file %s (error %d)",
                       file_commit_url, res.status_code)
-            return False
+            return -1
 
         details = res.json()
         if len(details) == 0:
-            return False
+            return -1
 
         latest_commit = details[0]
         latest_commit_date = latest_commit.get("commit", {}).get("author", {}).get("date", None)
         if not latest_commit_date:
             log.error("Failed to retrieve date of latest update to indicators index file")
-            return False
+            return -1
 
         latest_commit_dt = datetime.strptime(latest_commit_date, '%Y-%m-%dT%H:%M:%SZ')
         latest_commit_ts = int(latest_commit_dt.timestamp())

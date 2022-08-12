@@ -70,7 +70,7 @@ class Settings(AndroidExtraction):
         self.results = {} if not results else results
 
     def check_indicators(self) -> None:
-        for namespace, settings in self.results.items():
+        for _, settings in self.results.items():
             for key, value in settings.items():
                 for danger in ANDROID_DANGEROUS_SETTINGS:
                     # Check if one of the dangerous settings is using an unsafe

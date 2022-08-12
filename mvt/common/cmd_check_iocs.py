@@ -13,15 +13,14 @@ log = logging.getLogger(__name__)
 
 class CmdCheckIOCS(Command):
 
-    name = "check-iocs"
-    modules = []
-
     def __init__(self, target_path: str = None, results_path: str = None,
                  ioc_files: list = [], module_name: str = None, serial: str = None,
                  fast_mode: bool = False):
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)
+
+        self.name = "check-iocs"
 
     def run(self) -> None:
         all_modules = []
@@ -33,7 +32,7 @@ class CmdCheckIOCS(Command):
 
         total_detections = 0
         for file_name in os.listdir(self.target_path):
-            name_only, ext = os.path.splitext(file_name)
+            name_only, _ = os.path.splitext(file_name)
             file_path = os.path.join(self.target_path, file_name)
 
             for iocs_module in all_modules:

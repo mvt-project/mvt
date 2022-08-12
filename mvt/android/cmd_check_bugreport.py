@@ -18,15 +18,15 @@ log = logging.getLogger(__name__)
 
 class CmdAndroidCheckBugreport(Command):
 
-    name = "check-bugreport"
-    modules = BUGREPORT_MODULES
-
     def __init__(self, target_path: str = None, results_path: str = None,
                  ioc_files: list = [], module_name: str = None, serial: str = None,
                  fast_mode: bool = False):
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)
+
+        self.name = "check-bugreport"
+        self.modules = BUGREPORT_MODULES
 
         self.bugreport_format = None
         self.bugreport_archive = None
@@ -41,7 +41,7 @@ class CmdAndroidCheckBugreport(Command):
         elif os.path.isdir(self.target_path):
             self.bugreport_format = "dir"
             parent_path = Path(self.target_path).absolute().as_posix()
-            for root, subdirs, subfiles in os.walk(os.path.abspath(self.target_path)):
+            for root, _, subfiles in os.walk(os.path.abspath(self.target_path)):
                 for file_name in subfiles:
                     self.bugreport_files.append(os.path.relpath(os.path.join(root, file_name), parent_path))
 

@@ -34,7 +34,7 @@ class SafariBrowserState(IOSExtraction):
 
         self._session_history_count = 0
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         return {
             "timestamp": record["last_viewed_timestamp"],
             "module": self.__class__.__name__,

@@ -33,13 +33,14 @@ class Shortcuts(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         found_urls = ""
         if record["action_urls"]:
-            found_urls = "- URLs in actions: {}".format(", ".join(record["action_urls"]))
+            found_urls = f"- URLs in actions: {', '.join(record['action_urls'])}"
+
         desc = ""
         if record["description"]:
-            desc = record["description"].decode('utf-8', errors='ignore')
+            desc = record["description"].decode("utf-8", errors="ignore")
 
         return [{
             "timestamp": record["isodate"],

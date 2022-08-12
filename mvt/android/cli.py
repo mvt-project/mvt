@@ -156,14 +156,13 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 # Command: check-backup
 #==============================================================================
 @cli.command("check-backup", help="Check an Android Backup")
-@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, serial, iocs, output, list_modules, backup_path):
+def check_backup(ctx, iocs, output, list_modules, backup_path):
     cmd = CmdAndroidCheckBackup(target_path=backup_path, results_path=output,
                                 ioc_files=iocs)
 

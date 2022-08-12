@@ -51,11 +51,11 @@ class Receivers(BugReportModule):
                     self.log.info("Found a receiver monitoring outgoing calls: \"%s\"",
                                   receiver["receiver"])
 
-            ioc = self.indicators.check_app_id(receiver["package_name"])
-            if ioc:
-                receiver["matched_indicator"] = ioc
-                self.detected.append({intent: receiver})
-                continue
+                ioc = self.indicators.check_app_id(receiver["package_name"])
+                if ioc:
+                    receiver["matched_indicator"] = ioc
+                    self.detected.append({intent: receiver})
+                    continue
 
     def run(self) -> None:
         content = self._get_dumpstate_file()

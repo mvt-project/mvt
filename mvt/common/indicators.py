@@ -74,6 +74,44 @@ class Indicators:
             ioc_coll["count"] += 1
             self.total_ioc_count += 1
 
+    def _process_indicator(self, indicator: dict, collection: dict) -> None:
+        key, value = indicator.get("pattern", "").strip("[]").split("=")
+
+        if key == "domain-name:value":
+            # We force domain names to lower case.
+            self._add_indicator(ioc=value.lower(),
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["domains"])
+        elif key == "process:name":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["processes"])
+        elif key == "email-addr:value":
+            # We force email addresses to lower case.
+            self._add_indicator(ioc=value.lower(),
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["emails"])
+        elif key == "file:name":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["file_names"])
+        elif key == "file:path":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["file_paths"])
+        elif key == "file:hashes.sha256":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["files_sha256"])
+        elif key == "app:id":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["app_ids"])
+        elif key == "configuration-profile:id":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["ios_profile_ids"])
+
     def parse_stix2(self, file_path: str) -> None:
         """Extract indicators from a STIX2 file.
 
@@ -132,47 +170,9 @@ class Indicators:
             # Now we look for the correct collection matching the malware ID we
             # got from the relationship.
             for collection in collections:
-                if collection["id"] != malware_id:
-                    continue
-
-                key, value = indicator.get("pattern", "").strip("[]").split("=")
-
-                if key == "domain-name:value":
-                    # We force domain names to lower case.
-                    self._add_indicator(ioc=value.lower(),
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["domains"])
-                elif key == "process:name":
-                    self._add_indicator(ioc=value,
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["processes"])
-                elif key == "email-addr:value":
-                    # We force email addresses to lower case.
-                    self._add_indicator(ioc=value.lower(),
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["emails"])
-                elif key == "file:name":
-                    self._add_indicator(ioc=value,
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["file_names"])
-                elif key == "file:path":
-                    self._add_indicator(ioc=value,
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["file_paths"])
-                elif key == "file:hashes.sha256":
-                    self._add_indicator(ioc=value,
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["files_sha256"])
-                elif key == "app:id":
-                    self._add_indicator(ioc=value,
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["app_ids"])
-                elif key == "configuration-profile:id":
-                    self._add_indicator(ioc=value,
-                                        ioc_coll=collection,
-                                        ioc_coll_list=collection["ios_profile_ids"])
-
-                break
+                if collection["id"] == malware_id:
+                    self._process_indicator(indicator, collection)
+                    break
 
         for coll in collections:
             self.log.info("Extracted %d indicators for collection with name \"%s\"",
@@ -198,7 +198,7 @@ class Indicators:
         self._check_stix2_env_variable()
         self.log.info("Loaded a total of %d unique indicators", self.total_ioc_count)
 
-    def get_iocs(self, ioc_type: str) -> dict:
+    def get_iocs(self, ioc_type: str) -> dict | None:
         for ioc_collection in self.ioc_collections:
             for ioc in ioc_collection.get(ioc_type, []):
                 yield {
@@ -208,7 +208,7 @@ class Indicators:
                     "stix2_file_name": ioc_collection["stix2_file_name"],
                 }
 
-    def check_domain(self, url: str) -> dict:
+    def check_domain(self, url: str) -> dict | None:
         """Check if a given URL matches any of the provided domain indicators.
 
         :param url: URL to match against domain indicators
@@ -280,7 +280,9 @@ class Indicators:
 
                 return ioc
 
-    def check_domains(self, urls: list) -> dict:
+        return None
+
+    def check_domains(self, urls: list) -> dict | None:
         """Check a list of URLs against the provided list of domain indicators.
 
         :param urls: List of URLs to check against domain indicators
@@ -296,7 +298,9 @@ class Indicators:
             if check:
                 return check
 
-    def check_process(self, process: str) -> dict:
+        return None
+
+    def check_process(self, process: str) -> dict | None:
         """Check the provided process name against the list of process
         indicators.
 
@@ -321,7 +325,9 @@ class Indicators:
                                      process, ioc["name"])
                     return ioc
 
-    def check_processes(self, processes: list) -> dict:
+        return None
+
+    def check_processes(self, processes: list) -> dict | None:
         """Check the provided list of processes against the list of
         process indicators.
 
@@ -338,7 +344,9 @@ class Indicators:
             if check:
                 return check
 
-    def check_email(self, email: str) -> dict:
+        return None
+
+    def check_email(self, email: str) -> dict | None:
         """Check the provided email against the list of email indicators.
 
         :param email: Email address to check against email indicators
@@ -355,7 +363,9 @@ class Indicators:
                                  email, ioc["name"])
                 return ioc
 
-    def check_file_name(self, file_name: str) -> dict:
+        return None
+
+    def check_file_name(self, file_name: str) -> dict | None:
         """Check the provided file name against the list of file indicators.
 
         :param file_name: File name to check against file
@@ -373,7 +383,9 @@ class Indicators:
                                  file_name, ioc["name"])
                 return ioc
 
-    def check_file_path(self, file_path: str) -> dict:
+        return None
+
+    def check_file_path(self, file_path: str) -> dict | None:
         """Check the provided file path against the list of file indicators (both path and name).
 
         :param file_path: File path or file name to check against file
@@ -396,7 +408,9 @@ class Indicators:
                                  file_path, ioc["name"])
                 return ioc
 
-    def check_profile(self, profile_uuid: str) -> dict:
+        return None
+
+    def check_profile(self, profile_uuid: str) -> dict | None:
         """Check the provided configuration profile UUID against the list of indicators.
 
         :param profile_uuid: Profile UUID to check against configuration profile indicators
@@ -413,7 +427,9 @@ class Indicators:
                                  profile_uuid, ioc["name"])
                 return ioc
 
-    def check_file_hash(self, file_hash: str) -> dict:
+        return None
+
+    def check_file_hash(self, file_hash: str) -> dict | None:
         """Check the provided SHA256 file hash against the list of indicators.
 
         :param file_hash: SHA256 hash to check
@@ -430,7 +446,9 @@ class Indicators:
                                  file_hash, ioc["name"])
                 return ioc
 
-    def check_app_id(self, app_id: str) -> dict:
+        return None
+
+    def check_app_id(self, app_id: str) -> dict | None:
         """Check the provided app identifier (typically an Android package name)
         against the list of indicators.
 
@@ -447,3 +465,5 @@ class Indicators:
                 self.log.warning("Found a known suspicious app with ID \"%s\" matching indicators from \"%s\"",
                                  app_id, ioc["name"])
                 return ioc
+
+        return None

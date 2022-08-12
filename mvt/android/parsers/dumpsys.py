@@ -213,14 +213,14 @@ def parse_dumpsys_dbinfo(output: str) -> list:
             matches = rxp_no_pid.findall(line)
             if not matches:
                 continue
-            else:
-                match = matches[0]
-                results.append({
-                    "isodate": match[0],
-                    "action": match[1],
-                    "sql": match[2],
-                    "path": pool,
-                })
+
+            match = matches[0]
+            results.append({
+                "isodate": match[0],
+                "action": match[1],
+                "sql": match[2],
+                "path": pool,
+            })
         else:
             match = matches[0]
             results.append({

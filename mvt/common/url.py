@@ -256,7 +256,7 @@ SHORTENER_DOMAINS = [
 class URL:
 
     def __init__(self, url: str) -> None:
-        if type(url) == bytes:
+        if isinstance(url, bytes):
             url = url.decode()
 
         self.url = url
@@ -315,3 +315,5 @@ class URL:
         res = requests.head(self.url)
         if str(res.status_code).startswith("30"):
             return res.headers["Location"]
+
+        return ""

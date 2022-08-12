@@ -24,7 +24,7 @@ class InsufficientPrivileges(Exception):
     pass
 
 
-class MVTModule(object):
+class MVTModule:
     """This class provides a base for all extraction modules."""
 
     enabled = True
@@ -106,7 +106,7 @@ class MVTModule(object):
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         raise NotImplementedError
 
     @staticmethod
@@ -126,7 +126,7 @@ class MVTModule(object):
         for result in self.results:
             record = self.serialize(result)
             if record:
-                if type(record) == list:
+                if isinstance(record, list):
                     self.timeline.extend(record)
                 else:
                     self.timeline.append(record)
@@ -134,7 +134,7 @@ class MVTModule(object):
         for detected in self.detected:
             record = self.serialize(detected)
             if record:
-                if type(record) == list:
+                if isinstance(record, list):
                     self.timeline_detected.extend(record)
                 else:
                     self.timeline_detected.append(record)
@@ -173,7 +173,6 @@ def run_module(module: Callable) -> None:
         except NotImplementedError:
             module.log.info("The %s module does not support checking for indicators",
                             module.__class__.__name__)
-            pass
         else:
             if module.indicators and not module.detected:
                 module.log.info("The %s module produced no detections!",

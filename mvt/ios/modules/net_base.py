@@ -81,7 +81,7 @@ class NetBase(IOSExtraction):
 
         self.log.info("Extracted information on %d processes", len(self.results))
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         record_data = f"{record['proc_name']} (Bundle ID: {record['bundle_id']}, ID: {record['proc_id']})"
         record_data_usage = record_data + f" WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
             f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
@@ -134,7 +134,7 @@ class NetBase(IOSExtraction):
             except PermissionError:
                 continue
 
-            files.append([posix_path.name, posix_path.__str__()])
+            files.append([posix_path.name, str(posix_path)])
 
         for proc in self.results:
             if not proc["bundle_id"]:
@@ -150,7 +150,7 @@ class NetBase(IOSExtraction):
                     self.log.debug("Located at %s", binary_path)
                 else:
                     msg = f"Could not find the binary associated with the process with name {proc['proc_name']}"
-                    if (proc["proc_name"] is None):
+                    if not proc["proc_name"]:
                         msg = f"Found process entry with empty 'proc_name': {proc['live_proc_id']} at {proc['live_isodate']}"
                     elif len(proc["proc_name"]) == 16:
                         msg = msg + " (However, the process name might have been truncated in the database)"
@@ -209,7 +209,7 @@ class NetBase(IOSExtraction):
             # Set default DataUsage keys.
             result = {key: None for key in self.results[0].keys()}
             result["first_isodate"] = result["isodate"] = result["live_isodate"] = proc["prev_proc_first"]
-            result["proc_name"] = "MISSING [follows {}]".format(proc["prev_proc_name"])
+            result["proc_name"] = f"MISSING [follows {proc['prev_proc_name']}]"
             result["proc_id"] = result["live_proc_id"] = proc["proc_id"]
             result["bundle_id"] = None
 

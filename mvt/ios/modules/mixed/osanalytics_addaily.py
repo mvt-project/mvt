@@ -29,7 +29,7 @@ class OSAnalyticsADDaily(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         record_data = f"{record['package']} WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
                       f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
         return {

@@ -52,7 +52,9 @@ class SMS(AndroidExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+        self.sms_db_type = 0
+
+    def serialize(self, record: dict) -> dict | list:
         body = record["body"].replace("\n", "\\n")
         return {
             "timestamp": record["isodate"],
@@ -83,9 +85,9 @@ class SMS(AndroidExtraction):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        if self.SMS_DB_TYPE == 1:
+        if self.sms_db_type == 1:
             cur.execute(SMS_BUGLE_QUERY)
-        elif self.SMS_DB_TYPE == 2:
+        elif self.sms_db_type == 2:
             cur.execute(SMS_MMSMS_QUERY)
 
         names = [description[0] for description in cur.description]
@@ -133,10 +135,10 @@ class SMS(AndroidExtraction):
     def run(self) -> None:
         try:
             if (self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH))):
-                self.SMS_DB_TYPE = 1
+                self.sms_db_type = 1
                 self._adb_process_file(os.path.join("/", SMS_BUGLE_PATH), self._parse_db)
             elif (self._adb_check_file_exists(os.path.join("/", SMS_MMSSMS_PATH))):
-                self.SMS_DB_TYPE = 2
+                self.sms_db_type = 2
                 self._adb_process_file(os.path.join("/", SMS_MMSSMS_PATH), self._parse_db)
             return
         except InsufficientPrivileges:

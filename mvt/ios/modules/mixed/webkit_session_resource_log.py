@@ -58,7 +58,7 @@ class WebkitSessionResourceLog(IOSExtraction):
         if not self.indicators:
             return
 
-        for key, entries in self.results.items():
+        for _, entries in self.results.items():
             for entry in entries:
                 source_domains = self._extract_domains(entry["redirect_source"])
                 destination_domains = self._extract_domains(entry["redirect_destination"])

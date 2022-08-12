@@ -26,9 +26,9 @@ class ConfigurationProfiles(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         if not record["install_date"]:
-            return
+            return {}
 
         payload_name = record['plist'].get('PayloadDisplayName')
         payload_description = record['plist'].get('PayloadDescription')
@@ -106,12 +106,12 @@ class ConfigurationProfiles(IOSExtraction):
                 conf_plist["LastPushTokenHash"] = b64encode(conf_plist["LastPushTokenHash"])
 
             if "PayloadContent" in conf_plist:
-                for x in range(len(conf_plist["PayloadContent"])):
-                    if "PERSISTENT_REF" in conf_plist["PayloadContent"][x]:
-                        conf_plist["PayloadContent"][x]["PERSISTENT_REF"] = b64encode(conf_plist["PayloadContent"][x]["PERSISTENT_REF"])
+                for content_entry in range(len(conf_plist["PayloadContent"])):
+                    if "PERSISTENT_REF" in conf_plist["PayloadContent"][content_entry]:
+                        conf_plist["PayloadContent"][content_entry]["PERSISTENT_REF"] = b64encode(conf_plist["PayloadContent"][content_entry]["PERSISTENT_REF"])
 
-                    if "IdentityPersistentRef" in conf_plist["PayloadContent"][x]:
-                        conf_plist["PayloadContent"][x]["IdentityPersistentRef"] = b64encode(conf_plist["PayloadContent"][x]["IdentityPersistentRef"])
+                    if "IdentityPersistentRef" in conf_plist["PayloadContent"][content_entry]:
+                        conf_plist["PayloadContent"][content_entry]["IdentityPersistentRef"] = b64encode(conf_plist["PayloadContent"][content_entry]["IdentityPersistentRef"])
 
             self.results.append({
                 "file_id": conf_file["file_id"],

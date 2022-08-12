@@ -49,7 +49,7 @@ def parse_ab_header(data):
         'encryption': "none", 'version': 4}
     """
     if data.startswith(b"ANDROID BACKUP"):
-        [magic_header, version, is_compressed, encryption, tar_data] = data.split(b"\n", 4)
+        [_, version, is_compressed, encryption, _] = data.split(b"\n", 4)
         return {
             "backup": True,
             "compression": (is_compressed == b"1"),
@@ -149,7 +149,7 @@ def parse_backup_file(data, password=None):
     if not data.startswith(b"ANDROID BACKUP"):
         raise AndroidBackupParsingError("Invalid file header")
 
-    [magic_header, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
+    [_, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
     version = int(version)
     is_compressed = int(is_compressed)
 
@@ -171,13 +171,14 @@ def parse_tar_for_sms(data):
     Returns an array of SMS
     """
     dbytes = io.BytesIO(data)
-    tar = tarfile.open(fileobj=dbytes)
+
     res = []
-    for member in tar.getmembers():
-        if member.name.startswith("apps/com.android.providers.telephony/d_f/") and \
-                (member.name.endswith("_sms_backup") or member.name.endswith("_mms_backup")):
-            dhandler = tar.extractfile(member)
-            res.extend(parse_sms_file(dhandler.read()))
+    with tarfile.open(fileobj=dbytes) as tar:
+        for member in tar.getmembers():
+            if member.name.startswith("apps/com.android.providers.telephony/d_f/") and \
+                    (member.name.endswith("_sms_backup") or member.name.endswith("_mms_backup")):
+                dhandler = tar.extractfile(member)
+                res.extend(parse_sms_file(dhandler.read()))
 
     return res
 
@@ -192,7 +193,7 @@ def parse_sms_file(data):
     json_data = json.loads(data)
 
     for entry in json_data:
-        # Adapt MMS format to SMS format
+        # Adapt MMS format to SMS format.
         if "mms_body" in entry:
             entry["body"] = entry["mms_body"]
             entry.pop("mms_body")

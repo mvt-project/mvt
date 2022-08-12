@@ -4,6 +4,7 @@
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
 
 import fnmatch
+import logging
 import os
 from zipfile import ZipFile
 
@@ -13,7 +14,18 @@ from mvt.common.module import MVTModule
 class BugReportModule(MVTModule):
     """This class provides a base for all Android Bug Report modules."""
 
-    zip_archive = None
+    def __init__(self, file_path: str = None, target_path: str = None,
+                 results_path: str = None, fast_mode: bool = False,
+                 log: logging.Logger = logging.getLogger(__name__),
+                 results: list = []) -> None:
+        super().__init__(file_path=file_path, target_path=target_path,
+                         results_path=results_path, fast_mode=fast_mode,
+                         log=log, results=results)
+
+        self.zip_archive = None
+        self.extract_path = None
+        self.extract_files = []
+        self.zip_files = []
 
     def from_folder(self, extract_path: str, extract_files: str) -> None:
         self.extract_path = extract_path

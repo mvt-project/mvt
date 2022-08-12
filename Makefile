@@ -11,3 +11,6 @@ upload:
 
 test-upload:
 	python3 -m twine upload --repository testpypi dist/*
+
+pylint:
+	pylint --rcfile=setup.cfg mvt

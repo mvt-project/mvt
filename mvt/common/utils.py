@@ -23,7 +23,7 @@ def convert_mactime_to_unix(timestamp, from_2001: bool = True):
 
     # This is to fix formats in case of, for example, SMS messages database
     # timestamp format.
-    if type(timestamp) == int and len(str(timestamp)) == 18:
+    if isinstance(timestamp, int) and len(str(timestamp)) == 18:
         timestamp = int(str(timestamp)[:9])
 
     # MacTime counts from 2001-01-01.
@@ -106,8 +106,8 @@ def keys_bytes_to_string(obj) -> str:
         if isinstance(obj, (tuple, list, set)):
             value = [keys_bytes_to_string(x) for x in obj]
             return value
-        else:
-            return obj
+
+        return obj
 
     for key, value in obj.items():
         if isinstance(key, bytes):

@@ -20,7 +20,7 @@ class CacheFiles(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-    def serialize(self, record: dict) -> None:
+    def serialize(self, record: dict) -> dict | list:
         records = []
         for item in self.results[record]:
             records.append({
@@ -74,7 +74,7 @@ class CacheFiles(IOSExtraction):
 
     def run(self) -> None:
         self.results = {}
-        for root, dirs, files in os.walk(self.target_path):
+        for root, _, files in os.walk(self.target_path):
             for file_name in files:
                 if file_name != "Cache.db":
                     continue
