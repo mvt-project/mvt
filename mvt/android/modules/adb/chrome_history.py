@@ -81,8 +81,12 @@ class ChromeHistory(AndroidExtraction):
                       len(self.results))
 
     def run(self) -> None:
+        self._adb_connect()
+
         try:
             self._adb_process_file(os.path.join("/", CHROME_HISTORY_PATH),
                                    self._parse_db)
         except Exception as exc:
             self.log.error(exc)
+
+        self._adb_disconnect()

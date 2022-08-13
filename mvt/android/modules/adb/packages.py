@@ -83,9 +83,18 @@ class Packages(AndroidExtraction):
         records = []
 
         timestamps = [
-            {"event": "package_install", "timestamp": record["timestamp"]},
-            {"event": "package_first_install", "timestamp": record["first_install_time"]},
-            {"event": "package_last_update", "timestamp": record["last_update_time"]},
+            {
+                "event": "package_install",
+                "timestamp": record["timestamp"]
+            },
+            {
+                "event": "package_first_install",
+                "timestamp": record["first_install_time"]
+            },
+            {
+                "event": "package_last_update",
+                "timestamp": record["last_update_time"]
+            },
         ]
 
         for timestamp in timestamps:
@@ -93,7 +102,8 @@ class Packages(AndroidExtraction):
                 "timestamp": timestamp["timestamp"],
                 "module": self.__class__.__name__,
                 "event": timestamp["event"],
-                "data": f"{record['package_name']} (system: {record['system']}, third party: {record['third_party']})",
+                "data": f"{record['package_name']} (system: {record['system']},"
+                        f" third party: {record['third_party']})",
             })
 
         return records
@@ -101,7 +111,8 @@ class Packages(AndroidExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning("Found an installed package related to rooting/jailbreaking: \"%s\"",
+                self.log.warning("Found an installed package related to "
+                                 "rooting/jailbreaking: \"%s\"",
                                  result["package_name"])
                 self.detected.append(result)
                 continue
@@ -132,7 +143,8 @@ class Packages(AndroidExtraction):
         total_hashes = len(hashes)
         detections = {}
 
-        for i in track(range(total_hashes), description=f"Looking up {total_hashes} files..."):
+        progress_desc = f"Looking up {total_hashes} files..."
+        for i in track(range(total_hashes), description=progress_desc):
             try:
                 results = virustotal_lookup(hashes[i])
             except VTNoKey:
@@ -303,8 +315,10 @@ class Packages(AndroidExtraction):
                     dangerous_permissions_count += 1
 
             if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
-                self.log.info("Third-party package \"%s\" requested %d potentially dangerous permissions",
-                              result["package_name"], dangerous_permissions_count)
+                self.log.info("Third-party package \"%s\" requested %d "
+                              "potentially dangerous permissions",
+                              result["package_name"],
+                              dangerous_permissions_count)
 
         packages_to_lookup = []
         for result in self.results:
@@ -312,8 +326,9 @@ class Packages(AndroidExtraction):
                 continue
 
             packages_to_lookup.append(result)
-            self.log.info("Found non-system package with name \"%s\" installed by \"%s\" on %s",
-                          result["package_name"], result["installer"], result["timestamp"])
+            self.log.info("Found non-system package with name \"%s\" installed "
+                          "by \"%s\" on %s", result["package_name"],
+                          result["installer"], result["timestamp"])
 
         if not self.fast_mode:
             self.check_virustotal(packages_to_lookup)

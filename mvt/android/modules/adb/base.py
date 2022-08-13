@@ -164,8 +164,6 @@ class AndroidExtraction(MVTModule):
 
         # TODO: Need to support checking files without root privileges as well.
 
-        # Connect to the device over adb.
-        self._adb_connect()
         # Check if we have root, if not raise an Exception.
         self._adb_root_or_die()
 
@@ -236,7 +234,6 @@ class AndroidExtraction(MVTModule):
 
         """
         # Connect to the device over adb.
-        self._adb_connect()
         # Check if we have root, if not raise an Exception.
         self._adb_root_or_die()
 
@@ -263,8 +260,6 @@ class AndroidExtraction(MVTModule):
         tmp.close()
         # Delete the copy on /sdcard/.
         self._adb_command(f"rm -f {new_remote_path}")
-        # Disconnect from the device.
-        self._adb_disconnect()
 
     def _generate_backup(self, package_name: str) -> bytes:
         self.log.warning("Please check phone and accept Android backup prompt. "

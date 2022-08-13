@@ -136,6 +136,8 @@ class SMS(AndroidExtraction):
                       len(self.results))
 
     def run(self) -> None:
+        self._adb_connect()
+
         try:
             if self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH)):
                 self.sms_db_type = 1
@@ -145,6 +147,8 @@ class SMS(AndroidExtraction):
                 self.sms_db_type = 2
                 self._adb_process_file(os.path.join("/", SMS_MMSSMS_PATH),
                                        self._parse_db)
+
+            self._adb_disconnect()
             return
         except InsufficientPrivileges:
             pass
@@ -152,3 +156,5 @@ class SMS(AndroidExtraction):
         self.log.warn("No SMS database found. Trying extraction of SMS data "
                       "using Android backup feature.")
         self._extract_sms_adb()
+
+        self._adb_disconnect()
