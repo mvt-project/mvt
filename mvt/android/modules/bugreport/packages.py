@@ -184,7 +184,8 @@ class Packages(BugReportModule):
                     dangerous_permissions_count += 1
 
             if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
-                self.log.info("Found package \"%s\" requested %d potentially dangerous permissions",
-                              result["package_name"], dangerous_permissions_count)
+                self.log.info("Found package \"%s\" requested %d potentially "
+                              "dangerous permissions", result["package_name"],
+                              dangerous_permissions_count)
 
         self.log.info("Extracted details on %d packages", len(self.results))

@@ -77,7 +77,8 @@ class Files(AndroidExtraction):
             output = self._adb_command(f"find '{folder}' -type f -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
 
             for file_line in output.splitlines():
-                [unix_timestamp, mode, size, owner, group, full_path] = file_line.rstrip().split(" ", 5)
+                [unix_timestamp, mode, size,
+                 owner, group, full_path] = file_line.rstrip().split(" ", 5)
                 mod_time = convert_unix_to_iso(unix_timestamp)
 
                 self.results.append({
@@ -98,7 +99,8 @@ class Files(AndroidExtraction):
     def run(self) -> None:
         self._adb_connect()
 
-        output = self._adb_command("find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
+        cmd = "find '/' -maxdepth 1 -printf '%T@ %m %s %u %g %p\n' 2> /dev/null"
+        output = self._adb_command(cmd)
         if output or output.strip().splitlines():
             self.full_find = True
 
