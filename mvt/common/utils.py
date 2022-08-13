@@ -9,36 +9,6 @@ import re
 from typing import Union
 
 
-def convert_mactime_to_datetime(timestamp: Union[int, float],
-                                from_2001: bool = True):
-    """Converts Mac Standard Time to a datetime.
-
-    :param timestamp: MacTime timestamp (either int or float).
-    :type timestamp: int
-    :param from_2001: bool: Whether to (Default value = True)
-    :param from_2001: Default value = True)
-    :returns: datetime.
-
-    """
-    if not timestamp:
-        return None
-
-    # This is to fix formats in case of, for example, SMS messages database
-    # timestamp format.
-    if isinstance(timestamp, int) and len(str(timestamp)) == 18:
-        timestamp = int(str(timestamp)[:9])
-
-    # MacTime counts from 2001-01-01.
-    if from_2001:
-        timestamp = timestamp + 978307200
-
-    # TODO: This is rather ugly. Happens sometimes with invalid timestamps.
-    try:
-        return datetime.datetime.utcfromtimestamp(timestamp)
-    except Exception:
-        return None
-
-
 def convert_chrometime_to_datetime(timestamp: int) -> int:
     """Converts Chrome timestamp to a datetime.
 
@@ -67,6 +37,17 @@ def convert_datetime_to_iso(datetime: datetime.datetime) -> str:
         return ""
 
 
+def convert_unix_to_utc_datetime(timestamp: int) -> datetime.datetime:
+    """Converts a unix epoch timestamp to UTC datetime.
+
+    :param timestamp: Epoc timestamp to convert.
+    :type timestamp: int
+    :returns: datetime.
+
+    """
+    return datetime.datetime.utcfromtimestamp(int(timestamp))
+
+
 def convert_unix_to_iso(timestamp: int) -> str:
     """Converts a unix epoch to ISO string.
 
@@ -77,9 +58,39 @@ def convert_unix_to_iso(timestamp: int) -> str:
 
     """
     try:
-        return convert_datetime_to_iso(datetime.datetime.utcfromtimestamp(int(timestamp)))
+        return convert_datetime_to_iso(convert_unix_to_utc_datetime(timestamp))
     except Exception:
         return ""
+
+
+def convert_mactime_to_datetime(timestamp: Union[int, float],
+                                from_2001: bool = True):
+    """Converts Mac Standard Time to a datetime.
+
+    :param timestamp: MacTime timestamp (either int or float).
+    :type timestamp: int
+    :param from_2001: bool: Whether to (Default value = True)
+    :param from_2001: Default value = True)
+    :returns: datetime.
+
+    """
+    if not timestamp:
+        return None
+
+    # This is to fix formats in case of, for example, SMS messages database
+    # timestamp format.
+    if isinstance(timestamp, int) and len(str(timestamp)) == 18:
+        timestamp = int(str(timestamp)[:9])
+
+    # MacTime counts from 2001-01-01.
+    if from_2001:
+        timestamp = timestamp + 978307200
+
+    # TODO: This is rather ugly. Happens sometimes with invalid timestamps.
+    try:
+        return convert_unix_to_utc_datetime(timestamp)
+    except Exception:
+        return None
 
 
 def convert_mactime_to_iso(timestamp: int, from_2001: bool = True):

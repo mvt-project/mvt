@@ -5,7 +5,6 @@
 
 import logging
 import sqlite3
-from datetime import datetime
 from typing import Union
 
 from mvt.common.utils import convert_unix_to_iso

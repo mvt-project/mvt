@@ -3,12 +3,11 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import datetime
 import logging
 import os
 import sqlite3
 
-from mvt.common.utils import convert_datetime_to_iso
+from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -72,11 +71,12 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 "registrable_domain": row[1],
                 "last_seen": row[2],
                 "had_user_interaction": bool(row[3]),
-                "last_seen_isodate": convert_datetime_to_iso(datetime.datetime.utcfromtimestamp(int(row[2]))),
+                "last_seen_isodate": convert_unix_to_iso(row[2]),
             })
 
         if len(self.results[key]) > 0:
-            self.log.info("Extracted a total of %d records from %s", len(self.results[key]), db_path)
+            self.log.info("Extracted a total of %d records from %s",
+                          len(self.results[key]), db_path)
 
     def run(self) -> None:
         if self.is_backup:
@@ -87,9 +87,8 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                     if db_path:
                         self._process_observations_db(db_path=db_path, key=key)
             except Exception as exc:
-                self.log.info("Unable to search for WebKit observations.db: %s",
-                              exc)
+                self.log.info("Unable to find WebKit observations.db: %s", exc)
         elif self.is_fs_dump:
             for db_path in self._get_fs_files_from_patterns(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
-                self._process_observations_db(db_path=db_path,
-                                              key=os.path.relpath(db_path, self.target_path))
+                db_rel_path = os.path.relpath(db_path, self.target_path)
+                self._process_observations_db(db_path=db_path, key=db_rel_path)
