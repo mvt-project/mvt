@@ -59,7 +59,8 @@ class Command:
 
         file_handler = logging.FileHandler(os.path.join(self.results_path,
                                                         "command.log"))
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter("%(asctime)s - %(name)s - "
+                                      "%(levelname)s - %(message)s")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
@@ -120,12 +121,12 @@ class Command:
                             with open(file_path, "rb") as handle:
                                 sha256.update(handle.read())
                         except FileNotFoundError:
-                            self.log.error("Failed to hash the file %s: might be a symlink",
-                                           file_path)
+                            self.log.error("Failed to hash the file %s: might "
+                                           "be a symlink", file_path)
                             continue
                         except PermissionError:
-                            self.log.error("Failed to hash the file %s: permission denied",
-                                           file_path)
+                            self.log.error("Failed to hash the file %s: "
+                                           "permission denied", file_path)
                             continue
 
                         info["hashes"].append({

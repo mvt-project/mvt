@@ -158,8 +158,8 @@ def run_module(module: Callable) -> None:
     try:
         module.run()
     except NotImplementedError:
-        module.log.exception("The run() procedure of module %s was not implemented yet!",
-                             module.__class__.__name__)
+        module.log.exception("The run() procedure of module %s was not "
+                             "implemented yet!", module.__class__.__name__)
     except InsufficientPrivileges as exc:
         module.log.info("Insufficient privileges for module %s: %s",
                         module.__class__.__name__, exc)
@@ -176,8 +176,8 @@ def run_module(module: Callable) -> None:
         try:
             module.check_indicators()
         except NotImplementedError:
-            module.log.info("The %s module does not support checking for indicators",
-                            module.__class__.__name__)
+            module.log.info("The %s module does not support checking for "
+                            "indicators", module.__class__.__name__)
         else:
             if module.indicators and not module.detected:
                 module.log.info("The %s module produced no detections!",

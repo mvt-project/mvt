@@ -47,8 +47,8 @@ class Indicators:
             if os.path.isfile(path):
                 self.parse_stix2(path)
             else:
-                self.log.error("Path specified with env MVT_STIX2 is not a valid file: %s",
-                               path)
+                self.log.error("Path specified with env MVT_STIX2 is not "
+                               "a valid file: %s", path)
 
     def _new_collection(self, cid: str = "", name: str = "",
                         description: str = "", file_name: str = "",
@@ -130,7 +130,8 @@ class Indicators:
                 data = json.load(handle)
             except json.decoder.JSONDecodeError:
                 self.log.critical("Unable to parse STIX2 indicator file. "
-                                  "The file is corrupted or in the wrong format!")
+                                  "The file is corrupted or in the wrong "
+                                  "format!")
                 return
 
         malware = {}
@@ -264,14 +265,16 @@ class Indicators:
             # If nothing matched, we can quit here.
             return None
 
-        # If all parsing worked, we start walking through available domain indicators.
+        # If all parsing worked, we start walking through available domain
+        # indicators.
         for ioc in self.get_iocs("domains"):
             # First we check the full domain.
             if final_url.domain.lower() == ioc["value"]:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a known suspicious domain %s shortened as %s matching "
-                                     "indicators from \"%s\"",
-                                     final_url.url, orig_url.url, ioc["name"])
+                    self.log.warning("Found a known suspicious domain %s "
+                                     "shortened as %s matching indicators "
+                                     "from \"%s\"", final_url.url, orig_url.url,
+                                     ioc["name"])
                 else:
                     self.log.warning("Found a known suspicious domain %s "
                                      "matching indicators from \"%s\"",
@@ -282,12 +285,13 @@ class Indicators:
             # Then we just check the top level domain.
             if final_url.top_level.lower() == ioc["value"]:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a sub-domain with suspicious top level %s shortened "
-                                     "as %s matching indicators from \"%s\"",
-                                     final_url.url, orig_url.url, ioc["name"])
+                    self.log.warning("Found a sub-domain with suspicious top "
+                                     "level %s shortened as %s matching "
+                                     "indicators from \"%s\"", final_url.url,
+                                     orig_url.url, ioc["name"])
                 else:
-                    self.log.warning("Found a sub-domain with a suspicious top level %s matching "
-                                     "indicators from \"%s\"",
+                    self.log.warning("Found a sub-domain with a suspicious top "
+                                     "level %s matching indicators from \"%s\"",
                                      final_url.url, ioc["name"])
 
                 return ioc
@@ -334,9 +338,9 @@ class Indicators:
 
             if len(proc_name) == 16:
                 if ioc["value"].startswith(proc_name):
-                    self.log.warning("Found a truncated known suspicious process name \"%s\" "
-                                     "matching indicators from \"%s\"",
-                                     process, ioc["name"])
+                    self.log.warning("Found a truncated known suspicious "
+                                     "process name \"%s\" matching indicators "
+                                     "from \"%s\"", process, ioc["name"])
                     return ioc
 
         return None
@@ -464,8 +468,8 @@ class Indicators:
 
         for ioc in self.get_iocs("files_sha256"):
             if file_hash.lower() == ioc["value"].lower():
-                self.log.warning("Found a known suspicious file with hash \"%s\" matching "
-                                 "indicators from \"%s\"",
+                self.log.warning("Found a known suspicious file with hash "
+                                 "\"%s\" matching indicators from \"%s\"",
                                  file_hash, ioc["name"])
                 return ioc
 
@@ -485,9 +489,9 @@ class Indicators:
 
         for ioc in self.get_iocs("app_ids"):
             if app_id.lower() == ioc["value"].lower():
-                self.log.warning("Found a known suspicious app with ID \"%s\" matching "
-                                 "indicators from \"%s\"",
-                                 app_id, ioc["name"])
+                self.log.warning("Found a known suspicious app with ID \"%s\" "
+                                 "matching indicators from \"%s\"", app_id,
+                                 ioc["name"])
                 return ioc
 
         return None

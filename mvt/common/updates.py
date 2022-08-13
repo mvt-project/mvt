@@ -88,8 +88,8 @@ class IndicatorsUpdates:
                                          self.index_branch, self.index_path)
         res = requests.get(url)
         if res.status_code != 200:
-            log.error("Failed to retrieve indicators index located at %s (error %d)",
-                      url, res.status_code)
+            log.error("Failed to retrieve indicators index located at %s "
+                      "(error %d)", url, res.status_code)
             return None
 
         return yaml.safe_load(res.content)
@@ -131,8 +131,8 @@ class IndicatorsUpdates:
                 ioc_url = ioc.get("download_url", "")
 
             if not ioc_url:
-                log.error("Could not find a way to download indicator file for %s",
-                          ioc.get("name"))
+                log.error("Could not find a way to download indicator file "
+                          "for %s", ioc.get("name"))
                 continue
 
             ioc_local_path = self.download_remote_ioc(ioc_url)
@@ -162,7 +162,8 @@ class IndicatorsUpdates:
         latest_commit = details[0]
         latest_commit_date = latest_commit.get("commit", {}).get("author", {}).get("date", None)
         if not latest_commit_date:
-            log.error("Failed to retrieve date of latest update to indicators index file")
+            log.error("Failed to retrieve date of latest update to indicators "
+                      "index file")
             return -1
 
         latest_commit_dt = datetime.strptime(latest_commit_date,
