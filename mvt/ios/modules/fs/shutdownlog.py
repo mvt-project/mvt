@@ -6,7 +6,7 @@
 import logging
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -31,7 +31,8 @@ class ShutdownLog(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "shutdown",
-            "data": f"Client {record['client']} with PID {record['pid']} was running when the device was shut down",
+            "data": f"Client {record['client']} with PID {record['pid']} "
+                     "was running when the device was shut down",
         }
 
     def check_indicators(self) -> None:
@@ -48,7 +49,8 @@ class ShutdownLog(IOSExtraction):
             for ioc in self.indicators.get_iocs("processes"):
                 parts = result["client"].split("/")
                 if ioc in parts:
-                    self.log.warning("Found mention of a known malicious process \"%s\" in shutdown.log",
+                    self.log.warning("Found mention of a known malicious "
+                                     "process \"%s\" in shutdown.log",
                                      ioc)
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
@@ -74,8 +76,7 @@ class ShutdownLog(IOSExtraction):
                     except Exception:
                         mac_timestamp = 0
 
-                timestamp = convert_mactime_to_unix(mac_timestamp, from_2001=False)
-                isodate = convert_timestamp_to_iso(timestamp)
+                isodate = convert_mactime_to_iso(mac_timestamp, from_2001=False)
 
                 for current_process in current_processes:
                     self.results.append({

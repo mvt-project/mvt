@@ -8,7 +8,7 @@ import json
 import logging
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -45,7 +45,7 @@ class IOSVersionHistory(IOSExtraction):
                                                        "%Y-%m-%d %H:%M:%S.%f %z")
                 timestamp_utc = timestamp.astimezone(datetime.timezone.utc)
                 self.results.append({
-                    "isodate": convert_timestamp_to_iso(timestamp_utc),
+                    "isodate": convert_datetime_to_iso(timestamp_utc),
                     "os_version": log_line["os_version"],
                 })
 

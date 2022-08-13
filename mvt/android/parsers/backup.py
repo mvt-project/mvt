@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives import hashes, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+from mvt.common.utils import check_for_links, convert_unix_to_iso
 
 PBKDF2_KEY_SIZE = 32
 
@@ -94,8 +94,8 @@ def decrypt_master_key(password, user_salt, user_iv, pbkdf2_rounds,
 
         master_key_checksum_length = ord(key_blob.read(1))
         master_key_checksum = key_blob.read(master_key_checksum_length)
-    except TypeError:
-        raise InvalidBackupPassword()
+    except TypeError as exc:
+        raise InvalidBackupPassword() from exc
 
     # Handle quirky encoding of master key bytes in Android original Java crypto code.
     if format_version > 1:
@@ -174,8 +174,8 @@ def parse_backup_file(data, password=None):
     if is_compressed:
         try:
             tar_data = zlib.decompress(tar_data)
-        except zlib.error:
-            raise AndroidBackupParsingError("Impossible to decompress the backup file")
+        except zlib.error as exc:
+            raise AndroidBackupParsingError("Impossible to decompress the backup file") from exc
 
     return tar_data
 
@@ -216,8 +216,7 @@ def parse_sms_file(data):
 
         message_links = check_for_links(entry["body"])
 
-        utc_timestamp = datetime.datetime.utcfromtimestamp(int(entry["date"]) / 1000)
-        entry["isodate"] = convert_timestamp_to_iso(utc_timestamp)
+        entry["isodate"] = convert_unix_to_iso(int(entry["date"]) / 1000)
         entry["direction"] = ("sent" if int(entry["date_sent"]) else "received")
 
         # If we find links in the messages or if they are empty we add them to

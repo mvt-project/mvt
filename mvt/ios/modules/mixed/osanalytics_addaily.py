@@ -7,7 +7,7 @@ import logging
 import plistlib
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -20,7 +20,8 @@ OSANALYTICS_ADDAILY_ROOT_PATHS = [
 
 
 class OSAnalyticsADDaily(IOSExtraction):
-    """Extract network usage information by process, from com.apple.osanalytics.addaily.plist"""
+    """Extract network usage information by process,
+    from com.apple.osanalytics.addaily.plist"""
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
@@ -31,13 +32,14 @@ class OSAnalyticsADDaily(IOSExtraction):
                          log=log, results=results)
 
     def serialize(self, record: dict) -> Union[dict, list]:
-        record_data = f"{record['package']} WIFI IN: {record['wifi_in']}, WIFI OUT: {record['wifi_out']} - "  \
-                      f"WWAN IN: {record['wwan_in']}, WWAN OUT: {record['wwan_out']}"
         return {
             "timestamp": record["ts"],
             "module": self.__class__.__name__,
             "event": "osanalytics_addaily",
-            "data": record_data,
+            "data": f"{record['package']} WIFI IN: {record['wifi_in']}, "
+                    f"WIFI OUT: {record['wifi_out']} - "
+                    f"WWAN IN: {record['wwan_in']}, "
+                    f"WWAN OUT: {record['wwan_out']}",
         }
 
     def check_indicators(self) -> None:
@@ -53,7 +55,8 @@ class OSAnalyticsADDaily(IOSExtraction):
     def run(self) -> None:
         self._find_ios_database(backup_ids=OSANALYTICS_ADDAILY_BACKUP_IDS,
                                 root_paths=OSANALYTICS_ADDAILY_ROOT_PATHS)
-        self.log.info("Found com.apple.osanalytics.addaily plist at path: %s", self.file_path)
+        self.log.info("Found com.apple.osanalytics.addaily plist at path: %s",
+                      self.file_path)
 
         with open(self.file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
@@ -61,11 +64,12 @@ class OSAnalyticsADDaily(IOSExtraction):
         for app, values in file_plist.get("netUsageBaseline", {}).items():
             self.results.append({
                 "package": app,
-                "ts": convert_timestamp_to_iso(values[0]),
+                "ts": convert_datetime_to_iso(values[0]),
                 "wifi_in": values[1],
                 "wifi_out": values[2],
                 "wwan_in": values[3],
                 "wwan_out": values[4],
             })
 
-        self.log.info("Extracted a total of %d com.apple.osanalytics.addaily entries", len(self.results))
+        self.log.info("Extracted a total of %d com.apple.osanalytics.addaily "
+                      "entries", len(self.results))

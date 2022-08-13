@@ -8,7 +8,7 @@ import logging
 import os
 import sqlite3
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -20,7 +20,8 @@ WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [
 
 
 class WebkitResourceLoadStatistics(IOSExtraction):
-    """This module extracts records from WebKit ResourceLoadStatistics observations.db."""
+    """This module extracts records from WebKit ResourceLoadStatistics
+    observations.db."""
     # TODO: Add serialize().
 
     def __init__(self, file_path: str = None, target_path: str = None,
@@ -49,7 +50,8 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                         self.detected[key].append(item)
 
     def _process_observations_db(self, db_path, key):
-        self.log.info("Found WebKit ResourceLoadStatistics observations.db file at path %s", db_path)
+        self.log.info("Found WebKit ResourceLoadStatistics observations.db "
+                      "file at path %s", db_path)
 
         self._recover_sqlite_db_if_needed(db_path)
 
@@ -70,7 +72,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 "registrable_domain": row[1],
                 "last_seen": row[2],
                 "had_user_interaction": bool(row[3]),
-                "last_seen_isodate": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(int(row[2]))),
+                "last_seen_isodate": convert_datetime_to_iso(datetime.datetime.utcfromtimestamp(int(row[2]))),
             })
 
         if len(self.results[key]) > 0:
@@ -84,8 +86,10 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                     key = f"{backup_file['domain']}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}"
                     if db_path:
                         self._process_observations_db(db_path=db_path, key=key)
-            except Exception as e:
-                self.log.info("Unable to search for WebKit observations.db: %s", e)
+            except Exception as exc:
+                self.log.info("Unable to search for WebKit observations.db: %s",
+                              exc)
         elif self.is_fs_dump:
             for db_path in self._get_fs_files_from_patterns(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
-                self._process_observations_db(db_path=db_path, key=os.path.relpath(db_path, self.target_path))
+                self._process_observations_db(db_path=db_path,
+                                              key=os.path.relpath(db_path, self.target_path))

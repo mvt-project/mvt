@@ -35,8 +35,9 @@ class Netusage(NetBase):
             self.log.info("Found NetUsage database at path: %s", self.file_path)
             try:
                 self._extract_net_data()
-            except sqlite3.OperationalError as e:
-                self.log.info("Skipping this NetUsage database because it seems empty or malformed: %s", e)
+            except sqlite3.OperationalError as exc:
+                self.log.info("Skipping this NetUsage database because "
+                              "it seems empty or malformed: %s", exc)
                 continue
 
         self._find_suspicious_processes()

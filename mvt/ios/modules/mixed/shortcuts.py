@@ -10,8 +10,7 @@ import plistlib
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -114,8 +113,8 @@ class Shortcuts(IOSExtraction):
                 action["urls"] = [url.rstrip("',") for url in extracted_urls]
                 actions.append(action)
 
-            shortcut["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut.pop("created_date")))
-            shortcut["modified_date"] = convert_timestamp_to_iso(convert_mactime_to_unix(shortcut["modified_date"]))
+            shortcut["isodate"] = convert_mactime_to_iso(shortcut.pop("created_date"))
+            shortcut["modified_date"] = convert_mactime_to_iso(shortcut["modified_date"])
             shortcut["parsed_actions"] = len(actions)
             shortcut["action_urls"] = list(itertools.chain(*[action["urls"] for action in actions]))
             self.results.append(shortcut)

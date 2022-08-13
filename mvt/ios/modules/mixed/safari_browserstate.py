@@ -10,8 +10,7 @@ import plistlib
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import (convert_mactime_to_unix,
-                              convert_timestamp_to_iso, keys_bytes_to_string)
+from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
 
 from ..base import IOSExtraction
 
@@ -117,9 +116,10 @@ class SafariBrowserState(IOSExtraction):
                 "tab_title": row[0],
                 "tab_url": row[1],
                 "tab_visible_url": row[2],
-                "last_viewed_timestamp": convert_timestamp_to_iso(convert_mactime_to_unix(row[3])),
+                "last_viewed_timestamp": convert_mactime_to_iso(row[3]),
                 "session_data": session_entries,
-                "safari_browser_state_db": os.path.relpath(db_path, self.target_path),
+                "safari_browser_state_db": os.path.relpath(db_path,
+                                                           self.target_path),
             })
 
     def run(self) -> None:
@@ -129,12 +129,15 @@ class SafariBrowserState(IOSExtraction):
                 if not browserstate_path:
                     continue
 
-                self.log.info("Found Safari browser state database at path: %s", browserstate_path)
+                self.log.info("Found Safari browser state database at path: %s",
+                              browserstate_path)
                 self._process_browser_state_db(browserstate_path)
         elif self.is_fs_dump:
             for browserstate_path in self._get_fs_files_from_patterns(SAFARI_BROWSER_STATE_ROOT_PATHS):
-                self.log.info("Found Safari browser state database at path: %s", browserstate_path)
+                self.log.info("Found Safari browser state database at path: %s",
+                              browserstate_path)
                 self._process_browser_state_db(browserstate_path)
 
-        self.log.info("Extracted a total of %d tab records and %d session history entries",
-                      len(self.results), self._session_history_count)
+        self.log.info("Extracted a total of %d tab records and %d session "
+                      "history entries", len(self.results),
+                      self._session_history_count)

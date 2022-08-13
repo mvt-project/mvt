@@ -7,7 +7,7 @@ import logging
 import os
 import plistlib
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -93,7 +93,8 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                         redirect_path += ", ".join(destination_domains)
 
-                    self.log.warning("Found HTTP redirect between suspicious domains: %s", redirect_path)
+                    self.log.warning("Found HTTP redirect between suspicious "
+                                     "domains: %s", redirect_path)
 
     def _extract_browsing_stats(self, log_path):
         items = []
@@ -114,8 +115,8 @@ class WebkitSessionResourceLog(IOSExtraction):
                 "subframe_under_origin": item.get("subframeUnderTopFrameOrigins", ""),
                 "subresource_under_origin": item.get("subresourceUnderTopFrameOrigins", ""),
                 "user_interaction": item.get("hadUserInteraction"),
-                "most_recent_interaction": convert_timestamp_to_iso(item["mostRecentUserInteraction"]),
-                "last_seen": convert_timestamp_to_iso(item["lastSeen"]),
+                "most_recent_interaction": convert_datetime_to_iso(item["mostRecentUserInteraction"]),
+                "last_seen": convert_datetime_to_iso(item["lastSeen"]),
             })
 
         return items
@@ -127,13 +128,15 @@ class WebkitSessionResourceLog(IOSExtraction):
                 if not log_path:
                     continue
 
-                self.log.info("Found Safari browsing session resource log at path: %s", log_path)
+                self.log.info("Found Safari browsing session resource log at "
+                              "path: %s", log_path)
                 self.results[log_path] = self._extract_browsing_stats(log_path)
         elif self.is_fs_dump:
             for log_path in self._get_fs_files_from_patterns(WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS):
-                self.log.info("Found Safari browsing session resource log at path: %s", log_path)
+                self.log.info("Found Safari browsing session resource log at "
+                              "path: %s", log_path)
                 key = os.path.relpath(log_path, self.target_path)
                 self.results[key] = self._extract_browsing_stats(log_path)
 
-        self.log.info("Extracted records from %d Safari browsing session resource logs",
-                      len(self.results))
+        self.log.info("Extracted records from %d Safari browsing session "
+                      "resource logs", len(self.results))

@@ -8,7 +8,7 @@ import logging
 import plistlib
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -37,7 +37,8 @@ class IDStatusCache(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "lookup",
-            "data": f"Lookup of {record['user']} within {record['package']} (Status {record['idstatus']})"
+            "data": f"Lookup of {record['user']} within {record['package']} "
+                    f"(Status {record['idstatus']})"
         }
 
     def check_indicators(self) -> None:
@@ -54,7 +55,8 @@ class IDStatusCache(IOSExtraction):
                     continue
 
             if "\\x00\\x00" in result.get("user", ""):
-                self.log.warning("Found an ID Status Cache entry with suspicious patterns: %s",
+                self.log.warning("Found an ID Status Cache entry with "
+                                 "suspicious patterns: %s",
                                  result.get("user"))
                 self.detected.append(result)
 
@@ -77,7 +79,7 @@ class IDStatusCache(IOSExtraction):
                 id_status_cache_entries.append({
                     "package": app,
                     "user": entry.replace("\x00", "\\x00"),
-                    "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(lookup_date)),
+                    "isodate": convert_mactime_to_iso(lookup_date),
                     "idstatus": id_status,
                 })
 
@@ -91,12 +93,15 @@ class IDStatusCache(IOSExtraction):
 
         if self.is_backup:
             self._find_ios_database(backup_ids=IDSTATUSCACHE_BACKUP_IDS)
-            self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
+            self.log.info("Found IDStatusCache plist at path: %s",
+                          self.file_path)
             self._extract_idstatuscache_entries(self.file_path)
         elif self.is_fs_dump:
             for idstatuscache_path in self._get_fs_files_from_patterns(IDSTATUSCACHE_ROOT_PATHS):
                 self.file_path = idstatuscache_path
-                self.log.info("Found IDStatusCache plist at path: %s", self.file_path)
+                self.log.info("Found IDStatusCache plist at path: %s",
+                              self.file_path)
                 self._extract_idstatuscache_entries(self.file_path)
 
-        self.log.info("Extracted a total of %d ID Status Cache entries", len(self.results))
+        self.log.info("Extracted a total of %d ID Status Cache entries",
+                      len(self.results))

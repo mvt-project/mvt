@@ -58,8 +58,8 @@ class CmdAndroidCheckBackup(Command):
             except InvalidBackupPassword:
                 log.critical("Invalid backup password")
                 sys.exit(1)
-            except AndroidBackupParsingError as e:
-                log.critical("Impossible to parse this backup file: %s", e)
+            except AndroidBackupParsingError as exc:
+                log.critical("Impossible to parse this backup file: %s", exc)
                 log.critical("Please use Android Backup Extractor (ABE) instead")
                 sys.exit(1)
 

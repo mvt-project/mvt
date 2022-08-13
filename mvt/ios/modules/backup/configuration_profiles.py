@@ -9,7 +9,7 @@ import plistlib
 from base64 import b64encode
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -119,7 +119,7 @@ class ConfigurationProfiles(IOSExtraction):
                 "relative_path": conf_file["relative_path"],
                 "domain": conf_file["domain"],
                 "plist": conf_plist,
-                "install_date": convert_timestamp_to_iso(conf_plist.get("InstallDate")),
+                "install_date": convert_datetime_to_iso(conf_plist.get("InstallDate")),
             })
 
         self.log.info("Extracted details about %d configuration profiles", len(self.results))

@@ -7,7 +7,7 @@ import logging
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -59,9 +59,12 @@ class InteractionC(IOSExtraction):
                 "timestamp": record[timestamp],
                 "module": self.__class__.__name__,
                 "event": timestamp,
-                "data": f"[{record['bundle_id']}] {record['account']} - from {record['sender_display_name']} "
-                        f"({record['sender_identifier']}) to {record['recipient_display_name']} "
-                        f"({record['recipient_identifier']}): {record['content']}"
+                "data": f"[{record['bundle_id']}] {record['account']} - "
+                        f"from {record['sender_display_name']} "
+                        f"({record['sender_identifier']}) "
+                        f"to {record['recipient_display_name']} "
+                        f"({record['recipient_identifier']}): "
+                        f"{record['content']}"
             })
             processed.append(record[timestamp])
 
@@ -133,8 +136,8 @@ class InteractionC(IOSExtraction):
 
         for row in cur:
             self.results.append({
-                "start_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[0])),
-                "end_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[1])),
+                "start_date": convert_mactime_to_iso(row[0]),
+                "end_date": convert_mactime_to_iso(row[1]),
                 "bundle_id": row[2],
                 "account": row[3],
                 "target_bundle_id": row[4],
@@ -158,14 +161,14 @@ class InteractionC(IOSExtraction):
                 "incoming_recipient_count": row[22],
                 "incoming_sender_count": row[23],
                 "outgoing_recipient_count": row[24],
-                "interactions_creation_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[25])) if row[25] else None,
-                "contacts_creation_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[26])) if row[26] else None,
-                "first_incoming_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[27])) if row[27] else None,
-                "first_incoming_sender_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[28])) if row[28] else None,
-                "first_outgoing_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[29])) if row[29] else None,
-                "last_incoming_sender_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[30])) if row[30] else None,
-                "last_incoming_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[31])) if row[31] else None,
-                "last_outgoing_recipient_date": convert_timestamp_to_iso(convert_mactime_to_unix(row[32])) if row[32] else None,
+                "interactions_creation_date": convert_mactime_to_iso(row[25]) if row[25] else None,
+                "contacts_creation_date": convert_mactime_to_iso(row[26]) if row[26] else None,
+                "first_incoming_recipient_date": convert_mactime_to_iso(row[27]) if row[27] else None,
+                "first_incoming_sender_date": convert_mactime_to_iso(row[28]) if row[28] else None,
+                "first_outgoing_recipient_date": convert_mactime_to_iso(row[29]) if row[29] else None,
+                "last_incoming_sender_date": convert_mactime_to_iso(row[30]) if row[30] else None,
+                "last_incoming_recipient_date": convert_mactime_to_iso(row[31]) if row[31] else None,
+                "last_outgoing_recipient_date": convert_mactime_to_iso(row[32]) if row[32] else None,
                 "custom_id": row[33],
                 "location_uuid": row[35],
                 "group_name": row[36],
@@ -176,4 +179,5 @@ class InteractionC(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d InteractionC events", len(self.results))
+        self.log.info("Extracted a total of %d InteractionC events",
+                      len(self.results))

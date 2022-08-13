@@ -3,7 +3,6 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
 import os
 from pathlib import Path
 
@@ -17,7 +16,7 @@ class TestAppopsModule:
 
     def test_appops_parsing(self):
         fpath = os.path.join(get_artifact_folder(), "android_data/bugreport/")
-        m = Appops(target_path=fpath, log=logging, results=[])
+        m = Appops(target_path=fpath)
         folder_files = []
         parent_path = Path(fpath).absolute().as_posix()
         for root, subdirs, subfiles in os.walk(os.path.abspath(fpath)):

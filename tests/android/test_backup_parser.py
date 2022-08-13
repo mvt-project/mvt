@@ -52,6 +52,7 @@ class TestBackupParsing:
         m.update(ddata)
         assert m.hexdigest() == "33e73df2ede9798dcb3a85c06200ee41c8f52dd2f2e50ffafcceb0407bc13e3a"
         sms = parse_tar_for_sms(ddata)
+        print(sms)
         assert isinstance(sms, list)
         assert len(sms) == 1
         assert len(sms[0]["links"]) == 1

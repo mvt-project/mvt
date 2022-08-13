@@ -11,7 +11,7 @@ import plistlib
 import sqlite3
 
 from mvt.common.module import DatabaseNotFoundError
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -35,7 +35,8 @@ class Manifest(IOSExtraction):
         :param key:
 
         """
-        return dictionary.get(key.encode("utf-8"), None) or dictionary.get(key, None)
+        return (dictionary.get(key.encode("utf-8"), None)
+                or dictionary.get(key, None))
 
     @staticmethod
     def _convert_timestamp(timestamp_or_unix_time_int):
@@ -45,17 +46,17 @@ class Manifest(IOSExtraction):
 
         """
         if isinstance(timestamp_or_unix_time_int, datetime.datetime):
-            return convert_timestamp_to_iso(timestamp_or_unix_time_int)
+            return convert_datetime_to_iso(timestamp_or_unix_time_int)
 
-        timestamp = datetime.datetime.utcfromtimestamp(timestamp_or_unix_time_int)
-        return convert_timestamp_to_iso(timestamp)
+        return convert_unix_to_iso(timestamp_or_unix_time_int)
 
     def serialize(self, record: dict) -> []:
         records = []
         if "modified" not in record or "status_changed" not in record:
             return records
 
-        for timestamp in set([record["created"], record["modified"], record["status_changed"]]):
+        for timestamp in set([record["created"], record["modified"],
+                             record["status_changed"]]):
             macb = ""
             macb += "M" if timestamp == record["modified"] else "-"
             macb += "-"
@@ -80,8 +81,11 @@ class Manifest(IOSExtraction):
                 continue
 
             if result["domain"]:
-                if os.path.basename(result["relative_path"]) == "com.apple.CrashReporter.plist" and result["domain"] == "RootDomain":
-                    self.log.warning("Found a potentially suspicious \"com.apple.CrashReporter.plist\" file created in RootDomain")
+                if (os.path.basename(result["relative_path"]) == "com.apple.CrashReporter.plist"
+                        and result["domain"] == "RootDomain"):
+                    self.log.warning("Found a potentially suspicious "
+                                     "\"com.apple.CrashReporter.plist\" "
+                                     "file created in RootDomain")
                     self.detected.append(result)
                     continue
 
@@ -92,7 +96,8 @@ class Manifest(IOSExtraction):
             rel_path = result["relative_path"].lower()
             for ioc in self.indicators.get_iocs("domains"):
                 if ioc["value"].lower() in rel_path:
-                    self.log.warning("Found mention of domain \"%s\" in a backup file with path: %s",
+                    self.log.warning("Found mention of domain \"%s\" in a "
+                                     "backup file with path: %s",
                                      ioc["value"], rel_path)
                     self.detected.append(result)
 
@@ -101,7 +106,8 @@ class Manifest(IOSExtraction):
         if not os.path.isfile(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")
 
-        self.log.info("Found Manifest.db database at path: %s", manifest_db_path)
+        self.log.info("Found Manifest.db database at path: %s",
+                      manifest_db_path)
 
         conn = sqlite3.connect(manifest_db_path)
         cur = conn.cursor()
@@ -128,19 +134,24 @@ class Manifest(IOSExtraction):
                     file_metadata = self._get_key(file_plist, "$objects")[1]
                     cleaned_metadata.update({
                         "created": self._convert_timestamp(self._get_key(file_metadata, "Birth")),
-                        "modified": self._convert_timestamp(self._get_key(file_metadata, "LastModified")),
-                        "status_changed": self._convert_timestamp(self._get_key(file_metadata, "LastStatusChange")),
+                        "modified": self._convert_timestamp(self._get_key(file_metadata,
+                                                                          "LastModified")),
+                        "status_changed": self._convert_timestamp(self._get_key(file_metadata,
+                                                                                "LastStatusChange")),
                         "mode": oct(self._get_key(file_metadata, "Mode")),
                         "owner": self._get_key(file_metadata, "UserID"),
                         "size": self._get_key(file_metadata, "Size"),
                     })
                 except Exception:
-                    self.log.exception("Error reading manifest file metadata for file with ID %s and relative path %s",
-                                       file_data["fileID"], file_data["relativePath"])
+                    self.log.exception("Error reading manifest file metadata "
+                                       "for file with ID %s and relative path %s",
+                                       file_data["fileID"],
+                                       file_data["relativePath"])
 
             self.results.append(cleaned_metadata)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d file metadata items", len(self.results))
+        self.log.info("Extracted a total of %d file metadata items",
+                      len(self.results))

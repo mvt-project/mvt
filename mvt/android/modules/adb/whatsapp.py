@@ -9,7 +9,7 @@ import os
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+from mvt.common.utils import check_for_links, convert_unix_to_iso
 
 from .base import AndroidExtraction
 
@@ -71,7 +71,7 @@ class Whatsapp(AndroidExtraction):
                 continue
 
             message["direction"] = ("send" if message["key_from_me"] == 1 else "received")
-            message["isodate"] = convert_timestamp_to_iso(message["timestamp"])
+            message["isodate"] = convert_unix_to_iso(message["timestamp"])
 
             # If we find links in the messages or if they are empty we add them
             # to the list.
@@ -92,5 +92,5 @@ class Whatsapp(AndroidExtraction):
         try:
             self._adb_process_file(os.path.join("/", WHATSAPP_PATH),
                                                 self._parse_db)
-        except Exception as e:
-            self.log.error(e)
+        except Exception as exc:
+            self.log.error(exc)

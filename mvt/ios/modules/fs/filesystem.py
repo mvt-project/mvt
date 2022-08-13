@@ -8,7 +8,7 @@ import logging
 import os
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -56,7 +56,9 @@ class Filesystem(IOSExtraction):
             for ioc in self.indicators.get_iocs("processes"):
                 parts = result["path"].split("/")
                 if ioc["value"] in parts:
-                    self.log.warning("Found known suspicious process name mentioned in file at path \"%s\" matching indicators from \"%s\"",
+                    self.log.warning("Found known suspicious process name "
+                                     "mentioned in file at path \"%s\" "
+                                     "matching indicators from \"%s\"",
                                      result["path"], ioc["name"])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
@@ -68,7 +70,7 @@ class Filesystem(IOSExtraction):
                     dir_path = os.path.join(root, dir_name)
                     result = {
                         "path": os.path.relpath(dir_path, self.target_path),
-                        "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(dir_path).st_mtime)),
+                        "modified": convert_unix_to_iso(os.stat(dir_path).st_mtime),
                     }
                 except Exception:
                     continue
@@ -80,7 +82,7 @@ class Filesystem(IOSExtraction):
                     file_path = os.path.join(root, file_name)
                     result = {
                         "path": os.path.relpath(file_path, self.target_path),
-                        "modified": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(file_path).st_mtime)),
+                        "modified": convert_unix_to_iso(os.stat(file_path).st_mtime),
                     }
                 except Exception:
                     continue

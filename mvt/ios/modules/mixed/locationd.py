@@ -7,7 +7,7 @@ import logging
 import plistlib
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -66,8 +66,8 @@ class LocationdClients(IOSExtraction):
 
             ioc = self.indicators.check_process(proc_name)
             if ioc:
-                self.log.warning("Found a suspicious process name in LocationD entry %s",
-                                 result["package"])
+                self.log.warning("Found a suspicious process name in "
+                                 "LocationD entry %s", result["package"])
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
                 continue
@@ -75,8 +75,8 @@ class LocationdClients(IOSExtraction):
             if "BundlePath" in result:
                 ioc = self.indicators.check_file_path(result["BundlePath"])
                 if ioc:
-                    self.log.warning("Found a suspicious file path in Location D: %s",
-                                     result["BundlePath"])
+                    self.log.warning("Found a suspicious file path in "
+                                     "Location D: %s", result["BundlePath"])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -84,8 +84,8 @@ class LocationdClients(IOSExtraction):
             if "Executable" in result:
                 ioc = self.indicators.check_file_path(result["Executable"])
                 if ioc:
-                    self.log.warning("Found a suspicious file path in Location D: %s",
-                                     result["Executable"])
+                    self.log.warning("Found a suspicious file path in "
+                                     "Location D: %s", result["Executable"])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -93,8 +93,8 @@ class LocationdClients(IOSExtraction):
             if "Registered" in result:
                 ioc = self.indicators.check_file_path(result["Registered"])
                 if ioc:
-                    self.log.warning("Found a suspicious file path in Location D: %s",
-                                     result["Registered"])
+                    self.log.warning("Found a suspicious file path in "
+                                     "Location D: %s", result["Registered"])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -108,19 +108,22 @@ class LocationdClients(IOSExtraction):
             result["package"] = key
             for timestamp in self.timestamps:
                 if timestamp in result.keys():
-                    result[timestamp] = convert_timestamp_to_iso(convert_mactime_to_unix(result[timestamp]))
+                    result[timestamp] = convert_mactime_to_iso(result[timestamp])
 
             self.results.append(result)
 
     def run(self) -> None:
         if self.is_backup:
             self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS)
-            self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
+            self.log.info("Found Locationd Clients plist at path: %s",
+                          self.file_path)
             self._extract_locationd_entries(self.file_path)
         elif self.is_fs_dump:
             for locationd_path in self._get_fs_files_from_patterns(LOCATIOND_ROOT_PATHS):
                 self.file_path = locationd_path
-                self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
+                self.log.info("Found Locationd Clients plist at path: %s",
+                              self.file_path)
                 self._extract_locationd_entries(self.file_path)
 
-        self.log.info("Extracted a total of %d Locationd Clients entries", len(self.results))
+        self.log.info("Extracted a total of %d Locationd Clients entries",
+                      len(self.results))

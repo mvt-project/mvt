@@ -14,6 +14,7 @@ class TestDumpsysParsing:
         file = get_artifact("android_data/dumpsys_appops.txt")
         with open(file) as f:
             data = f.read()
+
         res = parse_dumpsys_appops(data)
 
         assert len(res) == 12

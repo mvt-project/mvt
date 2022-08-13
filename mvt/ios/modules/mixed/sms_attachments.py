@@ -8,7 +8,7 @@ import sqlite3
 from base64 import b64encode
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -36,8 +36,12 @@ class SMSAttachments(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "sms_attachment",
-            "data": f"{record['service']}: Attachment '{record['transfer_name']}' {record['direction']} from {record['phone_number']} "
-                    f"with {record['total_bytes']} bytes (is_sticker: {record['is_sticker']}, has_user_info: {record['has_user_info']})"
+            "data": f"{record['service']}: Attachment "
+                    f"'{record['transfer_name']}' {record['direction']} "
+                    f"from {record['phone_number']} "
+                    f"with {record['total_bytes']} bytes "
+                    f"(is_sticker: {record['is_sticker']}, "
+                    f"has_user_info: {record['has_user_info']})"
         }
 
     def run(self) -> None:
@@ -70,16 +74,18 @@ class SMSAttachments(IOSExtraction):
                     value = b64encode(value).decode()
                 attachment[names[index]] = value
 
-            attachment["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(attachment["created_date"]))
-            attachment["start_date"] = convert_timestamp_to_iso(convert_mactime_to_unix(attachment["start_date"]))
+            attachment["isodate"] = convert_mactime_to_iso(attachment["created_date"])
+            attachment["start_date"] = convert_mactime_to_iso(attachment["start_date"])
             attachment["direction"] = ("sent" if attachment["is_outgoing"] == 1 else "received")
             attachment["has_user_info"] = attachment["user_info"] is not None
             attachment["service"] = attachment["service"] or "Unknown"
             attachment["filename"] = attachment["filename"] or "NULL"
 
-            if (attachment["filename"].startswith("/var/tmp/") and attachment["filename"].endswith("-1")
+            if (attachment["filename"].startswith("/var/tmp/")
+                    and attachment["filename"].endswith("-1")
                     and attachment["direction"] == "received"):
-                self.log.warn(f"Suspicious iMessage attachment '{attachment['filename']}' on {attachment['isodate']}")
+                self.log.warn("Suspicious iMessage attachment %s on %s",
+                              attachment['filename'], attachment['isodate'])
                 self.detected.append(attachment)
 
             self.results.append(attachment)

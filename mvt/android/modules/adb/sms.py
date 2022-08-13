@@ -11,7 +11,7 @@ from typing import Union
 from mvt.android.parsers.backup import (AndroidBackupParsingError,
                                         parse_tar_for_sms)
 from mvt.common.module import InsufficientPrivileges
-from mvt.common.utils import check_for_links, convert_timestamp_to_iso
+from mvt.common.utils import check_for_links, convert_unix_to_iso
 
 from .base import AndroidExtraction
 
@@ -99,7 +99,7 @@ class SMS(AndroidExtraction):
                 message[names[index]] = value
 
             message["direction"] = ("received" if message["incoming"] == 1 else "sent")
-            message["isodate"] = convert_timestamp_to_iso(message["timestamp"])
+            message["isodate"] = convert_unix_to_iso(message["timestamp"])
 
             # If we find links in the messages or if they are empty we add
             # them to the list of results.
@@ -137,11 +137,11 @@ class SMS(AndroidExtraction):
 
     def run(self) -> None:
         try:
-            if (self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH))):
+            if self._adb_check_file_exists(os.path.join("/", SMS_BUGLE_PATH)):
                 self.sms_db_type = 1
                 self._adb_process_file(os.path.join("/", SMS_BUGLE_PATH),
                                        self._parse_db)
-            elif (self._adb_check_file_exists(os.path.join("/", SMS_MMSSMS_PATH))):
+            elif self._adb_check_file_exists(os.path.join("/", SMS_MMSSMS_PATH)):
                 self.sms_db_type = 2
                 self._adb_process_file(os.path.join("/", SMS_MMSSMS_PATH),
                                        self._parse_db)

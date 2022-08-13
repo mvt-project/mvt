@@ -7,8 +7,8 @@ import logging
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import (convert_chrometime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import (convert_chrometime_to_datetime,
+                              convert_datetime_to_iso)
 
 from ..base import IOSExtraction
 
@@ -57,7 +57,8 @@ class ChromeFavicon(IOSExtraction):
     def run(self) -> None:
         self._find_ios_database(backup_ids=CHROME_FAVICON_BACKUP_IDS,
                                 root_paths=CHROME_FAVICON_ROOT_PATHS)
-        self.log.info("Found Chrome favicon cache database at path: %s", self.file_path)
+        self.log.info("Found Chrome favicon cache database at path: %s",
+                      self.file_path)
 
         conn = sqlite3.connect(self.file_path)
 
@@ -82,7 +83,7 @@ class ChromeFavicon(IOSExtraction):
                 "url": row[0],
                 "icon_url": row[1],
                 "timestamp": last_timestamp,
-                "isodate": convert_timestamp_to_iso(convert_chrometime_to_unix(last_timestamp)),
+                "isodate": convert_datetime_to_iso(convert_chrometime_to_datetime(last_timestamp)),
             })
 
         cur.close()

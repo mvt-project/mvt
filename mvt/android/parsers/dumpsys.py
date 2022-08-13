@@ -6,7 +6,7 @@
 import re
 from datetime import datetime
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 
 def parse_dumpsys_accessibility(output: str) -> list:
@@ -357,7 +357,7 @@ def parse_dumpsys_appops(output: str) -> list:
             entry["type"] = line[line.find("[")+1:line.find("]")]
 
             try:
-                entry["timestamp"] = convert_timestamp_to_iso(
+                entry["timestamp"] = convert_datetime_to_iso(
                     datetime.strptime(
                         line[line.find("]")+1:line.find("(")].strip(),
                         "%Y-%m-%d %H:%M:%S.%f"))

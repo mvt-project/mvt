@@ -102,8 +102,8 @@ class DecryptBackup:
                                                            domain, item,
                                                            file_id,
                                                            item_folder))
-            except Exception as e:
-                log.error("Failed to decrypt file %s: %s", relative_path, e)
+            except Exception as exc:
+                log.error("Failed to decrypt file %s: %s", relative_path, exc)
 
         pool.close()
         pool.join()
@@ -144,16 +144,16 @@ class DecryptBackup:
             self._backup = iOSbackup(udid=os.path.basename(self.backup_path),
                                      cleartextpassword=password,
                                      backuproot=os.path.dirname(self.backup_path))
-        except Exception as e:
-            if isinstance(e, KeyError) and len(e.args) > 0 and e.args[0] == b"KEY":
+        except Exception as exc:
+            if isinstance(exc, KeyError) and len(exc.args) > 0 and exc.args[0] == b"KEY":
                 log.critical("Failed to decrypt backup. Password is probably wrong.")
-            elif (isinstance(e, FileNotFoundError)
-                    and os.path.basename(e.filename) == "Manifest.plist"):
+            elif (isinstance(exc, FileNotFoundError)
+                    and os.path.basename(exc.filename) == "Manifest.plist"):
                 log.critical("Failed to find a valid backup at %s. "
                              "Did you point to the right backup path?",
                              self.backup_path)
             else:
-                log.exception(e)
+                log.exception(exc)
                 log.critical("Failed to decrypt backup. Did you provide the "
                              "correct password? Did you point to the right "
                              "backup path?")
@@ -185,8 +185,8 @@ class DecryptBackup:
             self._backup = iOSbackup(udid=os.path.basename(self.backup_path),
                                      derivedkey=key_bytes_raw,
                                      backuproot=os.path.dirname(self.backup_path))
-        except Exception as e:
-            log.exception(e)
+        except Exception as exc:
+            log.exception(exc)
             log.critical("Failed to decrypt backup. Did you provide the "
                          "correct key file?")
 
@@ -212,8 +212,8 @@ class DecryptBackup:
         try:
             with open(key_path, 'w', encoding="utf-8") as handle:
                 handle.write(self._decryption_key)
-        except Exception as e:
-            log.exception(e)
+        except Exception as exc:
+            log.exception(exc)
             log.critical("Failed to write key to file: %s", key_path)
             return
         else:

@@ -101,8 +101,8 @@ class AndroidExtraction(MVTModule):
                 self.log.error("Unable to connect to the device over USB. "
                                "Try to unplug, plug the device and start again.")
                 sys.exit(-1)
-            except OSError as e:
-                if e.errno == 113 and self.serial:
+            except OSError as exc:
+                if exc.errno == 113 and self.serial:
                     self.log.critical("Unable to connect to the device %s: "
                                       "did you specify the correct IP addres?",
                                       self.serial)
@@ -185,12 +185,12 @@ class AndroidExtraction(MVTModule):
         """
         try:
             self.device.pull(remote_path, local_path, progress_callback)
-        except AdbCommandFailureException as e:
+        except AdbCommandFailureException as exc:
             if retry_root:
                 self._adb_download_root(remote_path, local_path,
                                         progress_callback)
             else:
-                raise Exception(f"Unable to download file {remote_path}: {e}")
+                raise Exception(f"Unable to download file {remote_path}: {exc}") from exc
 
     def _adb_download_root(self, remote_path: str, local_path: str,
                            progress_callback: Callable = None) -> None:
@@ -222,8 +222,8 @@ class AndroidExtraction(MVTModule):
             # Delete the copy on /sdcard/.
             self._adb_command(f"rm -rf {new_remote_path}")
 
-        except AdbCommandFailureException as e:
-            raise Exception(f"Unable to download file {remote_path}: {e}")
+        except AdbCommandFailureException as exc:
+            raise Exception(f"Unable to download file {remote_path}: {exc}") from exc
 
     def _adb_process_file(self, remote_path: str,
                           process_routine: Callable) -> None:

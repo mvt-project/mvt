@@ -3,13 +3,12 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import datetime
 import logging
 import os
 import stat
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_unix_to_iso
 
 from .base import AndroidExtraction
 
@@ -79,7 +78,7 @@ class Files(AndroidExtraction):
 
             for file_line in output.splitlines():
                 [unix_timestamp, mode, size, owner, group, full_path] = file_line.rstrip().split(" ", 5)
-                mod_time = convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(int(float(unix_timestamp))))
+                mod_time = convert_unix_to_iso(unix_timestamp)
 
                 self.results.append({
                     "path": full_path,

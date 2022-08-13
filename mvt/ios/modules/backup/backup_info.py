@@ -29,7 +29,8 @@ class BackupInfo(IOSExtraction):
     def run(self) -> None:
         info_path = os.path.join(self.target_path, "Info.plist")
         if not os.path.exists(info_path):
-            raise DatabaseNotFoundError("No Info.plist at backup path, unable to extract device information")
+            raise DatabaseNotFoundError("No Info.plist at backup path, unable "
+                                        "to extract device information")
 
         with open(info_path, "rb") as handle:
             info = plistlib.load(handle)
@@ -57,5 +58,6 @@ class BackupInfo(IOSExtraction):
         if "Product Version" in info:
             latest = latest_ios_version()
             if info["Product Version"] != latest["version"]:
-                self.log.warning("This phone is running an outdated iOS version: %s (latest is %s)",
+                self.log.warning("This phone is running an outdated iOS "
+                                 "version: %s (latest is %s)",
                                  info["Product Version"], latest['version'])

@@ -7,7 +7,7 @@ import logging
 import plistlib
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -34,7 +34,8 @@ class ProfileEvents(IOSExtraction):
             "module": self.__class__.__name__,
             "event": "profile_operation",
             "data": f"Process {record.get('process')} started operation "
-                    f"{record.get('operation')} of profile {record.get('profile_id')}"
+                    f"{record.get('operation')} of profile "
+                    f"{record.get('profile_id')}"
         }
 
     def check_indicators(self) -> None:
@@ -75,7 +76,7 @@ class ProfileEvents(IOSExtraction):
             for key, value in event[key].items():
                 key = key.lower()
                 if key == "timestamp":
-                    result["timestamp"] = str(convert_timestamp_to_iso(value))
+                    result["timestamp"] = str(convert_datetime_to_iso(value))
                 else:
                     result[key] = value
 
@@ -89,13 +90,15 @@ class ProfileEvents(IOSExtraction):
             if not events_file_path:
                 continue
 
-            self.log.info("Found MCProfileEvents.plist file at %s", events_file_path)
+            self.log.info("Found MCProfileEvents.plist file at %s",
+                          events_file_path)
 
             with open(events_file_path, "rb") as handle:
                 self.results.extend(self.parse_profile_events(handle.read()))
 
         for result in self.results:
-            self.log.info("On %s process \"%s\" started operation \"%s\" of profile \"%s\"",
+            self.log.info("On %s process \"%s\" started operation \"%s\" "
+                          "of profile \"%s\"",
                           result.get("timestamp"), result.get("process"),
                           result.get("operation"), result.get("profile_id"))
 

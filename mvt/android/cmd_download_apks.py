@@ -83,9 +83,9 @@ class DownloadAPKs(AndroidExtraction):
                       remote_path)
             self._adb_reconnect()
             return None
-        except Exception as e:
+        except Exception as exc:
             log.exception("Failed to pull package file from %s: %s",
-                          remote_path, e)
+                          remote_path, exc)
             self._adb_reconnect()
             return None
 

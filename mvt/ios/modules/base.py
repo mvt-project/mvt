@@ -44,8 +44,8 @@ class IOSExtraction(MVTModule):
             try:
                 recover = False
                 cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            except sqlite3.DatabaseError as e:
-                if "database disk image is malformed" in str(e):
+            except sqlite3.DatabaseError as exc:
+                if "database disk image is malformed" in str(exc):
                     recover = True
             finally:
                 conn.close()
@@ -102,8 +102,8 @@ class IOSExtraction(MVTModule):
                                 (relative_path,))
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
-        except Exception as e:
-            raise DatabaseCorruptedError(f"failed to query Manifest.db: {e}")
+        except Exception as exc:
+            raise DatabaseCorruptedError(f"failed to query Manifest.db: {exc}") from exc
 
         for row in cur:
             yield {

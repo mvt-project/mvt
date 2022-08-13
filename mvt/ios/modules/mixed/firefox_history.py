@@ -5,10 +5,9 @@
 
 import logging
 import sqlite3
-from datetime import datetime
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -40,7 +39,8 @@ class FirefoxHistory(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "firefox_history",
-            "data": f"Firefox visit with ID {record['id']} to URL: {record['url']}",
+            "data": f"Firefox visit with ID {record['id']} "
+                    f"to URL: {record['url']}",
         }
 
     def check_indicators(self) -> None:
@@ -54,8 +54,10 @@ class FirefoxHistory(IOSExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=FIREFOX_HISTORY_BACKUP_IDS, root_paths=FIREFOX_HISTORY_ROOT_PATHS)
-        self.log.info("Found Firefox history database at path: %s", self.file_path)
+        self._find_ios_database(backup_ids=FIREFOX_HISTORY_BACKUP_IDS,
+                                root_paths=FIREFOX_HISTORY_ROOT_PATHS)
+        self.log.info("Found Firefox history database at path: %s",
+                      self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
@@ -74,7 +76,7 @@ class FirefoxHistory(IOSExtraction):
         for row in cur:
             self.results.append({
                 "id": row[0],
-                "isodate": convert_timestamp_to_iso(datetime.utcfromtimestamp(row[1])),
+                "isodate": convert_unix_to_iso(row[1]),
                 "url": row[2],
                 "title": row[3],
                 "i1000000s_local": row[4],
@@ -84,4 +86,5 @@ class FirefoxHistory(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d history items", len(self.results))
+        self.log.info("Extracted a total of %d history items",
+                      len(self.results))

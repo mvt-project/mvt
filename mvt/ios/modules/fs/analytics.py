@@ -8,7 +8,7 @@ import plistlib
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -18,7 +18,8 @@ ANALYTICS_DB_PATH = [
 
 
 class Analytics(IOSExtraction):
-    """This module extracts information from the private/var/Keychains/Analytics/*.db files."""
+    """This module extracts information from the
+    private/var/Keychains/Analytics/*.db files."""
 
     def __init__(self, file_path: str = None, target_path: str = None,
                  results_path: str = None, fast_mode: bool = False,
@@ -47,16 +48,20 @@ class Analytics(IOSExtraction):
 
                 ioc = self.indicators.check_process(value)
                 if ioc:
-                    self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
-                                     value, result["artifact"], result["timestamp"])
+                    self.log.warning("Found mention of a malicious process "
+                                     "\"%s\" in %s file at %s",
+                                     value, result["artifact"],
+                                     result["timestamp"])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
                 ioc = self.indicators.check_domain(value)
                 if ioc:
-                    self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
-                                     value, result["artifact"], result["timestamp"])
+                    self.log.warning("Found mention of a malicious domain "
+                                     "\"%s\" in %s file at %s",
+                                     value, result["artifact"],
+                                     result["timestamp"])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
 
@@ -98,11 +103,11 @@ class Analytics(IOSExtraction):
 
         for row in cur:
             if row[0] and row[1]:
-                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[0], False))
+                isodate = convert_mactime_to_iso(row[0], False)
                 data = plistlib.loads(row[1])
                 data["isodate"] = isodate
             elif row[0]:
-                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[0], False))
+                isodate = convert_mactime_to_iso(row[0], False)
                 data = {}
                 data["isodate"] = isodate
             elif row[1]:
@@ -120,7 +125,8 @@ class Analytics(IOSExtraction):
     def process_analytics_dbs(self):
         for file_path in self._get_fs_files_from_patterns(ANALYTICS_DB_PATH):
             self.file_path = file_path
-            self.log.info("Found Analytics database file at path: %s", file_path)
+            self.log.info("Found Analytics database file at path: %s",
+                          file_path)
             self._extract_analytics_data()
 
     def run(self) -> None:

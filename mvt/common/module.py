@@ -98,9 +98,10 @@ class MVTModule:
             with open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
                     json.dump(self.results, handle, indent=4, default=str)
-                except Exception as e:
-                    self.log.error("Unable to store results of module %s to file %s: %s",
-                                   self.__class__.__name__, results_file_name, e)
+                except Exception as exc:
+                    self.log.error("Unable to store results of module %s "
+                                   "to file %s: %s", self.__class__.__name__,
+                                   results_file_name, exc)
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
@@ -159,18 +160,18 @@ def run_module(module: Callable) -> None:
     except NotImplementedError:
         module.log.exception("The run() procedure of module %s was not implemented yet!",
                              module.__class__.__name__)
-    except InsufficientPrivileges as e:
+    except InsufficientPrivileges as exc:
         module.log.info("Insufficient privileges for module %s: %s",
-                        module.__class__.__name__, e)
-    except DatabaseNotFoundError as e:
+                        module.__class__.__name__, exc)
+    except DatabaseNotFoundError as exc:
         module.log.info("There might be no data to extract by module %s: %s",
-                        module.__class__.__name__, e)
-    except DatabaseCorruptedError as e:
+                        module.__class__.__name__, exc)
+    except DatabaseCorruptedError as exc:
         module.log.error("The %s module database seems to be corrupted: %s",
-                         module.__class__.__name__, e)
-    except Exception as e:
+                         module.__class__.__name__, exc)
+    except Exception as exc:
         module.log.exception("Error in running extraction from module %s: %s",
-                             module.__class__.__name__, e)
+                             module.__class__.__name__, exc)
     else:
         try:
             module.check_indicators()

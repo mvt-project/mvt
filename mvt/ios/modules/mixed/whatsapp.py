@@ -7,8 +7,7 @@ import logging
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -62,7 +61,8 @@ class Whatsapp(IOSExtraction):
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
 
-        # Query all messages and join tables which can contain media attachments and links
+        # Query all messages and join tables which can contain media attachments
+        # and links.
         cur.execute("""
             SELECT
                 ZWAMESSAGE.*,
@@ -84,13 +84,15 @@ class Whatsapp(IOSExtraction):
             for index, value in enumerate(message_row):
                 message[names[index]] = value
 
-            message["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(message.get("ZMESSAGEDATE")))
+            message["isodate"] = convert_mactime_to_iso(message.get("ZMESSAGEDATE"))
             message["ZTEXT"] = message["ZTEXT"] if message["ZTEXT"] else ""
 
-            # Extract links from the WhatsApp message. URLs can be stored in multiple fields/columns.
+            # Extract links from the WhatsApp message. URLs can be stored in
+            # multiple fields/columns.
             # Check each of them!
             message_links = []
-            fields_with_links = ["ZTEXT", "ZMATCHEDTEXT", "ZMEDIAURL", "ZCONTENT1", "ZCONTENT2"]
+            fields_with_links = ["ZTEXT", "ZMATCHEDTEXT", "ZMEDIAURL",
+                                 "ZCONTENT1", "ZCONTENT2"]
             for field in fields_with_links:
                 if message.get(field):
                     message_links.extend(check_for_links(message.get(field, "")))
@@ -98,10 +100,12 @@ class Whatsapp(IOSExtraction):
             # Remove WhatsApp internal media URLs.
             filtered_links = []
             for link in message_links:
-                if not (link.startswith("https://mmg-fna.whatsapp.net/") or link.startswith("https://mmg.whatsapp.net/")):
+                if not (link.startswith("https://mmg-fna.whatsapp.net/")
+                            or link.startswith("https://mmg.whatsapp.net/")):
                     filtered_links.append(link)
 
-            # If we find messages with links, or if there's an empty message we add it to the results list.
+            # If we find messages with links, or if there's an empty message
+            # we add it to the results list.
             if filtered_links or (message.get("ZTEXT") or "").strip() == "":
                 message["links"] = list(set(filtered_links))
                 self.results.append(message)
@@ -109,4 +113,5 @@ class Whatsapp(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages containing links", len(self.results))
+        self.log.info("Extracted a total of %d WhatsApp messages containing "
+                      "links", len(self.results))

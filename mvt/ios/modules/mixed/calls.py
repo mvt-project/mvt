@@ -7,7 +7,7 @@ import logging
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -35,7 +35,8 @@ class Calls(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "call",
-            "data": f"From {record['number']} using {record['provider']} during {record['duration']} seconds"
+            "data": f"From {record['number']} using {record['provider']} "
+                    f"during {record['duration']} seconds"
         }
 
     def run(self) -> None:
@@ -54,7 +55,7 @@ class Calls(IOSExtraction):
 
         for row in cur:
             self.results.append({
-                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(row[0])),
+                "isodate": convert_mactime_to_iso(row[0]),
                 "duration": row[1],
                 "location": row[2],
                 "number": row[3].decode("utf-8") if row[3] and row[3] is bytes else row[3],

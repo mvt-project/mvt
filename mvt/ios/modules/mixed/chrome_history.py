@@ -7,8 +7,8 @@ import logging
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import (convert_chrometime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import (convert_chrometime_to_datetime,
+                              convert_datetime_to_iso)
 
 from ..base import IOSExtraction
 
@@ -37,7 +37,9 @@ class ChromeHistory(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "visit",
-            "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, redirect source: {record['redirect_source']})"
+            "data": f"{record['id']} - {record['url']} "
+                    f"(visit ID: {record['visit_id']}, "
+                    f"redirect source: {record['redirect_source']})"
         }
 
     def check_indicators(self) -> None:
@@ -53,7 +55,8 @@ class ChromeHistory(IOSExtraction):
     def run(self) -> None:
         self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS,
                                 root_paths=CHROME_HISTORY_ROOT_PATHS)
-        self.log.info("Found Chrome history database at path: %s", self.file_path)
+        self.log.info("Found Chrome history database at path: %s",
+                      self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
@@ -75,11 +78,12 @@ class ChromeHistory(IOSExtraction):
                 "url": item[1],
                 "visit_id": item[2],
                 "timestamp": item[3],
-                "isodate": convert_timestamp_to_iso(convert_chrometime_to_unix(item[3])),
+                "isodate": convert_datetime_to_iso(convert_chrometime_to_datetime(item[3])),
                 "redirect_source": item[4],
             })
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d history items", len(self.results))
+        self.log.info("Extracted a total of %d history items",
+                      len(self.results))

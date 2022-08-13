@@ -35,7 +35,8 @@ class WebkitIndexedDB(WebkitBase):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "webkit_indexeddb",
-            "data": f"IndexedDB folder {record['folder']} containing file for URL {record['url']}",
+            "data": f"IndexedDB folder {record['folder']} containing "
+                    f"file for URL {record['url']}",
         }
 
     def run(self) -> None:

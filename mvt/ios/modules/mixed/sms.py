@@ -8,8 +8,7 @@ import sqlite3
 from base64 import b64encode
 from typing import Union
 
-from mvt.common.utils import (check_for_links, convert_mactime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -38,7 +37,8 @@ class SMS(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "sms_received",
-            "data": f"{record['service']}: {record['guid']} \"{text}\" from {record['phone_number']} ({record['account']})"
+            "data": f"{record['service']}: {record['guid']} \"{text}\" "
+                    f"from {record['phone_number']} ({record['account']})"
         }
 
     def check_indicators(self) -> None:
@@ -69,9 +69,9 @@ class SMS(IOSExtraction):
             """)
             # Force the query early to catch database issues
             items = list(cur)
-        except sqlite3.DatabaseError as e:
+        except sqlite3.DatabaseError as exc:
             conn.close()
-            if "database disk image is malformed" in str(e):
+            if "database disk image is malformed" in str(exc):
                 self._recover_sqlite_db_if_needed(self.file_path, forced=True)
                 conn = sqlite3.connect(self.file_path)
                 cur = conn.cursor()
@@ -84,7 +84,7 @@ class SMS(IOSExtraction):
                 """)
                 items = list(cur)
             else:
-                raise e
+                raise exc
         names = [description[0] for description in cur.description]
 
         for item in items:
@@ -100,25 +100,29 @@ class SMS(IOSExtraction):
                 message[names[index]] = value
 
             # We convert Mac's ridiculous timestamp format.
-            message["isodate"] = convert_timestamp_to_iso(convert_mactime_to_unix(message["date"]))
-            message["direction"] = ("sent" if message.get("is_from_me", 0) == 1 else "received")
+            message["isodate"] = convert_mactime_to_iso(message["date"])
+            message["direction"] = ("sent" if message.get("is_from_me", 0) == 1
+                                        else "received")
 
             # Sometimes "text" is None instead of empty string.
             if not message.get("text", None):
                 message["text"] = ""
 
             if message.get("text", "").startswith("ALERT: State-sponsored attackers may be targeting your iPhone"):
-                self.log.warn("Apple warning about state-sponsored attack received on the %s", message["isodate"])
+                self.log.warn("Apple warning about state-sponsored attack "
+                              "received on the %s", message["isodate"])
                 self.results.append(message)
             else:
                 # Extract links from the SMS message.
                 message_links = check_for_links(message.get("text", ""))
 
-                # If we find links in the messages or if they are empty we add them to the list.
+                # If we find links in the messages or if they are empty we add
+                # them to the list.
                 if message_links or message.get("text", "").strip() == "":
                     self.results.append(message)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d SMS messages containing links", len(self.results))
+        self.log.info("Extracted a total of %d SMS messages containing links",
+                      len(self.results))

@@ -8,7 +8,7 @@ import sqlite3
 from datetime import datetime
 from typing import Union
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -36,7 +36,8 @@ class FirefoxFavicon(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "firefox_history",
-            "data": f"Firefox favicon {record['url']} when visiting {record['history_url']}",
+            "data": f"Firefox favicon {record['url']} "
+                    f"when visiting {record['history_url']}",
         }
 
     def check_indicators(self) -> None:
@@ -55,7 +56,8 @@ class FirefoxFavicon(IOSExtraction):
     def run(self) -> None:
         self._find_ios_database(backup_ids=FIREFOX_HISTORY_BACKUP_IDS,
                                 root_paths=FIREFOX_HISTORY_ROOT_PATHS)
-        self.log.info("Found Firefox favicon database at path: %s", self.file_path)
+        self.log.info("Found Firefox favicon database at path: %s",
+                      self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
@@ -81,7 +83,7 @@ class FirefoxFavicon(IOSExtraction):
                 "width": item[2],
                 "height": item[3],
                 "type": item[4],
-                "isodate": convert_timestamp_to_iso(datetime.utcfromtimestamp(item[5])),
+                "isodate": convert_unix_to_iso(item[5]),
                 "history_id": item[6],
                 "history_url": item[7]
             })
@@ -89,4 +91,5 @@ class FirefoxFavicon(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d history items", len(self.results))
+        self.log.info("Extracted a total of %d history items",
+                      len(self.results))

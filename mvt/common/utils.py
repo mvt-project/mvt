@@ -6,16 +6,18 @@
 import datetime
 import hashlib
 import re
+from typing import Union
 
 
-def convert_mactime_to_unix(timestamp, from_2001: bool = True):
-    """Converts Mac Standard Time to a Unix timestamp.
+def convert_mactime_to_datetime(timestamp: Union[int, float],
+                                from_2001: bool = True):
+    """Converts Mac Standard Time to a datetime.
 
     :param timestamp: MacTime timestamp (either int or float).
     :type timestamp: int
     :param from_2001: bool: Whether to (Default value = True)
     :param from_2001: Default value = True)
-    :returns: Unix epoch timestamp.
+    :returns: datetime.
 
     """
     if not timestamp:
@@ -37,12 +39,12 @@ def convert_mactime_to_unix(timestamp, from_2001: bool = True):
         return None
 
 
-def convert_chrometime_to_unix(timestamp: int) -> int:
-    """Converts Chrome timestamp to a Unix timestamp.
+def convert_chrometime_to_datetime(timestamp: int) -> int:
+    """Converts Chrome timestamp to a datetime.
 
     :param timestamp: Chrome timestamp as int.
     :type timestamp: int
-    :returns: Unix epoch timestamp.
+    :returns: datetime.
 
     """
     epoch_start = datetime.datetime(1601, 1, 1)
@@ -50,19 +52,50 @@ def convert_chrometime_to_unix(timestamp: int) -> int:
     return epoch_start + delta
 
 
-def convert_timestamp_to_iso(timestamp: str) -> str:
-    """Converts Unix timestamp to ISO string.
+def convert_datetime_to_iso(datetime: datetime.datetime) -> str:
+    """Converts datetime to ISO string.
 
-    :param timestamp: Unix timestamp.
-    :type timestamp: int
-    :returns: ISO timestamp string in YYYY-mm-dd HH:MM:SS.ms format.
+    :param datetime: datetime.
+    :type datetime: datetime.datetime
+    :returns: ISO datetime string in YYYY-mm-dd HH:MM:SS.ms format.
     :rtype: str
 
     """
     try:
-        return timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
+        return datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
     except Exception:
-        return None
+        return ""
+
+
+def convert_unix_to_iso(timestamp: int) -> str:
+    """Converts a unix epoch to ISO string.
+
+    :param timestamp: Epoc timestamp to convert.
+    :type timestamp: int
+    :returns: ISO datetime string in YYYY-mm-dd HH:MM:SS.ms format.
+    :rtype: str
+
+    """
+    try:
+        return convert_datetime_to_iso(datetime.datetime.utcfromtimestamp(int(timestamp)))
+    except Exception:
+        return ""
+
+
+def convert_mactime_to_iso(timestamp: int, from_2001: bool = True):
+    """Wraps two conversions from mactime to iso date.
+
+    :param timestamp: MacTime timestamp (either int or float).
+    :type timestamp: int
+    :param from_2001: bool: Whether to (Default value = True)
+    :param from_2001: Default value = True)
+    :returns: ISO timestamp string in YYYY-mm-dd HH:MM:SS.ms format.
+    :rtype: str
+
+    """
+
+    return convert_datetime_to_iso(convert_mactime_to_datetime(timestamp,
+                                                               from_2001))
 
 
 def check_for_links(text: str) -> list:

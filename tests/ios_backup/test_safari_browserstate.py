@@ -15,7 +15,7 @@ from ..utils import get_ios_backup_folder
 class TestSafariBrowserStateModule:
 
     def test_parsing(self):
-        m = SafariBrowserState(target_path=get_ios_backup_folder(), log=logging, results=[])
+        m = SafariBrowserState(target_path=get_ios_backup_folder())
         m.is_backup = True
         run_module(m)
         assert len(m.results) == 1
@@ -23,9 +23,9 @@ class TestSafariBrowserStateModule:
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
-        m = SafariBrowserState(target_path=get_ios_backup_folder(), log=logging, results=[])
+        m = SafariBrowserState(target_path=get_ios_backup_folder())
         m.is_backup = True
-        ind = Indicators(log=logging)
+        ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
         # Adds a file that exists in the manifest.
         ind.ioc_collections[0]["domains"].append("en.wikipedia.org")

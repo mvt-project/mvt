@@ -28,7 +28,8 @@ class Contacts(IOSExtraction):
                          log=log, results=results)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=CONTACTS_BACKUP_IDS, root_paths=CONTACTS_ROOT_PATHS)
+        self._find_ios_database(backup_ids=CONTACTS_BACKUP_IDS,
+                                root_paths=CONTACTS_ROOT_PATHS)
         self.log.info("Found Contacts database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)

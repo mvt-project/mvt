@@ -13,7 +13,7 @@ from typing import Callable
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.version import MVT_VERSION
 
 
@@ -48,9 +48,9 @@ class Command:
         if self.results_path and not os.path.exists(self.results_path):
             try:
                 os.makedirs(self.results_path)
-            except Exception as e:
+            except Exception as exc:
                 self.log.critical("Unable to create output folder %s: %s",
-                                  self.results_path, e)
+                                  self.results_path, exc)
                 sys.exit(1)
 
     def _add_log_file_handler(self, logger: logging.Logger) -> None:
@@ -88,7 +88,7 @@ class Command:
         info = {
             "target_path": target_path,
             "mvt_version": MVT_VERSION,
-            "date": convert_timestamp_to_iso(datetime.now()),
+            "date": convert_datetime_to_iso(datetime.now()),
             "ioc_files": [],
             "hashes": [],
         }

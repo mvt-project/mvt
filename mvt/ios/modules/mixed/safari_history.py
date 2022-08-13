@@ -9,7 +9,8 @@ import sqlite3
 from typing import Union
 
 from mvt.common.url import URL
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import (convert_mactime_to_datetime,
+                              convert_mactime_to_iso)
 
 from ..base import IOSExtraction
 
@@ -69,8 +70,8 @@ class SafariHistory(IOSExtraction):
                 self.log.info("Found HTTP redirect to different domain: \"%s\" -> \"%s\"",
                               origin_domain, redirect_domain)
 
-                redirect_time = convert_mactime_to_unix(redirect["timestamp"])
-                origin_time = convert_mactime_to_unix(result["timestamp"])
+                redirect_time = convert_mactime_to_datetime(redirect["timestamp"])
+                origin_time = convert_mactime_to_datetime(result["timestamp"])
                 elapsed_time = redirect_time - origin_time
                 elapsed_ms = elapsed_time.microseconds / 1000
 
@@ -112,7 +113,7 @@ class SafariHistory(IOSExtraction):
                 "url": row[1],
                 "visit_id": row[2],
                 "timestamp": row[3],
-                "isodate": convert_timestamp_to_iso(convert_mactime_to_unix(row[3])),
+                "isodate": convert_mactime_to_iso(row[3]),
                 "redirect_source": row[4],
                 "redirect_destination": row[5],
                 "safari_history_db": os.path.relpath(history_path, self.target_path),

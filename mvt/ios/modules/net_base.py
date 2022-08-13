@@ -9,7 +9,7 @@ import sqlite3
 from pathlib import Path
 from typing import Union
 
-from mvt.common.utils import convert_mactime_to_unix, convert_timestamp_to_iso
+from mvt.common.utils import convert_mactime_to_iso
 
 from .base import IOSExtraction
 
@@ -55,14 +55,14 @@ class NetBase(IOSExtraction):
         for row in cur:
             # ZPROCESS records can be missing after the JOIN. Handle NULL timestamps.
             if row[0] and row[1]:
-                first_isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[0]))
-                isodate = convert_timestamp_to_iso(convert_mactime_to_unix(row[1]))
+                first_isodate = convert_mactime_to_iso(row[0])
+                isodate = convert_mactime_to_iso(row[1])
             else:
                 first_isodate = row[0]
                 isodate = row[1]
 
             if row[11]:
-                live_timestamp = convert_timestamp_to_iso(convert_mactime_to_unix(row[11]))
+                live_timestamp = convert_mactime_to_iso(row[11])
             else:
                 live_timestamp = ""
 

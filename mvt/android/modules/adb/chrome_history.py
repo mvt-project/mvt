@@ -8,8 +8,8 @@ import os
 import sqlite3
 from typing import Union
 
-from mvt.common.utils import (convert_chrometime_to_unix,
-                              convert_timestamp_to_iso)
+from mvt.common.utils import (convert_chrometime_to_datetime,
+                              convert_datetime_to_iso)
 
 from .base import AndroidExtraction
 
@@ -70,7 +70,7 @@ class ChromeHistory(AndroidExtraction):
                 "url": item[1],
                 "visit_id": item[2],
                 "timestamp": item[3],
-                "isodate": convert_timestamp_to_iso(convert_chrometime_to_unix(item[3])),
+                "isodate": convert_datetime_to_iso(convert_chrometime_to_datetime(item[3])),
                 "redirect_source": item[4],
             })
 
@@ -84,5 +84,5 @@ class ChromeHistory(AndroidExtraction):
         try:
             self._adb_process_file(os.path.join("/", CHROME_HISTORY_PATH),
                                    self._parse_db)
-        except Exception as e:
-            self.log.error(e)
+        except Exception as exc:
+            self.log.error(exc)

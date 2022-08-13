@@ -6,7 +6,7 @@
 import datetime
 import os
 
-from mvt.common.utils import convert_timestamp_to_iso
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -35,9 +35,10 @@ class WebkitBase(IOSExtraction):
                 name = name.replace("http_", "http://")
                 name = name.replace("https_", "https://")
                 url = name.split("_")[0]
+                utc_timestamp = datetime.datetime.utcfromtimestamp(os.stat(found_path).st_mtime)
 
                 self.results.append({
                     "folder": key,
                     "url": url,
-                    "isodate": convert_timestamp_to_iso(datetime.datetime.utcfromtimestamp(os.stat(found_path).st_mtime)),
+                    "isodate": convert_datetime_to_iso(utc_timestamp),
                 })

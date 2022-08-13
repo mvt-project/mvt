@@ -33,10 +33,12 @@ class WebkitLocalStorage(WebkitBase):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "webkit_local_storage",
-            "data": f"WebKit Local Storage folder {record['folder']} containing file for URL {record['url']}",
+            "data": f"WebKit Local Storage folder {record['folder']} "
+                    f"containing file for URL {record['url']}",
         }
 
     def run(self) -> None:
         self._process_webkit_folder(WEBKIT_LOCALSTORAGE_ROOT_PATHS)
-        self.log.info("Extracted a total of %d records from WebKit Local Storages",
+        self.log.info("Extracted a total of %d records from WebKit "
+                      "Local Storages",
                       len(self.results))

@@ -137,8 +137,8 @@ class Packages(AndroidExtraction):
                 results = virustotal_lookup(hashes[i])
             except VTNoKey:
                 return
-            except VTQuotaExceeded as e:
-                print("Unable to continue: %s", e)
+            except VTQuotaExceeded as exc:
+                print("Unable to continue: %s", exc)
                 break
 
             if not results:

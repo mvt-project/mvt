@@ -15,15 +15,15 @@ from ..utils import get_ios_backup_folder
 class TestSMSModule:
 
     def test_sms(self):
-        m = SMS(target_path=get_ios_backup_folder(), log=logging, results=[])
+        m = SMS(target_path=get_ios_backup_folder())
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 1
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
-        m = SMS(target_path=get_ios_backup_folder(), log=logging, results=[])
-        ind = Indicators(log=logging)
+        m = SMS(target_path=get_ios_backup_folder())
+        ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
         # Adds a file that exists in the manifest.
         ind.ioc_collections[0]["domains"].append("badbadbad.example.org")
