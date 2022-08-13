@@ -48,11 +48,12 @@ class Files(AndroidExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if result.get("is_suid"):
-                self.log.warning("Found an SUID file in a non-standard directory \"%s\".",
-                                 result["path"])
+                self.log.warning("Found an SUID file in a non-standard "
+                                 "directory \"%s\".", result["path"])
 
             if self.indicators and self.indicators.check_file_path(result["path"]):
-                self.log.warning("Found a known suspicous file at path: \"%s\"", result["path"])
+                self.log.warning("Found a known suspicous file at path: \"%s\"",
+                                 result["path"])
                 self.detected.append(result)
 
     def backup_file(self, file_path: str) -> None:
@@ -74,7 +75,8 @@ class Files(AndroidExtraction):
 
     def find_files(self, folder: str) -> None:
         if self.full_find:
-            output = self._adb_command(f"find '{folder}' -type f -printf '%T@ %m %s %u %g %p\n' 2> /dev/null")
+            cmd = f"find '{folder}' -type f -printf '%T@ %m %s %u %g %p\n' 2> /dev/null"
+            output = self._adb_command(cmd)
 
             for file_line in output.splitlines():
                 [unix_timestamp, mode, size,
@@ -122,7 +124,8 @@ class Files(AndroidExtraction):
         if self.fast_mode:
             self.log.info("Flag --fast was enabled: skipping full file listing")
         else:
-            self.log.info("Processing full file listing. This may take a while...")
+            self.log.info("Processing full file listing. "
+                          "This may take a while...")
             self.find_files("/")
 
             self.log.info("Found %s total files", len(self.results))
