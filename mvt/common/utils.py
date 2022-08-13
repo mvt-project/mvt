@@ -37,7 +37,7 @@ def convert_datetime_to_iso(datetime: datetime.datetime) -> str:
         return ""
 
 
-def convert_unix_to_utc_datetime(timestamp: int) -> datetime.datetime:
+def convert_unix_to_utc_datetime(timestamp: Union[int, float, str]) -> datetime.datetime:
     """Converts a unix epoch timestamp to UTC datetime.
 
     :param timestamp: Epoc timestamp to convert.
@@ -45,7 +45,7 @@ def convert_unix_to_utc_datetime(timestamp: int) -> datetime.datetime:
     :returns: datetime.
 
     """
-    return datetime.datetime.utcfromtimestamp(int(timestamp))
+    return datetime.datetime.utcfromtimestamp(float(timestamp))
 
 
 def convert_unix_to_iso(timestamp: int) -> str:
