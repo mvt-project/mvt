@@ -122,8 +122,8 @@ class DownloadAPKs(AndroidExtraction):
                 if not package.get("system", False):
                     packages_selection.append(package)
 
-            log.info("Selected only %d packages which are not marked as \"system\"",
-                     len(packages_selection))
+            log.info("Selected only %d packages which are not marked as "
+                     "\"system\"", len(packages_selection))
 
         if len(packages_selection) == 0:
             log.info("No packages were selected for download")
@@ -142,8 +142,8 @@ class DownloadAPKs(AndroidExtraction):
             log.info("[%d/%d] Package: %s", i, len(packages_selection),
                      package["package_name"])
 
-            # Sometimes the package path contains multiple lines for multiple apks.
-            # We loop through each line and download each file.
+            # Sometimes the package path contains multiple lines for multiple
+            # apks. We loop through each line and download each file.
             for package_file in package["files"]:
                 device_path = package_file["path"]
                 local_path = self.pull_package_file(package["package_name"],
