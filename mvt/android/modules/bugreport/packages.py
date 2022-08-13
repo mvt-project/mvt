@@ -29,9 +29,18 @@ class Packages(BugReportModule):
         records = []
 
         timestamps = [
-            {"event": "package_install", "timestamp": record["timestamp"]},
-            {"event": "package_first_install", "timestamp": record["first_install_time"]},
-            {"event": "package_last_update", "timestamp": record["last_update_time"]},
+            {
+                "event": "package_install",
+                "timestamp": record["timestamp"]
+            },
+            {
+                "event": "package_first_install",
+                "timestamp": record["first_install_time"]
+            },
+            {
+                "event": "package_last_update",
+                "timestamp": record["last_update_time"]
+            },
         ]
 
         for timestamp in timestamps:
