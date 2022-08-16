@@ -59,7 +59,7 @@ class DBInfo(BugReportModule):
             if not in_dbinfo:
                 continue
 
-            if line.strip().startswith("------------------------------------------------------------------------------"): # pylint: disable=line-too-long
+            if line.strip().startswith("------------------------------------------------------------------------------"):  # pylint: disable=line-too-long
                 break
 
             lines.append(line)
