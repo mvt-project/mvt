@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Union
+from typing import Optional, Union
 
 from rich.console import Console
 from rich.progress import track
@@ -38,7 +38,6 @@ DANGEROUS_PERMISSIONS = [
     "android.permission.USE_SIP",
     "com.android.browser.permission.READ_HISTORY_BOOKMARKS",
 ]
-
 ROOT_PACKAGES = [
     "com.noshufou.android.su",
     "com.noshufou.android.su.elite",
@@ -71,10 +70,15 @@ ROOT_PACKAGES = [
 class Packages(AndroidExtraction):
     """This module extracts the list of installed packages."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -235,10 +239,14 @@ class Packages(AndroidExtraction):
         for file_path in output.splitlines():
             file_path = file_path.strip()
 
-            md5 = self._adb_command(f"md5sum {file_path}").split(" ", maxsplit=1)[0]
-            sha1 = self._adb_command(f"sha1sum {file_path}").split(" ", maxsplit=1)[0]
-            sha256 = self._adb_command(f"sha256sum {file_path}").split(" ", maxsplit=1)[0]
-            sha512 = self._adb_command(f"sha512sum {file_path}").split(" ", maxsplit=1)[0]
+            md5 = self._adb_command(
+                f"md5sum {file_path}").split(" ", maxsplit=1)[0]
+            sha1 = self._adb_command(
+                f"sha1sum {file_path}").split(" ", maxsplit=1)[0]
+            sha256 = self._adb_command(
+                f"sha256sum {file_path}").split(" ", maxsplit=1)[0]
+            sha512 = self._adb_command(
+                f"sha512sum {file_path}").split(" ", maxsplit=1)[0]
 
             package_files.append({
                 "path": file_path,
@@ -282,7 +290,8 @@ class Packages(AndroidExtraction):
                 "files": package_files,
             }
 
-            dumpsys_package = self._adb_command(f"dumpsys package {package_name}")
+            dumpsys_package = self._adb_command(
+                f"dumpsys package {package_name}")
             package_details = self.parse_package_for_details(dumpsys_package)
             new_package.update(package_details)
 
@@ -326,9 +335,9 @@ class Packages(AndroidExtraction):
                 continue
 
             packages_to_lookup.append(result)
-            self.log.info("Found non-system package with name \"%s\" installed "
-                          "by \"%s\" on %s", result["package_name"],
-                          result["installer"], result["timestamp"])
+            self.log.info("Found non-system package with name \"%s\" installed by \"%s\" on %s",
+                          result["package_name"], result["installer"],
+                          result["timestamp"])
 
         if not self.fast_mode:
             self.check_virustotal(packages_to_lookup)

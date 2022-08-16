@@ -5,6 +5,7 @@
 
 import logging
 import os
+from typing import Optional
 
 from mvt.common.command import Command
 
@@ -13,9 +14,15 @@ log = logging.getLogger(__name__)
 
 class CmdCheckIOCS(Command):
 
-    def __init__(self, target_path: str = None, results_path: str = None,
-                 ioc_files: list = [], module_name: str = None,
-                 serial: str = None, fast_mode: bool = False):
+    def __init__(
+        self,
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        ioc_files: Optional[list] = [],
+        module_name: Optional[str] = "",
+        serial: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+    ) -> None:
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)
@@ -42,8 +49,8 @@ class CmdCheckIOCS(Command):
                 if iocs_module().get_slug() != name_only:
                     continue
 
-                log.info("Loading results from \"%s\" with module %s", file_name,
-                         iocs_module.__name__)
+                log.info("Loading results from \"%s\" with module %s",
+                         file_name, iocs_module.__name__)
 
                 m = iocs_module.from_json(file_path,
                                           log=logging.getLogger(iocs_module.__module__))

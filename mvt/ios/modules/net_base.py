@@ -7,7 +7,7 @@ import logging
 import operator
 import sqlite3
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
 
@@ -18,10 +18,15 @@ class NetBase(IOSExtraction):
     """This class provides a base for DataUsage and NetUsage extraction
     modules."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -53,7 +58,8 @@ class NetBase(IOSExtraction):
         """)
 
         for row in cur:
-            # ZPROCESS records can be missing after the JOIN. Handle NULL timestamps.
+            # ZPROCESS records can be missing after the JOIN.
+            # Handle NULL timestamps.
             if row[0] and row[1]:
                 first_isodate = convert_mactime_to_iso(row[0])
                 isodate = convert_mactime_to_iso(row[1])
@@ -84,7 +90,8 @@ class NetBase(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted information on %d processes", len(self.results))
+        self.log.info("Extracted information on %d processes",
+                      len(self.results))
 
     def serialize(self, record: dict) -> Union[dict, list]:
         record_data = (f"{record['proc_name']} (Bundle ID: {record['bundle_id']},"
@@ -151,8 +158,8 @@ class NetBase(IOSExtraction):
 
         for proc in self.results:
             if not proc["bundle_id"]:
-                self.log.debug("Found process with no Bundle ID with "
-                               "name: %s", proc["proc_name"])
+                self.log.debug("Found process with no Bundle ID with name: %s",
+                               proc["proc_name"])
 
                 binary_path = None
                 for file in files:
@@ -174,24 +181,23 @@ class NetBase(IOSExtraction):
 
                     self.log.warning(msg)
             if not proc["live_proc_id"]:
-                self.log.info("Found process entry in ZPROCESS but not in "
-                              "ZLIVEUSAGE: %s at %s",
+                self.log.info("Found process entry in ZPROCESS but not in ZLIVEUSAGE: %s at %s",
                               proc['proc_name'], proc['live_isodate'])
 
     def check_manipulated(self):
         """Check for missing or manipulate DB entries"""
         # Don't show duplicates for each missing process.
         missing_process_cache = set()
-        for result in sorted(self.results, key=operator.itemgetter("live_isodate")):
+        for result in sorted(
+                self.results, key=operator.itemgetter("live_isodate")):
             if result["proc_id"]:
                 continue
 
             # Avoid duplicate warnings for same process.
             if result["live_proc_id"] not in missing_process_cache:
                 missing_process_cache.add(result["live_proc_id"])
-                self.log.warning("Found manipulated process entry %s. "
-                                 "Entry on %s", result["live_proc_id"],
-                                 result["live_isodate"])
+                self.log.warning("Found manipulated process entry %s. Entry on %s",
+                                 result["live_proc_id"], result["live_isodate"])
 
             # Set manipulated proc timestamp so it appears in timeline.
             result["first_isodate"] = result["isodate"] = result["live_isodate"]
@@ -199,7 +205,8 @@ class NetBase(IOSExtraction):
             self.detected.append(result)
 
     def find_deleted(self):
-        """Identify process which may have been deleted from the DataUsage database"""
+        """Identify process which may have been deleted from the DataUsage
+        database."""
         results_by_proc = {proc["proc_id"]: proc for proc in self.results if proc["proc_id"]}
         all_proc_id = sorted(results_by_proc.keys())
 

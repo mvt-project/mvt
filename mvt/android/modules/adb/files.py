@@ -6,7 +6,7 @@
 import logging
 import os
 import stat
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_unix_to_iso
 
@@ -25,10 +25,15 @@ ANDROID_MEDIA_FOLDERS = [
 class Files(AndroidExtraction):
     """This module extracts the list of files on the device."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -48,8 +53,8 @@ class Files(AndroidExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if result.get("is_suid"):
-                self.log.warning("Found an SUID file in a non-standard "
-                                 "directory \"%s\".", result["path"])
+                self.log.warning("Found an SUID file in a non-standard directory \"%s\".",
+                                 result["path"])
 
             if self.indicators and self.indicators.check_file_path(result["path"]):
                 self.log.warning("Found a known suspicous file at path: \"%s\"",
@@ -124,8 +129,7 @@ class Files(AndroidExtraction):
         if self.fast_mode:
             self.log.info("Flag --fast was enabled: skipping full file listing")
         else:
-            self.log.info("Processing full file listing. "
-                          "This may take a while...")
+            self.log.info("Processing full file listing. This may take a while...")
             self.find_files("/")
 
             self.log.info("Found %s total files", len(self.results))

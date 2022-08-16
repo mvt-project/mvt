@@ -6,7 +6,7 @@
 import json
 import logging
 import os
-from typing import Callable
+from typing import Callable, Optional
 
 from rich.progress import track
 
@@ -25,8 +25,12 @@ class DownloadAPKs(AndroidExtraction):
 
     """
 
-    def __init__(self, results_path: str = "", all_apks: bool = False,
-                 packages: list = []):
+    def __init__(
+        self,
+        results_path: Optional[str] = "",
+        all_apks: Optional[bool] = False,
+        packages: Optional[list] = []
+    ) -> None:
         """Initialize module.
         :param results_path: Path to the folder where data should be stored
         :param all_apks: Boolean indicating whether to download all packages
@@ -78,9 +82,8 @@ class DownloadAPKs(AndroidExtraction):
         try:
             self._adb_download(remote_path, local_path)
         except InsufficientPrivileges:
-            log.error("Unable to pull package file from %s: insufficient "
-                      "privileges, it might be a system app",
-                      remote_path)
+            log.error("Unable to pull package file from %s: insufficient privileges, "
+                      "it might be a system app", remote_path)
             self._adb_reconnect()
             return None
         except Exception as exc:
@@ -122,8 +125,8 @@ class DownloadAPKs(AndroidExtraction):
                 if not package.get("system", False):
                     packages_selection.append(package)
 
-            log.info("Selected only %d packages which are not marked as "
-                     "\"system\"", len(packages_selection))
+            log.info("Selected only %d packages which are not marked as \"system\"",
+                     len(packages_selection))
 
         if len(packages_selection) == 0:
             log.info("No packages were selected for download")

@@ -9,7 +9,7 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 from rich.prompt import Prompt
 
@@ -25,9 +25,15 @@ log = logging.getLogger(__name__)
 
 class CmdAndroidCheckBackup(Command):
 
-    def __init__(self, target_path: str = None, results_path: str = None,
-                 ioc_files: list = [], module_name: str = None,
-                 serial: str = None, fast_mode: bool = False):
+    def __init__(
+        self,
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        ioc_files: Optional[list] = [],
+        module_name: Optional[str] = "",
+        serial: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+    ) -> None:
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
                          serial=serial, fast_mode=fast_mode, log=log)

@@ -5,7 +5,7 @@
 
 import logging
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
 
@@ -22,10 +22,15 @@ INTERACTIONC_ROOT_PATHS = [
 class InteractionC(IOSExtraction):
     """This module extracts data from InteractionC db."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -60,11 +65,9 @@ class InteractionC(IOSExtraction):
                 "module": self.__class__.__name__,
                 "event": timestamp,
                 "data": f"[{record['bundle_id']}] {record['account']} - "
-                        f"from {record['sender_display_name']} "
-                        f"({record['sender_identifier']}) "
-                        f"to {record['recipient_display_name']} "
-                        f"({record['recipient_identifier']}): "
-                        f"{record['content']}"
+                        f"from {record['sender_display_name']} ({record['sender_identifier']}) "
+                        f"to {record['recipient_display_name']} ({record['recipient_identifier']}):"
+                        f" {record['content']}"
             })
             processed.append(record[timestamp])
 
@@ -129,8 +132,8 @@ class InteractionC(IOSExtraction):
                 LEFT JOIN ZCONTACTS ON ZINTERACTIONS.ZSENDER = ZCONTACTS.Z_PK
                 LEFT JOIN Z_1INTERACTIONS ON ZINTERACTIONS.Z_PK == Z_1INTERACTIONS.Z_3INTERACTIONS
                 LEFT JOIN ZATTACHMENT ON Z_1INTERACTIONS.Z_1ATTACHMENTS == ZATTACHMENT.Z_PK
-                LEFT JOIN Z_2INTERACTIONRECIPIENT ON ZINTERACTIONS.Z_PK== Z_2INTERACTIONRECIPIENT.Z_3INTERACTIONRECIPIENT
-                LEFT JOIN ZCONTACTS RECEIPIENTCONACT ON Z_2INTERACTIONRECIPIENT.Z_2RECIPIENTS== RECEIPIENTCONACT.Z_PK;
+                LEFT JOIN Z_2INTERACTIONRECIPIENT ON ZINTERACTIONS.Z_PK == Z_2INTERACTIONRECIPIENT.Z_3INTERACTIONRECIPIENT
+                LEFT JOIN ZCONTACTS RECEIPIENTCONACT ON Z_2INTERACTIONRECIPIENT.Z_2RECIPIENTS == RECEIPIENTCONACT.Z_PK;
         """)
         # names = [description[0] for description in cur.description]
 

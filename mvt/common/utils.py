@@ -37,7 +37,9 @@ def convert_datetime_to_iso(datetime: datetime.datetime) -> str:
         return ""
 
 
-def convert_unix_to_utc_datetime(timestamp: Union[int, float, str]) -> datetime.datetime:
+def convert_unix_to_utc_datetime(
+        timestamp: Union[int, float, str]
+) -> datetime.datetime:
     """Converts a unix epoch timestamp to UTC datetime.
 
     :param timestamp: Epoc timestamp to convert.
@@ -105,8 +107,8 @@ def convert_mactime_to_iso(timestamp: int, from_2001: bool = True):
 
     """
 
-    return convert_datetime_to_iso(convert_mactime_to_datetime(timestamp,
-                                                               from_2001))
+    return convert_datetime_to_iso(
+        convert_mactime_to_datetime(timestamp, from_2001))
 
 
 def check_for_links(text: str) -> list:

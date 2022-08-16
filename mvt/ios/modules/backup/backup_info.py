@@ -6,6 +6,7 @@
 import logging
 import os
 import plistlib
+from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
 from mvt.ios.versions import get_device_desc_from_id, latest_ios_version
@@ -16,10 +17,15 @@ from ..base import IOSExtraction
 class BackupInfo(IOSExtraction):
     """This module extracts information about the device and the backup."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -29,8 +35,8 @@ class BackupInfo(IOSExtraction):
     def run(self) -> None:
         info_path = os.path.join(self.target_path, "Info.plist")
         if not os.path.exists(info_path):
-            raise DatabaseNotFoundError("No Info.plist at backup path, unable "
-                                        "to extract device information")
+            raise DatabaseNotFoundError("No Info.plist at backup path, unable to extract device "
+                                        "information")
 
         with open(info_path, "rb") as handle:
             info = plistlib.load(handle)
@@ -44,7 +50,7 @@ class BackupInfo(IOSExtraction):
 
         for field in fields:
             value = info.get(field, None)
-            # Converting the product type in product name
+
             if field == "Product Type" and value:
                 product_name = get_device_desc_from_id(value)
                 if product_name:
@@ -53,11 +59,11 @@ class BackupInfo(IOSExtraction):
                     self.log.info("%s: %s", field, value)
             else:
                 self.log.info("%s: %s", field, value)
+
             self.results[field] = value
 
         if "Product Version" in info:
             latest = latest_ios_version()
             if info["Product Version"] != latest["version"]:
-                self.log.warning("This phone is running an outdated iOS "
-                                 "version: %s (latest is %s)",
+                self.log.warning("This phone is running an outdated iOS version: %s (latest is %s)",
                                  info["Product Version"], latest['version'])

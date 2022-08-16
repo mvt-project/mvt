@@ -5,7 +5,7 @@
 
 import logging
 import re
-from typing import Union
+from typing import Optional, Union
 
 from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
                                               DANGEROUS_PERMISSIONS_THRESHOLD,
@@ -17,10 +17,15 @@ from .base import BugReportModule
 class Packages(BugReportModule):
     """This module extracts details on receivers for risky activities."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -157,8 +162,8 @@ class Packages(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a "
-                           "valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. "
+                           "Did you provide a valid bug report archive?")
             return
 
         in_package = False
@@ -193,8 +198,8 @@ class Packages(BugReportModule):
                     dangerous_permissions_count += 1
 
             if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
-                self.log.info("Found package \"%s\" requested %d potentially "
-                              "dangerous permissions", result["package_name"],
+                self.log.info("Found package \"%s\" requested %d potentially dangerous permissions",
+                              result["package_name"],
                               dangerous_permissions_count)
 
         self.log.info("Extracted details on %d packages", len(self.results))

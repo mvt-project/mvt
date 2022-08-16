@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+from typing import Optional
 
 from mvt.android.parsers import parse_dumpsys_activity_resolver_table
 
@@ -13,10 +14,15 @@ from .base import BugReportModule
 class Activities(BugReportModule):
     """This module extracts details on receivers for risky activities."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -38,8 +44,8 @@ class Activities(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. Did you provide a "
-                           "valid bug report archive?")
+            self.log.error("Unable to find dumpstate file. "
+                           "Did you provide a valid bug report archive?")
             return
 
         lines = []

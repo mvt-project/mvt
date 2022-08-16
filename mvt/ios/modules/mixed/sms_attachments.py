@@ -6,7 +6,7 @@
 import logging
 import sqlite3
 from base64 import b64encode
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
 
@@ -23,10 +23,15 @@ SMS_ROOT_PATHS = [
 class SMSAttachments(IOSExtraction):
     """This module extracts all info about SMS/iMessage attachments."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -58,8 +63,10 @@ class SMSAttachments(IOSExtraction):
                 message.service as "service",
                 handle.id as "phone_number"
             FROM attachment
-            LEFT JOIN message_attachment_join ON message_attachment_join.attachment_id = attachment.ROWID
-            LEFT JOIN message ON message.ROWID = message_attachment_join.message_id
+            LEFT JOIN message_attachment_join ON
+                message_attachment_join.attachment_id = attachment.ROWID
+            LEFT JOIN message ON
+                message.ROWID = message_attachment_join.message_id
             LEFT JOIN handle ON handle.ROWID = message.handle_id;
         """)
         names = [description[0] for description in cur.description]
@@ -74,8 +81,10 @@ class SMSAttachments(IOSExtraction):
                     value = b64encode(value).decode()
                 attachment[names[index]] = value
 
-            attachment["isodate"] = convert_mactime_to_iso(attachment["created_date"])
-            attachment["start_date"] = convert_mactime_to_iso(attachment["start_date"])
+            attachment["isodate"] = convert_mactime_to_iso(
+                attachment["created_date"])
+            attachment["start_date"] = convert_mactime_to_iso(
+                attachment["start_date"])
             attachment["direction"] = ("sent" if attachment["is_outgoing"] == 1 else "received")
             attachment["has_user_info"] = attachment["user_info"] is not None
             attachment["service"] = attachment["service"] or "Unknown"
@@ -93,4 +102,5 @@ class SMSAttachments(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d SMS attachments", len(self.results))
+        self.log.info("Extracted a total of %d SMS attachments",
+                      len(self.results))

@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Optional
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
@@ -19,10 +19,16 @@ from mvt.common.version import MVT_VERSION
 
 class Command:
 
-    def __init__(self, target_path: str = None, results_path: str = None,
-                 ioc_files: list = [], module_name: str = None,
-                 serial: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__)):
+    def __init__(
+        self,
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        ioc_files: Optional[list] = [],
+        module_name: Optional[str] = "",
+        serial: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+    ) -> None:
         self.name = ""
         self.modules = []
 
@@ -121,12 +127,12 @@ class Command:
                             with open(file_path, "rb") as handle:
                                 sha256.update(handle.read())
                         except FileNotFoundError:
-                            self.log.error("Failed to hash the file %s: might "
-                                           "be a symlink", file_path)
+                            self.log.error("Failed to hash the file %s: might be a symlink",
+                                           file_path)
                             continue
                         except PermissionError:
-                            self.log.error("Failed to hash the file %s: "
-                                           "permission denied", file_path)
+                            self.log.error("Failed to hash the file %s: permission denied",
+                                           file_path)
                             continue
 
                         info["hashes"].append({

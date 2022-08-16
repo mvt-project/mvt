@@ -6,7 +6,7 @@
 import logging
 import os
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.url import URL
 from mvt.common.utils import (convert_mactime_to_datetime,
@@ -28,10 +28,15 @@ class SafariHistory(IOSExtraction):
 
     """
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -41,7 +46,8 @@ class SafariHistory(IOSExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "safari_history",
-            "data": f"Safari visit to {record['url']} (ID: {record['id']}, Visit ID: {record['visit_id']})",
+            "data": f"Safari visit to {record['url']} (ID: {record['id']}, "
+                    f"Visit ID: {record['visit_id']})",
         }
 
     def _find_injections(self):
@@ -76,7 +82,8 @@ class SafariHistory(IOSExtraction):
                 elapsed_ms = elapsed_time.microseconds / 1000
 
                 if elapsed_time.seconds == 0:
-                    self.log.warning("Redirect took less than a second! (%d milliseconds)", elapsed_ms)
+                    self.log.warning("Redirect took less than a second! (%d milliseconds)",
+                                     elapsed_ms)
 
     def check_indicators(self) -> None:
         self._find_injections()
@@ -116,7 +123,8 @@ class SafariHistory(IOSExtraction):
                 "isodate": convert_mactime_to_iso(row[3]),
                 "redirect_source": row[4],
                 "redirect_destination": row[5],
-                "safari_history_db": os.path.relpath(history_path, self.target_path),
+                "safari_history_db": os.path.relpath(history_path,
+                                                     self.target_path),
             })
 
         cur.close()
@@ -124,16 +132,24 @@ class SafariHistory(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
-            for history_file in self._get_backup_files_from_manifest(relative_path=SAFARI_HISTORY_BACKUP_RELPATH):
-                history_path = self._get_backup_file_from_id(history_file["file_id"])
+            for history_file in self._get_backup_files_from_manifest(
+                    relative_path=SAFARI_HISTORY_BACKUP_RELPATH):
+                history_path = self._get_backup_file_from_id(
+                    history_file["file_id"])
+
                 if not history_path:
                     continue
 
-                self.log.info("Found Safari history database at path: %s", history_path)
+                self.log.info("Found Safari history database at path: %s",
+                              history_path)
+
                 self._process_history_db(history_path)
         elif self.is_fs_dump:
-            for history_path in self._get_fs_files_from_patterns(SAFARI_HISTORY_ROOT_PATHS):
-                self.log.info("Found Safari history database at path: %s", history_path)
+            for history_path in self._get_fs_files_from_patterns(
+                    SAFARI_HISTORY_ROOT_PATHS):
+                self.log.info("Found Safari history database at path: %s",
+                              history_path)
                 self._process_history_db(history_path)
 
-        self.log.info("Extracted a total of %d history records", len(self.results))
+        self.log.info("Extracted a total of %d history records",
+                      len(self.results))

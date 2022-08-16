@@ -8,7 +8,7 @@ import logging
 import os
 import plistlib
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
 
@@ -24,10 +24,15 @@ SAFARI_BROWSER_STATE_ROOT_PATHS = [
 class SafariBrowserState(IOSExtraction):
     """This module extracts all Safari browser state records."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -104,12 +109,18 @@ class SafariBrowserState(IOSExtraction):
                     pass
 
                 if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
-                    for session_entry in session_data["SessionHistory"].get("SessionHistoryEntries"):
+                    for session_entry in session_data["SessionHistory"].get(
+                            "SessionHistoryEntries"):
                         self._session_history_count += 1
+
+                        data_length = 0
+                        if "SessionHistoryEntryData" in session_entry:
+                            data_length = len(session_entry.get("SessionHistoryEntryData"))
+
                         session_entries.append({
                             "entry_title": session_entry.get("SessionHistoryEntryOriginalURL"),
                             "entry_url": session_entry.get("SessionHistoryEntryURL"),
-                            "data_length": len(session_entry.get("SessionHistoryEntryData")) if "SessionHistoryEntryData" in session_entry else 0,
+                            "data_length": data_length,
                         })
 
             self.results.append({
@@ -124,8 +135,11 @@ class SafariBrowserState(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
-            for backup_file in self._get_backup_files_from_manifest(relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH):
-                browserstate_path = self._get_backup_file_from_id(backup_file["file_id"])
+            for backup_file in self._get_backup_files_from_manifest(
+                    relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH):
+                browserstate_path = self._get_backup_file_from_id(
+                    backup_file["file_id"])
+
                 if not browserstate_path:
                     continue
 
@@ -133,11 +147,11 @@ class SafariBrowserState(IOSExtraction):
                               browserstate_path)
                 self._process_browser_state_db(browserstate_path)
         elif self.is_fs_dump:
-            for browserstate_path in self._get_fs_files_from_patterns(SAFARI_BROWSER_STATE_ROOT_PATHS):
+            for browserstate_path in self._get_fs_files_from_patterns(
+                    SAFARI_BROWSER_STATE_ROOT_PATHS):
                 self.log.info("Found Safari browser state database at path: %s",
                               browserstate_path)
                 self._process_browser_state_db(browserstate_path)
 
-        self.log.info("Extracted a total of %d tab records and %d session "
-                      "history entries", len(self.results),
-                      self._session_history_count)
+        self.log.info("Extracted a total of %d tab records and %d session history entries",
+                      len(self.results), self._session_history_count)

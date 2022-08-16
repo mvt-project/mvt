@@ -7,7 +7,7 @@ import csv
 import logging
 import os
 import re
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import simplejson as json
 
@@ -30,9 +30,15 @@ class MVTModule:
     enabled = True
     slug = None
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = None, results: list = None):
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         """Initialize module.
 
         :param file_path: Path to the module's database file, if there is any
@@ -99,9 +105,9 @@ class MVTModule:
                 try:
                     json.dump(self.results, handle, indent=4, default=str)
                 except Exception as exc:
-                    self.log.error("Unable to store results of module %s "
-                                   "to file %s: %s", self.__class__.__name__,
-                                   results_file_name, exc)
+                    self.log.error("Unable to store results of module %s to file %s: %s",
+                                   self.__class__.__name__, results_file_name,
+                                   exc)
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
@@ -145,7 +151,8 @@ class MVTModule:
 
         # De-duplicate timeline entries.
         self.timeline = self._deduplicate_timeline(self.timeline)
-        self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
+        self.timeline_detected = self._deduplicate_timeline(
+            self.timeline_detected)
 
     def run(self) -> None:
         """Run the main module procedure."""
@@ -158,8 +165,8 @@ def run_module(module: Callable) -> None:
     try:
         module.run()
     except NotImplementedError:
-        module.log.exception("The run() procedure of module %s was not "
-                             "implemented yet!", module.__class__.__name__)
+        module.log.exception("The run() procedure of module %s was not implemented yet!",
+                             module.__class__.__name__)
     except InsufficientPrivileges as exc:
         module.log.info("Insufficient privileges for module %s: %s",
                         module.__class__.__name__, exc)
@@ -176,8 +183,8 @@ def run_module(module: Callable) -> None:
         try:
             module.check_indicators()
         except NotImplementedError:
-            module.log.info("The %s module does not support checking for "
-                            "indicators", module.__class__.__name__)
+            module.log.info("The %s module does not support checking for indicators",
+                            module.__class__.__name__)
         else:
             if module.indicators and not module.detected:
                 module.log.info("The %s module produced no detections!",

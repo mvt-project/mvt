@@ -11,7 +11,7 @@ import string
 import sys
 import tempfile
 import time
-from typing import Callable
+from typing import Callable, Optional
 
 from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
@@ -32,10 +32,15 @@ ADB_PUB_KEY_PATH = os.path.expanduser("~/.android/adbkey.pub")
 class AndroidExtraction(MVTModule):
     """This class provides a base for all Android extraction modules."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -73,15 +78,13 @@ class AndroidExtraction(MVTModule):
             try:
                 self.device = AdbDeviceUsb(serial=self.serial)
             except UsbDeviceNotFoundError:
-                self.log.critical("No device found. Make sure it is connected "
-                                  "and unlocked.")
+                self.log.critical("No device found. Make sure it is connected and unlocked.")
                 sys.exit(-1)
         # Otherwise we try to use the TCP transport.
         else:
             addr = self.serial.split(":")
             if len(addr) < 2:
-                raise ValueError("TCP serial number must follow the format: "
-                                 "`address:port`")
+                raise ValueError("TCP serial number must follow the format: `address:port`")
 
             self.device = AdbDeviceTcp(addr[0], int(addr[1]),
                                        default_transport_timeout_s=30.)
@@ -90,12 +93,11 @@ class AndroidExtraction(MVTModule):
             try:
                 self.device.connect(rsa_keys=[signer], auth_timeout_s=5)
             except (USBErrorBusy, USBErrorAccess):
-                self.log.critical("Device is busy, maybe run `adb kill-server` "
-                                  "and try again.")
+                self.log.critical("Device is busy, maybe run `adb kill-server` and try again.")
                 sys.exit(-1)
             except DeviceAuthError:
-                self.log.error("You need to authorize this computer on the "
-                               "Android device. Retrying in 5 seconds...")
+                self.log.error("You need to authorize this computer on the Android device. "
+                               "Retrying in 5 seconds...")
                 time.sleep(5)
             except UsbReadFailedError:
                 self.log.error("Unable to connect to the device over USB. "
@@ -104,7 +106,7 @@ class AndroidExtraction(MVTModule):
             except OSError as exc:
                 if exc.errno == 113 and self.serial:
                     self.log.critical("Unable to connect to the device %s: "
-                                      "did you specify the correct IP addres?",
+                                      "did you specify the correct IP address?",
                                       self.serial)
                     sys.exit(-1)
             else:
@@ -169,9 +171,13 @@ class AndroidExtraction(MVTModule):
 
         return bool(self._adb_command_as_root(f"[ ! -f {file} ] || echo 1"))
 
-    def _adb_download(self, remote_path: str, local_path: str,
-                      progress_callback: Callable = None,
-                      retry_root: bool = True) -> None:
+    def _adb_download(
+        self,
+        remote_path: str,
+        local_path: str,
+        progress_callback: Optional[Callable] = None,
+        retry_root: Optional[bool] = True
+    ) -> None:
         """Download a file form the device.
 
         :param remote_path: Path to download from the device
@@ -190,8 +196,12 @@ class AndroidExtraction(MVTModule):
             else:
                 raise Exception(f"Unable to download file {remote_path}: {exc}") from exc
 
-    def _adb_download_root(self, remote_path: str, local_path: str,
-                           progress_callback: Callable = None) -> None:
+    def _adb_download_root(
+        self,
+        remote_path: str,
+        local_path: str,
+        progress_callback: Optional[Callable] = None
+    ) -> None:
         try:
             # Check if we have root, if not raise an Exception.
             self._adb_root_or_die()
@@ -288,8 +298,7 @@ class AndroidExtraction(MVTModule):
                                                          backup_password)
                 return decrypted_backup_tar
             except InvalidBackupPassword:
-                self.log.error("You provided the wrong password! "
-                               "Please try again...")
+                self.log.error("You provided the wrong password! Please try again...")
 
         self.log.warn("All attempts to decrypt backup with password failed!")
 

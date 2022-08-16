@@ -292,7 +292,9 @@ class URL:
         """
         # TODO: Properly handle exception.
         try:
-            return get_tld(self.url, as_object=True, fix_protocol=True).fld.lower()
+            return get_tld(self.url,
+                           as_object=True,
+                           fix_protocol=True).fld.lower()
         except Exception:
             return None
 

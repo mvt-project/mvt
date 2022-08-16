@@ -8,7 +8,7 @@ import itertools
 import logging
 import plistlib
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
@@ -25,10 +25,15 @@ SHORTCUT_ROOT_PATHS = [
 class Shortcuts(IOSExtraction):
     """This module extracts all info about SMS/iMessage attachments."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -99,24 +104,29 @@ class Shortcuts(IOSExtraction):
             for index, value in enumerate(item):
                 shortcut[names[index]] = value
 
-            action_data = plistlib.load(io.BytesIO(shortcut.pop("action_data", [])))
+            action_data = plistlib.load(io.BytesIO(
+                shortcut.pop("action_data", [])))
             actions = []
             for action_entry in action_data:
                 action = {}
                 action["identifier"] = action_entry["WFWorkflowActionIdentifier"]
                 action["parameters"] = action_entry["WFWorkflowActionParameters"]
 
-                # URLs might be in multiple fields, do a simple regex search across the parameters.
+                # URLs might be in multiple fields, do a simple regex search
+                # across the parameters.
                 extracted_urls = check_for_links(str(action["parameters"]))
 
-                # Remove quoting characters that may have been captured by the regex.
+                # Remove quoting characters that may have been captured by the
+                # regex.
                 action["urls"] = [url.rstrip("',") for url in extracted_urls]
                 actions.append(action)
 
             shortcut["isodate"] = convert_mactime_to_iso(shortcut.pop("created_date"))
             shortcut["modified_date"] = convert_mactime_to_iso(shortcut["modified_date"])
             shortcut["parsed_actions"] = len(actions)
-            shortcut["action_urls"] = list(itertools.chain(*[action["urls"] for action in actions]))
+            shortcut["action_urls"] = list(itertools.chain(
+                *[action["urls"] for action in actions]))
+
             self.results.append(shortcut)
 
         cur.close()

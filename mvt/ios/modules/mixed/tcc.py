@@ -5,7 +5,7 @@
 
 import logging
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_unix_to_iso
 
@@ -47,10 +47,15 @@ AUTH_REASONS = {
 class TCC(IOSExtraction):
     """This module extracts records from the TCC.db SQLite database."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -122,9 +127,9 @@ class TCC(IOSExtraction):
 
                 if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
                     device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
-                    self.log.info("Found client \"%s\" with access %s to %s "
-                                  "on %s by %s", client, auth_value_desc,
-                                  device, last_modified, auth_reason_desc)
+                    self.log.info("Found client \"%s\" with access %s to %s on %s by %s",
+                                  client, auth_value_desc, device,
+                                  last_modified, auth_reason_desc)
 
                 self.results.append({
                     "service": service,
@@ -138,12 +143,16 @@ class TCC(IOSExtraction):
                 allowed_value = row[3]
                 allowed_desc = AUTH_VALUE_OLD.get(allowed_value, "")
                 prompt_count = row[4]
+
                 if db_version == "v2":
                     last_modified = convert_unix_to_iso(row[5])
                     if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
-                        device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
-                        self.log.info("Found client \"%s\" with access %s to "
-                                      "%s at %s", client, allowed_desc, device,
+                        device = "camera"
+                        if service == "kTCCServiceMicrophone":
+                            device = "microphone"
+
+                        self.log.info("Found client \"%s\" with access %s to %s at %s",
+                                      client, allowed_desc, device,
                                       last_modified)
 
                     self.results.append({
@@ -156,7 +165,10 @@ class TCC(IOSExtraction):
                     })
                 else:
                     if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
-                        device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
+                        device = "camera"
+                        if service == "kTCCServiceMicrophone":
+                            device = "microphone"
+
                         self.log.info("Found client \"%s\" with access %s to %s",
                                       client, allowed_desc, device)
 
@@ -175,6 +187,7 @@ class TCC(IOSExtraction):
         self._find_ios_database(backup_ids=TCC_BACKUP_IDS,
                                 root_paths=TCC_ROOT_PATHS)
         self.log.info("Found TCC database at path: %s", self.file_path)
+
         self.process_db(self.file_path)
 
         self.log.info("Extracted a total of %d TCC items", len(self.results))

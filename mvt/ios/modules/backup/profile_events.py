@@ -5,7 +5,7 @@
 
 import logging
 import plistlib
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_datetime_to_iso
 
@@ -20,10 +20,15 @@ class ProfileEvents(IOSExtraction):
 
 
     """
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -85,8 +90,10 @@ class ProfileEvents(IOSExtraction):
         return results
 
     def run(self) -> None:
-        for events_file in self._get_backup_files_from_manifest(relative_path=CONF_PROFILES_EVENTS_RELPATH):
-            events_file_path = self._get_backup_file_from_id(events_file["file_id"])
+        for events_file in self._get_backup_files_from_manifest(
+                relative_path=CONF_PROFILES_EVENTS_RELPATH):
+            events_file_path = self._get_backup_file_from_id(
+                events_file["file_id"])
             if not events_file_path:
                 continue
 
@@ -97,8 +104,7 @@ class ProfileEvents(IOSExtraction):
                 self.results.extend(self.parse_profile_events(handle.read()))
 
         for result in self.results:
-            self.log.info("On %s process \"%s\" started operation \"%s\" "
-                          "of profile \"%s\"",
+            self.log.info("On %s process \"%s\" started operation \"%s\" of profile \"%s\"",
                           result.get("timestamp"), result.get("process"),
                           result.get("operation"), result.get("profile_id"))
 

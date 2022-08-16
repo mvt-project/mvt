@@ -6,6 +6,7 @@
 import logging
 import os
 import sqlite3
+from typing import Optional
 
 from mvt.common.utils import convert_unix_to_iso
 
@@ -23,10 +24,15 @@ class WebkitResourceLoadStatistics(IOSExtraction):
     observations.db."""
     # TODO: Add serialize().
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -49,8 +55,8 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                         self.detected[key].append(item)
 
     def _process_observations_db(self, db_path, key):
-        self.log.info("Found WebKit ResourceLoadStatistics observations.db "
-                      "file at path %s", db_path)
+        self.log.info("Found WebKit ResourceLoadStatistics observations.db file at path %s",
+                      db_path)
 
         self._recover_sqlite_db_if_needed(db_path)
 
@@ -81,14 +87,17 @@ class WebkitResourceLoadStatistics(IOSExtraction):
     def run(self) -> None:
         if self.is_backup:
             try:
-                for backup_file in self._get_backup_files_from_manifest(relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
+                for backup_file in self._get_backup_files_from_manifest(
+                        relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
                     db_path = self._get_backup_file_from_id(backup_file["file_id"])
+
                     key = f"{backup_file['domain']}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}"
                     if db_path:
                         self._process_observations_db(db_path=db_path, key=key)
             except Exception as exc:
                 self.log.info("Unable to find WebKit observations.db: %s", exc)
         elif self.is_fs_dump:
-            for db_path in self._get_fs_files_from_patterns(WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
+            for db_path in self._get_fs_files_from_patterns(
+                    WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
                 db_rel_path = os.path.relpath(db_path, self.target_path)
                 self._process_observations_db(db_path=db_path, key=db_rel_path)

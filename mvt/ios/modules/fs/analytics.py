@@ -6,7 +6,7 @@
 import logging
 import plistlib
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
 
@@ -21,10 +21,15 @@ class Analytics(IOSExtraction):
     """This module extracts information from the
     private/var/Keychains/Analytics/*.db files."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -48,8 +53,7 @@ class Analytics(IOSExtraction):
 
                 ioc = self.indicators.check_process(value)
                 if ioc:
-                    self.log.warning("Found mention of a malicious process "
-                                     "\"%s\" in %s file at %s",
+                    self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
                                      value, result["artifact"],
                                      result["timestamp"])
                     result["matched_indicator"] = ioc
@@ -58,8 +62,7 @@ class Analytics(IOSExtraction):
 
                 ioc = self.indicators.check_domain(value)
                 if ioc:
-                    self.log.warning("Found mention of a malicious domain "
-                                     "\"%s\" in %s file at %s",
+                    self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
                                      value, result["artifact"],
                                      result["timestamp"])
                     result["matched_indicator"] = ioc

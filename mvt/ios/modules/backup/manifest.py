@@ -9,6 +9,7 @@ import logging
 import os
 import plistlib
 import sqlite3
+from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
 from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
@@ -19,10 +20,15 @@ from ..base import IOSExtraction
 class Manifest(IOSExtraction):
     """This module extracts information from a backup Manifest.db file."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -84,8 +90,7 @@ class Manifest(IOSExtraction):
                 if (os.path.basename(result["relative_path"]) == "com.apple.CrashReporter.plist"
                         and result["domain"] == "RootDomain"):
                     self.log.warning("Found a potentially suspicious "
-                                     "\"com.apple.CrashReporter.plist\" "
-                                     "file created in RootDomain")
+                                     "\"com.apple.CrashReporter.plist\" file created in RootDomain")
                     self.detected.append(result)
                     continue
 
@@ -96,9 +101,8 @@ class Manifest(IOSExtraction):
             rel_path = result["relative_path"].lower()
             for ioc in self.indicators.get_iocs("domains"):
                 if ioc["value"].lower() in rel_path:
-                    self.log.warning("Found mention of domain \"%s\" in a "
-                                     "backup file with path: %s",
-                                     ioc["value"], rel_path)
+                    self.log.warning("Found mention of domain \"%s\" in a backup file with "
+                                     "path: %s", ioc["value"], rel_path)
                     self.detected.append(result)
 
     def run(self) -> None:
@@ -132,19 +136,23 @@ class Manifest(IOSExtraction):
                 try:
                     file_plist = plistlib.load(io.BytesIO(file_data["file"]))
                     file_metadata = self._get_key(file_plist, "$objects")[1]
+
+                    birth = self._get_key(file_metadata, "Birth")
+                    last_modified = self._get_key(file_metadata, "LastModified")
+                    last_status_change = self._get_key(file_metadata,
+                                                       "LastStatusChange")
+
                     cleaned_metadata.update({
-                        "created": self._convert_timestamp(self._get_key(file_metadata, "Birth")),
-                        "modified": self._convert_timestamp(self._get_key(file_metadata,
-                                                                          "LastModified")),
-                        "status_changed": self._convert_timestamp(self._get_key(file_metadata,
-                                                                                "LastStatusChange")),
+                        "created": self._convert_timestamp(birth),
+                        "modified": self._convert_timestamp(last_modified),
+                        "status_changed": self._convert_timestamp(last_status_change),
                         "mode": oct(self._get_key(file_metadata, "Mode")),
                         "owner": self._get_key(file_metadata, "UserID"),
                         "size": self._get_key(file_metadata, "Size"),
                     })
                 except Exception:
-                    self.log.exception("Error reading manifest file metadata "
-                                       "for file with ID %s and relative path %s",
+                    self.log.exception("Error reading manifest file metadata for file with ID %s "
+                                       "and relative path %s",
                                        file_data["fileID"],
                                        file_data["relativePath"])
 

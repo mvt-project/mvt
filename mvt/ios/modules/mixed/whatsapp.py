@@ -5,7 +5,7 @@
 
 import logging
 import sqlite3
-from typing import Union
+from typing import Optional, Union
 
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
@@ -22,10 +22,15 @@ WHATSAPP_ROOT_PATHS = [
 class Whatsapp(IOSExtraction):
     """This module extracts all WhatsApp messages containing links."""
 
-    def __init__(self, file_path: str = None, target_path: str = None,
-                 results_path: str = None, fast_mode: bool = False,
-                 log: logging.Logger = logging.getLogger(__name__),
-                 results: list = []) -> None:
+    def __init__(
+        self,
+        file_path: Optional[str] = "",
+        target_path: Optional[str] = "",
+        results_path: Optional[str] = "",
+        fast_mode: Optional[bool] = False,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = []
+    ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
@@ -75,7 +80,8 @@ class Whatsapp(IOSExtraction):
                 ZWAMESSAGEDATAITEM.ZTITLE
             FROM ZWAMESSAGE
             LEFT JOIN ZWAMEDIAITEM ON ZWAMEDIAITEM.ZMESSAGE = ZWAMESSAGE.Z_PK
-            LEFT JOIN ZWAMESSAGEDATAITEM ON ZWAMESSAGEDATAITEM.ZMESSAGE = ZWAMESSAGE.Z_PK;
+            LEFT JOIN ZWAMESSAGEDATAITEM ON
+                ZWAMESSAGEDATAITEM.ZMESSAGE = ZWAMESSAGE.Z_PK;
         """)
         names = [description[0] for description in cur.description]
 
@@ -84,7 +90,8 @@ class Whatsapp(IOSExtraction):
             for index, value in enumerate(message_row):
                 message[names[index]] = value
 
-            message["isodate"] = convert_mactime_to_iso(message.get("ZMESSAGEDATE"))
+            message["isodate"] = convert_mactime_to_iso(
+                message.get("ZMESSAGEDATE"))
             message["ZTEXT"] = message["ZTEXT"] if message["ZTEXT"] else ""
 
             # Extract links from the WhatsApp message. URLs can be stored in
@@ -95,13 +102,14 @@ class Whatsapp(IOSExtraction):
                                  "ZCONTENT1", "ZCONTENT2"]
             for field in fields_with_links:
                 if message.get(field):
-                    message_links.extend(check_for_links(message.get(field, "")))
+                    message_links.extend(check_for_links(
+                        message.get(field, "")))
 
             # Remove WhatsApp internal media URLs.
             filtered_links = []
             for link in message_links:
                 if not (link.startswith("https://mmg-fna.whatsapp.net/")
-                            or link.startswith("https://mmg.whatsapp.net/")):
+                        or link.startswith("https://mmg.whatsapp.net/")):
                     filtered_links.append(link)
 
             # If we find messages with links, or if there's an empty message
@@ -113,5 +121,5 @@ class Whatsapp(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages containing "
-                      "links", len(self.results))
+        self.log.info("Extracted a total of %d WhatsApp messages containing links",
+                      len(self.results))
