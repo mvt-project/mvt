@@ -3,7 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from mvt.android.parsers.dumpsys import parse_dumpsys_appops
+from mvt.android.parsers.dumpsys import parse_dumpsys_appops, parse_dumpsys_battery_history
 
 from ..utils import get_artifact
 
@@ -26,3 +26,19 @@ class TestDumpsysParsing:
         assert res[6]["package_name"] == "com.sec.factory.camera"
         assert len(res[6]["permissions"][1]["entries"]) == 1
         assert len(res[11]["permissions"]) == 4
+
+    def test_battery_history_parsing(self):
+        file = get_artifact("android_data/dumpsys_battery.txt")
+        with open(file) as f:
+            data = f.read()
+
+        res = parse_dumpsys_battery_history(data)
+
+        assert len(res) == 5
+        assert res[0]["package_name"] == "com.samsung.android.app.reminder"
+        assert res[1]["event"] == "end_job"
+        assert res[2]["event"] == "start_top"
+        assert res[2]["uid"] == "u0a280"
+        assert res[2]["package_name"] == "com.whatsapp"
+        assert res[3]["event"] == "end_top"
+        assert res[4]["package_name"] == "com.sec.android.app.launcher"

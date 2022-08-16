@@ -169,6 +169,17 @@ def parse_dumpsys_battery_history(output: str) -> list:
                 continue
 
             package_name = service.split("/")[0]
+        elif (line.find("+top=") > 0) or (line.find("-top") > 0):
+            if line.find("+top=") > 0:
+                event = "start_top"
+                top_pos = line.find("+top=")
+            else:
+                event = "end_top"
+                top_pos = line.find("-top=")
+            colon_pos = top_pos+line[top_pos:].find(":")
+            uid = line[top_pos+5:colon_pos]
+            service = ""
+            package_name = line[colon_pos+1:].strip('"')
         else:
             continue
 
@@ -186,8 +197,8 @@ def parse_dumpsys_battery_history(output: str) -> list:
 def parse_dumpsys_dbinfo(output: str) -> list:
     results = []
 
-    rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\"') # pylint: disable=line-too-long
-    rxp_no_pid = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\"') # pylint: disable=line-too-long
+    rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\"')  # pylint: disable=line-too-long
+    rxp_no_pid = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\"')  # pylint: disable=line-too-long
 
     pool = None
     in_operations = False

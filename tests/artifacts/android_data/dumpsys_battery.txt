@@ -1,0 +1,11 @@
+Battery History (0% used, 2720 used of 4096KB, 31 strings using 2694):
+                    0 (19) RESET:TIME: 2022-01-04-17-30-01
+                    0 (2) 100 status=discharging health=good plug=none temp=242 volt=4302 current=0 ap_temp=24 -nr_connected -wifi_ap -otg misc_event=0x0 online=1 current_event=0x0 txshare_event=0x0 charge=3000 modemRailChargemAh=0 wifiRailChargemAh=0 +running phone_signal_strength=great +wifi_running +wifi +usb_data +ble_scan top=u0a44:"com.sec.android.app.launcher"
+                    0 (2) 100 user=0:"0"
+            +47s645ms (2) 100 +job=u0a94:"com.samsung.android.app.reminder/.data.alarmregister.RegisterAlarmJobService"
+            +47s731ms (2) 100 -job=u0a94:"com.samsung.android.app.reminder/.data.alarmregister.RegisterAlarmJobService"
+       +1h26m18s315ms (2) 095 +top=u0a280:"com.whatsapp"
+              +1h28m35s053ms (2) 095 -top=u0a280:"com.whatsapp"
+    +2d23h22m24s588ms (2) 079 +usb_data +top=u0a44:"com.sec.android.app.launcher"
+
+
