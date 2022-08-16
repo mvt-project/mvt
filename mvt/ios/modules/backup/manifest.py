@@ -13,6 +13,7 @@ from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
 from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
+from mvt.common.url import URL
 
 from ..base import IOSExtraction
 
@@ -99,10 +100,18 @@ class Manifest(IOSExtraction):
                 continue
 
             rel_path = result["relative_path"].lower()
-            for ioc in self.indicators.get_iocs("domains"):
-                if ioc["value"].lower() in rel_path:
+            parts = rel_path.split("_")
+            for part in parts:
+                try:
+                    part_parsed = URL(part)
+                except:
+                    continue
+
+                ioc = self.indicators.check_domain(part)
+                if ioc:
                     self.log.warning("Found mention of domain \"%s\" in a backup file with "
                                      "path: %s", ioc["value"], rel_path)
+                    result["matched_indicator"] = ioc
                     self.detected.append(result)
 
     def run(self) -> None:

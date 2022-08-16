@@ -60,14 +60,21 @@ class SafariHistory(IOSExtraction):
             if not result["redirect_destination"]:
                 continue
 
-            origin_domain = URL(result["url"]).domain
+            try:
+                origin_domain = URL(result["url"]).domain
+            except:
+                origin_domain = ""
 
             # We loop again through visits in order to find redirect record.
             for redirect in self.results:
                 if redirect["visit_id"] != result["redirect_destination"]:
                     continue
 
-                redirect_domain = URL(redirect["url"]).domain
+                try:
+                    redirect_domain = URL(redirect["url"]).domain
+                except:
+                    redirect_domain = ""
+
                 # If the redirect destination is the same domain as the origin,
                 # it's most likely an HTTPS upgrade.
                 if origin_domain == redirect_domain:

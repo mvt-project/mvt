@@ -151,7 +151,6 @@ def extract_key(password, key_file, backup_path):
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(ctx, iocs, output, fast, list_modules, module, backup_path):
-    print(backup_path)
     cmd = CmdIOSCheckBackup(target_path=backup_path, results_path=output,
                             ioc_files=iocs, module_name=module, fast_mode=fast)
 

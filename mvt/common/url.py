@@ -264,7 +264,7 @@ class URL:
         self.top_level = self.get_top_level()
         self.is_shortened = False
 
-    def get_domain(self) -> None:
+    def get_domain(self) -> str:
         """Get the domain from a URL.
 
         :param url: URL to parse
@@ -273,15 +273,11 @@ class URL:
         :rtype: str
 
         """
-        # TODO: Properly handle exception.
-        try:
-            return get_tld(self.url,
-                           as_object=True,
-                           fix_protocol=True).parsed_url.netloc.lower().lstrip("www.")
-        except Exception:
-            return None
+        return get_tld(self.url,
+                       as_object=True,
+                       fix_protocol=True).parsed_url.netloc.lower().lstrip("www.")
 
-    def get_top_level(self) -> None:
+    def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
 
         :param url: URL to parse
@@ -290,13 +286,9 @@ class URL:
         :rtype: str
 
         """
-        # TODO: Properly handle exception.
-        try:
-            return get_tld(self.url,
-                           as_object=True,
-                           fix_protocol=True).fld.lower()
-        except Exception:
-            return None
+        return get_tld(self.url,
+                       as_object=True,
+                       fix_protocol=True).fld.lower()
 
     def check_if_shortened(self) -> bool:
         """Check if the URL is among list of shortener services.
