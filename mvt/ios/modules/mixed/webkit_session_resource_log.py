@@ -15,11 +15,11 @@ from ..base import IOSExtraction
 WEBKIT_SESSION_RESOURCE_LOG_BACKUP_IDS = [
     "a500ee38053454a02e990957be8a251935e28d3f",
 ]
-WEBKIT_SESSION_RESOURCE_LOG_BACKUP_RELPATH = "Library/WebKit/WebsiteData/ResourceLoadStatistics/full_browsing_session_resourceLog.plist" # pylint: disable=line-too-long
+WEBKIT_SESSION_RESOURCE_LOG_BACKUP_RELPATH = "Library/WebKit/WebsiteData/ResourceLoadStatistics/full_browsing_session_resourceLog.plist"  # pylint: disable=line-too-long
 WEBKIT_SESSION_RESOURCE_LOG_ROOT_PATHS = [
-    "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/full_browsing_session_resourceLog.plist", # pylint: disable=line-too-long
-    "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/ResourceLoadStatistics/full_browsing_session_resourceLog.plist", # pylint: disable=line-too-long
-    "private/var/mobile/Library/WebClips/*/Storage/full_browsing_session_resourceLog.plist", # pylint: disable=line-too-long
+    "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/full_browsing_session_resourceLog.plist",  # pylint: disable=line-too-long
+    "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/ResourceLoadStatistics/full_browsing_session_resourceLog.plist",  # pylint: disable=line-too-long
+    "private/var/mobile/Library/WebClips/*/Storage/full_browsing_session_resourceLog.plist",  # pylint: disable=line-too-long
 ]
 
 

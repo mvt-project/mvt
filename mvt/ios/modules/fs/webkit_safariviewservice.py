@@ -9,7 +9,7 @@ from typing import Optional
 from .webkit_base import WebkitBase
 
 WEBKIT_SAFARIVIEWSERVICE_ROOT_PATHS = [
-    "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/", # pylint: disable=line-too-long
+    "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/",  # pylint: disable=line-too-long
 ]
 
 

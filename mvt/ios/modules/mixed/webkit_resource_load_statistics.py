@@ -12,10 +12,10 @@ from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
-WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH = "Library/WebKit/WebsiteData/ResourceLoadStatistics/observations.db" # pylint: disable=line-too-long
+WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH = "Library/WebKit/WebsiteData/ResourceLoadStatistics/observations.db"  # pylint: disable=line-too-long
 WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [
-    "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/ResourceLoadStatistics/observations.db", # pylint: disable=line-too-long
-    "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/observations.db", # pylint: disable=line-too-long
+    "private/var/mobile/Containers/Data/Application/*/Library/WebKit/WebsiteData/ResourceLoadStatistics/observations.db",  # pylint: disable=line-too-long
+    "private/var/mobile/Containers/Data/Application/*/SystemData/com.apple.SafariViewService/Library/WebKit/WebsiteData/observations.db",  # pylint: disable=line-too-long
 ]
 
 

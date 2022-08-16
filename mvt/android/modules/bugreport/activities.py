@@ -58,7 +58,7 @@ class Activities(BugReportModule):
             if not in_package:
                 continue
 
-            if line.strip().startswith("------------------------------------------------------------------------------"): # pylint: disable=line-too-long
+            if line.strip().startswith("------------------------------------------------------------------------------"):  # pylint: disable=line-too-long
                 break
 
             lines.append(line)

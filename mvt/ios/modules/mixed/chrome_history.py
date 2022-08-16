@@ -17,7 +17,7 @@ CHROME_HISTORY_BACKUP_IDS = [
 ]
 # TODO: Confirm Chrome database path.
 CHROME_HISTORY_ROOT_PATHS = [
-    "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/History", # pylint: disable=line-too-long
+    "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/History",  # pylint: disable=line-too-long
 ]
 
 
