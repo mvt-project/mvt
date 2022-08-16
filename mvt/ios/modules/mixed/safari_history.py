@@ -62,7 +62,7 @@ class SafariHistory(IOSExtraction):
 
             try:
                 origin_domain = URL(result["url"]).domain
-            except:
+            except Exception:
                 origin_domain = ""
 
             # We loop again through visits in order to find redirect record.
@@ -72,7 +72,7 @@ class SafariHistory(IOSExtraction):
 
                 try:
                     redirect_domain = URL(redirect["url"]).domain
-                except:
+                except Exception:
                     redirect_domain = ""
 
                 # If the redirect destination is the same domain as the origin,

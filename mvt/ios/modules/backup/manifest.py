@@ -103,8 +103,8 @@ class Manifest(IOSExtraction):
             parts = rel_path.split("_")
             for part in parts:
                 try:
-                    part_parsed = URL(part)
-                except:
+                    URL(part)
+                except Exception:
                     continue
 
                 ioc = self.indicators.check_domain(part)
