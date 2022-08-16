@@ -12,8 +12,8 @@ import sqlite3
 from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
-from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 from mvt.common.url import URL
+from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 
 from ..base import IOSExtraction
 
