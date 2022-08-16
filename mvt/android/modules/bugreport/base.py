@@ -57,6 +57,8 @@ class BugReportModule(MVTModule):
             if matches:
                 return matches
 
+        return []
+
     def _get_file_content(self, file_path: str) -> bytes:
         if self.zip_archive:
             handle = self.zip_archive.open(file_path)

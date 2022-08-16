@@ -58,9 +58,10 @@ class ConfigurationProfiles(IOSExtraction):
                 # indicator list.
                 ioc = self.indicators.check_profile(result["plist"]["PayloadUUID"])
                 if ioc:
-                    self.log.warning(f"Found a known malicious configuration profile "
-                                     f"\"{result['plist']['PayloadDisplayName']}\" "
-                                     f"with UUID '{result['plist']['PayloadUUID']}'.")
+                    self.log.warning("Found a known malicious configuration "
+                                     "profile \"%s\" with UUID %s",
+                                     result['plist']['PayloadDisplayName'],
+                                     result['plist']['PayloadUUID'])
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -68,9 +69,10 @@ class ConfigurationProfiles(IOSExtraction):
                 # Highlight suspicious configuration profiles which may be used
                 # to hide notifications.
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
-                    self.log.warning(f"Found a potentially suspicious configuration profile "
-                                     f"\"{result['plist']['PayloadDisplayName']}\" with "
-                                     f"payload type '{payload_content['PayloadType']}'.")
+                    self.log.warning("Found a potentially suspicious configuration profile "
+                                     "\"%s\" with payload type %s",
+                                     result['plist']['PayloadDisplayName'],
+                                     payload_content['PayloadType'])
                     self.detected.append(result)
                     continue
 

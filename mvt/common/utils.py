@@ -22,7 +22,7 @@ def convert_chrometime_to_datetime(timestamp: int) -> int:
     return epoch_start + delta
 
 
-def convert_datetime_to_iso(datetime: datetime.datetime) -> str:
+def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
     """Converts datetime to ISO string.
 
     :param datetime: datetime.
@@ -32,7 +32,7 @@ def convert_datetime_to_iso(datetime: datetime.datetime) -> str:
 
     """
     try:
-        return datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+        return date_time.strftime("%Y-%m-%d %H:%M:%S.%f")
     except Exception:
         return ""
 

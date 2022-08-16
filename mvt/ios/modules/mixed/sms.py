@@ -116,8 +116,8 @@ class SMS(IOSExtraction):
 
             alert = "ALERT: State-sponsored attackers may be targeting your iPhone"
             if message.get("text", "").startswith(alert):
-                self.log.warn("Apple warning about state-sponsored attack received on the %s",
-                              message["isodate"])
+                self.log.warning("Apple warning about state-sponsored attack received on the %s",
+                                 message["isodate"])
                 self.results.append(message)
             else:
                 # Extract links from the SMS message.
