@@ -55,7 +55,7 @@ class Accessibility(BugReportModule):
             if not in_accessibility:
                 continue
 
-            if line.strip().startswith("------------------------------------------------------------------------------"):
+            if line.strip().startswith("------------------------------------------------------------------------------"): # pylint: disable=line-too-long
                 break
 
             lines.append(line)
