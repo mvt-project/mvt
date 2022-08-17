@@ -29,7 +29,7 @@ class DownloadAPKs(AndroidExtraction):
         self,
         results_path: Optional[str] = "",
         all_apks: Optional[bool] = False,
-        packages: Optional[list] = []
+        packages: Optional[list] = None
     ) -> None:
         """Initialize module.
         :param results_path: Path to the folder where data should be stored

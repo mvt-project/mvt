@@ -37,7 +37,7 @@ class MVTModule:
         results_path: Optional[str] = "",
         fast_mode: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = []
+        results: Optional[list] = None
     ) -> None:
         """Initialize module.
 

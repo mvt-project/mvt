@@ -29,7 +29,7 @@ class CmdAndroidCheckBackup(Command):
         self,
         target_path: Optional[str] = "",
         results_path: Optional[str] = "",
-        ioc_files: Optional[list] = [],
+        ioc_files: Optional[list] = None,
         module_name: Optional[str] = "",
         serial: Optional[str] = "",
         fast_mode: Optional[bool] = False,

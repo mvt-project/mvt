@@ -30,7 +30,7 @@ class OSAnalyticsADDaily(IOSExtraction):
         results_path: Optional[str] = "",
         fast_mode: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = []
+        results: Optional[list] = None
     ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
