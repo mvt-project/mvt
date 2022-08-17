@@ -34,14 +34,14 @@ class Command:
 
         self.target_path = target_path
         self.results_path = results_path
-        self.ioc_files = ioc_files
+        self.ioc_files = ioc_files if ioc_files else []
         self.module_name = module_name
         self.serial = serial
         self.fast_mode = fast_mode
         self.log = log
 
         self.iocs = Indicators(log=log)
-        self.iocs.load_indicators_files(ioc_files)
+        self.iocs.load_indicators_files(self.ioc_files)
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
