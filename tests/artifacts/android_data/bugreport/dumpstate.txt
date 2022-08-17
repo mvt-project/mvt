@@ -124,3 +124,128 @@ DUMP OF SERVICE appwidget:
 Providers:
   [0] provider ProviderId{user:0, app:10107, cmp:ComponentInfo{com.sec.android.app.clockpackage/com.sec.android.app.clockpackage.alarmwidget.ClockAlarmWidgetProvider}}
 
+--------- 0.002s was the duration of dumpsys overlay, ending at: 2022-08-17 15:31:55
+-------------------------------------------------------------------------------
+DUMP OF SERVICE package:
+Database versions:
+  Internal:
+    sdkVersion=29 databaseVersion=3
+  External:
+    sdkVersion=28 databaseVersion=3
+
+Verifiers:
+  Required: com.android.vending (uid=10019)
+
+Intent Filter Verifier:
+  Using: com.google.android.gms (uid=10012)
+
+Packages:
+  Package [com.samsung.android.provider.filterprovider] (d64f8e0):
+    userId=1000
+    sharedUser=SharedUserSetting{cb92b86 android.uid.system/1000}
+    pkg=Package{5be8c47 com.samsung.android.provider.filterprovider}
+    codePath=/system/app/FilterProvider
+    resourcePath=/system/app/FilterProvider
+    legacyNativeLibraryDir=/system/app/FilterProvider/lib
+    primaryCpuAbi=armeabi-v7a
+    secondaryCpuAbi=null
+    versionCode=500700000 minSdk=28 targetSdk=28
+    versionName=5.0.07
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=ApplicationInfo{acc0439 com.samsung.android.provider.filterprovider}
+    flags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION PRIVATE_FLAG_REQUEST_LEGACY_EXTERNAL_STORAGE ]
+    dataDir=/data/user/0/com.samsung.android.provider.filterprovider
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    usesLibraries:
+      android.hidl.manager-V1.0-java
+      android.hidl.base-V1.0-java
+    usesLibraryFiles:
+      /system/framework/android.hidl.manager-V1.0-java.jar
+      /system/framework/android.hidl.base-V1.0-java.jar
+    timeStamp=2008-12-31 16:00:00
+    firstInstallTime=2008-12-31 16:00:00
+    lastUpdateTime=2008-12-31 16:00:00
+    signatures=PackageSignatures{6c98c74 version:2, signatures:[b378e95c], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    declared permissions:
+      com.samsung.android.provider.filterprovider.permission.READ_FILTER: prot=normal, INSTALLED
+      com.samsung.android.provider.filterprovider.permission.WRITE_FILTER: prot=signature, INSTALLED
+      com.samsung.android.provider.filterprovider.permission.RECEIVE_UPDATE: prot=signature, INSTALLED
+      com.sec.android.camera.permission.USE_EFFECT_FILTER: prot=signature, INSTALLED
+    User 0: ceDataInode=-4294835840 installed=true hidden=false suspended=false stopped=false notLaunched=false enabled=0 instant=false virtual=false
+  Package [com.instagram.android] (c716d35):
+    userId=10164
+    pkg=Package{a61df24 com.instagram.android}
+    codePath=/data/app/com.instagram.android-0mrt4tCf3oHIUTc_FFSStA==
+    resourcePath=/data/app/com.instagram.android-0mrt4tCf3oHIUTc_FFSStA==
+    legacyNativeLibraryDir=/data/app/com.instagram.android-0mrt4tCf3oHIUTc_FFSStA==/lib
+    primaryCpuAbi=armeabi-v7a
+    secondaryCpuAbi=null
+    versionCode=364105349 minSdk=21 targetSdk=31
+    versionName=241.1.0.18.114
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=ApplicationInfo{80b0d30 com.instagram.android}
+    flags=[ HAS_CODE ALLOW_TASK_REPARENTING ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE LARGE_HEAP ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_UNRESIZEABLE ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVATE_FLAG_REQUEST_LEGACY_EXTERNAL_STORAGE HAS_DOMAIN_URLS PARTIALLY_DIRECT_BOOT_AWARE ]
+    dataDir=/data/user/0/com.instagram.android
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2022-06-29 23:28:46
+    firstInstallTime=2020-06-12 00:41:34
+    lastUpdateTime=2022-06-29 23:28:51
+    installerPackageName=com.android.vending
+    signatures=PackageSignatures{7812a8d version:2, signatures:[43c4b509], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ HAS_CODE ALLOW_TASK_REPARENTING ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE LARGE_HEAP ]
+    declared permissions:
+      com.instagram.android.permission.SYSTEM_ONLY: prot=signature|privileged, INSTALLED
+      com.instagram.android.permission.RECEIVE_ADM_MESSAGE: prot=signature, INSTALLED
+      com.instagram.android.permission.CROSS_PROCESS_BROADCAST_MANAGER: prot=signature, INSTALLED
+    install permissions:
+      com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE: granted=true
+      com.google.android.c2dm.permission.RECEIVE: granted=true
+      android.permission.USE_CREDENTIALS: granted=true
+      android.permission.MODIFY_AUDIO_SETTINGS: granted=true
+      android.permission.FOREGROUND_SERVICE: granted=true
+      android.permission.RECEIVE_BOOT_COMPLETED: granted=true
+      com.instagram.android.permission.CROSS_PROCESS_BROADCAST_MANAGER: granted=true
+      com.android.launcher.permission.UNINSTALL_SHORTCUT: granted=true
+      android.permission.READ_PROFILE: granted=true
+      android.permission.BLUETOOTH: granted=true
+      com.facebook.services.identity.FEO2: granted=true
+      android.permission.INTERNET: granted=true
+      android.permission.REORDER_TASKS: granted=true
+      com.android.vending.BILLING: granted=true
+      android.permission.BLUETOOTH_ADMIN: granted=true
+      android.permission.USE_FULL_SCREEN_INTENT: granted=true
+      android.permission.BROADCAST_STICKY: granted=true
+    User 0: ceDataInode=-4294835341 installed=true hidden=false suspended=false stopped=false notLaunched=false enabled=4 instant=false virtual=false
+      lastDisabledCaller: auto_disabler
+      gids=[3002, 3003, 3001]
+      runtime permissions:
+        android.permission.ACCESS_FINE_LOCATION: granted=false, flags=[ USER_SET|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_PHONE_NUMBERS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_EXTERNAL_STORAGE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.ACCESS_COARSE_LOCATION: granted=false, flags=[ USER_SET|REVOKE_WHEN_REQUESTED|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_PHONE_STATE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.CALL_PHONE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.CAMERA: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.GET_ACCOUNTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.WRITE_EXTERNAL_STORAGE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.RECORD_AUDIO: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_CONTACTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.ACCESS_MEDIA_LOCATION: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+      disabledComponents:
+        com.instagram.direct.share.handler.DirectExternalMediaShareActivityVideoInterop
+        com.instagram.direct.share.handler.DirectShareHandlerActivityInterop
+        com.instagram.direct.share.handler.DirectExternalPhotoShareActivityInterop
+        com.facebook.rti.push.service.FbnsService
+        com.instagram.direct.share.handler.DirectMultipleExternalMediaShareActivity
+        com.instagram.share.handleractivity.ClipsShareHandlerActivity
+        com.instagram.direct.share.handler.DirectMultipleExternalMediaShareActivityInterop
+
+
+

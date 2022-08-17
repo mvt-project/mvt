@@ -4,9 +4,9 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import re
 from typing import Optional, Union
 
+from mvt.android.parsers.dumpsys import parse_dumpsys_packages
 from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
                                               DANGEROUS_PERMISSIONS_THRESHOLD,
                                               ROOT_PACKAGES)
@@ -76,89 +76,6 @@ class Packages(BugReportModule):
                 self.detected.append(result)
                 continue
 
-    @staticmethod
-    def parse_package_for_details(output: str) -> dict:
-        details = {
-            "uid": "",
-            "version_name": "",
-            "version_code": "",
-            "timestamp": "",
-            "first_install_time": "",
-            "last_update_time": "",
-            "requested_permissions": [],
-        }
-
-        in_install_permissions = False
-        in_runtime_permissions = False
-        for line in output.splitlines():
-            if in_install_permissions:
-                if line.startswith(" " * 4) and not line.startswith(" " * 6):
-                    in_install_permissions = False
-                    continue
-
-                permission = line.strip().split(":")[0]
-                if permission not in details["requested_permissions"]:
-                    details["requested_permissions"].append(permission)
-
-            if in_runtime_permissions:
-                if not line.startswith(" " * 8):
-                    in_runtime_permissions = False
-                    continue
-
-                permission = line.strip().split(":")[0]
-                if permission not in details["requested_permissions"]:
-                    details["requested_permissions"].append(permission)
-
-            if line.strip().startswith("userId="):
-                details["uid"] = line.split("=")[1].strip()
-            elif line.strip().startswith("versionName="):
-                details["version_name"] = line.split("=")[1].strip()
-            elif line.strip().startswith("versionCode="):
-                details["version_code"] = line.split("=", 1)[1].strip()
-            elif line.strip().startswith("timeStamp="):
-                details["timestamp"] = line.split("=")[1].strip()
-            elif line.strip().startswith("firstInstallTime="):
-                details["first_install_time"] = line.split("=")[1].strip()
-            elif line.strip().startswith("lastUpdateTime="):
-                details["last_update_time"] = line.split("=")[1].strip()
-            elif line.strip() == "install permissions:":
-                in_install_permissions = True
-            elif line.strip() == "runtime permissions:":
-                in_runtime_permissions = True
-
-        return details
-
-    def parse_packages_list(self, output: str) -> list:
-        pkg_rxp = re.compile(r"  Package \[(.+?)\].*")
-
-        results = []
-        package_name = None
-        package = {}
-        lines = []
-        for line in output.splitlines():
-            if line.startswith("  Package ["):
-                if len(lines) > 0:
-                    details = self.parse_package_for_details("\n".join(lines))
-                    package.update(details)
-                    results.append(package)
-                    lines = []
-                    package = {}
-
-                matches = pkg_rxp.findall(line)
-                if not matches:
-                    continue
-
-                package_name = matches[0]
-                package["package_name"] = package_name
-                continue
-
-            if not package_name:
-                continue
-
-            lines.append(line)
-
-        return results
-
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
@@ -189,12 +106,12 @@ class Packages(BugReportModule):
 
             lines.append(line)
 
-        self.results = self.parse_packages_list("\n".join(lines))
+        self.results = parse_dumpsys_packages("\n".join(lines))
 
         for result in self.results:
             dangerous_permissions_count = 0
-            for perm in result["requested_permissions"]:
-                if perm in DANGEROUS_PERMISSIONS:
+            for perm in result["permissions"]:
+                if perm["name"] in DANGEROUS_PERMISSIONS:
                     dangerous_permissions_count += 1
 
             if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:

@@ -11,6 +11,7 @@ from rich.progress import track
 from rich.table import Table
 from rich.text import Text
 
+from mvt.android.parsers.dumpsys import parse_dumpsys_package_for_details
 from mvt.common.virustotal import VTNoKey, VTQuotaExceeded, virustotal_lookup
 
 from .base import AndroidExtraction
@@ -191,43 +192,18 @@ class Packages(AndroidExtraction):
 
     @staticmethod
     def parse_package_for_details(output: str) -> dict:
-        details = {
-            "uid": "",
-            "version_name": "",
-            "version_code": "",
-            "timestamp": "",
-            "first_install_time": "",
-            "last_update_time": "",
-            "requested_permissions": [],
-        }
-
-        in_permissions = False
+        # Get only the package information
+        lines = []
+        in_packages = False
         for line in output.splitlines():
-            if in_permissions:
-                if line.startswith(" " * 4) and not line.startswith(" " * 6):
-                    in_permissions = False
-                    continue
+            if in_packages:
+                if line.strip() == "":
+                    break
+                lines.append(line)
+            if line.strip() == "Packages:":
+                in_packages = True
 
-                permission = line.strip().split(":")[0]
-                details["requested_permissions"].append(permission)
-
-            if line.strip().startswith("userId="):
-                details["uid"] = line.split("=")[1].strip()
-            elif line.strip().startswith("versionName="):
-                details["version_name"] = line.split("=")[1].strip()
-            elif line.strip().startswith("versionCode="):
-                details["version_code"] = line.split("=", 1)[1].strip()
-            elif line.strip().startswith("timeStamp="):
-                details["timestamp"] = line.split("=")[1].strip()
-            elif line.strip().startswith("firstInstallTime="):
-                details["first_install_time"] = line.split("=")[1].strip()
-            elif line.strip().startswith("lastUpdateTime="):
-                details["last_update_time"] = line.split("=")[1].strip()
-            elif line.strip() == "requested permissions:":
-                in_permissions = True
-                continue
-
-        return details
+        return parse_dumpsys_package_for_details("\n".join(lines))
 
     def _get_files_for_package(self, package_name: str) -> list:
         output = self._adb_command(f"pm path {package_name}")
