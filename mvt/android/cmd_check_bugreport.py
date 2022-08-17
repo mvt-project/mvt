@@ -20,11 +20,11 @@ class CmdAndroidCheckBugreport(Command):
 
     def __init__(
         self,
-        target_path: Optional[str] = "",
-        results_path: Optional[str] = "",
+        target_path: Optional[str] = None,
+        results_path: Optional[str] = None,
         ioc_files: Optional[list] = None,
-        module_name: Optional[str] = "",
-        serial: Optional[str] = "",
+        module_name: Optional[str] = None,
+        serial: Optional[str] = None,
         fast_mode: Optional[bool] = False,
     ) -> None:
         super().__init__(target_path=target_path, results_path=results_path,

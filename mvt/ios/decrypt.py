@@ -25,7 +25,7 @@ class DecryptBackup:
 
     """
 
-    def __init__(self, backup_path: str, dest_path: Optional[str] = "") -> None:
+    def __init__(self, backup_path: str, dest_path: Optional[str] = None) -> None:
         """Decrypts an encrypted iOS backup.
         :param backup_path: Path to the encrypted backup folder
         :param dest_path: Path to the folder where to store the decrypted backup

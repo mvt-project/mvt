@@ -44,6 +44,7 @@ class Indicators:
 
         paths = os.environ["MVT_STIX2"].split(":")
         for path in paths:
+            print(path)
             if os.path.isfile(path):
                 self.parse_stix2(path)
             else:
@@ -52,11 +53,11 @@ class Indicators:
 
     def _new_collection(
         self,
-        cid: Optional[str] = "",
-        name: Optional[str] = "",
-        description: Optional[str] = "",
-        file_name: Optional[str] = "",
-        file_path: Optional[str] = ""
+        cid: Optional[str] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        file_name: Optional[str] = None,
+        file_path: Optional[str] = None
     ) -> dict:
         return {
             "id": cid,

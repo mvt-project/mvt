@@ -27,7 +27,7 @@ class DownloadAPKs(AndroidExtraction):
 
     def __init__(
         self,
-        results_path: Optional[str] = "",
+        results_path: Optional[str] = None,
         all_apks: Optional[bool] = False,
         packages: Optional[list] = None
     ) -> None:
