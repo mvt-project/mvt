@@ -1,0 +1,126 @@
+Verifiers:
+  Required: com.android.vending (uid=10019)
+
+Intent Filter Verifier:
+  Using: com.google.android.gms (uid=10012)
+
+Libraries:
+  android.test.base ->  (jar) /system/framework/android.test.base.jar
+  android.test.mock ->  (jar) /system/framework/android.test.mock.jar
+
+
+
+Packages:
+  Package [com.samsung.android.provider.filterprovider] (d64f8e0):
+    userId=1000
+    sharedUser=SharedUserSetting{cb92b86 android.uid.system/1000}
+    pkg=Package{5be8c47 com.samsung.android.provider.filterprovider}
+    codePath=/system/app/FilterProvider
+    resourcePath=/system/app/FilterProvider
+    legacyNativeLibraryDir=/system/app/FilterProvider/lib
+    primaryCpuAbi=armeabi-v7a
+    secondaryCpuAbi=null
+    versionCode=500700000 minSdk=28 targetSdk=28
+    versionName=5.0.07
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=ApplicationInfo{acc0439 com.samsung.android.provider.filterprovider}
+    flags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION PRIVATE_FLAG_REQUEST_LEGACY_EXTERNAL_STORAGE ]
+    dataDir=/data/user/0/com.samsung.android.provider.filterprovider
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    usesLibraries:
+      android.hidl.manager-V1.0-java
+      android.hidl.base-V1.0-java
+    usesLibraryFiles:
+      /system/framework/android.hidl.manager-V1.0-java.jar
+      /system/framework/android.hidl.base-V1.0-java.jar
+    timeStamp=2008-12-31 16:00:00
+    firstInstallTime=2008-12-31 16:00:00
+    lastUpdateTime=2008-12-31 16:00:00
+    signatures=PackageSignatures{6c98c74 version:2, signatures:[b378e95c], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    declared permissions:
+      com.samsung.android.provider.filterprovider.permission.READ_FILTER: prot=normal, INSTALLED
+      com.samsung.android.provider.filterprovider.permission.WRITE_FILTER: prot=signature, INSTALLED
+      com.samsung.android.provider.filterprovider.permission.RECEIVE_UPDATE: prot=signature, INSTALLED
+      com.sec.android.camera.permission.USE_EFFECT_FILTER: prot=signature, INSTALLED
+    User 0: ceDataInode=-4294835840 installed=true hidden=false suspended=false stopped=false notLaunched=false enabled=0 instant=false virtual=false
+  Package [com.sec.android.app.DataCreate] (d151a2):
+    userId=10143
+    pkg=Package{254559d com.sec.android.app.DataCreate}
+    codePath=/system/app/AutomationTest_FB
+    resourcePath=/system/app/AutomationTest_FB
+    legacyNativeLibraryDir=/system/app/AutomationTest_FB/lib
+    primaryCpuAbi=null
+    secondaryCpuAbi=null
+    versionCode=1 minSdk=29 targetSdk=29
+    versionName=1.0
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=ApplicationInfo{46c7a12 com.sec.android.app.DataCreate}
+    flags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE ]
+    dataDir=/data/user/0/com.sec.android.app.DataCreate
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2008-12-31 16:00:00
+    firstInstallTime=2008-12-31 16:00:00
+    lastUpdateTime=2008-12-31 16:00:00
+    signatures=PackageSignatures{b4da5e3 version:2, signatures:[b378e95c], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    declared permissions:
+      com.sec.android.app.DataCreate.permission.KEYSTRING: prot=signature|privileged, INSTALLED
+    requested permissions:
+      android.permission.ACCESS_WIFI_STATE
+      android.permission.INTERNET
+      android.permission.ACCESS_NETWORK_STATE
+      android.permission.WAKE_LOCK
+      android.permission.GET_ACCOUNTS
+      android.permission.USE_CREDENTIALS
+      android.permission.RECEIVE_BOOT_COMPLETED
+      android.permission.VIBRATE
+      android.permission.FOREGROUND_SERVICE
+      android.permission.USE_FULL_SCREEN_INTENT
+      com.google.android.c2dm.permission.RECEIVE
+    install permissions:
+      android.permission.WRITE_SETTINGS: granted=true
+      com.samsung.android.launcher.permission.WRITE_SETTINGS: granted=true
+      android.permission.RESTART_PACKAGES: granted=true
+      android.permission.ACCESS_CHECKIN_PROPERTIES: granted=true
+      com.sec.android.app.clockpackage.permission.READ_WCCONTENT: granted=true
+      android.permission.BLUETOOTH: granted=true
+      android.permission.WRITE_MEDIA_STORAGE: granted=true
+      com.sec.android.app.DataCreate.permission.KEYSTRING: granted=true
+      android.permission.INTERNET: granted=true
+      com.android.browser.permission.READ_HISTORY_BOOKMARKS: granted=true
+      android.permission.WRITE_SECURE_SETTINGS: granted=true
+      android.permission.READ_PRIVILEGED_PHONE_STATE: granted=true
+      android.permission.WRITE_SMS: granted=true
+      com.sec.android.app.clockpackage.permission.WRITE_WCCONTENT: granted=true
+      android.permission.sec.RECEIVE_BLOCKED_SMS_MMS: granted=true
+      android.permission.START_ACTIVITIES_FROM_BACKGROUND: granted=true
+      com.android.browser.permission.WRITE_HISTORY_BOOKMARKS: granted=true
+      com.sec.android.app.phoneutil.permission.KEYSTRING: granted=true
+      android.permission.ACCESS_WIFI_STATE: granted=true
+      android.permission.MANAGE_APP_OPS_MODES: granted=true
+    User 0: ceDataInode=-4294835694 installed=true hidden=false suspended=false stopped=false notLaunched=false enabled=0 instant=false virtual=false
+      gids=[3002, 1023, 3003]
+      runtime permissions:
+        android.permission.READ_SMS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.READ_CALENDAR: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED]
+        android.permission.READ_CALL_LOG: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.RECEIVE_MMS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.READ_EXTERNAL_STORAGE: granted=false, flags=[ REVOKE_WHEN_REQUESTED|USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.SEND_SMS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.WRITE_CONTACTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED]
+        android.permission.CAMERA: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED]
+        android.permission.WRITE_CALENDAR: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED]
+        android.permission.WRITE_CALL_LOG: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.GET_ACCOUNTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED]
+        android.permission.WRITE_EXTERNAL_STORAGE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|RESTRICTION_UPGRADE_EXEMPT]
+        android.permission.READ_CONTACTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED]
+
+
+
