@@ -44,7 +44,6 @@ class Indicators:
 
         paths = os.environ["MVT_STIX2"].split(":")
         for path in paths:
-            print(path)
             if os.path.isfile(path):
                 self.parse_stix2(path)
             else:
