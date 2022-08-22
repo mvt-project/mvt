@@ -192,7 +192,6 @@ class Packages(AndroidExtraction):
 
     @staticmethod
     def parse_package_for_details(output: str) -> dict:
-        # Get only the package information
         lines = []
         in_packages = False
         for line in output.splitlines():
