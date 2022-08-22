@@ -3,10 +3,10 @@
 If you have correctly [installed libimobiledevice](../install.md) you can easily generate an iTunes backup using the `idevicebackup2` tool included in the suite. First, you might want to ensure that backup encryption is enabled (**note: encrypted backup contain more data than unencrypted backups**):
 
 ```bash
-idevicebackup2 -i backup encryption on
+idevicebackup2 -i encryption on
 ```
 
-Note that if a backup password was previously set on this device, you might need to use the same or change it. You can try changing password using `idevicebackup2 -i backup changepw`, or by turning off encryption (`idevicebackup2 -i backup encryption off`) and turning it back on again.
+Note that if a backup password was previously set on this device, you might need to use the same or change it. You can try changing password using `idevicebackup2 -i changepw`, or by turning off encryption (`idevicebackup2 -i encryption off`) and turning it back on again.
 
 If you are not able to recover or change the password, you should try to disable encryption and obtain an unencrypted backup.
 
