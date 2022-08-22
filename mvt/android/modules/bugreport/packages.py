@@ -6,10 +6,10 @@
 import logging
 from typing import Optional, Union
 
-from mvt.android.parsers.dumpsys import parse_dumpsys_packages
 from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
                                               DANGEROUS_PERMISSIONS_THRESHOLD,
                                               ROOT_PACKAGES)
+from mvt.android.parsers.dumpsys import parse_dumpsys_packages
 
 from .base import BugReportModule
 
