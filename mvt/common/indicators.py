@@ -436,6 +436,27 @@ class Indicators:
 
         return None
 
+    def check_file_path_process(self, file_path: str) -> Union[dict, None]:
+        """Check the provided file path contains a process name from the
+        list of indicators
+
+        :param file_path: File path or file name to check against file
+        indicators
+        :type file_path: str
+        :returns: Indicator details if matched, otherwise None
+
+        """
+        if not file_path:
+            return None
+
+        for ioc in self.get_iocs("processes"):
+            parts = file_path.split("/")
+            if ioc["value"] in parts:
+                self.log.warning("Found known suspicious process name mentioned in file at "
+                                  "path \"%s\" matching indicators from \"%s\"",
+                                  file_path, ioc["name"])
+                return ioc
+
     def check_profile(self, profile_uuid: str) -> Union[dict, None]:
         """Check the provided configuration profile UUID against the list of
         indicators.

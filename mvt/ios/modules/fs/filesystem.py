@@ -57,14 +57,10 @@ class Filesystem(IOSExtraction):
             if self.fast_mode:
                 continue
 
-            for ioc in self.indicators.get_iocs("processes"):
-                parts = result["path"].split("/")
-                if ioc["value"] in parts:
-                    self.log.warning("Found known suspicious process name mentioned in file at "
-                                     "path \"%s\" matching indicators from \"%s\"",
-                                     result["path"], ioc["name"])
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+            ioc = self.indicators.check_file_path_process(result["path"])
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def run(self) -> None:
         for root, dirs, files in os.walk(self.target_path):
