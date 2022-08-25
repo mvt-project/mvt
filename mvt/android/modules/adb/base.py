@@ -272,8 +272,8 @@ class AndroidExtraction(MVTModule):
         self._adb_command(f"rm -f {new_remote_path}")
 
     def _generate_backup(self, package_name: str) -> bytes:
-        self.log.warning("Please check phone and accept Android backup prompt. "
-                         "You may need to set a backup password. \a")
+        self.log.info("Please check phone and accept Android backup prompt. "
+                      "You may need to set a backup password. \a")
 
         # TODO: Base64 encoding as temporary fix to avoid byte-mangling over
         #       the shell transport...
@@ -300,7 +300,7 @@ class AndroidExtraction(MVTModule):
             except InvalidBackupPassword:
                 self.log.error("You provided the wrong password! Please try again...")
 
-        self.log.warn("All attempts to decrypt backup with password failed!")
+        self.log.error("All attempts to decrypt backup with password failed!")
 
         return None
 

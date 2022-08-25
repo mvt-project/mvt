@@ -158,7 +158,7 @@ class SMS(AndroidExtraction):
         except InsufficientPrivileges:
             pass
 
-        self.log.warn("No SMS database found. Trying extraction of SMS data "
+        self.log.info("No SMS database found. Trying extraction of SMS data "
                       "using Android backup feature.")
         self._extract_sms_adb()
 
