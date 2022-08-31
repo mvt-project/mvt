@@ -107,8 +107,12 @@ class IOSExtraction(MVTModule):
                             (relative_path, domain))
             else:
                 if relative_path:
-                    cur.execute(f"{base_sql} relativePath = ?;",
-                                (relative_path,))
+                    if "*" in relative_path:
+                        cur.execute(f"{base_sql} relativePath LIKE ?;",
+                                    (relative_path.replace("*", "%"),))
+                    else:
+                        cur.execute(f"{base_sql} relativePath = ?;",
+                                    (relative_path,))
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
         except Exception as exc:
