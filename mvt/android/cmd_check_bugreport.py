@@ -58,3 +58,7 @@ class CmdAndroidCheckBugreport(Command):
             module.from_zip(self.bugreport_archive, self.bugreport_files)
         else:
             module.from_folder(self.target_path, self.bugreport_files)
+
+    def finish(self) -> None:
+        if self.bugreport_archive:
+            self.bugreport_archive.close()
