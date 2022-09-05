@@ -47,6 +47,8 @@ class Command:
         # We can use this to reference e.g. self.executed[0].results.
         self.executed = []
 
+        self.detected_count = 0
+
         self.timeline = []
         self.timeline_detected = []
 
@@ -195,6 +197,8 @@ class Command:
             run_module(m)
 
             self.executed.append(m)
+
+            self.detected_count += len(m.detected)
 
             self.timeline.extend(m.timeline)
             self.timeline_detected.extend(m.timeline_detected)

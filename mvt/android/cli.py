@@ -16,6 +16,7 @@ from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
 
 from .cmd_check_adb import CmdAndroidCheckADB
+from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
 from .cmd_check_backup import CmdAndroidCheckBackup
 from .cmd_check_bugreport import CmdAndroidCheckBugreport
 from .cmd_download_apks import DownloadAPKs
@@ -121,9 +122,9 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
 
     cmd.run()
 
-    if len(cmd.timeline_detected) > 0:
+    if cmd.detected_count > 0:
         log.warning("The analysis of the Android device produced %d detections!",
-                    len(cmd.timeline_detected))
+                    cmd.detected_count)
 
 
 #==============================================================================
@@ -151,9 +152,9 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 
     cmd.run()
 
-    if len(cmd.timeline_detected) > 0:
+    if cmd.detected_count > 0:
         log.warning("The analysis of the Android bug report produced %d detections!",
-                    len(cmd.timeline_detected))
+                    cmd.detected_count)
 
 
 #==============================================================================
@@ -179,9 +180,39 @@ def check_backup(ctx, iocs, output, list_modules, backup_path):
 
     cmd.run()
 
-    if len(cmd.timeline_detected) > 0:
+    if cmd.detected_count > 0:
         log.warning("The analysis of the Android backup produced %d detections!",
-                    len(cmd.timeline_detected))
+                    cmd.detected_count)
+
+
+#==============================================================================
+# Command: check-androidqf
+#==============================================================================
+@cli.command("check-androidqf", help="Check data collected with AndroidQF")
+@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
+              default=[], help=HELP_MSG_IOC)
+@click.option("--output", "-o", type=click.Path(exists=False),
+              help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
+@click.pass_context
+def check_androidqf(ctx, iocs, output, list_modules, module, androidqf_path):
+    cmd = CmdAndroidCheckAndroidQF(target_path=androidqf_path,
+                                   results_path=output, ioc_files=iocs,
+                                   module_name=module)
+
+    if list_modules:
+        cmd.list_modules()
+        return
+
+    log.info("Checking AndroidQF acquisition at path: %s", androidqf_path)
+
+    cmd.run()
+
+    if cmd.detected_count > 0:
+        log.warning("The analysis of the AndroidQF acquisition produced %d detections!",
+                    cmd.detected_count)
 
 
 #==============================================================================

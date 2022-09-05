@@ -6,11 +6,11 @@
 import logging
 from typing import Optional
 
-from .base import AndroidExtraction
+from .base import AndroidQFModule
 
 
-class Processes(AndroidExtraction):
-    """This module extracts details on running processes."""
+class Processes(AndroidQFModule):
+    """This module analyse running processes"""
 
     def __init__(
         self,
@@ -49,38 +49,44 @@ class Processes(AndroidExtraction):
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
 
+    def _parse_ps(self, data):
+        for line in data.split("\n")[1:]:
+            proc = line.split()
+
+            # Sometimes WCHAN is empty.
+            if len(proc) == 8:
+                proc = proc[:5] + [''] + proc[5:]
+
+            # Sometimes there is the security label.
+            if proc[0].startswith("u:r"):
+                label = proc[0]
+                proc = proc[1:]
+            else:
+                label = ""
+
+            # Sometimes there is no WCHAN.
+            if len(proc) < 9:
+                proc = proc[:5] + [""] + proc[5:]
+
+            self.results.append({
+                "user": proc[0],
+                "pid": int(proc[1]),
+                "ppid": int(proc[2]),
+                "virtual_memory_size": int(proc[3]),
+                "resident_set_size": int(proc[4]),
+                "wchan": proc[5],
+                "aprocress": proc[6],
+                "stat": proc[7],
+                "proc_name": proc[8].strip("[]"),
+                "label": label,
+            })
+
     def run(self) -> None:
-        self._adb_connect()
+        ps_files = self._get_files_by_pattern("*/ps.txt")
+        if not ps_files:
+            return
 
-        output = self._adb_command("ps -A")
+        with open(ps_files[0]) as handle:
+            self._parse_ps(handle.read())
 
-        for line in output.splitlines()[1:]:
-            line = line.strip()
-            if line == "":
-                continue
-
-            fields = line.split()
-            proc = {
-                "user": fields[0],
-                "pid": fields[1],
-                "parent_pid": fields[2],
-                "vsize": fields[3],
-                "rss": fields[4],
-            }
-
-            # Sometimes WCHAN is empty, so we need to re-align output fields.
-            if len(fields) == 8:
-                proc["wchan"] = ""
-                proc["pc"] = fields[5]
-                proc["name"] = fields[7]
-            elif len(fields) == 9:
-                proc["wchan"] = fields[5]
-                proc["pc"] = fields[6]
-                proc["name"] = fields[8]
-
-            self.results.append(proc)
-
-        self._adb_disconnect()
-
-        self.log.info("Extracted records on a total of %d processes",
-                      len(self.results))
+        self.log.info("Identified %d running processes", len(self.results))

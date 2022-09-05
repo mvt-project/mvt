@@ -162,9 +162,9 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, backup_path):
 
     cmd.run()
 
-    if len(cmd.timeline_detected) > 0:
+    if cmd.detected_count > 0:
         log.warning("The analysis of the backup produced %d detections!",
-                    len(cmd.timeline_detected))
+                    cmd.detected_count)
 
 
 #==============================================================================
@@ -192,9 +192,9 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, dump_path):
 
     cmd.run()
 
-    if len(cmd.timeline_detected) > 0:
+    if cmd.detected_count > 0:
         log.warning("The analysis of the iOS filesystem produced %d detections!",
-                    len(cmd.timeline_detected))
+                    cmd.detected_count)
 
 
 #==============================================================================
