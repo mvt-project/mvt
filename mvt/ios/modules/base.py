@@ -169,15 +169,16 @@ class IOSExtraction(MVTModule):
                     file_path = self._get_backup_file_from_id(backup_id)
                     if file_path:
                         break
-
-            # If this file does not exist we might be processing a full
-            # filesystem dump (checkra1n all the things!).
-            if not file_path or not os.path.exists(file_path):
-                # We reset the file_path.
-                file_path = None
-                for found_path in self._get_fs_files_from_patterns(root_paths):
-                    file_path = found_path
-                    break
+            
+            if root_paths:
+                # If this file does not exist we might be processing a full
+                # filesystem dump (checkra1n all the things!).
+                if not file_path or not os.path.exists(file_path):
+                    # We reset the file_path.
+                    file_path = None
+                    for found_path in self._get_fs_files_from_patterns(root_paths):
+                        file_path = found_path
+                        break
 
         # If we do not find any, we fail.
         if file_path:
