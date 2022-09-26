@@ -80,9 +80,6 @@ class Manifest(IOSExtraction):
         return records
 
     def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
         for result in self.results:
             if not result.get("relative_path"):
                 continue
@@ -94,6 +91,9 @@ class Manifest(IOSExtraction):
                                      "\"com.apple.CrashReporter.plist\" file created in RootDomain")
                     self.detected.append(result)
                     continue
+
+            if not self.indicators:
+                continue
 
             if self.indicators.check_file_path("/" + result["relative_path"]):
                 self.detected.append(result)
