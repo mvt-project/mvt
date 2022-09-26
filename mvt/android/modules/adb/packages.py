@@ -132,8 +132,6 @@ class Packages(AndroidExtraction):
             if result["package_name"] in SECURITY_PACKAGES and result["disabled"]:
                 self.log.warning("Found a security package disabled: \"%s\"",
                                  result["package_name"])
-                self.detected.append(result)
-                continue
 
             if not self.indicators:
                 continue
