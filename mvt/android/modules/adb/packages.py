@@ -66,6 +66,13 @@ ROOT_PACKAGES = [
     "com.kingouser.com",
     "com.topjohnwu.magisk",
 ]
+SECURITY_PACKAGES = [
+    "com.policydm",
+    "com.samsung.android.app.omcagent",
+    "com.samsung.android.securitylogagent",
+    "com.sec.android.soagent",
+    "com.wssyncmldm",
+]
 
 
 class Packages(AndroidExtraction):
@@ -118,6 +125,12 @@ class Packages(AndroidExtraction):
             if result["package_name"] in ROOT_PACKAGES:
                 self.log.warning("Found an installed package related to "
                                  "rooting/jailbreaking: \"%s\"",
+                                 result["package_name"])
+                self.detected.append(result)
+                continue
+
+            if result["package_name"] in SECURITY_PACKAGES and result["disabled"]:
+                self.log.warning("Found a security package disabled: \"%s\"",
                                  result["package_name"])
                 self.detected.append(result)
                 continue
