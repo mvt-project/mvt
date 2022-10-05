@@ -169,7 +169,7 @@ class IOSExtraction(MVTModule):
                     file_path = self._get_backup_file_from_id(backup_id)
                     if file_path:
                         break
-            
+
             if root_paths:
                 # If this file does not exist we might be processing a full
                 # filesystem dump (checkra1n all the things!).
