@@ -71,6 +71,16 @@ SECURITY_PACKAGES = [
     "com.samsung.android.app.omcagent",
     "com.samsung.android.securitylogagent",
     "com.sec.android.soagent",
+]
+SYSTEM_UPDATE_PACKAGES = [
+    "com.android.updater",
+    "com.google.android.gms",
+    "com.huawei.android.hwouc",
+    "com.lge.lgdmsclient",
+    "com.motorola.ccc.ota",
+    "com.oneplus.opbackup",
+    "com.oppo.ota",
+    "com.transsion.systemupdate",
     "com.wssyncmldm",
 ]
 
@@ -131,6 +141,10 @@ class Packages(AndroidExtraction):
 
             if result["package_name"] in SECURITY_PACKAGES and result["disabled"]:
                 self.log.warning("Found a security package disabled: \"%s\"",
+                                 result["package_name"])
+
+            if result["package_name"] in SYSTEM_UPDATE_PACKAGES and result["disabled"]:
+                self.log.warning("System OTA update package \"%s\" disabled on the phone",
                                  result["package_name"])
 
             if not self.indicators:
