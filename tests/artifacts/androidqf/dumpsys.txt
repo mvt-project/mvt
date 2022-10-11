@@ -1,0 +1,254 @@
+some random text here
+
+DUMP OF SERVICE accessibility:
+ACCESSIBILITY MANAGER (dumpsys accessibility)
+
+User state[attributes:{id=0, currentUser=true
+  mIsNavBarMagnificationAssignedToAccessibilityButton = false
+
+  mIsNavBarMagnifierWindowAssignedToAccessibilityButton = false
+  mIsNavBarAmplifyAmbientSoundAssignedToAccessibilityButton = fals
+e
+  mIsAmplifyAmbientSoundEnabled = false
+  mIsBixbyRunning = false
+  mIsMagniferWindowEnabled = false
+  mIsFollowTypingFocusEnabled = false
+  mIsTapDurationEnabled = false
+  mIsTouchBlockingEnabled = false
+  mIsStickyKeysEnabled = false
+  mIsBounceKeysEnabled = false
+  mIsTouchExplorationEnabled = false
+  mIsTextHighContrastEnabled = false
+  mIsDisplayMagnificationEnabled = false
+  mIsNavBarMagnificationEnabled = false
+  mIsAutoclickEnabled = false
+  mIsPerformGesturesEnabled = false
+  mIsFilterKeyEventsEnabled = false
+  mAccessibilityFocusOnlyInActiveWindow = true
+  mUserNonInteractiveUiTimeout = 0
+  mUserInteractiveUiTimeout = 0
+  mBindInstantServiceAllowed = false
+  mIsGestureNaviBar = false
+  }
+  installed services: {
+  installed services: {
+    0 : com.android.settings/com.samsung.android.settings.development.gpuwatch.GPUWatchInterceptor
+    1 : com.samsung.accessibility/.universalswitch.UniversalSwitchService
+    2 : com.samsung.accessibility/com.samsung.android.app.talkback.TalkBackService
+    3 : com.sec.android.app.camera/com.samsung.android.glview.AccessibilityGestureHandler
+  }
+  enabled services: {
+  }
+  binding services: {
+  }
+  bound services:{
+  }
+  AccessibilityInputFilter:{
+  }]
+
+--------- 0.004s was the duration of dumpsys accessibility, ending at: 2022-01-28 17:37:22
+----------------------------
+-------------------------------------------------------------------------------
+DUMP OF SERVICE package:
+Database versions:
+  Internal:
+    sdkVersion=29 databaseVersion=3
+    fingerprint=samsung/a40
+  External:
+    sdkVersion=28 databaseVersion=3
+    fingerprint=samsung/a40
+
+Verifiers:
+  Required: com.android.vending (uid=10019)
+
+Intent Filter Verifier:
+  Using: com.google.android.gms (uid=10012)
+
+Receiver Resolver Table:
+  Non-Data Actions:
+      com.android.storagemanager.automatic.SHOW_NOTIFICATION:
+        23fa699 com.android.storagemanager/.automatic.NotificationController
+      android.intent.action.PHONE_STATE:
+        85c0aa6 com.facebook.katana/com.facebook.confirmation.util.BackgroundVoiceCallReceiver
+        a713de8 com.samsung.android.app.contacts/com.samsung.android.contacts.notification.CallStateBroadcastReceiver
+        ba10b0b com.sec.hearingadjust/.Receiver
+        c843c01 com.samsung.android.messaging/.ui.receiver.notification.CmcPhoneStateUpdateReceiver
+      com.samsung.intent.internal.stk.user_action:
+        2062d63 com.android.stk/.StkCmdReceiver
+      android.intent.action.NEW_OUTGOING_CALL:
+        1ff4352 com.sec.android.app.safetyassurance/.emergencyreporthelper.EmergencyReportStartMonitorReceiver
+        2906244 com.google.android.gms/.chimera.GmsIntentOperationService$PersistentTrustedReceiver
+
+Active APEX packages:
+
+
+Inactive APEX packages:
+
+
+Factory APEX packages:
+
+Packages:
+  Package [com.samsung.android.provider.filterprovider] (4be8eeb):
+    userId=1000
+    sharedUser=SharedUserSetting{b8a0e41 android.uid.system/1000}
+    pkg=Package{1660fe6 com.samsung.android.provider.filterprovider}
+    codePath=/system/app/FilterProvider
+    resourcePath=/system/app/FilterProvider
+    legacyNativeLibraryDir=/system/app/FilterProvider/lib
+    primaryCpuAbi=armeabi-v7a
+    secondaryCpuAbi=null
+    versionCode=500700000 minSdk=28 targetSdk=28
+    versionName=5.0.07
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=ApplicationInfo{b6df792 com.samsung.android.provider.filterprovider}
+    flags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION PRIVATE_FLAG_REQUEST_LEGACY_EXTERNAL_STORAGE ]
+    dataDir=/data/user/0/com.samsung.android.provider.filterprovider
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    usesLibraries:
+      android.hidl.manager-V1.0-java
+      android.hidl.base-V1.0-java
+    usesLibraryFiles:
+      /system/framework/android.hidl.manager-V1.0-java.jar
+      /system/framework/android.hidl.base-V1.0-java.jar
+    timeStamp=2008-12-31 16:00:00
+    firstInstallTime=2008-12-31 16:00:00
+    lastUpdateTime=2008-12-31 16:00:00
+    signatures=PackageSignatures{3310927 version:2, signatures:[b378e95c], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+  Package [com.sec.android.app.DataCreate] (8c78be6):
+    userId=10143
+    pkg=Package{7d4f7d4 com.sec.android.app.DataCreate}
+    codePath=/system/app/AutomationTest_FB
+    resourcePath=/system/app/AutomationTest_FB
+    legacyNativeLibraryDir=/system/app/AutomationTest_FB/lib
+    primaryCpuAbi=null
+    secondaryCpuAbi=null
+    versionCode=1 minSdk=29 targetSdk=29
+    versionName=1.0
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=ApplicationInfo{b284d7d com.sec.android.app.DataCreate}
+    flags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE ]
+    dataDir=/data/user/0/com.sec.android.app.DataCreate
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2008-12-31 16:00:00
+    firstInstallTime=2008-12-31 16:00:00
+    lastUpdateTime=2008-12-31 16:00:00
+
+
+  APEX session state:
+
+Active install Logging info:
+  []
+    1642419683196: "Ver":"", "Session":"0",
+--------- 2.929s was the duration of dumpsys package, ending at: 2022-01-28 17:37:43
+-------------------------------------------------------------------------------
+DUMP OF SERVICE appops:
+Current AppOps Service state:
+  Settings:
+    top_state_settle_time=+30s0ms
+    fg_service_state_settle_time=+10s0ms
+    bg_state_settle_time=+1s0ms
+
+  Op mode watchers:
+    Op COARSE_LOCATION:
+      #0: ModeCallback{b8f1a14 watchinguid=-1 flags=0x1 from uid=1000 pid=4098}
+      #1: ModeCallback{e9062d4 watchinguid=-1 flags=0x1 from uid=u0a12 pid=13172}
+    Op READ_CALL_LOG:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op WRITE_CALL_LOG:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op READ_SMS:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op RECEIVE_SMS:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+    Op RECEIVE_MMS:
+      #0: ModeCallback{4b4eb4e watchinguid=-1 flags=0x0 from uid=1000 pid=4098}
+
+  Uid 0:
+    state=cch
+    Package com.android.phone:
+      MANAGE_IPSEC_TUNNELS (allow):
+    Package com.sec.epdg:
+      MANAGE_IPSEC_TUNNELS (deny):
+  Uid 1000:
+    state=pers
+      LEGACY_STORAGE: mode=allow
+    Package com.samsung.android.provider.filterprovider:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+    Package com.samsung.android.smartswitchassistant:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+    Package com.samsung.clipboardsaveservice:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+      RUN_IN_BACKGROUND (allow):
+    Package com.skms.android.agent:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+    Package com.sec.factory.camera:
+      RECORD_AUDIO (allow):
+      RUN_IN_BACKGROUND (allow):
+          Access: [pers-s] 2022-03-29 18:37:30.315 (-4h50m23s772ms)
+  Uid u0a103:
+    state=cch
+      COARSE_LOCATION: mode=ignore
+      LEGACY_STORAGE: mode=allow
+    Package com.facebook.katana:
+      READ_CONTACTS (allow):
+          Access: [bg-tpd] 2022-03-07 18:05:34.325 (-22d4h22m19s762ms)
+      WRITE_SMS (ignore):
+          Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
+          Reject: [bg-s]2022-03-10 19:35:06.426 (-19d2h52m47s661ms)
+          Reject: [cch-s]2022-03-29 18:48:02.923 (-4h39m51s164ms)
+      WAKE_LOCK (allow):
+          Access: [fg-s] 2021-05-19 22:02:49.186 (-314d1h25m4s901ms)
+          Access: [bg-s] 2022-03-29 23:03:03.763 (-24m50s324ms) duration=+33ms
+          Access: [cch-s] 2022-03-07 14:57:11.635 (-22d7h30m42s452ms)
+      TOAST_WINDOW (allow):
+      READ_PHONE_STATE (allow):
+          Access: [fg-s] 2021-05-19 22:02:53.336 (-314d1h25m0s751ms)
+          Access: [bg-s] 2022-03-24 21:06:52.731 (-5d1h21m1s356ms)
+          Access: [cch-s] 2022-03-29 18:57:58.524 (-4h29m55s563ms)
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+      READ_DEVICE_IDENTIFIERS (deny):
+          Reject: [fg-s]2021-05-19 22:02:53.434 (-314d1h25m0s653ms)
+          Reject: [bg-s]2022-03-24 21:06:56.538 (-5d1h20m57s549ms)
+          Reject: [cch-s]2022-03-29 18:57:58.644 (-4h29m55s443ms)
+  Uid u0a104:
+    state=cch
+      COARSE_LOCATION: mode=ignore
+      LEGACY_STORAGE: mode=ignore
+    Package org.mozilla.firefox:
+      REQUEST_INSTALL_PACKAGES (allow):
+  Uid u0a105:
+    state=cch
+    Package com.android.carrierdefaultapp:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+  Uid u0a106:
+    state=cch
+      LEGACY_STORAGE: mode=allow
+    Package com.samsung.safetyinformation:
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+  Uid u0a107:
+    state=cch
+      LEGACY_STORAGE: mode=allow
+    Package com.sec.android.app.clockpackage:
+      WAKE_LOCK (allow):
+          Access: [bg-s] 2022-03-29 18:38:31.440 (-4h49m22s647ms) duration=+126ms
+          Access: [cch-s] 2021-06-07 12:47:06.642 (-295d10h40m47s445ms)
+      TOAST_WINDOW (allow):
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+
+
+
+

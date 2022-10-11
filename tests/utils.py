@@ -28,5 +28,9 @@ def get_android_backup_folder():
     return os.path.join(os.path.dirname(__file__), "artifacts", "android_backup")
 
 
+def get_android_androidqf():
+    return os.path.join(os.path.dirname(__file__), "artifacts", "androidqf")
+
+
 def get_indicator_file():
     print("PYTEST env", os.getenv("PYTEST_CURRENT_TEST"))

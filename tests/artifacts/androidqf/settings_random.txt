@@ -1,0 +1,9 @@
+samsung_errorlog_agree=0
+package_verifier_enable=1
+package_verifier_user_consent=1
+navigationbar_hide_bar=1
+navigationbar_key_order=0
+navigationbar_pressure_user_level=3
+navigationbar_recently_used_color=
+navigationbar_unlock_with_home_button=0
+navigationbar_use_theme_default=0
