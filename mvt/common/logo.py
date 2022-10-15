@@ -19,7 +19,7 @@ def check_updates() -> None:
     else:
         if latest_version:
             rich_print(f"\t\t[bold]Version {latest_version} is available! "
-                       "Upgrade mvt![/bold]")
+                       "Upgrade mvt with pip3 install -U mvt[/bold]")
 
     # Then we check for indicators files updates.
     ioc_updates = IndicatorsUpdates()
