@@ -1,4 +1,4 @@
-Using Docker simplifies having all the required dependencies and tools (including most recent versions of [libimobiledevice](https://libimobiledevice.org)) readily installed.
+Using Docker simplifies having all the required dependencies and tools (including most recent versions of [libimobiledevice](https://libimobiledevice.org)) readily installed. Note that this requires a Linux host, as Docker for Windows and Mac [doesn't support passing through USB devices](https://docs.docker.com/desktop/faqs/#can-i-pass-through-a-usb-device-to-a-container).
 
 Install Docker following the [official documentation](https://docs.docker.com/get-docker/).
 
@@ -8,11 +8,6 @@ Once installed, you can clone MVT's repository and build its Docker image:
 git clone https://github.com/mvt-project/mvt.git
 cd mvt
 docker build -t mvt .
-```
-
-Optionally, you may need to specify your platform to Docker in order to build successfully (Apple M1)
-```bash
-docker build --platform amd64 -t mvt .
 ```
 
 Test if the image was created successfully:
