@@ -42,6 +42,9 @@ IPHONE_MODELS = [
     {"identifier": "iPhone14,5", "description": "iPhone 13"},
     {"identifier": "iPhone14,2", "description": "iPhone 13 Pro"},
     {"identifier": "iPhone14,3", "description": "iPhone 13 Pro Max"},
+    {"identifier": "iPhone14,8", "decription": "iPhone 14 Plus"},
+    {"identifier": "iPhone15,2", "description": "iPhone 14 Pro"},
+    {"identifier": "iPhone15,3", "description": "iPhone 14 Pro Max"}
 ]
 
 IPHONE_IOS_VERSIONS = [
