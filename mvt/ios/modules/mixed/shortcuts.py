@@ -104,29 +104,33 @@ class Shortcuts(IOSExtraction):
             for index, value in enumerate(item):
                 shortcut[names[index]] = value
 
-            action_data = plistlib.load(io.BytesIO(
-                shortcut.pop("action_data", [])))
-            actions = []
-            for action_entry in action_data:
-                action = {}
-                action["identifier"] = action_entry["WFWorkflowActionIdentifier"]
-                action["parameters"] = action_entry["WFWorkflowActionParameters"]
+            try:
+                action_data = plistlib.load(io.BytesIO(
+                    shortcut.pop("action_data", [])))
+                actions = []
+                for action_entry in action_data:
+                    action = {}
+                    action["identifier"] = action_entry["WFWorkflowActionIdentifier"]
+                    action["parameters"] = action_entry["WFWorkflowActionParameters"]
 
-                # URLs might be in multiple fields, do a simple regex search
-                # across the parameters.
-                extracted_urls = check_for_links(str(action["parameters"]))
+                    # URLs might be in multiple fields, do a simple regex search
+                    # across the parameters.
+                    extracted_urls = check_for_links(str(action["parameters"]))
 
-                # Remove quoting characters that may have been captured by the
-                # regex.
-                action["urls"] = [url.rstrip("',") for url in extracted_urls]
-                actions.append(action)
+                    # Remove quoting characters that may have been captured by the
+                    # regex.
+                    action["urls"] = [url.rstrip("',") for url in extracted_urls]
+                    actions.append(action)
+                shortcut["parsed_actions"] = len(actions)
+                shortcut["action_urls"] = list(itertools.chain(
+                    *[action["urls"] for action in actions]))
+            except plistlib.InvalidFileException:
+                self.log.debug("Shortcut without action data")
+                shortcut["action_urls"] = None
+                shortcut["parsed_actions"] = 0
 
             shortcut["isodate"] = convert_mactime_to_iso(shortcut.pop("created_date"))
             shortcut["modified_date"] = convert_mactime_to_iso(shortcut["modified_date"])
-            shortcut["parsed_actions"] = len(actions)
-            shortcut["action_urls"] = list(itertools.chain(
-                *[action["urls"] for action in actions]))
-
             self.results.append(shortcut)
 
         cur.close()
