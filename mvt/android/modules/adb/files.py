@@ -83,6 +83,9 @@ class Files(AndroidExtraction):
             cmd = f"find '{folder}' -type f -printf '%T@ %m %s %u %g %p\n' 2> /dev/null"
             output = self._adb_command(cmd)
 
+            if output.strip() == "":
+                return
+
             for file_line in output.splitlines():
                 [unix_timestamp, mode, size,
                  owner, group, full_path] = file_line.rstrip().split(" ", 5)
