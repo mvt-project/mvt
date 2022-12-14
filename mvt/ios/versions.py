@@ -247,10 +247,13 @@ IPHONE_IOS_VERSIONS = [
     {"build": "19G71", "version": "15.6"},
     {"build": "19G82", "version": "15.6.1"},
     {"build": "19H12", "version": "15.7"},
+    {"build": "19H117", "version": "15.7.1"},
+    {"build": "19H218", "version": "15.7.2"},
     {"build": "20A362", "version": "16.0"},
     {"build": "20B82", "version": "16.1"},
     {"build": "20B101", "version": "16.1.1"},
-    {"build": "20B110", "version": "16.1.2"}
+    {"build": "20B110", "version": "16.1.2"},
+    {"build": "20C65", "version": "16.2"}
 ]
 
 
