@@ -6,7 +6,7 @@
 import logging
 import os
 import sqlite3
-from typing import Optional
+from typing import Optional, Union
 
 from mvt.common.utils import convert_unix_to_iso
 
@@ -22,7 +22,6 @@ WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS = [
 class WebkitResourceLoadStatistics(IOSExtraction):
     """This module extracts records from WebKit ResourceLoadStatistics
     observations.db."""
-    # TODO: Add serialize().
 
     def __init__(
         self,
@@ -37,24 +36,31 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-        self.results = {} if not results else results
+        self.results = [] if not results else results
+
+    def serialize(self, record: dict) -> Union[dict, list]:
+        msg = f"Webkit resource loaded from {record['registrable_domain']}"
+        if record["domain"] != "":
+            msg += f" by app in domain {record['domain']}"
+        return {
+            "timestamp": record["last_seen_isodate"],
+            "module": self.__class__.__name__,
+            "event": "visit",
+            "data": msg
+        }
 
     def check_indicators(self) -> None:
         if not self.indicators:
             return
 
         self.detected = {}
-        for key, items in self.results.items():
-            for item in items:
-                ioc = self.indicators.check_domain(item["registrable_domain"])
-                if ioc:
-                    item["matched_indicator"] = ioc
-                    if key not in self.detected:
-                        self.detected[key] = [item, ]
-                    else:
-                        self.detected[key].append(item)
+        for result in self.results:
+            ioc = self.indicators.check_domain(result["registrable_domain"])
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
-    def _process_observations_db(self, db_path, key):
+    def _process_observations_db(self, db_path: str, domain: str, path: str) -> None:
         self.log.info("Found WebKit ResourceLoadStatistics observations.db file at path %s",
                       db_path)
 
@@ -68,21 +74,20 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         except sqlite3.OperationalError:
             return
 
-        if key not in self.results:
-            self.results[key] = []
-
         for row in cur:
-            self.results[key].append({
+            self.results.append({
                 "domain_id": row[0],
                 "registrable_domain": row[1],
                 "last_seen": row[2],
                 "had_user_interaction": bool(row[3]),
                 "last_seen_isodate": convert_unix_to_iso(row[2]),
+                "domain": domain,
+                "path": path
             })
 
-        if len(self.results[key]) > 0:
+        if len(self.results) > 0:
             self.log.info("Extracted a total of %d records from %s",
-                          len(self.results[key]), db_path)
+                          len(self.results), db_path)
 
     def run(self) -> None:
         if self.is_backup:
@@ -91,13 +96,12 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                         relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
                     db_path = self._get_backup_file_from_id(backup_file["file_id"])
 
-                    key = f"{backup_file['domain']}/{WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH}"
                     if db_path:
-                        self._process_observations_db(db_path=db_path, key=key)
+                        self._process_observations_db(db_path=db_path, domain=backup_file['domain'], path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH)
             except Exception as exc:
                 self.log.info("Unable to find WebKit observations.db: %s", exc)
         elif self.is_fs_dump:
             for db_path in self._get_fs_files_from_patterns(
                     WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
                 db_rel_path = os.path.relpath(db_path, self.target_path)
-                self._process_observations_db(db_path=db_path, key=db_rel_path)
+                self._process_observations_db(db_path=db_path, domain="", path=db_rel_path)
