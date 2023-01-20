@@ -138,7 +138,8 @@ class AndroidExtraction(MVTModule):
         :returns: Boolean indicating whether a `su` binary is present or not
 
         """
-        return bool(self._adb_command("command -v su"))
+        result = self._adb_command("command -v su && su -c true")
+        return bool(result) and "Permission denied" not in result
 
     def _adb_root_or_die(self) -> None:
         """Check if we have a `su` binary, otherwise raise an Exception."""
