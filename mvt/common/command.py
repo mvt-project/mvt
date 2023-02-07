@@ -13,7 +13,7 @@ from typing import Callable, Optional
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
-from mvt.common.utils import convert_datetime_to_iso
+from mvt.common.utils import convert_datetime_to_iso, generate_hashes_from_path
 from mvt.common.version import MVT_VERSION
 
 
@@ -27,6 +27,7 @@ class Command:
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         fast_mode: Optional[bool] = False,
+        hashes: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
     ) -> None:
         self.name = ""
@@ -49,6 +50,8 @@ class Command:
 
         self.detected_count = 0
 
+        self.hashes = hashes
+        self.hash_values = []
         self.timeline = []
         self.timeline_detected = []
 
@@ -107,44 +110,24 @@ class Command:
             if ioc_file_path and ioc_file_path not in info["ioc_files"]:
                 info["ioc_files"].append(ioc_file_path)
 
-        # TODO: Revisit if setting this from environment variable is good
-        #       enough.
-        if self.target_path and os.environ.get("MVT_HASH_FILES"):
-            if os.path.isfile(self.target_path):
-                sha256 = hashlib.sha256()
-                with open(self.target_path, "rb") as handle:
-                    sha256.update(handle.read())
+        if self.target_path and (os.environ.get("MVT_HASH_FILES") or self.hashes):
+            self.generate_hashes()
 
-                info["hashes"].append({
-                    "file_path": self.target_path,
-                    "sha256": sha256.hexdigest(),
-                })
-            elif os.path.isdir(self.target_path):
-                for (root, _, files) in os.walk(self.target_path):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        sha256 = hashlib.sha256()
-
-                        try:
-                            with open(file_path, "rb") as handle:
-                                sha256.update(handle.read())
-                        except FileNotFoundError:
-                            self.log.error("Failed to hash the file %s: might be a symlink",
-                                           file_path)
-                            continue
-                        except PermissionError:
-                            self.log.error("Failed to hash the file %s: permission denied",
-                                           file_path)
-                            continue
-
-                        info["hashes"].append({
-                            "file_path": file_path,
-                            "sha256": sha256.hexdigest(),
-                        })
+        info["hashes"] = self.hash_values
 
         info_path = os.path.join(self.results_path, "info.json")
         with open(info_path, "w+", encoding="utf-8") as handle:
             json.dump(info, handle, indent=4)
+
+    def generate_hashes(self) -> None:
+        """
+        Compute hashes for files in the target_path
+        """
+        if not self.target_path:
+            return
+
+        for file in generate_hashes_from_path(self.target_path, self.log):
+            self.hash_values.append(file)
 
     def list_modules(self) -> None:
         self.log.info("Following is the list of available %s modules:",
@@ -203,10 +186,10 @@ class Command:
             self.timeline.extend(m.timeline)
             self.timeline_detected.extend(m.timeline_detected)
 
-        self._store_timeline()
-        self._store_info()
-
         try:
             self.finish()
         except NotImplementedError:
             pass
+
+        self._store_timeline()
+        self._store_info()

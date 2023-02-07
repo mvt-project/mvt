@@ -3,13 +3,14 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import os
 import datetime
 import hashlib
 import re
-from typing import Union
+from typing import Union, Iterator
 
 
-def convert_chrometime_to_datetime(timestamp: int) -> int:
+def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
     """Converts Chrome timestamp to a datetime.
 
     :param timestamp: Chrome timestamp as int.
@@ -122,21 +123,6 @@ def check_for_links(text: str) -> list:
     return re.findall(r"(?P<url>https?://[^\s]+)", text, re.IGNORECASE)
 
 
-def get_sha256_from_file_path(file_path: str) -> str:
-    """Calculate the SHA256 hash of a file from a file path.
-
-    :param file_path: Path to the file to hash
-    :returns: The SHA256 hash string
-
-    """
-    sha256_hash = hashlib.sha256()
-    with open(file_path, "rb") as handle:
-        for byte_block in iter(lambda: handle.read(4096), b""):
-            sha256_hash.update(byte_block)
-
-    return sha256_hash.hexdigest()
-
-
 # Note: taken from here:
 # https://stackoverflow.com/questions/57014259/json-dumps-on-dictionary-with-bytes-for-keys
 def keys_bytes_to_string(obj) -> str:
@@ -165,3 +151,46 @@ def keys_bytes_to_string(obj) -> str:
         new_obj[key] = value
 
     return new_obj
+
+
+def get_sha256_from_file_path(file_path: str) -> str:
+    """Calculate the SHA256 hash of a file from a file path.
+
+    :param file_path: Path to the file to hash
+    :returns: The SHA256 hash string
+
+    """
+    sha256_hash = hashlib.sha256()
+    with open(file_path, "rb") as handle:
+        for byte_block in iter(lambda: handle.read(4096), b""):
+            sha256_hash.update(byte_block)
+
+    return sha256_hash.hexdigest()
+
+
+def generate_hashes_from_path(path: str, log) -> Iterator[dict]:
+    """
+    Generates hashes of all files at the given path.
+
+    :params path: Path of the given folder or file
+    :returns: generator of dict {"file_path", "hash"}
+    """
+    if os.path.isfile(path):
+        hash_value = get_sha256_from_file_path(path)
+        yield {"file_path": path, "sha256": hash_value}
+    elif os.path.isdir(path):
+        for (root, _, files) in os.walk(path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                try:
+                    sha256 = get_sha256_from_file_path(file_path)
+                except FileNotFoundError:
+                    log.error("Failed to hash the file %s: might be a symlink",
+                              file_path)
+                    continue
+                except PermissionError:
+                    log.error("Failed to hash the file %s: permission denied",
+                              file_path)
+                    continue
+
+                yield {"file_path": file_path, "sha256": sha256}

@@ -5,6 +5,7 @@
 
 import logging
 import os
+import json
 
 import click
 from rich.logging import RichHandler
@@ -13,10 +14,11 @@ from rich.prompt import Prompt
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT)
+                             HELP_MSG_OUTPUT, HELP_MSG_HASHES)
 from mvt.common.logo import logo
 from mvt.common.options import MutuallyExclusiveOption
 from mvt.common.updates import IndicatorsUpdates
+from mvt.common.utils import generate_hashes_from_path
 
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
@@ -66,9 +68,10 @@ def version():
               help="File containing raw encryption key to use to decrypt "
                    "the backup",
               mutually_exclusive=["password"])
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def decrypt_backup(ctx, destination, password, key_file, backup_path):
+def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
     backup = DecryptBackup(backup_path, destination)
 
     if key_file:
@@ -98,6 +101,16 @@ def decrypt_backup(ctx, destination, password, key_file, backup_path):
         ctx.exit(1)
 
     backup.process_backup()
+
+    if hashes:
+        info = {"encrypted": [], "decrypted": []}
+        for file in generate_hashes_from_path(backup_path, log):
+            info["encrypted"].append(file)
+        for file in generate_hashes_from_path(destination, log):
+            info["decrypted"].append(file)
+        info_path = os.path.join(destination, "info.json")
+        with open(info_path, "w+", encoding="utf-8") as handle:
+            json.dump(info, handle, indent=4)
 
 
 #==============================================================================
@@ -148,11 +161,13 @@ def extract_key(password, key_file, backup_path):
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, fast, list_modules, module, backup_path):
+def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, backup_path):
     cmd = CmdIOSCheckBackup(target_path=backup_path, results_path=output,
-                            ioc_files=iocs, module_name=module, fast_mode=fast)
+                            ioc_files=iocs, module_name=module, fast_mode=fast,
+                            hashes=hashes)
 
     if list_modules:
         cmd.list_modules()
@@ -178,11 +193,13 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, backup_path):
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_fs(ctx, iocs, output, fast, list_modules, module, dump_path):
+def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, dump_path):
     cmd = CmdIOSCheckFS(target_path=dump_path, results_path=output,
-                        ioc_files=iocs, module_name=module, fast_mode=fast)
+                        ioc_files=iocs, module_name=module, fast_mode=fast,
+                        hashes=hashes)
 
     if list_modules:
         cmd.list_modules()

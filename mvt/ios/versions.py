@@ -2,6 +2,7 @@
 # Copyright (c) 2021-2022 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
+from typing import Dict
 
 IPHONE_MODELS = [
     {"identifier": "iPhone4,1", "description": "iPhone 4S"},
@@ -276,5 +277,5 @@ def find_version_by_build(build: str) -> str:
     return ""
 
 
-def latest_ios_version() -> str:
+def latest_ios_version() -> Dict[str, str]:
     return IPHONE_IOS_VERSIONS[-1]

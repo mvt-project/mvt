@@ -11,7 +11,8 @@ from rich.logging import RichHandler
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
+                             HELP_MSG_OUTPUT, HELP_MSG_SERIAL,
+                             HELP_MSG_HASHES)
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
 
@@ -140,9 +141,10 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
+    # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(target_path=bugreport_path,
                                    results_path=output, ioc_files=iocs,
-                                   module_name=module)
+                                   module_name=module, hashes=True)
 
     if list_modules:
         cmd.list_modules()
@@ -169,8 +171,9 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(ctx, iocs, output, list_modules, backup_path):
+    # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(target_path=backup_path, results_path=output,
-                                ioc_files=iocs)
+                                ioc_files=iocs, hashes=True)
 
     if list_modules:
         cmd.list_modules()
@@ -195,12 +198,13 @@ def check_backup(ctx, iocs, output, list_modules, backup_path):
               help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_androidqf(ctx, iocs, output, list_modules, module, androidqf_path):
+def check_androidqf(ctx, iocs, output, list_modules, module, hashes, androidqf_path):
     cmd = CmdAndroidCheckAndroidQF(target_path=androidqf_path,
                                    results_path=output, ioc_files=iocs,
-                                   module_name=module)
+                                   module_name=module, hashes=hashes)
 
     if list_modules:
         cmd.list_modules()
