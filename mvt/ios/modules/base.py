@@ -1,5 +1,5 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021-2022 Claudio Guarnieri.
+# Copyright (c) 2021-2023 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
@@ -152,7 +152,6 @@ class IOSExtraction(MVTModule):
         If a module requires to process multiple databases or files,
         you should use the helper functions above.
 
-        :param backup_id: iTunes backup database file's ID (or hash).
         :param root_paths: Glob patterns for files to seek in filesystem dump.
                            (Default value = [])
         :param backup_ids: Default value = None)

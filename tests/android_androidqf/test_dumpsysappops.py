@@ -1,5 +1,5 @@
 # Mobile Verification Toolkit (MVT) - Private
-# Copyright (c) 2021-2022 Claudio Guarnieri.
+# Copyright (c) 2021-2023 Claudio Guarnieri.
 # This file is part of MVT Private and its content is confidential.
 # Please refer to the project maintainers before sharing with others.
 
