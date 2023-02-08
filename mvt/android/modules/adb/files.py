@@ -83,12 +83,13 @@ class Files(AndroidExtraction):
             cmd = f"find '{folder}' -type f -printf '%T@ %m %s %u %g %p\n' 2> /dev/null"
             output = self._adb_command(cmd)
 
-            if output.strip() == "":
-                return
-
             for file_line in output.splitlines():
+                file_info = file_line.rstrip().split(" ", 5)
+                if len(file_line) < 6:
+                    self.log.info("Skipping invalid file info - %s", file_line.rstrip())
+                    continue
                 [unix_timestamp, mode, size,
-                 owner, group, full_path] = file_line.rstrip().split(" ", 5)
+                 owner, group, full_path] = file_info
                 mod_time = convert_unix_to_iso(unix_timestamp)
 
                 self.results.append({
