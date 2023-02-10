@@ -39,7 +39,7 @@ _Source: [Apple Support](https://support.apple.com/en-us/HT211229)_
 
     ![Alt text](https://support.apple.com/library/content/dam/edam/applecare/images/en_US/macos/ventura/macos-ventura-finder-iphone-manage-backups-device-backups-window.png)
 
-    If your backup has a lock next to it like in the image above, then the backup is encrypted. You should also see the date and time when the encrypted backup was created. 
+    If your backup has a lock next to it like in the image above, then the backup is encrypted. You should also see the date and time when the encrypted backup was created. If you want to access the backup file, it can be found in the ```~/Library/Application Support/MobileSync/Backup/``` directory.
 
 ## Notes:
 
