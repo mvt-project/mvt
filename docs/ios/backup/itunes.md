@@ -14,3 +14,33 @@ To do that:
 _Source: [Apple Support](https://support.apple.com/en-us/HT211229)_
 
 * Once the backup is done, find its location and copy it to a place where it can be analyzed by MVT. On Windows, the backup can be stored either in `%USERPROFILE%\Apple\MobileSync\` or `%USERPROFILE%\AppData\Roaming\Apple Computer\MobileSync\`. On macOS, the backup is stored in `~/Library/Application Support/MobileSync/`.
+
+# Backup with Finder
+
+## Steps:
+
+1. Launch Finder on your Mac running MacOS.
+
+2. Connect your IPhone to your Mac.
+
+3. Select your device from the list of devices located at the bottom of the left side bar labeled "locations".
+
+4. In the General tab, select ```Back up all the data on your IPhone to this Mac``` from the options under the Backups section.
+
+5. Check the box that says ```Encrypt local backup```. If this was your first time selecting this option, you may need to create a new password to unlock the encryption. 
+
+    If you follow steps 3-5 correctly, you should see something like the image below:
+    
+    ![Alt text](https://support.apple.com/library/content/dam/edam/applecare/images/en_US/macos/ventura/macos-ventura-finder-iphone-encrypt-local-backup-selected.png)
+
+6. Click ```Back Up Now``` to start the back-up process.
+
+7. The encrypted backup for your iPhone should now start. Once the process finishes, you can check the backup by opening ```Finder```, clicking on the ```General``` tab, then click on ```Manage Backups```. Now you should see a list of your backups like the image below:
+
+    ![Alt text](https://support.apple.com/library/content/dam/edam/applecare/images/en_US/macos/ventura/macos-ventura-finder-iphone-manage-backups-device-backups-window.png)
+
+    If your backup has a lock next to it like in the image above, then the backup is encrypted. You should also see the date and time when the encrypted backup was created. 
+
+## Notes:
+
+- Remember to keep the backup encryption password that you created safe, since without it you will not be able to access/modify/decrypt the backup file. 
