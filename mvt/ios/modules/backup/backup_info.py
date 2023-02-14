@@ -9,7 +9,7 @@ import plistlib
 from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
-from mvt.ios.versions import get_device_desc_from_id, latest_ios_version
+from mvt.ios.versions import get_device_desc_from_id, is_ios_version_outdated
 
 from ..base import IOSExtraction
 
@@ -63,7 +63,4 @@ class BackupInfo(IOSExtraction):
             self.results[field] = value
 
         if "Product Version" in info:
-            latest = latest_ios_version()
-            if info["Product Version"] != latest["version"]:
-                self.log.warning("This phone is running an outdated iOS version: %s (latest is %s)",
-                                 info["Product Version"], latest['version'])
+            is_ios_version_outdated(info["Product Version"], log=self.log)

@@ -2,6 +2,10 @@
 # Copyright (c) 2021-2023 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
+from logging import Logger
+from typing import Optional
+
+import packaging
 
 IPHONE_MODELS = [
     {"identifier": "iPhone4,1", "description": "iPhone 4S"},
@@ -279,3 +283,27 @@ def find_version_by_build(build: str) -> str:
 
 def latest_ios_version() -> str:
     return IPHONE_IOS_VERSIONS[-1]
+
+
+def is_ios_version_outdated(version: str, log: Optional[Logger] = None) -> bool:
+    """
+    Check if the given version is below the latest version
+    version can be a build number or version number
+    Returns true if outdated for sure, false otherwise
+    """
+    # Check if it is a build
+    if "." not in version:
+        version = find_version_by_build(version)
+        # If we can't find it
+        if version == "":
+            return False
+
+    latest_parsed = packaging.version.parse(latest_ios_version()["version"])
+    current_parsed = packaging.version.parse(version)
+    if current_parsed < latest_parsed:
+        if log:
+            log.warning("This phone is running an outdated iOS version: %s (latest is %s)",
+                        version,
+                        latest_ios_version()["version"])
+        return True
+    return False
