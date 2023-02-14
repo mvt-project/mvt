@@ -7,7 +7,8 @@ import logging
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
-from mvt.ios.modules.mixed.webkit_resource_load_statistics import WebkitResourceLoadStatistics
+from mvt.ios.modules.mixed.webkit_resource_load_statistics import \
+    WebkitResourceLoadStatistics
 
 from ..utils import get_ios_backup_folder
 

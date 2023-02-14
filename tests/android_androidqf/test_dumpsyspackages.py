@@ -5,10 +5,9 @@
 
 import logging
 
+from mvt.android.modules.androidqf.dumpsys_packages import DumpsysPackages
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
-
-from mvt.android.modules.androidqf.dumpsys_packages import DumpsysPackages
 
 from ..utils import get_android_androidqf
 

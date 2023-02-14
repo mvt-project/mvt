@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import os
+
 from click.testing import CliRunner
 
 from mvt.android.cli import check_androidqf

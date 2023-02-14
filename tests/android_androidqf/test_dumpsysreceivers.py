@@ -5,9 +5,8 @@
 
 import logging
 
-from mvt.common.module import run_module
-
 from mvt.android.modules.androidqf.dumpsys_receivers import DumpsysReceivers
+from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf
 
