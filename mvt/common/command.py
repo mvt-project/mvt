@@ -13,7 +13,7 @@ from typing import Callable, Optional
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module, save_timeline
-from mvt.common.utils import convert_datetime_to_iso, generate_hashes_from_path
+from mvt.common.utils import convert_datetime_to_iso, generate_hashes_from_path, get_sha256_from_file_path
 from mvt.common.version import MVT_VERSION
 
 
@@ -118,6 +118,10 @@ class Command:
         info_path = os.path.join(self.results_path, "info.json")
         with open(info_path, "w+", encoding="utf-8") as handle:
             json.dump(info, handle, indent=4)
+
+        if self.target_path and (os.environ.get("MVT_HASH_FILES") or self.hashes):
+            info_hash = get_sha256_from_file_path(info_path)
+            self.log.warning("Reference hash of the info.json file : %s", info_hash)
 
     def generate_hashes(self) -> None:
         """
