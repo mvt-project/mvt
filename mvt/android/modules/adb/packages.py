@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from rich.console import Console
 from rich.progress import track
@@ -39,7 +39,7 @@ DANGEROUS_PERMISSIONS = [
     "android.permission.USE_SIP",
     "com.android.browser.permission.READ_HISTORY_BOOKMARKS",
 ]
-ROOT_PACKAGES = [
+ROOT_PACKAGES: List[str] = [
     "com.noshufou.android.su",
     "com.noshufou.android.su.elite",
     "eu.chainfire.supersu",

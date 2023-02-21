@@ -6,7 +6,7 @@
 import fnmatch
 import logging
 import os
-from typing import Optional
+from typing import Optional, List
 from zipfile import ZipFile
 
 from mvt.common.module import MVTModule
@@ -28,16 +28,16 @@ class BugReportModule(MVTModule):
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
 
-        self.zip_archive = None
-        self.extract_path = None
-        self.extract_files = []
-        self.zip_files = []
+        self.zip_archive: Optional[ZipFile] = None
+        self.extract_path: Optional[str] = None
+        self.extract_files: List[str] = []
+        self.zip_files: List[str] = []
 
-    def from_folder(self, extract_path: str, extract_files: str) -> None:
+    def from_folder(self, extract_path: Optional[str], extract_files: List[str]) -> None:
         self.extract_path = extract_path
         self.extract_files = extract_files
 
-    def from_zip(self, zip_archive: ZipFile, zip_files: list) -> None:
+    def from_zip(self, zip_archive: Optional[ZipFile], zip_files: List[str]) -> None:
         self.zip_archive = zip_archive
         self.zip_files = zip_files
 

@@ -5,7 +5,7 @@
 
 import logging
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional, Union, List, Any, Dict
 
 from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
                                               DANGEROUS_PERMISSIONS_THRESHOLD,
@@ -26,7 +26,7 @@ class DumpsysPackages(AndroidQFModule):
         results_path: Optional[str] = None,
         fast_mode: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[List[Dict[str, Any]]] = None
     ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,

@@ -9,7 +9,7 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 
 from rich.prompt import Prompt
 
@@ -17,6 +17,7 @@ from mvt.android.parsers.backup import (AndroidBackupParsingError,
                                         InvalidBackupPassword, parse_ab_header,
                                         parse_backup_file)
 from mvt.common.command import Command
+from mvt.android.modules.backup.base import BackupExtraction
 
 from .modules.backup import BACKUP_MODULES
 
@@ -43,11 +44,14 @@ class CmdAndroidCheckBackup(Command):
         self.name = "check-backup"
         self.modules = BACKUP_MODULES
 
-        self.backup_type = None
-        self.backup_archive = None
-        self.backup_files = []
+        self.backup_type: str = ""
+        self.backup_archive: Optional[tarfile.TarFile] = None
+        self.backup_files: List[str] = []
 
     def init(self) -> None:
+        if not self.target_path:
+            return
+
         if os.path.isfile(self.target_path):
             self.backup_type = "ab"
             with open(self.target_path, "rb") as handle:
@@ -88,7 +92,7 @@ class CmdAndroidCheckBackup(Command):
                          "Android Backup (.ab) file")
             sys.exit(1)
 
-    def module_init(self, module: Callable) -> None:
+    def module_init(self, module: BackupExtraction) -> None:  # type: ignore[override]
         if self.backup_type == "folder":
             module.from_folder(self.target_path, self.backup_files)
         else:

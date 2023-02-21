@@ -6,7 +6,7 @@
 import fnmatch
 import logging
 import os
-from typing import Optional
+from typing import Union, List, Dict, Any, Optional
 
 from mvt.common.module import MVTModule
 
@@ -21,7 +21,7 @@ class AndroidQFModule(MVTModule):
         results_path: Optional[str] = None,
         fast_mode: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None
     ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,

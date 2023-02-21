@@ -4,12 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import re
+from typing import List, Dict, Any
 from datetime import datetime
 
 from mvt.common.utils import convert_datetime_to_iso
 
 
-def parse_dumpsys_accessibility(output: str) -> list:
+def parse_dumpsys_accessibility(output: str) -> List[Dict[str, str]]:
     results = []
 
     in_services = False
@@ -34,7 +35,7 @@ def parse_dumpsys_accessibility(output: str) -> list:
     return results
 
 
-def parse_dumpsys_activity_resolver_table(output: str) -> dict:
+def parse_dumpsys_activity_resolver_table(output: str) -> Dict[str, Any]:
     results = {}
 
     in_activity_resolver_table = False
@@ -138,7 +139,7 @@ def parse_dumpsys_battery_daily(output: str) -> list:
     return results
 
 
-def parse_dumpsys_battery_history(output: str) -> list:
+def parse_dumpsys_battery_history(output: str) -> List[Dict[str, Any]]:
     results = []
 
     for line in output.splitlines():
@@ -194,7 +195,7 @@ def parse_dumpsys_battery_history(output: str) -> list:
     return results
 
 
-def parse_dumpsys_dbinfo(output: str) -> list:
+def parse_dumpsys_dbinfo(output: str) -> List[Dict[str, Any]]:
     results = []
 
     rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\"')  # pylint: disable=line-too-long
@@ -247,7 +248,7 @@ def parse_dumpsys_dbinfo(output: str) -> list:
     return results
 
 
-def parse_dumpsys_receiver_resolver_table(output: str) -> dict:
+def parse_dumpsys_receiver_resolver_table(output: str) -> Dict[str, Any]:
     results = {}
 
     in_receiver_resolver_table = False
@@ -304,7 +305,7 @@ def parse_dumpsys_receiver_resolver_table(output: str) -> dict:
     return results
 
 
-def parse_dumpsys_appops(output: str) -> list:
+def parse_dumpsys_appops(output: str) -> List[Dict[str, Any]]:
     results = []
     perm = {}
     package = {}
@@ -389,7 +390,7 @@ def parse_dumpsys_appops(output: str) -> list:
     return results
 
 
-def parse_dumpsys_package_for_details(output: str) -> dict:
+def parse_dumpsys_package_for_details(output: str) -> Dict[str, Any]:
     """
     Parse one entry of a dumpsys package information
     """
@@ -480,7 +481,7 @@ def parse_dumpsys_package_for_details(output: str) -> dict:
     return details
 
 
-def parse_dumpsys_packages(output: str) -> list:
+def parse_dumpsys_packages(output: str) -> List[Dict[str, Any]]:
     """
     Parse the dumpsys package service data
     """

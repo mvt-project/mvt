@@ -6,10 +6,11 @@
 import logging
 import os
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 from zipfile import ZipFile
 
 from mvt.common.command import Command
+from mvt.android.modules.bugreport.base import BugReportModule
 
 from .modules.bugreport import BUGREPORT_MODULES
 
@@ -36,11 +37,14 @@ class CmdAndroidCheckBugreport(Command):
         self.name = "check-bugreport"
         self.modules = BUGREPORT_MODULES
 
-        self.bugreport_format = None
-        self.bugreport_archive = None
-        self.bugreport_files = []
+        self.bugreport_format: str = ""
+        self.bugreport_archive: Optional[ZipFile] = None
+        self.bugreport_files: List[str] = []
 
     def init(self) -> None:
+        if not self.target_path:
+            return
+
         if os.path.isfile(self.target_path):
             self.bugreport_format = "zip"
             self.bugreport_archive = ZipFile(self.target_path)
@@ -55,7 +59,7 @@ class CmdAndroidCheckBugreport(Command):
                                                 parent_path)
                     self.bugreport_files.append(file_path)
 
-    def module_init(self, module: Callable) -> None:
+    def module_init(self, module: BugReportModule) -> None:  # type: ignore[override]
         if self.bugreport_format == "zip":
             module.from_zip(self.bugreport_archive, self.bugreport_files)
         else:

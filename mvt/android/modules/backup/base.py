@@ -7,7 +7,7 @@ import fnmatch
 import logging
 import os
 from tarfile import TarFile
-from typing import Optional
+from typing import Optional, List
 
 from mvt.common.module import MVTModule
 
@@ -32,14 +32,14 @@ class BackupExtraction(MVTModule):
         self.tar = None
         self.files = []
 
-    def from_folder(self, backup_path: str, files: list) -> None:
+    def from_folder(self, backup_path: Optional[str], files: List[str]) -> None:
         """
         Get all the files and list them
         """
         self.backup_path = backup_path
         self.files = files
 
-    def from_ab(self, file_path: str, tar: TarFile, files: list) -> None:
+    def from_ab(self, file_path: Optional[str], tar: Optional[TarFile], files: List[str]) -> None:
         """
         Extract the files
         """

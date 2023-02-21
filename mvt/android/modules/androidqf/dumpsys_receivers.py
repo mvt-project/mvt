@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional
+from typing import Optional, List, Dict, Union, Any
 
 from mvt.android.modules.adb.dumpsys_receivers import (
     INTENT_DATA_SMS_RECEIVED, INTENT_NEW_OUTGOING_CALL,
@@ -24,7 +24,7 @@ class DumpsysReceivers(AndroidQFModule):
         results_path: Optional[str] = None,
         fast_mode: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Union[List[Any], Dict[str, Any], None] = None
     ) -> None:
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,

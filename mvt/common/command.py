@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Callable, Optional
 
 from mvt.common.indicators import Indicators
-from mvt.common.module import run_module, save_timeline
+from mvt.common.module import run_module, save_timeline, MVTModule
 from mvt.common.utils import convert_datetime_to_iso, generate_hashes_from_path, get_sha256_from_file_path
 from mvt.common.version import MVT_VERSION
 
@@ -142,7 +142,7 @@ class Command:
     def init(self) -> None:
         raise NotImplementedError
 
-    def module_init(self, module: Callable) -> None:
+    def module_init(self, module: MVTModule) -> None:
         raise NotImplementedError
 
     def finish(self) -> None:
