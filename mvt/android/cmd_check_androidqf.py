@@ -23,10 +23,12 @@ class CmdAndroidCheckAndroidQF(Command):
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         fast_mode: Optional[bool] = False,
+        hashes: Optional[bool] = False,
     ) -> None:
         super().__init__(target_path=target_path, results_path=results_path,
                          ioc_files=ioc_files, module_name=module_name,
-                         serial=serial, fast_mode=fast_mode, log=log)
+                         serial=serial, fast_mode=fast_mode, hashes=hashes,
+                         log=log)
 
         self.name = "check-androidqf"
         self.modules = ANDROIDQF_MODULES
