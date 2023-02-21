@@ -1,8 +1,12 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021-2022 Claudio Guarnieri.
+# Copyright (c) 2021-2023 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 from typing import Dict
+from logging import Logger
+from typing import Optional
+
+import packaging
 
 IPHONE_MODELS = [
     {"identifier": "iPhone4,1", "description": "iPhone 4S"},
@@ -172,6 +176,7 @@ IPHONE_IOS_VERSIONS = [
     {"build": "15F79", "version": "11.4"},
     {"build": "15G77", "version": "11.4.1"},
     {"build": "16A366", "version": "12.0"},
+    {"build": "16A367", "version": "12.0"},
     {"build": "16A404", "version": "12.0.1"},
     {"build": "16A405", "version": "12.0.1"},
     {"build": "16B92", "version": "12.1"},
@@ -191,6 +196,7 @@ IPHONE_IOS_VERSIONS = [
     {"build": "16G102", "version": "12.4.1"},
     {"build": "16G114", "version": "12.4.2"},
     {"build": "16G130", "version": "12.4.3"},
+    {"build": "16G140", "version": "12.4.4"},
     {"build": "16G161", "version": "12.4.5"},
     {"build": "16G183", "version": "12.4.6"},
     {"build": "16G192", "version": "12.4.7"},
@@ -198,6 +204,12 @@ IPHONE_IOS_VERSIONS = [
     {"build": "16H5", "version": "12.4.9"},
     {"build": "16H20", "version": "12.5"},
     {"build": "16H22", "version": "12.5.1"},
+    {"build": "16H30", "version": "12.5.2"},
+    {"build": "16H41", "version": "12.5.3"},
+    {"build": "16H50", "version": "12.5.4"},
+    {"build": "16H62", "version": "12.5.5"},
+    {"build": "16H71", "version": "12.5.6"},
+    {"build": "16H81", "version": "12.5.7"},
     {"build": "17A577", "version": "13.0"},
     {"build": "17A844", "version": "13.1"},
     {"build": "17A854", "version": "13.1.1"},
@@ -210,6 +222,7 @@ IPHONE_IOS_VERSIONS = [
     {"build": "17C54", "version": "13.3"},
     {"build": "17D50", "version": "13.3.1"},
     {"build": "17E255", "version": "13.4"},
+    {"build": "17E8255", "version": "13.4"},
     {"build": "17E262", "version": "13.4.1"},
     {"build": "17E8258", "version": "13.4.1"},
     {"build": "17F75", "version": "13.5"},
@@ -255,7 +268,8 @@ IPHONE_IOS_VERSIONS = [
     {"build": "20B101", "version": "16.1.1"},
     {"build": "20B110", "version": "16.1.2"},
     {"build": "20C65", "version": "16.2"},
-    {"build": "20D47", "version": "16.3"}
+    {"build": "20D47", "version": "16.3"},
+    {"build": "20D67", "version": "16.3.1"}
 ]
 
 
@@ -279,3 +293,27 @@ def find_version_by_build(build: str) -> str:
 
 def latest_ios_version() -> Dict[str, str]:
     return IPHONE_IOS_VERSIONS[-1]
+
+
+def is_ios_version_outdated(version: str, log: Optional[Logger] = None) -> bool:
+    """
+    Check if the given version is below the latest version
+    version can be a build number or version number
+    Returns true if outdated for sure, false otherwise
+    """
+    # Check if it is a build
+    if "." not in version:
+        version = find_version_by_build(version)
+        # If we can't find it
+        if version == "":
+            return False
+
+    latest_parsed = packaging.version.parse(latest_ios_version()["version"])
+    current_parsed = packaging.version.parse(version)
+    if current_parsed < latest_parsed:
+        if log:
+            log.warning("This phone is running an outdated iOS version: %s (latest is %s)",
+                        version,
+                        latest_ios_version()["version"])
+        return True
+    return False

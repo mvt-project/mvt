@@ -1,5 +1,5 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021-2022 Claudio Guarnieri.
+# Copyright (c) 2021-2023 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
@@ -31,6 +31,7 @@ LOG_FORMAT = "[%(name)s] %(message)s"
 logging.basicConfig(level="INFO", format=LOG_FORMAT, handlers=[
     RichHandler(show_path=False, log_time_format="%X")])
 log = logging.getLogger(__name__)
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 #==============================================================================
@@ -52,7 +53,8 @@ def version():
 #==============================================================================
 # Command: download-apks
 #==============================================================================
-@cli.command("download-apks", help="Download all or only non-system installed APKs")
+@cli.command("download-apks", help="Download all or only non-system installed APKs",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True,
               help="Extract all packages installed on the phone, including system packages")
@@ -101,7 +103,8 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
 #==============================================================================
 # Command: check-adb
 #==============================================================================
-@cli.command("check-adb", help="Check an Android device over adb")
+@cli.command("check-adb", help="Check an Android device over adb",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
@@ -131,7 +134,8 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
 #==============================================================================
 # Command: check-bugreport
 #==============================================================================
-@cli.command("check-bugreport", help="Check an Android Bug Report")
+@cli.command("check-bugreport", help="Check an Android Bug Report",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
@@ -162,7 +166,8 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 #==============================================================================
 # Command: check-backup
 #==============================================================================
-@cli.command("check-backup", help="Check an Android Backup")
+@cli.command("check-backup", help="Check an Android Backup",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
@@ -191,7 +196,8 @@ def check_backup(ctx, iocs, output, list_modules, backup_path):
 #==============================================================================
 # Command: check-androidqf
 #==============================================================================
-@cli.command("check-androidqf", help="Check data collected with AndroidQF")
+@cli.command("check-androidqf", help="Check data collected with AndroidQF",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
@@ -222,7 +228,8 @@ def check_androidqf(ctx, iocs, output, list_modules, module, hashes, androidqf_p
 #==============================================================================
 # Command: check-iocs
 #==============================================================================
-@cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
+@cli.command("check-iocs", help="Compare stored JSON results to provided indicators",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
@@ -243,7 +250,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 #==============================================================================
 # Command: download-iocs
 #==============================================================================
-@cli.command("download-iocs", help="Download public STIX2 indicators")
+@cli.command("download-iocs", help="Download public STIX2 indicators",
+             context_settings=CONTEXT_SETTINGS)
 def download_indicators():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()

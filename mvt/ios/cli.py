@@ -1,5 +1,5 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021-2022 Claudio Guarnieri.
+# Copyright (c) 2021-2023 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
@@ -35,6 +35,7 @@ log = logging.getLogger(__name__)
 
 # Set this environment variable to a password if needed.
 MVT_IOS_BACKUP_PASSWORD = "MVT_IOS_BACKUP_PASSWORD"
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 #==============================================================================
@@ -56,7 +57,8 @@ def version():
 #==============================================================================
 # Command: decrypt-backup
 #==============================================================================
-@cli.command("decrypt-backup", help="Decrypt an encrypted iTunes backup")
+@cli.command("decrypt-backup", help="Decrypt an encrypted iTunes backup",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--destination", "-d", required=True,
               help="Path to the folder where to store the decrypted backup")
 @click.option("--password", "-p", cls=MutuallyExclusiveOption,
@@ -116,7 +118,8 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
 #==============================================================================
 # Command: extract-key
 #==============================================================================
-@cli.command("extract-key", help="Extract decryption key from an iTunes backup")
+@cli.command("extract-key", help="Extract decryption key from an iTunes backup",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--password", "-p",
               help="Password to use to decrypt the backup (or, set "
                    f"{MVT_IOS_BACKUP_PASSWORD} environment variable)")
@@ -153,7 +156,8 @@ def extract_key(password, key_file, backup_path):
 #==============================================================================
 # Command: check-backup
 #==============================================================================
-@cli.command("check-backup", help="Extract artifacts from an iTunes backup")
+@cli.command("check-backup", help="Extract artifacts from an iTunes backup",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
@@ -185,7 +189,8 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, backup_p
 #==============================================================================
 # Command: check-fs
 #==============================================================================
-@cli.command("check-fs", help="Extract artifacts from a full filesystem dump")
+@cli.command("check-fs", help="Extract artifacts from a full filesystem dump",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--output", "-o", type=click.Path(exists=False),
@@ -217,7 +222,8 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, dump_path):
 #==============================================================================
 # Command: check-iocs
 #==============================================================================
-@cli.command("check-iocs", help="Compare stored JSON results to provided indicators")
+@cli.command("check-iocs", help="Compare stored JSON results to provided indicators",
+             context_settings=CONTEXT_SETTINGS)
 @click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
               default=[], help=HELP_MSG_IOC)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
@@ -238,7 +244,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 #==============================================================================
 # Command: download-iocs
 #==============================================================================
-@cli.command("download-iocs", help="Download public STIX2 indicators")
+@cli.command("download-iocs", help="Download public STIX2 indicators",
+             context_settings=CONTEXT_SETTINGS)
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
