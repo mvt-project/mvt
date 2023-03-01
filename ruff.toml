@@ -1,0 +1,6 @@
+# Never enforce `E501` (line length violations).
+ignore = ["E501"]
+
+# Ignore `E402` (import violations) in all `__init__.py` files, and in `path/to/file.py`.
+[per-file-ignores]
+"__init__.py" = ["F401"]

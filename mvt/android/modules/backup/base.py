@@ -7,7 +7,7 @@ import fnmatch
 import logging
 import os
 from tarfile import TarFile
-from typing import Optional, List
+from typing import List, Optional
 
 from mvt.common.module import MVTModule
 

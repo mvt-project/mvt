@@ -7,7 +7,7 @@ import csv
 import logging
 import os
 import re
-from typing import Callable, Optional, Union, List, Any, Dict
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import simplejson as json
 

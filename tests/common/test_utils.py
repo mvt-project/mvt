@@ -3,14 +3,16 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
 import logging
-from ..utils import get_artifact_folder
+import os
+
 from mvt.common.utils import (convert_datetime_to_iso, convert_mactime_to_iso,
                               convert_unix_to_iso,
                               convert_unix_to_utc_datetime,
                               generate_hashes_from_path,
                               get_sha256_from_file_path)
+
+from ..utils import get_artifact_folder
 
 TEST_DATE_EPOCH = 1626566400
 TEST_DATE_ISO = "2021-07-18 00:00:00.000000"

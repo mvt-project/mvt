@@ -1,9 +1,7 @@
-# Mobile Verification Toolkit (MVT) - Private
+# Mobile Verification Toolkit (MVT)
 # Copyright (c) 2021-2023 Claudio Guarnieri.
-# This file is part of MVT Private and its content is confidential.
-# Please refer to the project maintainers before sharing with others.
-
-import logging
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
 
 from mvt.android.modules.androidqf.dumpsys_accessibility import \
     DumpsysAccessibility

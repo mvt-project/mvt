@@ -3,17 +3,18 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import hashlib
 import json
 import logging
 import os
 import sys
 from datetime import datetime
-from typing import Callable, Optional
+from typing import Optional
 
 from mvt.common.indicators import Indicators
-from mvt.common.module import run_module, save_timeline, MVTModule
-from mvt.common.utils import convert_datetime_to_iso, generate_hashes_from_path, get_sha256_from_file_path
+from mvt.common.module import MVTModule, run_module, save_timeline
+from mvt.common.utils import (convert_datetime_to_iso,
+                              generate_hashes_from_path,
+                              get_sha256_from_file_path)
 from mvt.common.version import MVT_VERSION
 
 

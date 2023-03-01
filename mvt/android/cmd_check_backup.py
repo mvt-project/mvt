@@ -9,15 +9,15 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-from typing import Callable, Optional, List
+from typing import List, Optional
 
 from rich.prompt import Prompt
 
+from mvt.android.modules.backup.base import BackupExtraction
 from mvt.android.parsers.backup import (AndroidBackupParsingError,
                                         InvalidBackupPassword, parse_ab_header,
                                         parse_backup_file)
 from mvt.common.command import Command
-from mvt.android.modules.backup.base import BackupExtraction
 
 from .modules.backup import BACKUP_MODULES
 

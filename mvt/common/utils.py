@@ -3,11 +3,11 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
 import datetime
 import hashlib
+import os
 import re
-from typing import Union, Iterator
+from typing import Iterator, Union
 
 
 def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:

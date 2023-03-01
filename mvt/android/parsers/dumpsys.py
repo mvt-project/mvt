@@ -4,8 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 import re
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List
 
 from mvt.common.utils import convert_datetime_to_iso
 

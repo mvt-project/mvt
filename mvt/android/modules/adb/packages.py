@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 from rich.console import Console
 from rich.progress import track

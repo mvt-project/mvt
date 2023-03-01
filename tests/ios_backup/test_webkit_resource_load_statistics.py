@@ -3,9 +3,6 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
-
-from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 from mvt.ios.modules.mixed.webkit_resource_load_statistics import \
     WebkitResourceLoadStatistics

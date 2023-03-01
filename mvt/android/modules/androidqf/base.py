@@ -6,7 +6,7 @@
 import fnmatch
 import logging
 import os
-from typing import Union, List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from mvt.common.module import MVTModule
 

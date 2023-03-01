@@ -6,11 +6,11 @@
 import logging
 import os
 from pathlib import Path
-from typing import Callable, Optional, List
+from typing import List, Optional
 from zipfile import ZipFile
 
-from mvt.common.command import Command
 from mvt.android.modules.bugreport.base import BugReportModule
+from mvt.common.command import Command
 
 from .modules.bugreport import BUGREPORT_MODULES
 

@@ -4,14 +4,12 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from datetime import datetime
-from typing import Optional, Union, List, Any, Dict
+from typing import Any, Dict, List, Optional, Union
 
 from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
                                               DANGEROUS_PERMISSIONS_THRESHOLD,
                                               ROOT_PACKAGES)
 from mvt.android.parsers.dumpsys import parse_dumpsys_packages
-from mvt.common.utils import convert_datetime_to_iso
 
 from .base import AndroidQFModule
 

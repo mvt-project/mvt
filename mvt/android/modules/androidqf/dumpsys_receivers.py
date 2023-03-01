@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, List, Dict, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 from mvt.android.modules.adb.dumpsys_receivers import (
     INTENT_DATA_SMS_RECEIVED, INTENT_NEW_OUTGOING_CALL,
