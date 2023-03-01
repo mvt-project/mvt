@@ -30,9 +30,9 @@ class Logcat(AndroidExtraction):
         self._adb_connect()
 
         # Get the current logcat.
-        output = self._adb_command("logcat -d")
+        output = self._adb_command("logcat -d -b all \"*:V\"")
         # Get the locat prior to last reboot.
-        last_output = self._adb_command("logcat -L")
+        last_output = self._adb_command("logcat -L -b all \"*:V\"")
 
         if self.results_path:
             logcat_path = os.path.join(self.results_path,
