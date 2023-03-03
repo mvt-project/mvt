@@ -122,7 +122,7 @@ class Command:
 
         if self.target_path and (os.environ.get("MVT_HASH_FILES") or self.hashes):
             info_hash = get_sha256_from_file_path(info_path)
-            self.log.warning("Reference hash of the info.json file : %s", info_hash)
+            self.log.info("Reference hash of the info.json file: \"%s\"", info_hash)
 
     def generate_hashes(self) -> None:
         """
