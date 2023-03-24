@@ -7,7 +7,7 @@ import datetime
 import hashlib
 import os
 import re
-from typing import Iterator, Union
+from typing import Any, Iterator, Union
 
 
 def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
@@ -51,7 +51,7 @@ def convert_unix_to_utc_datetime(
     return datetime.datetime.utcfromtimestamp(float(timestamp))
 
 
-def convert_unix_to_iso(timestamp: int) -> str:
+def convert_unix_to_iso(timestamp: Union[int, float, str]) -> str:
     """Converts a unix epoch to ISO string.
 
     :param timestamp: Epoc timestamp to convert.
@@ -125,7 +125,7 @@ def check_for_links(text: str) -> list:
 
 # Note: taken from here:
 # https://stackoverflow.com/questions/57014259/json-dumps-on-dictionary-with-bytes-for-keys
-def keys_bytes_to_string(obj) -> str:
+def keys_bytes_to_string(obj: Any) -> Any:
     """Convert object keys from bytes to string.
 
     :param obj: Object to convert from bytes to string.

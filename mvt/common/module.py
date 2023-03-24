@@ -7,7 +7,7 @@ import csv
 import logging
 import os
 import re
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import simplejson as json
 
@@ -28,7 +28,7 @@ class MVTModule:
     """This class provides a base for all extraction modules."""
 
     enabled = True
-    slug = None
+    slug: Optional[str] = None
 
     def __init__(
         self,
@@ -61,12 +61,12 @@ class MVTModule:
         self.log = log
         self.indicators = None
         self.results = results if results else []
-        self.detected = []
-        self.timeline = []
-        self.timeline_detected = []
+        self.detected: List[Dict[str, Any]] = []
+        self.timeline: List[Dict[str, str]] = []
+        self.timeline_detected: List[Dict[str, str]] = []
 
     @classmethod
-    def from_json(cls, json_path: str, log: logging.Logger = None):
+    def from_json(cls, json_path: str, log: logging.Logger):
         with open(json_path, "r", encoding="utf-8") as handle:
             results = json.load(handle)
             if log:
@@ -116,7 +116,7 @@ class MVTModule:
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: dict) -> Union[dict, list, None]:
         raise NotImplementedError
 
     @staticmethod
@@ -159,7 +159,7 @@ class MVTModule:
         raise NotImplementedError
 
 
-def run_module(module: Callable) -> None:
+def run_module(module: MVTModule) -> None:
     module.log.info("Running module %s...", module.__class__.__name__)
 
     try:

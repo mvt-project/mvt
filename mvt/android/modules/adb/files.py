@@ -39,7 +39,7 @@ class Files(AndroidExtraction):
                          log=log, results=results)
         self.full_find = False
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: dict) -> Union[dict, list, None]:
         if "modified_time" in record:
             return {
                 "timestamp": record["modified_time"],
@@ -62,6 +62,9 @@ class Files(AndroidExtraction):
                 self.detected.append(result)
 
     def backup_file(self, file_path: str) -> None:
+        if not self.results_path:
+            return
+
         local_file_name = file_path.replace("/", "_").replace(" ", "-")
         local_files_folder = os.path.join(self.results_path, "files")
         if not os.path.exists(local_files_folder):
@@ -79,6 +82,7 @@ class Files(AndroidExtraction):
                           file_path, local_file_path)
 
     def find_files(self, folder: str) -> None:
+        assert isinstance(self.results, list)
         if self.full_find:
             cmd = f"find '{folder}' -type f -printf '%T@ %m %s %u %g %p\n' 2> /dev/null"
             output = self._adb_command(cmd)
@@ -121,8 +125,7 @@ class Files(AndroidExtraction):
         for entry in self.results:
             self.log.info("Found file in tmp folder at path %s",
                           entry.get("path"))
-            if self.results_path:
-                self.backup_file(entry.get("path"))
+            self.backup_file(entry.get("path"))
 
         for media_folder in ANDROID_MEDIA_FOLDERS:
             self.find_files(media_folder)

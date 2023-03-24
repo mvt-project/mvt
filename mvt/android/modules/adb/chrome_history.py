@@ -31,6 +31,7 @@ class ChromeHistory(AndroidExtraction):
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
+        self.results = []
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -55,6 +56,7 @@ class ChromeHistory(AndroidExtraction):
         :param db_path: Path to the History database to process.
 
         """
+        assert isinstance(self.results, list)  # assert results type for mypy
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
         cur.execute("""

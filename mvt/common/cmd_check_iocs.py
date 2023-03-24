@@ -30,6 +30,7 @@ class CmdCheckIOCS(Command):
         self.name = "check-iocs"
 
     def run(self) -> None:
+        assert self.target_path is not None
         all_modules = []
         for entry in self.modules:
             if entry not in all_modules:

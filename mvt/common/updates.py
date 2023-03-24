@@ -6,6 +6,7 @@
 import logging
 import os
 from datetime import datetime
+from typing import Optional, Tuple
 
 import requests
 import yaml
@@ -83,7 +84,7 @@ class IndicatorsUpdates:
         with open(self.latest_update_path, "w", encoding="utf-8") as handle:
             handle.write(str(timestamp))
 
-    def get_remote_index(self) -> dict:
+    def get_remote_index(self) -> Optional[dict]:
         url = self.github_raw_url.format(self.index_owner, self.index_repo,
                                          self.index_branch, self.index_path)
         res = requests.get(url)
@@ -94,7 +95,7 @@ class IndicatorsUpdates:
 
         return yaml.safe_load(res.content)
 
-    def download_remote_ioc(self, ioc_url: str) -> str:
+    def download_remote_ioc(self, ioc_url: str) -> Optional[str]:
         res = requests.get(ioc_url)
         if res.status_code != 200:
             log.error("Failed to download indicators file from %s (error %d)",
@@ -116,6 +117,9 @@ class IndicatorsUpdates:
             os.makedirs(MVT_INDICATORS_FOLDER)
 
         index = self.get_remote_index()
+        if not index:
+            return
+
         for ioc in index.get("indicators", []):
             ioc_type = ioc.get("type", "")
 
@@ -171,7 +175,7 @@ class IndicatorsUpdates:
 
         return latest_commit_ts
 
-    def should_check(self) -> (bool, int):
+    def should_check(self) -> Tuple[bool, int]:
         now = datetime.utcnow()
         latest_check_ts = self.get_latest_check()
         latest_check_dt = datetime.fromtimestamp(latest_check_ts)
@@ -182,7 +186,7 @@ class IndicatorsUpdates:
         if diff_hours >= INDICATORS_CHECK_FREQUENCY:
             return True, 0
 
-        return False, INDICATORS_CHECK_FREQUENCY - diff_hours
+        return False, int(INDICATORS_CHECK_FREQUENCY - diff_hours)
 
     def check(self) -> bool:
         self.set_latest_check()
@@ -197,6 +201,9 @@ class IndicatorsUpdates:
             return True
 
         index = self.get_remote_index()
+        if not index:
+            return False
+
         for ioc in index.get("indicators", []):
             if ioc.get("type", "") != "github":
                 continue

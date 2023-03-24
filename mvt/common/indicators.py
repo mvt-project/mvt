@@ -6,7 +6,7 @@
 import json
 import logging
 import os
-from typing import Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 from appdirs import user_data_dir
 
@@ -23,7 +23,7 @@ class Indicators:
 
     def __init__(self, log=logging.Logger) -> None:
         self.log = log
-        self.ioc_collections = []
+        self.ioc_collections: List[Dict[str, Any]] = []
         self.total_ioc_count = 0
 
     def _load_downloaded_indicators(self) -> None:
@@ -209,7 +209,7 @@ class Indicators:
         self.log.info("Loaded a total of %d unique indicators",
                       self.total_ioc_count)
 
-    def get_iocs(self, ioc_type: str) -> Union[dict, None]:
+    def get_iocs(self, ioc_type: str) -> Union[Iterator[Dict[str, Any]], None]:
         for ioc_collection in self.ioc_collections:
             for ioc in ioc_collection.get(ioc_type, []):
                 yield {
