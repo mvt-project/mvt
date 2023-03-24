@@ -112,14 +112,13 @@ class Whatsapp(IOSExtraction):
                         or link.startswith("https://mmg.whatsapp.net/")):
                     filtered_links.append(link)
 
-            # If we find messages with links, or if there's an empty message
-            # we add it to the results list.
+            # Add all the links found to the record
             if filtered_links or (message.get("ZTEXT") or "").strip() == "":
                 message["links"] = list(set(filtered_links))
-                self.results.append(message)
+            self.results.append(message)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages containing links",
+        self.log.info("Extracted a total of %d WhatsApp messages",
                       len(self.results))
