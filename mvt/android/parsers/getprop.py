@@ -4,10 +4,11 @@
 #   https://license.mvt.re/1.1/
 
 import re
+from typing import Dict, List
 
 
-def parse_getprop(output: str) -> dict:
-    results = {}
+def parse_getprop(output: str) -> List[Dict[str, str]]:
+    results = []
     rxp = re.compile(r"\[(.+?)\]: \[(.+?)\]")
 
     for line in output.splitlines():
@@ -19,8 +20,10 @@ def parse_getprop(output: str) -> dict:
         if not matches or len(matches[0]) != 2:
             continue
 
-        key = matches[0][0]
-        value = matches[0][1]
-        results[key] = value
+        entry = {
+            "name": matches[0][0],
+            "value": matches[0][1]
+        }
+        results.append(entry)
 
     return results

@@ -72,6 +72,7 @@ class Indicators:
             "files_sha256": [],
             "app_ids": [],
             "ios_profile_ids": [],
+            "android_property_names": [],
             "count": 0,
         }
 
@@ -120,6 +121,11 @@ class Indicators:
             self._add_indicator(ioc=value,
                                 ioc_coll=collection,
                                 ioc_coll_list=collection["ios_profile_ids"])
+
+        elif key == "android-property:name":
+            self._add_indicator(ioc=value,
+                                ioc_coll=collection,
+                                ioc_coll_list=collection["android_property_names"])
 
     def parse_stix2(self, file_path: str) -> None:
         """Extract indicators from a STIX2 file.
@@ -515,6 +521,26 @@ class Indicators:
             if app_id.lower() == ioc["value"].lower():
                 self.log.warning("Found a known suspicious app with ID \"%s\" "
                                  "matching indicators from \"%s\"", app_id,
+                                 ioc["name"])
+                return ioc
+
+        return None
+
+    def check_android_property_name(self, property_name: str) -> Optional[dict]:
+        """Check the android property name against the list of indicators.
+
+        :param property_name: Name of the Android property
+        :type property_name: str
+        :returns: Indicator details if matched, otherwise None
+
+        """
+        if property_name is None:
+            return None
+
+        for ioc in self.get_iocs("android_property_names"):
+            if property_name.lower() == ioc["value"].lower():
+                self.log.warning("Found a known suspicious Android property \"%s\" "
+                                 "matching indicators from \"%s\"", property_name,
                                  ioc["name"])
                 return ioc
 

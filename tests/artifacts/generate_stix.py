@@ -16,6 +16,7 @@ def generate_test_stix_file(file_path):
     processes = ["Launch"]
     emails = ["foobar@example.org"]
     filenames = ["/var/foobar/txt"]
+    android_property = ["sys.foobar"]
 
     res = []
     malware = Malware(name="TestMalware", is_family=False, description="")
@@ -37,6 +38,11 @@ def generate_test_stix_file(file_path):
 
     for e in emails:
         i = Indicator(indicator_types=["malicious-activity"], pattern="[email-addr:value='{}']".format(e), pattern_type="stix")
+        res.append(i)
+        res.append(Relationship(i, "indicates", malware))
+
+    for p in android_property:
+        i = Indicator(indicator_types=["malicious-activity"], pattern="[android-property:name='{}']".format(p), pattern_type="stix")
         res.append(i)
         res.append(Relationship(i, "indicates", malware))
 

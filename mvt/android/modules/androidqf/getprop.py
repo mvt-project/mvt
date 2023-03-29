@@ -7,7 +7,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from mvt.android.parsers import getprop
+from mvt.android.parsers.getprop import parse_getprop
 
 from .base import AndroidQFModule
 
@@ -41,7 +41,17 @@ class Getprop(AndroidQFModule):
         super().__init__(file_path=file_path, target_path=target_path,
                          results_path=results_path, fast_mode=fast_mode,
                          log=log, results=results)
-        self.results = {}
+        self.results = []
+
+    def check_indicators(self) -> None:
+        if not self.indicators:
+            return
+
+        for result in self.results:
+            ioc = self.indicators.check_android_property_name(result.get("name", ""))
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
 
     def run(self) -> None:
         getprop_files = self._get_files_by_pattern("*/getprop.txt")
@@ -52,15 +62,15 @@ class Getprop(AndroidQFModule):
         with open(getprop_files[0]) as f:
             data = f.read()
 
-        self.results = getprop.parse_getprop(data)
+        self.results = parse_getprop(data)
         for entry in self.results:
-            if entry in INTERESTING_PROPERTIES:
-                self.log.info("%s: %s", entry, self.results[entry])
-            if entry == "ro.build.version.security_patch":
-                last_patch = datetime.strptime(self.results[entry], "%Y-%m-%d")
+            if entry["name"] in INTERESTING_PROPERTIES:
+                self.log.info("%s: %s", entry["name"], entry["value"])
+            if entry["name"] == "ro.build.version.security_patch":
+                last_patch = datetime.strptime(entry["value"], "%Y-%m-%d")
                 if (datetime.now() - last_patch) > timedelta(days=6*31):
                     self.log.warning("This phone has not received security "
                                      "updates for more than six months "
-                                     "(last update: %s)", self.results[entry])
+                                     "(last update: %s)", entry["value"])
 
         self.log.info("Extracted a total of %d properties", len(self.results))

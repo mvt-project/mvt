@@ -30,6 +30,16 @@ class Getprop(AndroidExtraction):
 
         self.results = {} if not results else results
 
+    def check_indicators(self) -> None:
+        if not self.indicators:
+            return
+
+        for result in self.results:
+            ioc = self.indicators.check_android_property_name(result.get("name", ""))
+            if ioc:
+                result["matched_indicator"] = ioc
+                self.detected.append(result)
+
     def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("getprop")
@@ -38,13 +48,14 @@ class Getprop(AndroidExtraction):
         self.results = parse_getprop(output)
 
         # Alert if phone is outdated.
-        security_patch = self.results.get("ro.build.version.security_patch", "")
-        if security_patch:
-            patch_date = datetime.strptime(security_patch, "%Y-%m-%d")
+        for entry in self.results:
+            if entry.get("name", "") != "ro.build.version.security_patch":
+                continue
+            patch_date = datetime.strptime(entry["value"], "%Y-%m-%d")
             if (datetime.now() - patch_date) > timedelta(days=6*30):
                 self.log.warning("This phone has not received security updates "
                                  "for more than six months (last update: %s)",
-                                 security_patch)
+                                 entry["value"])
 
         self.log.info("Extracted %d Android system properties",
                       len(self.results))
