@@ -6,6 +6,7 @@
 import logging
 import plistlib
 import sqlite3
+import copy
 from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
@@ -55,18 +56,20 @@ class Analytics(IOSExtraction):
                 if ioc:
                     self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
                                      value, result["artifact"],
-                                     result["timestamp"])
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                                     result["isodate"])
+                    new_result = copy.copy(result)
+                    new_result["matched_indicator"] = ioc
+                    self.detected.append(new_result)
                     continue
 
                 ioc = self.indicators.check_domain(value)
                 if ioc:
                     self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
                                      value, result["artifact"],
-                                     result["timestamp"])
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                                     result["isodate"])
+                    new_result = copy.copy(result)
+                    new_result["matched_indicator"] = ioc
+                    self.detected.append(new_result)
 
     def _extract_analytics_data(self):
         artifact = self.file_path.split("/")[-1]
