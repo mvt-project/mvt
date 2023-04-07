@@ -34,7 +34,6 @@ class IOSExtraction(MVTModule):
 
         self.is_backup = False
         self.is_fs_dump = False
-        self.is_sysdiagnose = False
 
     def _recover_sqlite_db_if_needed(self, file_path: str,
                                      forced: Optional[bool] = False) -> None:

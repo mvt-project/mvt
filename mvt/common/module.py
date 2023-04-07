@@ -185,6 +185,10 @@ def run_module(module: MVTModule) -> None:
         except NotImplementedError:
             module.log.info("The %s module does not support checking for indicators",
                             module.__class__.__name__)
+        except Exception as exc:
+            module.log.exception("Error when checking indicators from module %s: %s",
+                                 module.__class__.__name__, exc)
+
         else:
             if module.indicators and not module.detected:
                 module.log.info("The %s module produced no detections!",
