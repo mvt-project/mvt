@@ -70,7 +70,15 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            cur.execute("SELECT * from ObservedDomains;")
+            # FIXME: table contains extra fields with timestamp here
+            cur.execute("""
+                SELECT
+                    domainID,
+                    registrableDomain,
+                    lastSeen,
+                    hadUserInteraction
+                from ObservedDomains;
+            """)
         except sqlite3.OperationalError:
             return
 

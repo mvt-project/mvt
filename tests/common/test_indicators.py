@@ -24,8 +24,10 @@ class TestIndicators:
     def test_check_domain(self, indicator_file):
         ind = Indicators(log=logging)
         ind.load_indicators_files([indicator_file], load_default=False)
+        assert ind.check_domain(42) is None
         assert ind.check_domain("https://www.example.org/foobar")
         assert ind.check_domain("http://example.org:8080/toto")
+        assert ind.check_domain("https://github.com") is None
 
     def test_check_android_property(self, indicator_file):
         ind = Indicators(log=logging)

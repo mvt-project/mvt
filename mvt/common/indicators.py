@@ -237,6 +237,8 @@ class Indicators:
         #       being matched.
         if not url:
             return None
+        if not isinstance(url, str):
+            return None
 
         try:
             # First we use the provided URL.
