@@ -161,9 +161,12 @@ def get_sha256_from_file_path(file_path: str) -> str:
 
     """
     sha256_hash = hashlib.sha256()
-    with open(file_path, "rb") as handle:
-        for byte_block in iter(lambda: handle.read(4096), b""):
-            sha256_hash.update(byte_block)
+    try:
+        with open(file_path, "rb") as handle:
+            for byte_block in iter(lambda: handle.read(4096), b""):
+                sha256_hash.update(byte_block)
+    except OSError:
+        return ""
 
     return sha256_hash.hexdigest()
 
