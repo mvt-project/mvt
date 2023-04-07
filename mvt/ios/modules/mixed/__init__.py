@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from .applications import Applications
 from .calls import Calls
 from .chrome_favicon import ChromeFavicon
 from .chrome_history import ChromeHistory
@@ -28,4 +29,4 @@ MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
                  FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,
                  OSAnalyticsADDaily, Datausage, SafariBrowserState, SafariHistory,
                  TCC, SMS, SMSAttachments, WebkitResourceLoadStatistics,
-                 WebkitSessionResourceLog, Whatsapp, Shortcuts]
+                 WebkitSessionResourceLog, Whatsapp, Shortcuts, Applications]
