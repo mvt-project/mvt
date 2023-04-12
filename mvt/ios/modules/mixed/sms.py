@@ -51,7 +51,10 @@ class SMS(IOSExtraction):
             return
 
         for result in self.results:
-            message_links = check_for_links(result.get("text", ""))
+            message_links = result.get("links", [])
+            # Making sure not link was ignored
+            if message_links == []:
+                message_links = check_for_links(result.get("text", ""))
             ioc = self.indicators.check_domains(message_links)
             if ioc:
                 result["matched_indicator"] = ioc
@@ -118,18 +121,15 @@ class SMS(IOSExtraction):
             if message.get("text", "").startswith(alert):
                 self.log.warning("Apple warning about state-sponsored attack received on the %s",
                                  message["isodate"])
-                self.results.append(message)
             else:
                 # Extract links from the SMS message.
                 message_links = check_for_links(message.get("text", ""))
+                message["links"] = message_links
 
-                # If we find links in the messages or if they are empty we add
-                # them to the list.
-                if message_links or message.get("text", "").strip() == "":
-                    self.results.append(message)
+            self.results.append(message)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d SMS messages containing links",
+        self.log.info("Extracted a total of %d SMS messages",
                       len(self.results))

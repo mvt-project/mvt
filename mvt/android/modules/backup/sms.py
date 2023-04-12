@@ -8,6 +8,7 @@ from typing import Optional
 
 from mvt.android.modules.backup.base import BackupExtraction
 from mvt.android.parsers.backup import parse_sms_file
+from mvt.common.utils import check_for_links
 
 
 class SMS(BackupExtraction):
@@ -34,7 +35,11 @@ class SMS(BackupExtraction):
             if "body" not in message:
                 continue
 
-            if self.indicators.check_domains(message["links"]):
+            message_links = message.get("links", [])
+            if message_links == []:
+                message_links = check_for_links(message.get("text", ""))
+
+            if self.indicators.check_domains(message_links):
                 self.detected.append(message)
 
     def run(self) -> None:
@@ -50,5 +55,5 @@ class SMS(BackupExtraction):
             data = self._get_file_content(file)
             self.results.extend(parse_sms_file(data))
 
-        self.log.info("Extracted a total of %d SMS & MMS messages containing links",
+        self.log.info("Extracted a total of %d SMS & MMS messages",
                       len(self.results))

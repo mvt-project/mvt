@@ -218,10 +218,9 @@ def parse_sms_file(data):
         entry["isodate"] = convert_unix_to_iso(int(entry["date"]) / 1000)
         entry["direction"] = ("sent" if int(entry["date_sent"]) else "received")
 
-        # If we find links in the messages or if they are empty we add them to
-        # the list.
+        # Extract links from the body
         if message_links or entry["body"].strip() == "":
             entry["links"] = message_links
-            res.append(entry)
+        res.append(entry)
 
     return res

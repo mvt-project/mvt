@@ -43,7 +43,7 @@ FROM sms;
 
 
 class SMS(AndroidExtraction):
-    """This module extracts all SMS messages containing links."""
+    """This module extracts all SMS messages."""
 
     def __init__(
         self,
@@ -77,8 +77,10 @@ class SMS(AndroidExtraction):
             if "body" not in message:
                 continue
 
-            # TODO: check links exported from the body previously.
-            message_links = check_for_links(message["body"])
+            message_links = message.get("links", [])
+            if message_links == []:
+                message_links = check_for_links(message["body"])
+
             if self.indicators.check_domains(message_links):
                 self.detected.append(message)
 
@@ -106,15 +108,16 @@ class SMS(AndroidExtraction):
             message["direction"] = ("received" if message["incoming"] == 1 else "sent")
             message["isodate"] = convert_unix_to_iso(message["timestamp"])
 
-            # If we find links in the messages or if they are empty we add
-            # them to the list of results.
-            if check_for_links(message["body"]) or message["body"].strip() == "":
-                self.results.append(message)
+            # Extract links in the message body
+            links = check_for_links(message["body"])
+            message["links"] = links
+
+            self.results.append(message)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d SMS messages containing links",
+        self.log.info("Extracted a total of %d SMS messages",
                       len(self.results))
 
     def _extract_sms_adb(self) -> None:
@@ -137,7 +140,7 @@ class SMS(AndroidExtraction):
                           "Android Backup Extractor")
             return
 
-        self.log.info("Extracted a total of %d SMS messages containing links",
+        self.log.info("Extracted a total of %d SMS messages",
                       len(self.results))
 
     def run(self) -> None:
