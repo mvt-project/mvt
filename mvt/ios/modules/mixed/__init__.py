@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from .applications import Applications
+from .calendar import Calendar
 from .calls import Calls
 from .chrome_favicon import ChromeFavicon
 from .chrome_history import ChromeHistory
@@ -29,4 +30,5 @@ MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
                  FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,
                  OSAnalyticsADDaily, Datausage, SafariBrowserState, SafariHistory,
                  TCC, SMS, SMSAttachments, WebkitResourceLoadStatistics,
-                 WebkitSessionResourceLog, Whatsapp, Shortcuts, Applications]
+                 WebkitSessionResourceLog, Whatsapp, Shortcuts, Applications,
+                 Calendar]

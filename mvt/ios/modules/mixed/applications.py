@@ -3,16 +3,15 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
-import logging
-import plistlib
 import hashlib
+import logging
+import os
+import plistlib
 from datetime import datetime, timezone
-from typing import Optional, Union, Dict, Any
+from typing import Any, Dict, Optional, Union
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module import DatabaseNotFoundError
-
+from mvt.common.utils import convert_datetime_to_iso
 from mvt.ios.modules.base import IOSExtraction
 
 APPLICATIONS_DB_PATH = [
