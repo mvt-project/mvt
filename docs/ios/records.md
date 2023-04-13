@@ -16,6 +16,18 @@ If indicators are provided through the command-line, processes and domains are c
 
 ---
 
+### `applications.json`
+
+!!! info "Availability"
+    Backup: :material-check:
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `Applications` module. The module extracts the list of applications installed on the device from the `Info.plist` file in backup, or from the `iTunesMetadata.plist` files in a file system dump. These records contains detailed information on the source and installation of the app.
+
+If indicators are provided through the command-line, processes and application ids are checked against the app name of each application. It also flags any applications not installed from the AppStore. Any matches are stored in *applications_detected.json*.
+
+---
+
 ### `backup_info.json`
 
 !!! info "Availability"
@@ -35,6 +47,18 @@ This JSON file is created by mvt-ios' `BackupInfo` module. The module extracts s
 This JSON file is created by mvt-ios' `CacheFiles` module. The module extracts records from all SQLite database files stored on disk with the name *Cache.db*. These databases typically contain data from iOS' [internal URL caching](https://developer.apple.com/documentation/foundation/nsurlcache). Through this module you might be able to recover records of HTTP requests and responses performed my applications as well as system services, that would otherwise be unavailable. For example, you might see HTTP requests part of an exploitation chain performed by an iOS service attempting to download a first stage malicious payload.
 
 If indicators are provided through the command-line, they are checked against the requested URL. Any matches are stored in *cache_files_detected.json*.
+
+---
+
+### `calendar.json`
+
+!!! info "Availability"
+    Backup: :material-check:
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `Calendar` module. This module extracts all CalendarItems from the `Calendar.sqlitedb` database. This database contains all calendar entries from the different calendars installed on the phone.
+
+If indicators are provided through the command-line, email addresses are checked against the inviter's email of the different events. Any matches are stored in *calendar_detected.json*.
 
 ---
 
