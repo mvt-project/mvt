@@ -198,6 +198,9 @@ def run_module(module: MVTModule) -> None:
             module.to_timeline()
         except NotImplementedError:
             pass
+        except Exception as exc:
+            module.log.exception("Error when serializing data from module %s: %s",
+                                 module.__class__.__name__, exc)
 
         module.save_to_json()
 

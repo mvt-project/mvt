@@ -38,7 +38,7 @@ class Whatsapp(IOSExtraction):
     def serialize(self, record: dict) -> Union[dict, list]:
         text = record.get("ZTEXT", "").replace("\n", "\\n")
         links_text = ""
-        if record["links"]:
+        if record.get("links"):
             links_text = " - Embedded links: " + ", ".join(record["links"])
 
         return {
