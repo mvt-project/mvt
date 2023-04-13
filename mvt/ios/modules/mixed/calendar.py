@@ -59,7 +59,7 @@ class Calendar(IOSExtraction):
 
     def check_indicators(self) -> None:
         for result in self.results:
-            if result["participant_email"]:
+            if result["participant_email"] and self.indicators:
                 ioc = self.indicators.check_email(result["participant_email"])
                 if ioc:
                     result["matched_indicator"] = ioc
