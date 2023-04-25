@@ -61,8 +61,8 @@ class Applications(IOSExtraction):
                     self.detected.append(result)
                     continue
 
-            if result.get("sourceApp", "com.apple.AppStore") != "com.apple.AppStore":
-                self.log.warning("Suspicious app not installed from the App Store: %s", result["softwareVersionBundleId"])
+            if result.get("sourceApp", "com.apple.AppStore") not in ["com.apple.AppStore", "com.apple.dmd", "dmd"]:
+                self.log.warning("Suspicious app not installed from the App Store or MDM: %s", result["softwareVersionBundleId"])
                 self.detected.append(result)
 
     def _parse_itunes_timestamp(self, entry: Dict[str, Any]) -> None:
