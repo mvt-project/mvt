@@ -8,17 +8,17 @@ import logging
 import os
 
 import click
-from rich.logging import RichHandler
 from rich.prompt import Prompt
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_HASHES, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT)
+                             HELP_MSG_OUTPUT, HELP_MSG_VERBOSE)
 from mvt.common.logo import logo
 from mvt.common.options import MutuallyExclusiveOption
 from mvt.common.updates import IndicatorsUpdates
-from mvt.common.utils import generate_hashes_from_path
+from mvt.common.utils import (generate_hashes_from_path, init_logging,
+                              set_verbose_logging)
 
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
@@ -27,11 +27,8 @@ from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
 
-# Setup logging using Rich.
-LOG_FORMAT = "[%(name)s] %(message)s"
-logging.basicConfig(level="INFO", format=LOG_FORMAT, handlers=[
-    RichHandler(show_path=False, log_time_format="%X")])
-log = logging.getLogger(__name__)
+init_logging()
+log = logging.getLogger("mvt")
 
 # Set this environment variable to a password if needed.
 MVT_IOS_BACKUP_PASSWORD = "MVT_IOS_BACKUP_PASSWORD"
@@ -166,9 +163,12 @@ def extract_key(password, key_file, backup_path):
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, backup_path):
+def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, verbose, backup_path):
+    set_verbose_logging(verbose)
+
     cmd = CmdIOSCheckBackup(target_path=backup_path, results_path=output,
                             ioc_files=iocs, module_name=module, fast_mode=fast,
                             hashes=hashes)
@@ -199,9 +199,11 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, backup_p
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, dump_path):
+def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dump_path):
+    set_verbose_logging(verbose)
     cmd = CmdIOSCheckFS(target_path=dump_path, results_path=output,
                         ioc_files=iocs, module_name=module, fast_mode=fast,
                         hashes=hashes)

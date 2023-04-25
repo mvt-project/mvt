@@ -42,19 +42,20 @@ class Command:
         self.fast_mode = fast_mode
         self.log = log
 
-        self.iocs = Indicators(log=log)
-        self.iocs.load_indicators_files(self.ioc_files)
-
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
         self.executed = []
-
         self.detected_count = 0
-
         self.hashes = hashes
         self.hash_values = []
         self.timeline = []
         self.timeline_detected = []
+
+        # Load IOCs
+        self._create_storage()
+        self._setup_logging()
+        self.iocs = Indicators(log=log)
+        self.iocs.load_indicators_files(self.ioc_files)
 
     def _create_storage(self) -> None:
         if self.results_path and not os.path.exists(self.results_path):
@@ -65,10 +66,11 @@ class Command:
                                   self.results_path, exc)
                 sys.exit(1)
 
-    def _add_log_file_handler(self, logger: logging.Logger) -> None:
+    def _setup_logging(self):
         if not self.results_path:
             return
 
+        logger = logging.getLogger("mvt")
         file_handler = logging.FileHandler(os.path.join(self.results_path,
                                                         "command.log"))
         formatter = logging.Formatter("%(asctime)s - %(name)s - "
@@ -150,8 +152,6 @@ class Command:
         raise NotImplementedError
 
     def run(self) -> None:
-        self._create_storage()
-        self._add_log_file_handler(self.log)
 
         try:
             self.init()
@@ -162,8 +162,8 @@ class Command:
             if self.module_name and module.__name__ != self.module_name:
                 continue
 
+            # FIXME: do we need the logger here
             module_logger = logging.getLogger(module.__module__)
-            self._add_log_file_handler(module_logger)
 
             m = module(target_path=self.target_path,
                        results_path=self.results_path,

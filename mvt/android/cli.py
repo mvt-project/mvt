@@ -6,14 +6,15 @@
 import logging
 
 import click
-from rich.logging import RichHandler
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_HASHES, HELP_MSG_IOC,
                              HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT, HELP_MSG_SERIAL)
+                             HELP_MSG_OUTPUT, HELP_MSG_SERIAL,
+                             HELP_MSG_VERBOSE)
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
+from mvt.common.utils import init_logging, set_verbose_logging
 
 from .cmd_check_adb import CmdAndroidCheckADB
 from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
@@ -25,11 +26,8 @@ from .modules.adb.packages import Packages
 from .modules.backup import BACKUP_MODULES
 from .modules.bugreport import BUGREPORT_MODULES
 
-# Setup logging using Rich.
-LOG_FORMAT = "[%(name)s] %(message)s"
-logging.basicConfig(level="INFO", format=LOG_FORMAT, handlers=[
-    RichHandler(show_path=False, log_time_format="%X")])
-log = logging.getLogger(__name__)
+init_logging()
+log = logging.getLogger("mvt")
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
@@ -63,8 +61,10 @@ def version():
 @click.option("--from-file", "-f", type=click.Path(exists=True),
               help="Instead of acquiring from phone, load an existing packages.json file for "
                    "lookups (mainly for debug purposes)")
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
+def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose):
+    set_verbose_logging(verbose)
     try:
         if from_file:
             download = DownloadAPKs.from_json(from_file)
@@ -112,8 +112,10 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial):
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
+def check_adb(ctx, serial, iocs, output, fast, list_modules, module, verbose):
+    set_verbose_logging(verbose)
     cmd = CmdAndroidCheckADB(results_path=output, ioc_files=iocs,
                              module_name=module, serial=serial, fast_mode=fast)
 
@@ -141,9 +143,11 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module):
               help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
+def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_path):
+    set_verbose_logging(verbose)
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(target_path=bugreport_path,
                                    results_path=output, ioc_files=iocs,
@@ -172,9 +176,11 @@ def check_bugreport(ctx, iocs, output, list_modules, module, bugreport_path):
 @click.option("--output", "-o", type=click.Path(exists=False),
               help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, list_modules, backup_path):
+def check_backup(ctx, iocs, output, list_modules, verbose, backup_path):
+    set_verbose_logging(verbose)
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(target_path=backup_path, results_path=output,
                                 ioc_files=iocs, hashes=True)
@@ -204,9 +210,11 @@ def check_backup(ctx, iocs, output, list_modules, backup_path):
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_androidqf(ctx, iocs, output, list_modules, module, hashes, androidqf_path):
+def check_androidqf(ctx, iocs, output, list_modules, module, hashes, verbose, androidqf_path):
+    set_verbose_logging(verbose)
     cmd = CmdAndroidCheckAndroidQF(target_path=androidqf_path,
                                    results_path=output, ioc_files=iocs,
                                    module_name=module, hashes=hashes)

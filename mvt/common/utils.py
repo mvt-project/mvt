@@ -5,9 +5,12 @@
 
 import datetime
 import hashlib
+import logging
 import os
 import re
 from typing import Any, Iterator, Union
+
+from rich.logging import RichHandler
 
 
 def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
@@ -197,3 +200,28 @@ def generate_hashes_from_path(path: str, log) -> Iterator[dict]:
                     continue
 
                 yield {"file_path": file_path, "sha256": sha256}
+
+
+def init_logging(verbose: bool = False):
+    """
+    Initialise logging for the MVT module
+    """
+    # Setup logging using Rich.
+    log = logging.getLogger("mvt")
+    log.setLevel(logging.DEBUG)
+    consoleHandler = RichHandler(show_path=False, log_time_format="%X")
+    consoleHandler.setFormatter(logging.Formatter("[%(name)s] %(message)s"))
+    if verbose:
+        consoleHandler.setLevel(logging.DEBUG)
+    else:
+        consoleHandler.setLevel(logging.INFO)
+    log.addHandler(consoleHandler)
+
+
+def set_verbose_logging(verbose: bool = False):
+    log = logging.getLogger("mvt")
+    handler = log.handlers[0]
+    if verbose:
+        handler.setLevel(logging.DEBUG)
+    else:
+        handler.setLevel(logging.INFO)

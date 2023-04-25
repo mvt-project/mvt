@@ -21,15 +21,13 @@ log = logging.getLogger(__name__)
 class DownloadAPKs(AndroidExtraction):
     """DownloadAPKs is the main class operating the download of APKs
     from the device.
-
-
     """
 
     def __init__(
         self,
         results_path: Optional[str] = None,
         all_apks: Optional[bool] = False,
-        packages: Optional[list] = None
+        packages: Optional[list] = None,
     ) -> None:
         """Initialize module.
         :param results_path: Path to the folder where data should be stored
