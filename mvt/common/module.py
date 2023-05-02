@@ -214,7 +214,7 @@ def save_timeline(timeline: list, timeline_path: str) -> None:
     """
     with open(timeline_path, "a+", encoding="utf-8") as handle:
         csvoutput = csv.writer(handle, delimiter=",", quotechar="\"",
-                               quoting=csv.QUOTE_ALL)
+                               quoting=csv.QUOTE_ALL, escapechar='\\')
         csvoutput.writerow(["UTC Timestamp", "Plugin", "Event", "Description"])
 
         for event in sorted(timeline, key=lambda x: x["timestamp"]
