@@ -38,7 +38,7 @@ class SMS(AndroidQFModule):
             if "body" not in message:
                 continue
 
-            if self.indicators.check_domains(message["links"]):
+            if self.indicators.check_domains(message.get("links", [])):
                 self.detected.append(message)
 
     def parse_backup(self, data):
