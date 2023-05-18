@@ -519,3 +519,39 @@ def parse_dumpsys_packages(output: str) -> List[Dict[str, Any]]:
         results.append(package)
 
     return results
+
+
+def parse_dumpsys_network_interfaces(output: str) -> List[Dict[str, str]]:
+    """
+    Parse network interfaces (output of the 'ip link' command)
+    """
+    results = []
+    interface_rxp = re.compile(r"(?P<if_number>\d+): (?P<if_name>[\S\d]+): (?P<if_options>\<.*)")
+    mac_or_ip_line_rxp = re.compile(r"\W+ (?P<link_type>[\S]+) (?P<mac_or_ip_address>[a-f0-9\:\.\/]+) (.*)")
+
+    interface = None
+    for line in output.splitlines():
+
+        interface_match = re.match(interface_rxp, line)
+        if interface_match:
+            interface = {
+                "interface_number": interface_match.group("if_number"),
+                "name": interface_match.group("if_name"),
+                "options": interface_match.group("if_options"),
+            }
+            continue
+
+        elif interface:
+            mac_line_match = re.match(mac_or_ip_line_rxp, line)
+            mac_or_ip_address = mac_line_match.group("mac_or_ip_address")
+            if len(mac_or_ip_address) == 17:
+                interface["mac_address"] = mac_or_ip_address
+            else:
+                interface["address"] = mac_or_ip_address
+            interface["link_type"] = mac_line_match.group("link_type")
+            interface["link_line"] = line
+
+            results.append(interface)
+            interface = None
+
+    return results

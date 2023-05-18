@@ -12,6 +12,8 @@ from .dbinfo import DBInfo
 from .getprop import Getprop
 from .packages import Packages
 from .receivers import Receivers
+from .network_interfaces import NetworkInterfaces
 
 BUGREPORT_MODULES = [Accessibility, Activities, Appops, BatteryDaily,
-                     BatteryHistory, DBInfo, Getprop, Packages, Receivers]
+                     BatteryHistory, DBInfo, Getprop, Packages, Receivers,
+                     NetworkInterfaces]

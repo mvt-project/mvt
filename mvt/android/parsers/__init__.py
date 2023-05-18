@@ -7,5 +7,7 @@ from .dumpsys import (parse_dumpsys_accessibility,
                       parse_dumpsys_activity_resolver_table,
                       parse_dumpsys_appops, parse_dumpsys_battery_daily,
                       parse_dumpsys_battery_history, parse_dumpsys_dbinfo,
-                      parse_dumpsys_receiver_resolver_table)
+                      parse_dumpsys_receiver_resolver_table,
+                      parse_dumpsys_network_interfaces,
+                      )
 from .getprop import parse_getprop
