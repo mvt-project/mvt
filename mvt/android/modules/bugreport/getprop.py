@@ -39,8 +39,9 @@ class Getprop(BugReportModule):
 
         lines = []
         in_getprop = False
+
         for line in content.decode(errors="ignore").splitlines():
-            if line.strip() == "------ SYSTEM PROPERTIES (getprop) ------":
+            if line.strip().startswith("------ SYSTEM PROPERTIES"):
                 in_getprop = True
                 continue
 
