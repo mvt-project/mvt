@@ -1,0 +1,166 @@
+[
+    {
+        "identifier": "iPhone4,1",
+        "description": "iPhone 4S"
+    },
+    {
+        "identifier": "iPhone5,1",
+        "description": "iPhone 5"
+    },
+    {
+        "identifier": "iPhone5,2",
+        "description": "iPhone 5"
+    },
+    {
+        "identifier": "iPhone5,3",
+        "description": "iPhone 5c"
+    },
+    {
+        "identifier": "iPhone5,4",
+        "description": "iPhone 5c"
+    },
+    {
+        "identifier": "iPhone6,1",
+        "description": "iPhone 5s"
+    },
+    {
+        "identifier": "iPhone6,2",
+        "description": "iPhone 5s"
+    },
+    {
+        "identifier": "iPhone7,1",
+        "description": "iPhone 6 Plus"
+    },
+    {
+        "identifier": "iPhone7,2",
+        "description": "iPhone 6"
+    },
+    {
+        "identifier": "iPhone8,1",
+        "description": "iPhone 6s"
+    },
+    {
+        "identifier": "iPhone8,2",
+        "description": "iPhone 6s Plus"
+    },
+    {
+        "identifier": "iPhone8,4",
+        "description": "iPhone SE (1st generation)"
+    },
+    {
+        "identifier": "iPhone9,1",
+        "description": "iPhone 7"
+    },
+    {
+        "identifier": "iPhone9,2",
+        "description": "iPhone 7 Plus"
+    },
+    {
+        "identifier": "iPhone9,3",
+        "description": "iPhone 7"
+    },
+    {
+        "identifier": "iPhone9,4",
+        "description": "iPhone 7 Plus"
+    },
+    {
+        "identifier": "iPhone10,1",
+        "description": "iPhone 8"
+    },
+    {
+        "identifier": "iPhone10,2",
+        "description": "iPhone 8 Plus"
+    },
+    {
+        "identifier": "iPhone10,3",
+        "description": "iPhone X"
+    },
+    {
+        "identifier": "iPhone10,4",
+        "description": "iPhone 8"
+    },
+    {
+        "identifier": "iPhone10,5",
+        "description": "iPhone 8 Plus"
+    },
+    {
+        "identifier": "iPhone10,6",
+        "description": "iPhone X"
+    },
+    {
+        "identifier": "iPhone11,2",
+        "description": "iPhone XS"
+    },
+    {
+        "identifier": "iPhone11,4",
+        "description": "iPhone XS Max"
+    },
+    {
+        "identifier": "iPhone11,6",
+        "description": "iPhone XS Max"
+    },
+    {
+        "identifier": "iPhone11,8",
+        "description": "iPhone XR"
+    },
+    {
+        "identifier": "iPhone12,1",
+        "description": "iPhone 11"
+    },
+    {
+        "identifier": "iPhone12,3",
+        "description": "iPhone 11 Pro"
+    },
+    {
+        "identifier": "iPhone12,5",
+        "description": "iPhone 11 Pro Max"
+    },
+    {
+        "identifier": "iPhone12,8",
+        "description": "iPhone SE (2nd generation)"
+    },
+    {
+        "identifier": "iPhone13,1",
+        "description": "iPhone 12 mini"
+    },
+    {
+        "identifier": "iPhone13,2",
+        "description": "iPhone 12"
+    },
+    {
+        "identifier": "iPhone13,3",
+        "description": "iPhone 12 Pro"
+    },
+    {
+        "identifier": "iPhone13,4",
+        "description": "iPhone 12 Pro Max"
+    },
+    {
+        "identifier": "iPhone14,4",
+        "description": "iPhone 13 Mini"
+    },
+    {
+        "identifier": "iPhone14,5",
+        "description": "iPhone 13"
+    },
+    {
+        "identifier": "iPhone14,2",
+        "description": "iPhone 13 Pro"
+    },
+    {
+        "identifier": "iPhone14,3",
+        "description": "iPhone 13 Pro Max"
+    },
+    {
+        "identifier": "iPhone14,8",
+        "decription": "iPhone 14 Plus"
+    },
+    {
+        "identifier": "iPhone15,2",
+        "description": "iPhone 14 Pro"
+    },
+    {
+        "identifier": "iPhone15,3",
+        "description": "iPhone 14 Pro Max"
+    }
+]
