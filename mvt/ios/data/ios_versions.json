@@ -96,16 +96,16 @@
         "version": "4.2.1"
     },
     {
-        "build": "8E600",
-        "version": "4.2.10"
-    },
-    {
         "build": "8E401",
         "version": "4.2.8"
     },
     {
         "build": "8E501",
         "version": "4.2.9"
+    },
+    {
+        "build": "8E600",
+        "version": "4.2.10"
     },
     {
         "build": "8F190",
