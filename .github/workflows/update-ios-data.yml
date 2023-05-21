@@ -1,6 +1,7 @@
-name: update-ios-releases
+name: Update iOS releases and version numbers
 run-name: ${{ github.actor }} is finding the latest iOS release version and build numbers
 on:
+  workflow_dispatch:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '0 */6 * * *'
