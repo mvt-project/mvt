@@ -1,0 +1,25 @@
+name: update-ios-releases
+run-name: ${{ github.actor }} is finding the latest iOS release version and build numbers
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 */6 * * *'
+
+
+jobs:
+  update-ios-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - name: Run script to fetch latest iOS releases from Apple RSS feed.
+        run: python3 mvt/.github/workflows/scripts/update-ios-releases.py
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: '[auto] Update MVT with latest iOS releases and versions'
+          commit-message: Add new iOS versions and build numbers
+          add-paths: |
+            *.json
+          labels: |
+            automated pr
