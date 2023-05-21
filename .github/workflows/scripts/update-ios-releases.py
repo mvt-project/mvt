@@ -37,6 +37,7 @@ def parse_latest_ios_versions(rss_feed_text):
             print("Skipping beta release:", title)
             continue
 
+        release_info.pop("beta")
         latest_ios_versions.append(release_info)
 
     return latest_ios_versions
