@@ -886,5 +886,10 @@
     {
         "build": "20E252",
         "version": "16.4.1"
+    },
+    {
+        "version": "16.5",
+        "beta": null,
+        "build": "20F66"
     }
 ]
