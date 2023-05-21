@@ -1,25 +1,21 @@
-import os
-import re
-import json
-import urllib.request
-import datetime
-import operator
-from xml.dom.minidom import parse, parseString
-
-from packaging import version
-
 """
 Python script to download the Apple RSS feed and parse it.
 """
 
-def download_apple_rss(feed_url):
-    url = "https://developer.apple.com/news/releases/rss/releases.rss"
-    file_name = "releases.rss"
+import os
+import json
+import urllib.request
+from xml.dom.minidom import parseString
 
+from packaging import version
+
+
+def download_apple_rss(feed_url):
     with urllib.request.urlopen(feed_url) as f:
         rss_feed = f.read().decode('utf-8')
     print("Downloaded RSS feed from Apple.")
     return rss_feed
+
 
 def parse_latest_ios_versions(rss_feed_text):
     latest_ios_versions = []
@@ -43,7 +39,6 @@ def parse_latest_ios_versions(rss_feed_text):
 
         latest_ios_versions.append(release_info)
 
-
     return latest_ios_versions
 
 
@@ -62,12 +57,11 @@ def update_mvt(mvt_checkout_path, latest_ios_versions):
             current_versions.append(new_version)
             new_entry_count += 1
 
-
     if not new_entry_count:
         print("No new iOS versions found.")
     else:
         print("Found {} new iOS versions.".format(new_entry_count))
-        new_version_list = sorted(current_versions, key=lambda x:  version.Version(x["version"]))
+        new_version_list = sorted(current_versions, key=lambda x: version.Version(x["version"]))
         with open(version_path, "w") as version_file:
             json.dump(new_version_list, version_file, indent=4)
 
@@ -79,6 +73,7 @@ def main():
     rss_feed = download_apple_rss("https://developer.apple.com/news/releases/rss/releases.rss")
     latest_ios_version = parse_latest_ios_versions(rss_feed)
     update_mvt(mvt_checkout_path, latest_ios_version)
+
 
 if __name__ == "__main__":
     main()
