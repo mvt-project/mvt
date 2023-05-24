@@ -40,14 +40,18 @@ class Contacts(IOSExtraction):
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
-        cur.execute("""
-            SELECT
-                multi.value, person.first, person.middle, person.last,
-                person.organization
-            FROM ABPerson person, ABMultiValue multi
-            WHERE person.rowid = multi.record_id and multi.value not null
-            ORDER by person.rowid ASC;
-        """)
+        try:
+            cur.execute("""
+                SELECT
+                    multi.value, person.first, person.middle, person.last,
+                    person.organization
+                FROM ABPerson person, ABMultiValue multi
+                WHERE person.rowid = multi.record_id and multi.value not null
+                ORDER by person.rowid ASC;
+            """)
+        except sqlite3.OperationalError as e:
+            self.log.info("Error while reading the contact table: %s", e)
+            return None
         names = [description[0] for description in cur.description]
 
         for row in cur:

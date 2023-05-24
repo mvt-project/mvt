@@ -284,7 +284,11 @@ class InteractionC(IOSExtraction):
                 try:
                     cur.execute(QUERIES[2])
                 except sqlite3.OperationalError:
-                    cur.execute(QUERIES[3])
+                    try:
+                        cur.execute(QUERIES[3])
+                    except sqlite3.OperationalError as e:
+                        self.log.info("Error while reading the InteractionC table: %s", e)
+                        return None
 
         names = [description[0] for description in cur.description]
         for item in cur:
