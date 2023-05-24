@@ -2,8 +2,8 @@
 Python script to download the Apple RSS feed and parse it.
 """
 
-import os
 import json
+import os
 import urllib.request
 from xml.dom.minidom import parseString
 

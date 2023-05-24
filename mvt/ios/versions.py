@@ -3,12 +3,11 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 import json
+import pkgutil
 from logging import Logger
 from typing import Dict, Optional
 
 import packaging
-import pkgutil
-
 
 IPHONE_MODELS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_models.json"))
 IPHONE_IOS_VERSIONS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_versions.json"))

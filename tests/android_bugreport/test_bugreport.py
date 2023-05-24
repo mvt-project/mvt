@@ -7,8 +7,8 @@ import os
 from pathlib import Path
 
 from mvt.android.modules.bugreport.appops import Appops
-from mvt.android.modules.bugreport.packages import Packages
 from mvt.android.modules.bugreport.getprop import Getprop
+from mvt.android.modules.bugreport.packages import Packages
 from mvt.common.module import run_module
 
 from ..utils import get_artifact_folder
