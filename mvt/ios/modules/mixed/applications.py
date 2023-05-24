@@ -47,6 +47,11 @@ class Applications(IOSExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if self.indicators:
+                if "softwareVersionBundleId" not in result:
+                    self.log.warning("Suspicious application identified without softwareVersionBundleId")
+                    self.detected.append(result)
+                    continue
+
                 ioc = self.indicators.check_process(result["softwareVersionBundleId"])
                 if ioc:
                     self.log.warning("Malicious application %s identified", result["softwareVersionBundleId"])
