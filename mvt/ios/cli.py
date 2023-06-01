@@ -11,14 +11,23 @@ import click
 from rich.prompt import Prompt
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
-from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_HASHES, HELP_MSG_IOC,
-                             HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT, HELP_MSG_VERBOSE)
+from mvt.common.help import (
+    HELP_MSG_FAST,
+    HELP_MSG_HASHES,
+    HELP_MSG_IOC,
+    HELP_MSG_LIST_MODULES,
+    HELP_MSG_MODULE,
+    HELP_MSG_OUTPUT,
+    HELP_MSG_VERBOSE,
+)
 from mvt.common.logo import logo
 from mvt.common.options import MutuallyExclusiveOption
 from mvt.common.updates import IndicatorsUpdates
-from mvt.common.utils import (generate_hashes_from_path, init_logging,
-                              set_verbose_logging)
+from mvt.common.utils import (
+    generate_hashes_from_path,
+    init_logging,
+    set_verbose_logging,
+)
 
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
@@ -32,41 +41,55 @@ log = logging.getLogger("mvt")
 
 # Set this environment variable to a password if needed.
 MVT_IOS_BACKUP_PASSWORD = "MVT_IOS_BACKUP_PASSWORD"
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
-#==============================================================================
+# ==============================================================================
 # Main
-#==============================================================================
+# ==============================================================================
 @click.group(invoke_without_command=False)
 def cli():
     logo()
 
 
-#==============================================================================
+# ==============================================================================
 # Command: version
-#==============================================================================
+# ==============================================================================
 @cli.command("version", help="Show the currently installed version of MVT")
 def version():
     return
 
 
-#==============================================================================
+# ==============================================================================
 # Command: decrypt-backup
-#==============================================================================
-@cli.command("decrypt-backup", help="Decrypt an encrypted iTunes backup",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--destination", "-d", required=True,
-              help="Path to the folder where to store the decrypted backup")
-@click.option("--password", "-p", cls=MutuallyExclusiveOption,
-              help="Password to use to decrypt the backup (or, set "
-                   f"{MVT_IOS_BACKUP_PASSWORD} environment variable)",
-              mutually_exclusive=["key_file"])
-@click.option("--key-file", "-k", cls=MutuallyExclusiveOption,
-              type=click.Path(exists=True),
-              help="File containing raw encryption key to use to decrypt "
-                   "the backup",
-              mutually_exclusive=["password"])
+# ==============================================================================
+@cli.command(
+    "decrypt-backup",
+    help="Decrypt an encrypted iTunes backup",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--destination",
+    "-d",
+    required=True,
+    help="Path to the folder where to store the decrypted backup",
+)
+@click.option(
+    "--password",
+    "-p",
+    cls=MutuallyExclusiveOption,
+    help="Password to use to decrypt the backup (or, set "
+    f"{MVT_IOS_BACKUP_PASSWORD} environment variable)",
+    mutually_exclusive=["key_file"],
+)
+@click.option(
+    "--key-file",
+    "-k",
+    cls=MutuallyExclusiveOption,
+    type=click.Path(exists=True),
+    help="File containing raw encryption key to use to decrypt " "the backup",
+    mutually_exclusive=["password"],
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
@@ -75,22 +98,28 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
 
     if key_file:
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
-            log.info("Ignoring %s environment variable, using --key-file"
-                     "'%s' instead", MVT_IOS_BACKUP_PASSWORD, key_file)
+            log.info(
+                "Ignoring %s environment variable, using --key-file" "'%s' instead",
+                MVT_IOS_BACKUP_PASSWORD,
+                key_file,
+            )
 
         backup.decrypt_with_key_file(key_file)
     elif password:
-        log.info("Your password may be visible in the process table because it "
-                 "was supplied on the command line!")
+        log.info(
+            "Your password may be visible in the process table because it "
+            "was supplied on the command line!"
+        )
 
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
-            log.info("Ignoring %s environment variable, using --password"
-                     "argument instead", MVT_IOS_BACKUP_PASSWORD)
+            log.info(
+                "Ignoring %s environment variable, using --password" "argument instead",
+                MVT_IOS_BACKUP_PASSWORD,
+            )
 
         backup.decrypt_with_password(password)
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:
-        log.info("Using password from %s environment variable",
-                  MVT_IOS_BACKUP_PASSWORD)
+        log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
         backup.decrypt_with_password(os.environ[MVT_IOS_BACKUP_PASSWORD])
     else:
         sekrit = Prompt.ask("Enter backup password", password=True)
@@ -112,33 +141,45 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
             json.dump(info, handle, indent=4)
 
 
-#==============================================================================
+# ==============================================================================
 # Command: extract-key
-#==============================================================================
-@cli.command("extract-key", help="Extract decryption key from an iTunes backup",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--password", "-p",
-              help="Password to use to decrypt the backup (or, set "
-                   f"{MVT_IOS_BACKUP_PASSWORD} environment variable)")
-@click.option("--key-file", "-k",
-              help="Key file to be written (if unset, will print to STDOUT)",
-              required=False,
-              type=click.Path(exists=False, file_okay=True, dir_okay=False,
-                              writable=True))
+# ==============================================================================
+@cli.command(
+    "extract-key",
+    help="Extract decryption key from an iTunes backup",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--password",
+    "-p",
+    help="Password to use to decrypt the backup (or, set "
+    f"{MVT_IOS_BACKUP_PASSWORD} environment variable)",
+)
+@click.option(
+    "--key-file",
+    "-k",
+    help="Key file to be written (if unset, will print to STDOUT)",
+    required=False,
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def extract_key(password, key_file, backup_path):
     backup = DecryptBackup(backup_path)
 
     if password:
-        log.info("Your password may be visible in the process table because it "
-                 "was supplied on the command line!")
+        log.info(
+            "Your password may be visible in the process table because it "
+            "was supplied on the command line!"
+        )
 
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
-            log.info("Ignoring %s environment variable, using --password "
-                     "argument instead", MVT_IOS_BACKUP_PASSWORD)
+            log.info(
+                "Ignoring %s environment variable, using --password "
+                "argument instead",
+                MVT_IOS_BACKUP_PASSWORD,
+            )
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:
-        log.info("Using password from %s environment variable",
-                 MVT_IOS_BACKUP_PASSWORD)
+        log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
         password = os.environ[MVT_IOS_BACKUP_PASSWORD]
     else:
         password = Prompt.ask("Enter backup password", password=True)
@@ -150,15 +191,23 @@ def extract_key(password, key_file, backup_path):
         backup.write_key(key_file)
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-backup
-#==============================================================================
-@cli.command("check-backup", help="Extract artifacts from an iTunes backup",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help=HELP_MSG_OUTPUT)
+# ==============================================================================
+@cli.command(
+    "check-backup",
+    help="Extract artifacts from an iTunes backup",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
@@ -166,12 +215,19 @@ def extract_key(password, key_file, backup_path):
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, verbose, backup_path):
+def check_backup(
+    ctx, iocs, output, fast, list_modules, module, hashes, verbose, backup_path
+):
     set_verbose_logging(verbose)
 
-    cmd = CmdIOSCheckBackup(target_path=backup_path, results_path=output,
-                            ioc_files=iocs, module_name=module, fast_mode=fast,
-                            hashes=hashes)
+    cmd = CmdIOSCheckBackup(
+        target_path=backup_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        fast_mode=fast,
+        hashes=hashes,
+    )
 
     if list_modules:
         cmd.list_modules()
@@ -182,19 +238,28 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, verbose,
     cmd.run()
 
     if cmd.detected_count > 0:
-        log.warning("The analysis of the backup produced %d detections!",
-                    cmd.detected_count)
+        log.warning(
+            "The analysis of the backup produced %d detections!", cmd.detected_count
+        )
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-fs
-#==============================================================================
-@cli.command("check-fs", help="Extract artifacts from a full filesystem dump",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help=HELP_MSG_OUTPUT)
+# ==============================================================================
+@cli.command(
+    "check-fs",
+    help="Extract artifacts from a full filesystem dump",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
@@ -204,9 +269,14 @@ def check_backup(ctx, iocs, output, fast, list_modules, module, hashes, verbose,
 @click.pass_context
 def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dump_path):
     set_verbose_logging(verbose)
-    cmd = CmdIOSCheckFS(target_path=dump_path, results_path=output,
-                        ioc_files=iocs, module_name=module, fast_mode=fast,
-                        hashes=hashes)
+    cmd = CmdIOSCheckFS(
+        target_path=dump_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        fast_mode=fast,
+        hashes=hashes,
+    )
 
     if list_modules:
         cmd.list_modules()
@@ -217,17 +287,28 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
     cmd.run()
 
     if cmd.detected_count > 0:
-        log.warning("The analysis of the iOS filesystem produced %d detections!",
-                    cmd.detected_count)
+        log.warning(
+            "The analysis of the iOS filesystem produced %d detections!",
+            cmd.detected_count,
+        )
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-iocs
-#==============================================================================
-@cli.command("check-iocs", help="Compare stored JSON results to provided indicators",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
+# ==============================================================================
+@cli.command(
+    "check-iocs",
+    help="Compare stored JSON results to provided indicators",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("FOLDER", type=click.Path(exists=True))
@@ -243,11 +324,14 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
     cmd.run()
 
 
-#==============================================================================
+# ==============================================================================
 # Command: download-iocs
-#==============================================================================
-@cli.command("download-iocs", help="Download public STIX2 indicators",
-             context_settings=CONTEXT_SETTINGS)
+# ==============================================================================
+@cli.command(
+    "download-iocs",
+    help="Download public STIX2 indicators",
+    context_settings=CONTEXT_SETTINGS,
+)
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()

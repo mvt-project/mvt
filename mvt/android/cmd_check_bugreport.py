@@ -18,7 +18,6 @@ log = logging.getLogger(__name__)
 
 
 class CmdAndroidCheckBugreport(Command):
-
     def __init__(
         self,
         target_path: Optional[str] = None,
@@ -26,13 +25,19 @@ class CmdAndroidCheckBugreport(Command):
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
-        hashes: Optional[bool] = False,
+        fast_mode: bool = False,
+        hashes: bool = False,
     ) -> None:
-        super().__init__(target_path=target_path, results_path=results_path,
-                         ioc_files=ioc_files, module_name=module_name,
-                         serial=serial, fast_mode=fast_mode, hashes=hashes,
-                         log=log)
+        super().__init__(
+            target_path=target_path,
+            results_path=results_path,
+            ioc_files=ioc_files,
+            module_name=module_name,
+            serial=serial,
+            fast_mode=fast_mode,
+            hashes=hashes,
+            log=log,
+        )
 
         self.name = "check-bugreport"
         self.modules = BUGREPORT_MODULES
@@ -55,8 +60,9 @@ class CmdAndroidCheckBugreport(Command):
             parent_path = Path(self.target_path).absolute().as_posix()
             for root, _, subfiles in os.walk(os.path.abspath(self.target_path)):
                 for file_name in subfiles:
-                    file_path = os.path.relpath(os.path.join(root, file_name),
-                                                parent_path)
+                    file_path = os.path.relpath(
+                        os.path.join(root, file_name), parent_path
+                    )
                     self.bugreport_files.append(file_path)
 
     def module_init(self, module: BugReportModule) -> None:  # type: ignore[override]

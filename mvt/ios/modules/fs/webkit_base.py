@@ -35,8 +35,10 @@ class WebkitBase(IOSExtraction):
                 name = name.replace("https_", "https://")
                 url = name.split("_")[0]
 
-                self.results.append({
-                    "folder": key,
-                    "url": url,
-                    "isodate": convert_unix_to_iso(os.stat(found_path).st_mtime),
-                })
+                self.results.append(
+                    {
+                        "folder": key,
+                        "url": url,
+                        "isodate": convert_unix_to_iso(os.stat(found_path).st_mtime),
+                    }
+                )

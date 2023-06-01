@@ -9,8 +9,7 @@ import sqlite3
 from typing import Optional, Union
 
 from mvt.common.url import URL
-from mvt.common.utils import (convert_mactime_to_datetime,
-                              convert_mactime_to_iso)
+from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -33,13 +32,18 @@ class SafariHistory(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -47,7 +51,7 @@ class SafariHistory(IOSExtraction):
             "module": self.__class__.__name__,
             "event": "safari_history",
             "data": f"Safari visit to {record['url']} (ID: {record['id']}, "
-                    f"Visit ID: {record['visit_id']})",
+            f"Visit ID: {record['visit_id']})",
         }
 
     def _find_injections(self):
@@ -80,8 +84,11 @@ class SafariHistory(IOSExtraction):
                 if origin_domain == redirect_domain:
                     continue
 
-                self.log.info("Found HTTP redirect to different domain: \"%s\" -> \"%s\"",
-                              origin_domain, redirect_domain)
+                self.log.info(
+                    'Found HTTP redirect to different domain: "%s" -> "%s"',
+                    origin_domain,
+                    redirect_domain,
+                )
 
                 redirect_time = convert_mactime_to_datetime(redirect["timestamp"])
                 origin_time = convert_mactime_to_datetime(result["timestamp"])
@@ -89,8 +96,10 @@ class SafariHistory(IOSExtraction):
                 elapsed_ms = elapsed_time.microseconds / 1000
 
                 if elapsed_time.seconds == 0:
-                    self.log.warning("Redirect took less than a second! (%d milliseconds)",
-                                     elapsed_ms)
+                    self.log.warning(
+                        "Redirect took less than a second! (%d milliseconds)",
+                        elapsed_ms,
+                    )
 
     def check_indicators(self) -> None:
         self._find_injections()
@@ -108,7 +117,8 @@ class SafariHistory(IOSExtraction):
         self._recover_sqlite_db_if_needed(history_path)
         conn = sqlite3.connect(history_path)
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 history_items.id,
                 history_items.url,
@@ -119,20 +129,24 @@ class SafariHistory(IOSExtraction):
             FROM history_items
             JOIN history_visits ON history_visits.history_item = history_items.id
             ORDER BY history_visits.visit_time;
-        """)
+        """
+        )
 
         for row in cur:
-            self.results.append({
-                "id": row[0],
-                "url": row[1],
-                "visit_id": row[2],
-                "timestamp": row[3],
-                "isodate": convert_mactime_to_iso(row[3]),
-                "redirect_source": row[4],
-                "redirect_destination": row[5],
-                "safari_history_db": os.path.relpath(history_path,
-                                                     self.target_path),
-            })
+            self.results.append(
+                {
+                    "id": row[0],
+                    "url": row[1],
+                    "visit_id": row[2],
+                    "timestamp": row[3],
+                    "isodate": convert_mactime_to_iso(row[3]),
+                    "redirect_source": row[4],
+                    "redirect_destination": row[5],
+                    "safari_history_db": os.path.relpath(
+                        history_path, self.target_path
+                    ),
+                }
+            )
 
         cur.close()
         conn.close()
@@ -140,23 +154,21 @@ class SafariHistory(IOSExtraction):
     def run(self) -> None:
         if self.is_backup:
             for history_file in self._get_backup_files_from_manifest(
-                    relative_path=SAFARI_HISTORY_BACKUP_RELPATH):
-                history_path = self._get_backup_file_from_id(
-                    history_file["file_id"])
+                relative_path=SAFARI_HISTORY_BACKUP_RELPATH
+            ):
+                history_path = self._get_backup_file_from_id(history_file["file_id"])
 
                 if not history_path:
                     continue
 
-                self.log.info("Found Safari history database at path: %s",
-                              history_path)
+                self.log.info("Found Safari history database at path: %s", history_path)
 
                 self._process_history_db(history_path)
         elif self.is_fs_dump:
             for history_path in self._get_fs_files_from_patterns(
-                    SAFARI_HISTORY_ROOT_PATHS):
-                self.log.info("Found Safari history database at path: %s",
-                              history_path)
+                SAFARI_HISTORY_ROOT_PATHS
+            ):
+                self.log.info("Found Safari history database at path: %s", history_path)
                 self._process_history_db(history_path)
 
-        self.log.info("Extracted a total of %d history records",
-                      len(self.results))
+        self.log.info("Extracted a total of %d history records", len(self.results))

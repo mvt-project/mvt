@@ -13,7 +13,6 @@ from ..utils import get_ios_backup_folder
 
 
 class TestFilesystem:
-
     def test_filesystem(self):
         m = Filesystem(target_path=get_ios_backup_folder())
         run_module(m)
@@ -26,7 +25,9 @@ class TestFilesystem:
         ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
         # Adds a filename that exist in the folder
-        ind.ioc_collections[0]["processes"].append("64d0019cb3d46bfc8cce545a8ba54b93e7ea9347")
+        ind.ioc_collections[0]["processes"].append(
+            "64d0019cb3d46bfc8cce545a8ba54b93e7ea9347"
+        )
         m.indicators = ind
         run_module(m)
         assert len(m.results) == 14

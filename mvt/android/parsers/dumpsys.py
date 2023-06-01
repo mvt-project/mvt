@@ -27,10 +27,12 @@ def parse_dumpsys_accessibility(output: str) -> List[Dict[str, str]]:
 
         service = line.split(":")[1].strip()
 
-        results.append({
-            "package_name": service.split("/")[0],
-            "service": service,
-        })
+        results.append(
+            {
+                "package_name": service.split("/")[0],
+                "service": service,
+            }
+        )
 
     return results
 
@@ -62,8 +64,7 @@ def parse_dumpsys_activity_resolver_table(output: str) -> Dict[str, Any]:
             break
 
         # We detect the action name.
-        if (line.startswith(" " * 6) and not line.startswith(" " * 8)
-                and ":" in line):
+        if line.startswith(" " * 6) and not line.startswith(" " * 8) and ":" in line:
             intent = line.strip().replace(":", "")
             results[intent] = []
             continue
@@ -84,10 +85,12 @@ def parse_dumpsys_activity_resolver_table(output: str) -> Dict[str, Any]:
         activity = line.strip().split(" ")[1]
         package_name = activity.split("/")[0]
 
-        results[intent].append({
-            "package_name": package_name,
-            "activity": activity,
-        })
+        results[intent].append(
+            {
+                "package_name": package_name,
+                "activity": activity,
+            }
+        )
 
     return results
 
@@ -119,19 +122,20 @@ def parse_dumpsys_battery_daily(output: str) -> list:
 
         already_seen = False
         for update in daily_updates:
-            if (package_name == update["package_name"]
-                    and vers_nr == update["vers"]):
+            if package_name == update["package_name"] and vers_nr == update["vers"]:
                 already_seen = True
                 break
 
         if not already_seen:
-            daily_updates.append({
-                "action": "update",
-                "from": daily["from"],
-                "to": daily["to"],
-                "package_name": package_name,
-                "vers": vers_nr,
-            })
+            daily_updates.append(
+                {
+                    "action": "update",
+                    "from": daily["from"],
+                    "to": daily["to"],
+                    "package_name": package_name,
+                    "vers": vers_nr,
+                }
+            )
 
     if len(daily_updates) > 0:
         results.extend(daily_updates)
@@ -154,18 +158,20 @@ def parse_dumpsys_battery_history(output: str) -> List[Dict[str, Any]]:
         event = ""
         if line.find("+job") > 0:
             event = "start_job"
-            uid = line[line.find("+job")+5:line.find(":")]
-            service = line[line.find(":")+1:].strip('"')
+            uid = line[line.find("+job") + 5 : line.find(":")]
+            service = line[line.find(":") + 1 :].strip('"')
             package_name = service.split("/")[0]
         elif line.find("-job") > 0:
             event = "end_job"
-            uid = line[line.find("-job")+5:line.find(":")]
-            service = line[line.find(":")+1:].strip('"')
+            uid = line[line.find("-job") + 5 : line.find(":")]
+            service = line[line.find(":") + 1 :].strip('"')
             package_name = service.split("/")[0]
         elif line.find("+running +wake_lock=") > 0:
-            uid = line[line.find("+running +wake_lock=")+21:line.find(":")]
+            uid = line[line.find("+running +wake_lock=") + 21 : line.find(":")]
             event = "wake"
-            service = line[line.find("*walarm*:")+9:].split(" ")[0].strip('"').strip()
+            service = (
+                line[line.find("*walarm*:") + 9 :].split(" ")[0].strip('"').strip()
+            )
             if service == "" or "/" not in service:
                 continue
 
@@ -177,20 +183,22 @@ def parse_dumpsys_battery_history(output: str) -> List[Dict[str, Any]]:
             else:
                 event = "end_top"
                 top_pos = line.find("-top=")
-            colon_pos = top_pos+line[top_pos:].find(":")
-            uid = line[top_pos+5:colon_pos]
+            colon_pos = top_pos + line[top_pos:].find(":")
+            uid = line[top_pos + 5 : colon_pos]
             service = ""
-            package_name = line[colon_pos+1:].strip('"')
+            package_name = line[colon_pos + 1 :].strip('"')
         else:
             continue
 
-        results.append({
-            "time_elapsed": time_elapsed,
-            "event": event,
-            "uid": uid,
-            "package_name": package_name,
-            "service": service,
-        })
+        results.append(
+            {
+                "time_elapsed": time_elapsed,
+                "event": event,
+                "uid": uid,
+                "package_name": package_name,
+                "service": service,
+            }
+        )
 
     return results
 
@@ -198,8 +206,12 @@ def parse_dumpsys_battery_history(output: str) -> List[Dict[str, Any]]:
 def parse_dumpsys_dbinfo(output: str) -> List[Dict[str, Any]]:
     results = []
 
-    rxp = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\"')  # pylint: disable=line-too-long
-    rxp_no_pid = re.compile(r'.*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\"')  # pylint: disable=line-too-long
+    rxp = re.compile(
+        r".*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\""
+    )  # pylint: disable=line-too-long
+    rxp_no_pid = re.compile(
+        r".*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\""
+    )  # pylint: disable=line-too-long
 
     pool = None
     in_operations = False
@@ -229,21 +241,25 @@ def parse_dumpsys_dbinfo(output: str) -> List[Dict[str, Any]]:
                 continue
 
             match = matches[0]
-            results.append({
-                "isodate": match[0],
-                "action": match[1],
-                "sql": match[2],
-                "path": pool,
-            })
+            results.append(
+                {
+                    "isodate": match[0],
+                    "action": match[1],
+                    "sql": match[2],
+                    "path": pool,
+                }
+            )
         else:
             match = matches[0]
-            results.append({
-                "isodate": match[0],
-                "pid": match[1],
-                "action": match[2],
-                "sql": match[3],
-                "path": pool,
-            })
+            results.append(
+                {
+                    "isodate": match[0],
+                    "pid": match[1],
+                    "action": match[2],
+                    "sql": match[3],
+                    "path": pool,
+                }
+            )
 
     return results
 
@@ -275,8 +291,7 @@ def parse_dumpsys_receiver_resolver_table(output: str) -> Dict[str, Any]:
             break
 
         # We detect the action name.
-        if (line.startswith(" " * 6) and not line.startswith(" " * 8)
-                and ":" in line):
+        if line.startswith(" " * 6) and not line.startswith(" " * 8) and ":" in line:
             intent = line.strip().replace(":", "")
             results[intent] = []
             continue
@@ -297,10 +312,12 @@ def parse_dumpsys_receiver_resolver_table(output: str) -> Dict[str, Any]:
         receiver = line.strip().split(" ")[1]
         package_name = receiver.split("/")[0]
 
-        results[intent].append({
-            "package_name": package_name,
-            "receiver": receiver,
-        })
+        results[intent].append(
+            {
+                "package_name": package_name,
+                "receiver": receiver,
+            }
+        )
 
     return results
 
@@ -366,13 +383,15 @@ def parse_dumpsys_appops(output: str) -> List[Dict[str, Any]]:
                 entry = {}
 
             entry["access"] = line.split(":")[0].strip()
-            entry["type"] = line[line.find("[")+1:line.find("]")]
+            entry["type"] = line[line.find("[") + 1 : line.find("]")]
 
             try:
                 entry["timestamp"] = convert_datetime_to_iso(
                     datetime.strptime(
-                        line[line.find("]")+1:line.find("(")].strip(),
-                        "%Y-%m-%d %H:%M:%S.%f"))
+                        line[line.find("]") + 1 : line.find("(")].strip(),
+                        "%Y-%m-%d %H:%M:%S.%f",
+                    )
+                )
             except ValueError:
                 # Invalid date format
                 pass
@@ -418,13 +437,11 @@ def parse_dumpsys_package_for_details(output: str) -> Dict[str, Any]:
                 permission = lineinfo[0]
                 granted = None
                 if "granted=" in lineinfo[1]:
-                    granted = ("granted=true" in lineinfo[1])
+                    granted = "granted=true" in lineinfo[1]
 
-                details["permissions"].append({
-                    "name": permission,
-                    "granted": granted,
-                    "type": "install"
-                })
+                details["permissions"].append(
+                    {"name": permission, "granted": granted, "type": "install"}
+                )
 
         if in_runtime_permissions:
             if not line.startswith(" " * 8):
@@ -434,23 +451,18 @@ def parse_dumpsys_package_for_details(output: str) -> Dict[str, Any]:
                 permission = lineinfo[0]
                 granted = None
                 if "granted=" in lineinfo[1]:
-                    granted = ("granted=true" in lineinfo[1])
+                    granted = "granted=true" in lineinfo[1]
 
-                details["permissions"].append({
-                    "name": permission,
-                    "granted": granted,
-                    "type": "runtime"
-                })
+                details["permissions"].append(
+                    {"name": permission, "granted": granted, "type": "runtime"}
+                )
 
         if in_declared_permissions:
             if not line.startswith(" " * 6):
                 in_declared_permissions = False
             else:
                 permission = line.strip().split(":")[0]
-                details["permissions"].append({
-                    "name": permission,
-                    "type": "declared"
-                })
+                details["permissions"].append({"name": permission, "type": "declared"})
         if in_requested_permissions:
             if not line.startswith(" " * 6):
                 in_requested_permissions = False

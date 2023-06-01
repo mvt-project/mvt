@@ -23,13 +23,18 @@ class AnalyticsIOSVersions(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -68,13 +73,19 @@ class AnalyticsIOSVersions(IOSExtraction):
         for build, isodate in builds.items():
             version = find_version_by_build(build)
 
-            self.results.append({
-                "isodate": isodate,
-                "build": build,
-                "version": version,
-            })
+            self.results.append(
+                {
+                    "isodate": isodate,
+                    "build": build,
+                    "version": version,
+                }
+            )
 
         self.results = sorted(self.results, key=lambda entry: entry["isodate"])
         for result in self.results:
-            self.log.info("iOS version %s (%s) first appeared on %s",
-                          result["version"], result["build"], result["isodate"])
+            self.log.info(
+                "iOS version %s (%s) first appeared on %s",
+                result["version"],
+                result["build"],
+                result["isodate"],
+            )

@@ -19,13 +19,18 @@ class Accessibility(BugReportModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -41,8 +46,10 @@ class Accessibility(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. "
-                           "Did you provide a valid bug report archive?")
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
         lines = []
@@ -55,15 +62,19 @@ class Accessibility(BugReportModule):
             if not in_accessibility:
                 continue
 
-            if line.strip().startswith("------------------------------------------------------------------------------"):  # pylint: disable=line-too-long
+            if line.strip().startswith(
+                "------------------------------------------------------------------------------"
+            ):  # pylint: disable=line-too-long
                 break
 
             lines.append(line)
 
         self.results = parse_dumpsys_accessibility("\n".join(lines))
         for result in self.results:
-            self.log.info("Found installed accessibility service \"%s\"",
-                          result.get("service"))
+            self.log.info(
+                'Found installed accessibility service "%s"', result.get("service")
+            )
 
-        self.log.info("Identified a total of %d accessibility services",
-                      len(self.results))
+        self.log.info(
+            "Identified a total of %d accessibility services", len(self.results)
+        )

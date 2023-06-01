@@ -42,7 +42,7 @@ def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
 
 
 def convert_unix_to_utc_datetime(
-        timestamp: Union[int, float, str]
+    timestamp: Union[int, float, str]
 ) -> datetime.datetime:
     """Converts a unix epoch timestamp to UTC datetime.
 
@@ -69,8 +69,7 @@ def convert_unix_to_iso(timestamp: Union[int, float, str]) -> str:
         return ""
 
 
-def convert_mactime_to_datetime(timestamp: Union[int, float],
-                                from_2001: bool = True):
+def convert_mactime_to_datetime(timestamp: Union[int, float], from_2001: bool = True):
     """Converts Mac Standard Time to a datetime.
 
     :param timestamp: MacTime timestamp (either int or float).
@@ -111,8 +110,7 @@ def convert_mactime_to_iso(timestamp: int, from_2001: bool = True):
 
     """
 
-    return convert_datetime_to_iso(
-        convert_mactime_to_datetime(timestamp, from_2001))
+    return convert_datetime_to_iso(convert_mactime_to_datetime(timestamp, from_2001))
 
 
 def check_for_links(text: str) -> list:
@@ -185,18 +183,20 @@ def generate_hashes_from_path(path: str, log) -> Iterator[dict]:
         hash_value = get_sha256_from_file_path(path)
         yield {"file_path": path, "sha256": hash_value}
     elif os.path.isdir(path):
-        for (root, _, files) in os.walk(path):
+        for root, _, files in os.walk(path):
             for file in files:
                 file_path = os.path.join(root, file)
                 try:
                     sha256 = get_sha256_from_file_path(file_path)
                 except FileNotFoundError:
-                    log.error("Failed to hash the file %s: might be a symlink",
-                              file_path)
+                    log.error(
+                        "Failed to hash the file %s: might be a symlink", file_path
+                    )
                     continue
                 except PermissionError:
-                    log.error("Failed to hash the file %s: permission denied",
-                              file_path)
+                    log.error(
+                        "Failed to hash the file %s: permission denied", file_path
+                    )
                     continue
 
                 yield {"file_path": file_path, "sha256": sha256}

@@ -13,8 +13,7 @@ IPHONE_MODELS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_models.json"))
 IPHONE_IOS_VERSIONS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_versions.json"))
 
 
-def get_device_desc_from_id(identifier: str,
-                            devices_list: list = IPHONE_MODELS) -> str:
+def get_device_desc_from_id(identifier: str, devices_list: list = IPHONE_MODELS) -> str:
     for model in devices_list:
         if identifier == model["identifier"]:
             return model["description"]
@@ -44,7 +43,7 @@ def is_ios_version_outdated(version: str, log: Optional[Logger] = None) -> bool:
     # Check if it is a build
     if "." not in version:
         version = find_version_by_build(version)
-        # If we can't find it
+        # If we can't find it
         if version == "":
             return False
 
@@ -52,8 +51,10 @@ def is_ios_version_outdated(version: str, log: Optional[Logger] = None) -> bool:
     current_parsed = packaging.version.parse(version)
     if current_parsed < latest_parsed:
         if log:
-            log.warning("This phone is running an outdated iOS version: %s (latest is %s)",
-                        version,
-                        latest_ios_version()["version"])
+            log.warning(
+                "This phone is running an outdated iOS version: %s (latest is %s)",
+                version,
+                latest_ios_version()["version"],
+            )
         return True
     return False

@@ -27,13 +27,18 @@ class Whatsapp(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         text = record.get("ZTEXT", "").replace("\n", "\\n")
@@ -45,7 +50,7 @@ class Whatsapp(IOSExtraction):
             "timestamp": record.get("isodate"),
             "module": self.__class__.__name__,
             "event": "message",
-            "data": f"\'{text}\' from {record.get('ZFROMJID', 'Unknown')}{links_text}",
+            "data": f"'{text}' from {record.get('ZFROMJID', 'Unknown')}{links_text}",
         }
 
     def check_indicators(self) -> None:
@@ -59,8 +64,9 @@ class Whatsapp(IOSExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=WHATSAPP_BACKUP_IDS,
-                                root_paths=WHATSAPP_ROOT_PATHS)
+        self._find_ios_database(
+            backup_ids=WHATSAPP_BACKUP_IDS, root_paths=WHATSAPP_ROOT_PATHS
+        )
         self.log.info("Found WhatsApp database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
@@ -68,7 +74,8 @@ class Whatsapp(IOSExtraction):
 
         # Query all messages and join tables which can contain media attachments
         # and links.
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 ZWAMESSAGE.*,
                 ZWAMEDIAITEM.ZAUTHORNAME,
@@ -82,7 +89,8 @@ class Whatsapp(IOSExtraction):
             LEFT JOIN ZWAMEDIAITEM ON ZWAMEDIAITEM.ZMESSAGE = ZWAMESSAGE.Z_PK
             LEFT JOIN ZWAMESSAGEDATAITEM ON
                 ZWAMESSAGEDATAITEM.ZMESSAGE = ZWAMESSAGE.Z_PK;
-        """)
+        """
+        )
         names = [description[0] for description in cur.description]
 
         for message_row in cur:
@@ -90,26 +98,31 @@ class Whatsapp(IOSExtraction):
             for index, value in enumerate(message_row):
                 message[names[index]] = value
 
-            message["isodate"] = convert_mactime_to_iso(
-                message.get("ZMESSAGEDATE"))
+            message["isodate"] = convert_mactime_to_iso(message.get("ZMESSAGEDATE"))
             message["ZTEXT"] = message["ZTEXT"] if message["ZTEXT"] else ""
 
             # Extract links from the WhatsApp message. URLs can be stored in
             # multiple fields/columns.
             # Check each of them!
             message_links = []
-            fields_with_links = ["ZTEXT", "ZMATCHEDTEXT", "ZMEDIAURL",
-                                 "ZCONTENT1", "ZCONTENT2"]
+            fields_with_links = [
+                "ZTEXT",
+                "ZMATCHEDTEXT",
+                "ZMEDIAURL",
+                "ZCONTENT1",
+                "ZCONTENT2",
+            ]
             for field in fields_with_links:
                 if message.get(field):
-                    message_links.extend(check_for_links(
-                        message.get(field, "")))
+                    message_links.extend(check_for_links(message.get(field, "")))
 
             # Remove WhatsApp internal media URLs.
             filtered_links = []
             for link in message_links:
-                if not (link.startswith("https://mmg-fna.whatsapp.net/")
-                        or link.startswith("https://mmg.whatsapp.net/")):
+                if not (
+                    link.startswith("https://mmg-fna.whatsapp.net/")
+                    or link.startswith("https://mmg.whatsapp.net/")
+                ):
                     filtered_links.append(link)
 
             # Add all the links found to the record
@@ -120,5 +133,4 @@ class Whatsapp(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages",
-                      len(self.results))
+        self.log.info("Extracted a total of %d WhatsApp messages", len(self.results))

@@ -11,7 +11,7 @@ from ..net_base import NetBase
 
 NETUSAGE_ROOT_PATHS = [
     "private/var/networkd/netusage.sqlite",
-    "private/var/networkd/db/netusage.sqlite"
+    "private/var/networkd/db/netusage.sqlite",
 ]
 
 
@@ -27,13 +27,18 @@ class Netusage(NetBase):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def run(self) -> None:
         for netusage_path in self._get_fs_files_from_patterns(NETUSAGE_ROOT_PATHS):
@@ -42,8 +47,11 @@ class Netusage(NetBase):
             try:
                 self._extract_net_data()
             except sqlite3.OperationalError as exc:
-                self.log.info("Skipping this NetUsage database because "
-                              "it seems empty or malformed: %s", exc)
+                self.log.info(
+                    "Skipping this NetUsage database because "
+                    "it seems empty or malformed: %s",
+                    exc,
+                )
                 continue
 
         self._find_suspicious_processes()

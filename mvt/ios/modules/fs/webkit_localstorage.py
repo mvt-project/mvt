@@ -25,13 +25,18 @@ class WebkitLocalStorage(WebkitBase):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -39,10 +44,12 @@ class WebkitLocalStorage(WebkitBase):
             "module": self.__class__.__name__,
             "event": "webkit_local_storage",
             "data": f"WebKit Local Storage folder {record['folder']} "
-                    f"containing file for URL {record['url']}",
+            f"containing file for URL {record['url']}",
         }
 
     def run(self) -> None:
         self._process_webkit_folder(WEBKIT_LOCALSTORAGE_ROOT_PATHS)
-        self.log.info("Extracted a total of %d records from WebKit Local Storages",
-                      len(self.results))
+        self.log.info(
+            "Extracted a total of %d records from WebKit Local Storages",
+            len(self.results),
+        )

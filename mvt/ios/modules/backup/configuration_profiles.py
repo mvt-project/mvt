@@ -13,7 +13,9 @@ from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
-CONF_PROFILES_DOMAIN = "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"
+CONF_PROFILES_DOMAIN = (
+    "SysSharedContainerDomain-systemgroup.com.apple.configurationprofiles"
+)
 
 
 class ConfigurationProfiles(IOSExtraction):
@@ -24,26 +26,31 @@ class ConfigurationProfiles(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         if not record["install_date"]:
             return {}
 
-        payload_name = record['plist'].get('PayloadDisplayName')
-        payload_description = record['plist'].get('PayloadDescription')
+        payload_name = record["plist"].get("PayloadDisplayName")
+        payload_description = record["plist"].get("PayloadDescription")
         return {
             "timestamp": record["install_date"],
             "module": self.__class__.__name__,
             "event": "configuration_profile_install",
             "data": f"{record['plist']['PayloadType']} installed: {record['plist']['PayloadUUID']} "
-                    f"- {payload_name}: {payload_description}"
+            f"- {payload_name}: {payload_description}",
         }
 
     def check_indicators(self) -> None:
@@ -58,10 +65,12 @@ class ConfigurationProfiles(IOSExtraction):
                 # indicator list.
                 ioc = self.indicators.check_profile(result["plist"]["PayloadUUID"])
                 if ioc:
-                    self.log.warning("Found a known malicious configuration "
-                                     "profile \"%s\" with UUID %s",
-                                     result['plist']['PayloadDisplayName'],
-                                     result['plist']['PayloadUUID'])
+                    self.log.warning(
+                        "Found a known malicious configuration "
+                        'profile "%s" with UUID %s',
+                        result["plist"]["PayloadDisplayName"],
+                        result["plist"]["PayloadUUID"],
+                    )
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -69,22 +78,26 @@ class ConfigurationProfiles(IOSExtraction):
                 # Highlight suspicious configuration profiles which may be used
                 # to hide notifications.
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
-                    self.log.warning("Found a potentially suspicious configuration profile "
-                                     "\"%s\" with payload type %s",
-                                     result['plist']['PayloadDisplayName'],
-                                     payload_content['PayloadType'])
+                    self.log.warning(
+                        "Found a potentially suspicious configuration profile "
+                        '"%s" with payload type %s',
+                        result["plist"]["PayloadDisplayName"],
+                        payload_content["PayloadType"],
+                    )
                     self.detected.append(result)
                     continue
 
     def run(self) -> None:
         for conf_file in self._get_backup_files_from_manifest(
-                domain=CONF_PROFILES_DOMAIN):
+            domain=CONF_PROFILES_DOMAIN
+        ):
             conf_rel_path = conf_file["relative_path"]
 
             # Filter out all configuration files that are not configuration
             # profiles.
-            if not conf_rel_path or not os.path.basename(
-                    conf_rel_path).startswith("profile-"):
+            if not conf_rel_path or not os.path.basename(conf_rel_path).startswith(
+                "profile-"
+            ):
                 continue
 
             conf_file_path = self._get_backup_file_from_id(conf_file["file_id"])
@@ -100,37 +113,75 @@ class ConfigurationProfiles(IOSExtraction):
             # TODO: Tidy up the following code hell.
 
             if "SignerCerts" in conf_plist:
-                conf_plist["SignerCerts"] = [b64encode(x) for x in conf_plist["SignerCerts"]]
+                conf_plist["SignerCerts"] = [
+                    b64encode(x) for x in conf_plist["SignerCerts"]
+                ]
 
             if "OTAProfileStub" in conf_plist:
                 if "SignerCerts" in conf_plist["OTAProfileStub"]:
-                    conf_plist["OTAProfileStub"]["SignerCerts"] = [b64encode(x) for x in conf_plist["OTAProfileStub"]["SignerCerts"]]
+                    conf_plist["OTAProfileStub"]["SignerCerts"] = [
+                        b64encode(x)
+                        for x in conf_plist["OTAProfileStub"]["SignerCerts"]
+                    ]
 
                 if "PayloadContent" in conf_plist["OTAProfileStub"]:
-                    if "EnrollmentIdentityPersistentID" in conf_plist["OTAProfileStub"]["PayloadContent"]:
-                        conf_plist["OTAProfileStub"]["PayloadContent"]["EnrollmentIdentityPersistentID"] = b64encode(conf_plist["OTAProfileStub"]["PayloadContent"]["EnrollmentIdentityPersistentID"])
+                    if (
+                        "EnrollmentIdentityPersistentID"
+                        in conf_plist["OTAProfileStub"]["PayloadContent"]
+                    ):
+                        conf_plist["OTAProfileStub"]["PayloadContent"][
+                            "EnrollmentIdentityPersistentID"
+                        ] = b64encode(
+                            conf_plist["OTAProfileStub"]["PayloadContent"][
+                                "EnrollmentIdentityPersistentID"
+                            ]
+                        )
 
             if "PushTokenDataSentToServerKey" in conf_plist:
-                conf_plist["PushTokenDataSentToServerKey"] = b64encode(conf_plist["PushTokenDataSentToServerKey"])
+                conf_plist["PushTokenDataSentToServerKey"] = b64encode(
+                    conf_plist["PushTokenDataSentToServerKey"]
+                )
 
             if "LastPushTokenHash" in conf_plist:
-                conf_plist["LastPushTokenHash"] = b64encode(conf_plist["LastPushTokenHash"])
+                conf_plist["LastPushTokenHash"] = b64encode(
+                    conf_plist["LastPushTokenHash"]
+                )
 
             if "PayloadContent" in conf_plist:
                 for content_entry in range(len(conf_plist["PayloadContent"])):
                     if "PERSISTENT_REF" in conf_plist["PayloadContent"][content_entry]:
-                        conf_plist["PayloadContent"][content_entry]["PERSISTENT_REF"] = b64encode(conf_plist["PayloadContent"][content_entry]["PERSISTENT_REF"])
+                        conf_plist["PayloadContent"][content_entry][
+                            "PERSISTENT_REF"
+                        ] = b64encode(
+                            conf_plist["PayloadContent"][content_entry][
+                                "PERSISTENT_REF"
+                            ]
+                        )
 
-                    if "IdentityPersistentRef" in conf_plist["PayloadContent"][content_entry]:
-                        conf_plist["PayloadContent"][content_entry]["IdentityPersistentRef"] = b64encode(conf_plist["PayloadContent"][content_entry]["IdentityPersistentRef"])
+                    if (
+                        "IdentityPersistentRef"
+                        in conf_plist["PayloadContent"][content_entry]
+                    ):
+                        conf_plist["PayloadContent"][content_entry][
+                            "IdentityPersistentRef"
+                        ] = b64encode(
+                            conf_plist["PayloadContent"][content_entry][
+                                "IdentityPersistentRef"
+                            ]
+                        )
 
-            self.results.append({
-                "file_id": conf_file["file_id"],
-                "relative_path": conf_file["relative_path"],
-                "domain": conf_file["domain"],
-                "plist": conf_plist,
-                "install_date": convert_datetime_to_iso(conf_plist.get("InstallDate")),
-            })
+            self.results.append(
+                {
+                    "file_id": conf_file["file_id"],
+                    "relative_path": conf_file["relative_path"],
+                    "domain": conf_file["domain"],
+                    "plist": conf_plist,
+                    "install_date": convert_datetime_to_iso(
+                        conf_plist.get("InstallDate")
+                    ),
+                }
+            )
 
-        self.log.info("Extracted details about %d configuration profiles",
-                      len(self.results))
+        self.log.info(
+            "Extracted details about %d configuration profiles", len(self.results)
+        )

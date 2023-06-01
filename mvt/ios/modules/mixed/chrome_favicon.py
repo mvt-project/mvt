@@ -7,14 +7,11 @@ import logging
 import sqlite3
 from typing import Optional, Union
 
-from mvt.common.utils import (convert_chrometime_to_datetime,
-                              convert_datetime_to_iso)
+from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
-CHROME_FAVICON_BACKUP_IDS = [
-    "55680ab883d0fdcffd94f959b1632e5fbbb18c5b"
-]
+CHROME_FAVICON_BACKUP_IDS = ["55680ab883d0fdcffd94f959b1632e5fbbb18c5b"]
 # TODO: Confirm Chrome database path.
 CHROME_FAVICON_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/Favicons",
@@ -29,20 +26,25 @@ class ChromeFavicon(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": "new_favicon",
-            "data": f"{record['icon_url']} from {record['url']}"
+            "data": f"{record['icon_url']} from {record['url']}",
         }
 
     def check_indicators(self) -> None:
@@ -59,16 +61,17 @@ class ChromeFavicon(IOSExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=CHROME_FAVICON_BACKUP_IDS,
-                                root_paths=CHROME_FAVICON_ROOT_PATHS)
-        self.log.info("Found Chrome favicon cache database at path: %s",
-                      self.file_path)
+        self._find_ios_database(
+            backup_ids=CHROME_FAVICON_BACKUP_IDS, root_paths=CHROME_FAVICON_ROOT_PATHS
+        )
+        self.log.info("Found Chrome favicon cache database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
 
         # Fetch icon cache
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 icon_mapping.page_url,
                 favicons.url,
@@ -78,18 +81,22 @@ class ChromeFavicon(IOSExtraction):
             JOIN favicon_bitmaps ON icon_mapping.icon_id = favicon_bitmaps.icon_id
             JOIN favicons ON icon_mapping.icon_id = favicons.id
             ORDER BY icon_mapping.id;
-        """)
+        """
+        )
 
         records = []
         for row in cur:
             last_timestamp = int(row[2]) or int(row[3])
-            records.append({
-                "url": row[0],
-                "icon_url": row[1],
-                "timestamp": last_timestamp,
-                "isodate": convert_datetime_to_iso(
-                    convert_chrometime_to_datetime(last_timestamp)),
-            })
+            records.append(
+                {
+                    "url": row[0],
+                    "icon_url": row[1],
+                    "timestamp": last_timestamp,
+                    "isodate": convert_datetime_to_iso(
+                        convert_chrometime_to_datetime(last_timestamp)
+                    ),
+                }
+            )
 
         cur.close()
         conn.close()

@@ -27,13 +27,18 @@ class Analytics(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -54,9 +59,12 @@ class Analytics(IOSExtraction):
 
                 ioc = self.indicators.check_process(value)
                 if ioc:
-                    self.log.warning("Found mention of a malicious process \"%s\" in %s file at %s",
-                                     value, result["artifact"],
-                                     result["isodate"])
+                    self.log.warning(
+                        'Found mention of a malicious process "%s" in %s file at %s',
+                        value,
+                        result["artifact"],
+                        result["isodate"],
+                    )
                     new_result = copy.copy(result)
                     new_result["matched_indicator"] = ioc
                     self.detected.append(new_result)
@@ -64,9 +72,12 @@ class Analytics(IOSExtraction):
 
                 ioc = self.indicators.check_domain(value)
                 if ioc:
-                    self.log.warning("Found mention of a malicious domain \"%s\" in %s file at %s",
-                                     value, result["artifact"],
-                                     result["isodate"])
+                    self.log.warning(
+                        'Found mention of a malicious domain "%s" in %s file at %s',
+                        value,
+                        result["artifact"],
+                        result["isodate"],
+                    )
                     new_result = copy.copy(result)
                     new_result["matched_indicator"] = ioc
                     self.detected.append(new_result)
@@ -78,7 +89,8 @@ class Analytics(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT
                     timestamp,
                     data
@@ -93,9 +105,11 @@ class Analytics(IOSExtraction):
                     timestamp,
                     data
                 FROM all_events;
-            """)
+            """
+            )
         except sqlite3.OperationalError:
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT
                     timestamp,
                     data
@@ -105,7 +119,8 @@ class Analytics(IOSExtraction):
                     timestamp,
                     data
                 FROM soft_failures;
-            """)
+            """
+            )
 
         for row in cur:
             if row[0] and row[1]:
@@ -131,14 +146,14 @@ class Analytics(IOSExtraction):
     def process_analytics_dbs(self):
         for file_path in self._get_fs_files_from_patterns(ANALYTICS_DB_PATH):
             self.file_path = file_path
-            self.log.info("Found Analytics database file at path: %s",
-                          file_path)
+            self.log.info("Found Analytics database file at path: %s", file_path)
             self._extract_analytics_data()
 
     def run(self) -> None:
         self.process_analytics_dbs()
 
-        self.log.info("Extracted %d records from analytics databases",
-                      len(self.results))
+        self.log.info(
+            "Extracted %d records from analytics databases", len(self.results)
+        )
 
         self.results = sorted(self.results, key=lambda entry: entry["isodate"])

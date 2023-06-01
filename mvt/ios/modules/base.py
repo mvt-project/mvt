@@ -11,8 +11,7 @@ import sqlite3
 import subprocess
 from typing import Iterator, Optional, Union
 
-from mvt.common.module import (DatabaseCorruptedError, DatabaseNotFoundError,
-                               MVTModule)
+from mvt.common.module import DatabaseCorruptedError, DatabaseNotFoundError, MVTModule
 
 
 class IOSExtraction(MVTModule):
@@ -24,19 +23,25 @@ class IOSExtraction(MVTModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.is_backup = False
         self.is_fs_dump = False
 
-    def _recover_sqlite_db_if_needed(self, file_path: str,
-                                     forced: Optional[bool] = False) -> None:
+    def _recover_sqlite_db_if_needed(
+        self, file_path: str, forced: bool = False
+    ) -> None:
         """Tries to recover a malformed database by running a .clone command.
 
         :param file_path: Path to the malformed database file.
@@ -59,30 +64,35 @@ class IOSExtraction(MVTModule):
             if not recover:
                 return
 
-        self.log.info("Database at path %s is malformed. Trying to recover...",
-                      file_path)
+        self.log.info(
+            "Database at path %s is malformed. Trying to recover...", file_path
+        )
 
         if not shutil.which("sqlite3"):
-            raise DatabaseCorruptedError("failed to recover without sqlite3 binary: please install "
-                                         "sqlite3!")
+            raise DatabaseCorruptedError(
+                "failed to recover without sqlite3 binary: please install " "sqlite3!"
+            )
         if '"' in file_path:
-            raise DatabaseCorruptedError(f"database at path '{file_path}' is corrupted. unable to "
-                                         "recover because it has a quotation mark (\") in its name")
+            raise DatabaseCorruptedError(
+                f"database at path '{file_path}' is corrupted. unable to "
+                'recover because it has a quotation mark (") in its name'
+            )
 
         bak_path = f"{file_path}.bak"
         shutil.move(file_path, bak_path)
 
-        ret = subprocess.call(["sqlite3", bak_path, f".clone \"{file_path}\""],
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ret = subprocess.call(
+            ["sqlite3", bak_path, f'.clone "{file_path}"'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         if ret != 0:
             raise DatabaseCorruptedError("failed to recover database")
 
         self.log.info("Database at path %s recovered successfully!", file_path)
 
     def _get_backup_files_from_manifest(
-        self,
-        relative_path: Optional[str] = None,
-        domain: Optional[str] = None
+        self, relative_path: Optional[str] = None, domain: Optional[str] = None
     ) -> Iterator[dict]:
         """Locate files from Manifest.db.
 
@@ -102,16 +112,19 @@ class IOSExtraction(MVTModule):
             conn = sqlite3.connect(manifest_db_path)
             cur = conn.cursor()
             if relative_path and domain:
-                cur.execute(f"{base_sql} relativePath = ? AND domain = ?;",
-                            (relative_path, domain))
+                cur.execute(
+                    f"{base_sql} relativePath = ? AND domain = ?;",
+                    (relative_path, domain),
+                )
             else:
                 if relative_path:
                     if "*" in relative_path:
-                        cur.execute(f"{base_sql} relativePath LIKE ?;",
-                                    (relative_path.replace("*", "%"),))
+                        cur.execute(
+                            f"{base_sql} relativePath LIKE ?;",
+                            (relative_path.replace("*", "%"),),
+                        )
                     else:
-                        cur.execute(f"{base_sql} relativePath = ?;",
-                                    (relative_path,))
+                        cur.execute(f"{base_sql} relativePath = ?;", (relative_path,))
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
         except Exception as exc:
@@ -133,17 +146,14 @@ class IOSExtraction(MVTModule):
 
     def _get_fs_files_from_patterns(self, root_paths: list) -> Iterator[str]:
         for root_path in root_paths:
-            for found_path in glob.glob(os.path.join(self.target_path,
-                                                     root_path)):
+            for found_path in glob.glob(os.path.join(self.target_path, root_path)):
                 if not os.path.exists(found_path):
                     continue
 
                 yield found_path
 
     def _find_ios_database(
-        self,
-        backup_ids: Optional[list] = None,
-        root_paths: Optional[list] = None
+        self, backup_ids: Optional[list] = None, root_paths: Optional[list] = None
     ) -> None:
         """Try to locate a module's database file from either an iTunes
         backup or a full filesystem dump. This is intended only for

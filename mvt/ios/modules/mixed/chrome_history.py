@@ -7,8 +7,7 @@ import logging
 import sqlite3
 from typing import Optional, Union
 
-from mvt.common.utils import (convert_chrometime_to_datetime,
-                              convert_datetime_to_iso)
+from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -29,13 +28,18 @@ class ChromeHistory(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -43,8 +47,8 @@ class ChromeHistory(IOSExtraction):
             "module": self.__class__.__name__,
             "event": "visit",
             "data": f"{record['id']} - {record['url']} "
-                    f"(visit ID: {record['visit_id']}, "
-                    f"redirect source: {record['redirect_source']})"
+            f"(visit ID: {record['visit_id']}, "
+            f"redirect source: {record['redirect_source']})",
         }
 
     def check_indicators(self) -> None:
@@ -58,14 +62,15 @@ class ChromeHistory(IOSExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=CHROME_HISTORY_BACKUP_IDS,
-                                root_paths=CHROME_HISTORY_ROOT_PATHS)
-        self.log.info("Found Chrome history database at path: %s",
-                      self.file_path)
+        self._find_ios_database(
+            backup_ids=CHROME_HISTORY_BACKUP_IDS, root_paths=CHROME_HISTORY_ROOT_PATHS
+        )
+        self.log.info("Found Chrome history database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 urls.id,
                 urls.url,
@@ -75,21 +80,24 @@ class ChromeHistory(IOSExtraction):
             FROM urls
             JOIN visits ON visits.url = urls.id
             ORDER BY visits.visit_time;
-        """)
+        """
+        )
 
         for item in cur:
-            self.results.append({
-                "id": item[0],
-                "url": item[1],
-                "visit_id": item[2],
-                "timestamp": item[3],
-                "isodate": convert_datetime_to_iso(
-                    convert_chrometime_to_datetime(item[3])),
-                "redirect_source": item[4],
-            })
+            self.results.append(
+                {
+                    "id": item[0],
+                    "url": item[1],
+                    "visit_id": item[2],
+                    "timestamp": item[3],
+                    "isodate": convert_datetime_to_iso(
+                        convert_chrometime_to_datetime(item[3])
+                    ),
+                    "redirect_source": item[4],
+                }
+            )
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d history items",
-                      len(self.results))
+        self.log.info("Extracted a total of %d history items", len(self.results))

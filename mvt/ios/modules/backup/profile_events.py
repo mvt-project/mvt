@@ -21,18 +21,24 @@ class ProfileEvents(IOSExtraction):
 
 
     """
+
     def __init__(
         self,
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -40,8 +46,8 @@ class ProfileEvents(IOSExtraction):
             "module": self.__class__.__name__,
             "event": "profile_operation",
             "data": f"Process {record.get('process')} started operation "
-                    f"{record.get('operation')} of profile "
-                    f"{record.get('profile_id')}"
+            f"{record.get('operation')} of profile "
+            f"{record.get('profile_id')}",
         }
 
     def check_indicators(self) -> None:
@@ -92,21 +98,24 @@ class ProfileEvents(IOSExtraction):
 
     def run(self) -> None:
         for events_file in self._get_backup_files_from_manifest(
-                relative_path=CONF_PROFILES_EVENTS_RELPATH):
-            events_file_path = self._get_backup_file_from_id(
-                events_file["file_id"])
+            relative_path=CONF_PROFILES_EVENTS_RELPATH
+        ):
+            events_file_path = self._get_backup_file_from_id(events_file["file_id"])
             if not events_file_path:
                 continue
 
-            self.log.info("Found MCProfileEvents.plist file at %s",
-                          events_file_path)
+            self.log.info("Found MCProfileEvents.plist file at %s", events_file_path)
 
             with open(events_file_path, "rb") as handle:
                 self.results.extend(self.parse_profile_events(handle.read()))
 
         for result in self.results:
-            self.log.info("On %s process \"%s\" started operation \"%s\" of profile \"%s\"",
-                          result.get("timestamp"), result.get("process"),
-                          result.get("operation"), result.get("profile_id"))
+            self.log.info(
+                'On %s process "%s" started operation "%s" of profile "%s"',
+                result.get("timestamp"),
+                result.get("process"),
+                result.get("operation"),
+                result.get("profile_id"),
+            )
 
         self.log.info("Extracted %d profile events", len(self.results))

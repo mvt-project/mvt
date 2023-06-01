@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 
 class CmdCheckIOCS(Command):
-
     def __init__(
         self,
         target_path: Optional[str] = None,
@@ -21,11 +20,17 @@ class CmdCheckIOCS(Command):
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
     ) -> None:
-        super().__init__(target_path=target_path, results_path=results_path,
-                         ioc_files=ioc_files, module_name=module_name,
-                         serial=serial, fast_mode=fast_mode, log=log)
+        super().__init__(
+            target_path=target_path,
+            results_path=results_path,
+            ioc_files=ioc_files,
+            module_name=module_name,
+            serial=serial,
+            fast_mode=fast_mode,
+            log=log,
+        )
 
         self.name = "check-iocs"
 
@@ -50,11 +55,15 @@ class CmdCheckIOCS(Command):
                 if iocs_module().get_slug() != name_only:
                     continue
 
-                log.info("Loading results from \"%s\" with module %s",
-                         file_name, iocs_module.__name__)
+                log.info(
+                    'Loading results from "%s" with module %s',
+                    file_name,
+                    iocs_module.__name__,
+                )
 
-                m = iocs_module.from_json(file_path,
-                                          log=logging.getLogger(iocs_module.__module__))
+                m = iocs_module.from_json(
+                    file_path, log=logging.getLogger(iocs_module.__module__)
+                )
                 if self.iocs.total_ioc_count > 0:
                     m.indicators = self.iocs
                     m.indicators.log = m.log
@@ -67,5 +76,6 @@ class CmdCheckIOCS(Command):
                     total_detections += len(m.detected)
 
         if total_detections > 0:
-            log.warning("The check of the results produced %d detections!",
-                        total_detections)
+            log.warning(
+                "The check of the results produced %d detections!", total_detections
+            )

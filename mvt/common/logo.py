@@ -18,8 +18,10 @@ def check_updates() -> None:
         pass
     else:
         if latest_version:
-            rich_print(f"\t\t[bold]Version {latest_version} is available! "
-                       "Upgrade mvt with `pip3 install -U mvt`[/bold]")
+            rich_print(
+                f"\t\t[bold]Version {latest_version} is available! "
+                "Upgrade mvt with `pip3 install -U mvt`[/bold]"
+            )
 
     # Then we check for indicators files updates.
     ioc_updates = IndicatorsUpdates()
@@ -27,8 +29,10 @@ def check_updates() -> None:
     # Before proceeding, we check if we have downloaded an indicators index.
     # If not, there's no point in proceeding with the updates check.
     if ioc_updates.get_latest_update() == 0:
-        rich_print("\t\t[bold]You have not yet downloaded any indicators, check "
-                   "the `download-iocs` command![/bold]")
+        rich_print(
+            "\t\t[bold]You have not yet downloaded any indicators, check "
+            "the `download-iocs` command![/bold]"
+        )
         return
 
     # We only perform this check at a fixed frequency, in order to not
@@ -36,8 +40,10 @@ def check_updates() -> None:
     # multiple times.
     should_check, hours = ioc_updates.should_check()
     if not should_check:
-        rich_print(f"\t\tIndicators updates checked recently, next automatic check "
-                   f"in {int(hours)} hours")
+        rich_print(
+            f"\t\tIndicators updates checked recently, next automatic check "
+            f"in {int(hours)} hours"
+        )
         return
 
     try:
@@ -46,8 +52,10 @@ def check_updates() -> None:
         pass
     else:
         if ioc_to_update:
-            rich_print("\t\t[bold]There are updates to your indicators files! "
-                       "Run the `download-iocs` command to update![/bold]")
+            rich_print(
+                "\t\t[bold]There are updates to your indicators files! "
+                "Run the `download-iocs` command to update![/bold]"
+            )
         else:
             rich_print("\t\tYour indicators files seem to be up to date.")
 

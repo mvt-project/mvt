@@ -29,13 +29,18 @@ class SafariBrowserState(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self._session_history_count = 0
 
@@ -44,7 +49,7 @@ class SafariBrowserState(IOSExtraction):
             "timestamp": record["last_viewed_timestamp"],
             "module": self.__class__.__name__,
             "event": "tab",
-            "data": f"{record['tab_title']} - {record['tab_url']}"
+            "data": f"{record['tab_title']} - {record['tab_url']}",
         }
 
     def check_indicators(self) -> None:
@@ -75,7 +80,8 @@ class SafariBrowserState(IOSExtraction):
 
         cur = conn.cursor()
         try:
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT
                     tabs.title,
                     tabs.url,
@@ -85,15 +91,18 @@ class SafariBrowserState(IOSExtraction):
                 FROM tabs
                 JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
                 ORDER BY tabs.last_viewed_time;
-            """)
+            """
+            )
         except sqlite3.OperationalError:
             # Old version iOS <12 likely
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT
                     title, url, user_visible_url, last_viewed_time, session_data
                 FROM tabs
                 ORDER BY last_viewed_time;
-            """)
+            """
+            )
 
         for row in cur:
             session_entries = []
@@ -110,48 +119,68 @@ class SafariBrowserState(IOSExtraction):
 
                 if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
                     for session_entry in session_data["SessionHistory"].get(
-                            "SessionHistoryEntries"):
+                        "SessionHistoryEntries"
+                    ):
                         self._session_history_count += 1
 
                         data_length = 0
                         if "SessionHistoryEntryData" in session_entry:
-                            data_length = len(session_entry.get("SessionHistoryEntryData"))
+                            data_length = len(
+                                session_entry.get("SessionHistoryEntryData")
+                            )
 
-                        session_entries.append({
-                            "entry_title": session_entry.get("SessionHistoryEntryOriginalURL"),
-                            "entry_url": session_entry.get("SessionHistoryEntryURL"),
-                            "data_length": data_length,
-                        })
+                        session_entries.append(
+                            {
+                                "entry_title": session_entry.get(
+                                    "SessionHistoryEntryOriginalURL"
+                                ),
+                                "entry_url": session_entry.get(
+                                    "SessionHistoryEntryURL"
+                                ),
+                                "data_length": data_length,
+                            }
+                        )
 
-            self.results.append({
-                "tab_title": row[0],
-                "tab_url": row[1],
-                "tab_visible_url": row[2],
-                "last_viewed_timestamp": convert_mactime_to_iso(row[3]),
-                "session_data": session_entries,
-                "safari_browser_state_db": os.path.relpath(db_path,
-                                                           self.target_path),
-            })
+            self.results.append(
+                {
+                    "tab_title": row[0],
+                    "tab_url": row[1],
+                    "tab_visible_url": row[2],
+                    "last_viewed_timestamp": convert_mactime_to_iso(row[3]),
+                    "session_data": session_entries,
+                    "safari_browser_state_db": os.path.relpath(
+                        db_path, self.target_path
+                    ),
+                }
+            )
 
     def run(self) -> None:
         if self.is_backup:
             for backup_file in self._get_backup_files_from_manifest(
-                    relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH):
+                relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH
+            ):
                 browserstate_path = self._get_backup_file_from_id(
-                    backup_file["file_id"])
+                    backup_file["file_id"]
+                )
 
                 if not browserstate_path:
                     continue
 
-                self.log.info("Found Safari browser state database at path: %s",
-                              browserstate_path)
+                self.log.info(
+                    "Found Safari browser state database at path: %s", browserstate_path
+                )
                 self._process_browser_state_db(browserstate_path)
         elif self.is_fs_dump:
             for browserstate_path in self._get_fs_files_from_patterns(
-                    SAFARI_BROWSER_STATE_ROOT_PATHS):
-                self.log.info("Found Safari browser state database at path: %s",
-                              browserstate_path)
+                SAFARI_BROWSER_STATE_ROOT_PATHS
+            ):
+                self.log.info(
+                    "Found Safari browser state database at path: %s", browserstate_path
+                )
                 self._process_browser_state_db(browserstate_path)
 
-        self.log.info("Extracted a total of %d tab records and %d session history entries",
-                      len(self.results), self._session_history_count)
+        self.log.info(
+            "Extracted a total of %d tab records and %d session history entries",
+            len(self.results),
+            self._session_history_count,
+        )

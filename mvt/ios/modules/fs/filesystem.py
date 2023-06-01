@@ -22,13 +22,18 @@ class Filesystem(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -67,8 +72,7 @@ class Filesystem(IOSExtraction):
                     dir_path = os.path.join(root, dir_name)
                     result = {
                         "path": os.path.relpath(dir_path, self.target_path),
-                        "modified": convert_unix_to_iso(
-                            os.stat(dir_path).st_mtime),
+                        "modified": convert_unix_to_iso(os.stat(dir_path).st_mtime),
                     }
                 except Exception:
                     continue
@@ -80,8 +84,7 @@ class Filesystem(IOSExtraction):
                     file_path = os.path.join(root, file_name)
                     result = {
                         "path": os.path.relpath(file_path, self.target_path),
-                        "modified": convert_unix_to_iso(
-                            os.stat(file_path).st_mtime),
+                        "modified": convert_unix_to_iso(os.stat(file_path).st_mtime),
                     }
                 except Exception:
                     continue

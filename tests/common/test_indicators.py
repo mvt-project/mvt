@@ -10,7 +10,6 @@ from mvt.common.indicators import Indicators
 
 
 class TestIndicators:
-
     def test_parse_stix2(self, indicator_file):
         ind = Indicators(log=logging)
         ind.load_indicators_files([indicator_file], load_default=False)

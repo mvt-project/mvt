@@ -8,10 +8,16 @@ import logging
 import click
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
-from mvt.common.help import (HELP_MSG_FAST, HELP_MSG_HASHES, HELP_MSG_IOC,
-                             HELP_MSG_LIST_MODULES, HELP_MSG_MODULE,
-                             HELP_MSG_OUTPUT, HELP_MSG_SERIAL,
-                             HELP_MSG_VERBOSE)
+from mvt.common.help import (
+    HELP_MSG_FAST,
+    HELP_MSG_HASHES,
+    HELP_MSG_IOC,
+    HELP_MSG_LIST_MODULES,
+    HELP_MSG_MODULE,
+    HELP_MSG_OUTPUT,
+    HELP_MSG_SERIAL,
+    HELP_MSG_VERBOSE,
+)
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
 from mvt.common.utils import init_logging, set_verbose_logging
@@ -28,39 +34,54 @@ from .modules.bugreport import BUGREPORT_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
-#==============================================================================
+# ==============================================================================
 # Main
-#==============================================================================
+# ==============================================================================
 @click.group(invoke_without_command=False)
 def cli():
     logo()
 
 
-#==============================================================================
+# ==============================================================================
 # Command: version
-#==============================================================================
+# ==============================================================================
 @cli.command("version", help="Show the currently installed version of MVT")
 def version():
     return
 
 
-#==============================================================================
+# ==============================================================================
 # Command: download-apks
-#==============================================================================
-@cli.command("download-apks", help="Download all or only non-system installed APKs",
-             context_settings=CONTEXT_SETTINGS)
+# ==============================================================================
+@cli.command(
+    "download-apks",
+    help="Download all or only non-system installed APKs",
+    context_settings=CONTEXT_SETTINGS,
+)
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option("--all-apks", "-a", is_flag=True,
-              help="Extract all packages installed on the phone, including system packages")
+@click.option(
+    "--all-apks",
+    "-a",
+    is_flag=True,
+    help="Extract all packages installed on the phone, including system packages",
+)
 @click.option("--virustotal", "-v", is_flag=True, help="Check packages on VirusTotal")
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help="Specify a path to a folder where you want to store the APKs")
-@click.option("--from-file", "-f", type=click.Path(exists=True),
-              help="Instead of acquiring from phone, load an existing packages.json file for "
-                   "lookups (mainly for debug purposes)")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(exists=False),
+    help="Specify a path to a folder where you want to store the APKs",
+)
+@click.option(
+    "--from-file",
+    "-f",
+    type=click.Path(exists=True),
+    help="Instead of acquiring from phone, load an existing packages.json file for "
+    "lookups (mainly for debug purposes)",
+)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
 def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose):
@@ -99,16 +120,24 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
         ctx.exit(1)
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-adb
-#==============================================================================
-@cli.command("check-adb", help="Check an Android device over adb",
-             context_settings=CONTEXT_SETTINGS)
+# ==============================================================================
+@cli.command(
+    "check-adb",
+    help="Check an Android device over adb",
+    context_settings=CONTEXT_SETTINGS,
+)
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help=HELP_MSG_OUTPUT)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
@@ -116,8 +145,13 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
 @click.pass_context
 def check_adb(ctx, serial, iocs, output, fast, list_modules, module, verbose):
     set_verbose_logging(verbose)
-    cmd = CmdAndroidCheckADB(results_path=output, ioc_files=iocs,
-                             module_name=module, serial=serial, fast_mode=fast)
+    cmd = CmdAndroidCheckADB(
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        serial=serial,
+        fast_mode=fast,
+    )
 
     if list_modules:
         cmd.list_modules()
@@ -128,19 +162,29 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module, verbose):
     cmd.run()
 
     if cmd.detected_count > 0:
-        log.warning("The analysis of the Android device produced %d detections!",
-                    cmd.detected_count)
+        log.warning(
+            "The analysis of the Android device produced %d detections!",
+            cmd.detected_count,
+        )
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-bugreport
-#==============================================================================
-@cli.command("check-bugreport", help="Check an Android Bug Report",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help=HELP_MSG_OUTPUT)
+# ==============================================================================
+@cli.command(
+    "check-bugreport",
+    help="Check an Android Bug Report",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
@@ -148,10 +192,14 @@ def check_adb(ctx, serial, iocs, output, fast, list_modules, module, verbose):
 @click.pass_context
 def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_path):
     set_verbose_logging(verbose)
-    # Always generate hashes as bug reports are small.
-    cmd = CmdAndroidCheckBugreport(target_path=bugreport_path,
-                                   results_path=output, ioc_files=iocs,
-                                   module_name=module, hashes=True)
+    # Always generate hashes as bug reports are small.
+    cmd = CmdAndroidCheckBugreport(
+        target_path=bugreport_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        hashes=True,
+    )
 
     if list_modules:
         cmd.list_modules()
@@ -162,19 +210,27 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
     cmd.run()
 
     if cmd.detected_count > 0:
-        log.warning("The analysis of the Android bug report produced %d detections!",
-                    cmd.detected_count)
+        log.warning(
+            "The analysis of the Android bug report produced %d detections!",
+            cmd.detected_count,
+        )
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-backup
-#==============================================================================
-@cli.command("check-backup", help="Check an Android Backup",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help=HELP_MSG_OUTPUT)
+# ==============================================================================
+@cli.command(
+    "check-backup", help="Check an Android Backup", context_settings=CONTEXT_SETTINGS
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
@@ -182,8 +238,9 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 def check_backup(ctx, iocs, output, list_modules, verbose, backup_path):
     set_verbose_logging(verbose)
     # Always generate hashes as backups are generally small.
-    cmd = CmdAndroidCheckBackup(target_path=backup_path, results_path=output,
-                                ioc_files=iocs, hashes=True)
+    cmd = CmdAndroidCheckBackup(
+        target_path=backup_path, results_path=output, ioc_files=iocs, hashes=True
+    )
 
     if list_modules:
         cmd.list_modules()
@@ -194,30 +251,46 @@ def check_backup(ctx, iocs, output, list_modules, verbose, backup_path):
     cmd.run()
 
     if cmd.detected_count > 0:
-        log.warning("The analysis of the Android backup produced %d detections!",
-                    cmd.detected_count)
+        log.warning(
+            "The analysis of the Android backup produced %d detections!",
+            cmd.detected_count,
+        )
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-androidqf
-#==============================================================================
-@cli.command("check-androidqf", help="Check data collected with AndroidQF",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
-@click.option("--output", "-o", type=click.Path(exists=False),
-              help=HELP_MSG_OUTPUT)
+# ==============================================================================
+@cli.command(
+    "check-androidqf",
+    help="Check data collected with AndroidQF",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_androidqf(ctx, iocs, output, list_modules, module, hashes, verbose, androidqf_path):
+def check_androidqf(
+    ctx, iocs, output, list_modules, module, hashes, verbose, androidqf_path
+):
     set_verbose_logging(verbose)
-    cmd = CmdAndroidCheckAndroidQF(target_path=androidqf_path,
-                                   results_path=output, ioc_files=iocs,
-                                   module_name=module, hashes=hashes)
+    cmd = CmdAndroidCheckAndroidQF(
+        target_path=androidqf_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        hashes=hashes,
+    )
 
     if list_modules:
         cmd.list_modules()
@@ -228,17 +301,28 @@ def check_androidqf(ctx, iocs, output, list_modules, module, hashes, verbose, an
     cmd.run()
 
     if cmd.detected_count > 0:
-        log.warning("The analysis of the AndroidQF acquisition produced %d detections!",
-                    cmd.detected_count)
+        log.warning(
+            "The analysis of the AndroidQF acquisition produced %d detections!",
+            cmd.detected_count,
+        )
 
 
-#==============================================================================
+# ==============================================================================
 # Command: check-iocs
-#==============================================================================
-@cli.command("check-iocs", help="Compare stored JSON results to provided indicators",
-             context_settings=CONTEXT_SETTINGS)
-@click.option("--iocs", "-i", type=click.Path(exists=True), multiple=True,
-              default=[], help=HELP_MSG_IOC)
+# ==============================================================================
+@cli.command(
+    "check-iocs",
+    help="Compare stored JSON results to provided indicators",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("FOLDER", type=click.Path(exists=True))
@@ -254,11 +338,14 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
     cmd.run()
 
 
-#==============================================================================
+# ==============================================================================
 # Command: download-iocs
-#==============================================================================
-@cli.command("download-iocs", help="Download public STIX2 indicators",
-             context_settings=CONTEXT_SETTINGS)
+# ==============================================================================
+@cli.command(
+    "download-iocs",
+    help="Download public STIX2 indicators",
+    context_settings=CONTEXT_SETTINGS,
+)
 def download_indicators():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()

@@ -22,31 +22,51 @@ class BackupInfo(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.results = {}
 
     def run(self) -> None:
         info_path = os.path.join(self.target_path, "Info.plist")
         if not os.path.exists(info_path):
-            raise DatabaseNotFoundError("No Info.plist at backup path, unable to extract device "
-                                        "information")
+            raise DatabaseNotFoundError(
+                "No Info.plist at backup path, unable to extract device " "information"
+            )
 
         with open(info_path, "rb") as handle:
             info = plistlib.load(handle)
 
-        fields = ["Build Version", "Device Name", "Display Name",
-                  "GUID", "ICCID", "IMEI", "MEID", "Installed Applications",
-                  "Last Backup Date", "Phone Number", "Product Name",
-                  "Product Type", "Product Version", "Serial Number",
-                  "Target Identifier", "Target Type", "Unique Identifier",
-                  "iTunes Version"]
+        fields = [
+            "Build Version",
+            "Device Name",
+            "Display Name",
+            "GUID",
+            "ICCID",
+            "IMEI",
+            "MEID",
+            "Installed Applications",
+            "Last Backup Date",
+            "Phone Number",
+            "Product Name",
+            "Product Type",
+            "Product Version",
+            "Serial Number",
+            "Target Identifier",
+            "Target Type",
+            "Unique Identifier",
+            "iTunes Version",
+        ]
 
         for field in fields:
             value = info.get(field, None)

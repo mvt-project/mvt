@@ -28,17 +28,23 @@ class Datausage(NetBase):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=DATAUSAGE_BACKUP_IDS,
-                                root_paths=DATAUSAGE_ROOT_PATHS)
+        self._find_ios_database(
+            backup_ids=DATAUSAGE_BACKUP_IDS, root_paths=DATAUSAGE_ROOT_PATHS
+        )
         self.log.info("Found DataUsage database at path: %s", self.file_path)
 
         self._extract_net_data()

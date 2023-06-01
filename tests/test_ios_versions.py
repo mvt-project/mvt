@@ -7,7 +7,6 @@ from mvt.ios.versions import is_ios_version_outdated
 
 
 class TestIosVersions:
-
     def test_is_ios_version_outdated(self):
         assert is_ios_version_outdated("20B110") is True
         assert is_ios_version_outdated("16.3") is True

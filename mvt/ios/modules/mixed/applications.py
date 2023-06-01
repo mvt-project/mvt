@@ -21,18 +21,24 @@ APPLICATIONS_DB_PATH = [
 
 class Applications(IOSExtraction):
     """Extract information from accounts installed on the phone."""
+
     def __init__(
         self,
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         if "isodate" in record:
@@ -40,7 +46,7 @@ class Applications(IOSExtraction):
                 "timestamp": record["isodate"],
                 "module": self.__class__.__name__,
                 "event": "app_installed",
-                "data": f"App {record.get('name', '')} version {record.get('bundleShortVersionString', '')} from {record.get('artistName', '')} installed from {record.get('sourceApp', '')}"
+                "data": f"App {record.get('name', '')} version {record.get('bundleShortVersionString', '')} from {record.get('artistName', '')} installed from {record.get('sourceApp', '')}",
             }
         return []
 
@@ -48,36 +54,54 @@ class Applications(IOSExtraction):
         for result in self.results:
             if self.indicators:
                 if "softwareVersionBundleId" not in result:
-                    self.log.warning("Suspicious application identified without softwareVersionBundleId")
+                    self.log.warning(
+                        "Suspicious application identified without softwareVersionBundleId"
+                    )
                     self.detected.append(result)
                     continue
 
                 ioc = self.indicators.check_process(result["softwareVersionBundleId"])
                 if ioc:
-                    self.log.warning("Malicious application %s identified", result["softwareVersionBundleId"])
+                    self.log.warning(
+                        "Malicious application %s identified",
+                        result["softwareVersionBundleId"],
+                    )
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
                 ioc = self.indicators.check_app_id(result["softwareVersionBundleId"])
                 if ioc:
-                    self.log.warning("Malicious application %s identified", result["softwareVersionBundleId"])
+                    self.log.warning(
+                        "Malicious application %s identified",
+                        result["softwareVersionBundleId"],
+                    )
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
 
-            if result.get("sourceApp", "com.apple.AppStore") not in ["com.apple.AppStore", "com.apple.dmd", "dmd"]:
-                self.log.warning("Suspicious app not installed from the App Store or MDM: %s", result["softwareVersionBundleId"])
+            if result.get("sourceApp", "com.apple.AppStore") not in [
+                "com.apple.AppStore",
+                "com.apple.dmd",
+                "dmd",
+            ]:
+                self.log.warning(
+                    "Suspicious app not installed from the App Store or MDM: %s",
+                    result["softwareVersionBundleId"],
+                )
                 self.detected.append(result)
 
     def _parse_itunes_timestamp(self, entry: Dict[str, Any]) -> None:
         """
         Parse the iTunes metadata info
         """
-        if entry.get("com.apple.iTunesStore.downloadInfo", {}).get("purchaseDate", None):
+        if entry.get("com.apple.iTunesStore.downloadInfo", {}).get(
+            "purchaseDate", None
+        ):
             timestamp = datetime.strptime(
                 entry["com.apple.iTunesStore.downloadInfo"]["purchaseDate"],
-                "%Y-%m-%dT%H:%M:%SZ")
+                "%Y-%m-%dT%H:%M:%SZ",
+            )
             timestamp_utc = timestamp.astimezone(timezone.utc)
             entry["isodate"] = convert_datetime_to_iso(timestamp_utc)
 
@@ -124,5 +148,4 @@ class Applications(IOSExtraction):
             for file_path in self._get_fs_files_from_patterns(APPLICATIONS_DB_PATH):
                 self._parse_itunes_metadata(file_path)
 
-        self.log.info("Extracted a total of %d applications",
-                      len(self.results))
+        self.log.info("Extracted a total of %d applications", len(self.results))

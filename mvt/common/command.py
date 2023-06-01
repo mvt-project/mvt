@@ -12,14 +12,15 @@ from typing import Optional
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import MVTModule, run_module, save_timeline
-from mvt.common.utils import (convert_datetime_to_iso,
-                              generate_hashes_from_path,
-                              get_sha256_from_file_path)
+from mvt.common.utils import (
+    convert_datetime_to_iso,
+    generate_hashes_from_path,
+    get_sha256_from_file_path,
+)
 from mvt.common.version import MVT_VERSION
 
 
 class Command:
-
     def __init__(
         self,
         target_path: Optional[str] = None,
@@ -27,8 +28,8 @@ class Command:
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
-        hashes: Optional[bool] = False,
+        fast_mode: bool = False,
+        hashes: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
     ) -> None:
         self.name = ""
@@ -62,8 +63,9 @@ class Command:
             try:
                 os.makedirs(self.results_path)
             except Exception as exc:
-                self.log.critical("Unable to create output folder %s: %s",
-                                  self.results_path, exc)
+                self.log.critical(
+                    "Unable to create output folder %s: %s", self.results_path, exc
+                )
                 sys.exit(1)
 
     def _setup_logging(self):
@@ -71,10 +73,12 @@ class Command:
             return
 
         logger = logging.getLogger("mvt")
-        file_handler = logging.FileHandler(os.path.join(self.results_path,
-                                                        "command.log"))
-        formatter = logging.Formatter("%(asctime)s - %(name)s - "
-                                      "%(levelname)s - %(message)s")
+        file_handler = logging.FileHandler(
+            os.path.join(self.results_path, "command.log")
+        )
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - " "%(levelname)s - %(message)s"
+        )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
@@ -84,13 +88,15 @@ class Command:
             return
 
         if len(self.timeline) > 0:
-            save_timeline(self.timeline,
-                          os.path.join(self.results_path, "timeline.csv"))
+            save_timeline(
+                self.timeline, os.path.join(self.results_path, "timeline.csv")
+            )
 
         if len(self.timeline_detected) > 0:
-            save_timeline(self.timeline_detected,
-                          os.path.join(self.results_path,
-                                       "timeline_detected.csv"))
+            save_timeline(
+                self.timeline_detected,
+                os.path.join(self.results_path, "timeline_detected.csv"),
+            )
 
     def _store_info(self) -> None:
         if not self.results_path:
@@ -124,7 +130,7 @@ class Command:
 
         if self.target_path and (os.environ.get("MVT_HASH_FILES") or self.hashes):
             info_hash = get_sha256_from_file_path(info_path)
-            self.log.info("Reference hash of the info.json file: \"%s\"", info_hash)
+            self.log.info('Reference hash of the info.json file: "%s"', info_hash)
 
     def generate_hashes(self) -> None:
         """
@@ -137,8 +143,7 @@ class Command:
             self.hash_values.append(file)
 
     def list_modules(self) -> None:
-        self.log.info("Following is the list of available %s modules:",
-                      self.name)
+        self.log.info("Following is the list of available %s modules:", self.name)
         for module in self.modules:
             self.log.info(" - %s", module.__name__)
 
@@ -152,7 +157,6 @@ class Command:
         raise NotImplementedError
 
     def run(self) -> None:
-
         try:
             self.init()
         except NotImplementedError:
@@ -162,13 +166,15 @@ class Command:
             if self.module_name and module.__name__ != self.module_name:
                 continue
 
-            # FIXME: do we need the logger here
+            # FIXME: do we need the logger here
             module_logger = logging.getLogger(module.__module__)
 
-            m = module(target_path=self.target_path,
-                       results_path=self.results_path,
-                       fast_mode=self.fast_mode,
-                       log=module_logger)
+            m = module(
+                target_path=self.target_path,
+                results_path=self.results_path,
+                fast_mode=self.fast_mode,
+                log=module_logger,
+            )
 
             if self.iocs.total_ioc_count:
                 m.indicators = self.iocs

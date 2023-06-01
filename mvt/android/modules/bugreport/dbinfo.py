@@ -21,13 +21,18 @@ class DBInfo(BugReportModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -45,8 +50,10 @@ class DBInfo(BugReportModule):
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. "
-                           "Did you provide a valid bug report archive?")
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
         in_dbinfo = False
@@ -59,12 +66,16 @@ class DBInfo(BugReportModule):
             if not in_dbinfo:
                 continue
 
-            if line.strip().startswith("------------------------------------------------------------------------------"):  # pylint: disable=line-too-long
+            if line.strip().startswith(
+                "------------------------------------------------------------------------------"
+            ):  # pylint: disable=line-too-long
                 break
 
             lines.append(line)
 
         self.results = parse_dumpsys_dbinfo("\n".join(lines))
 
-        self.log.info("Extracted a total of %d database connection pool records",
-                      len(self.results))
+        self.log.info(
+            "Extracted a total of %d database connection pool records",
+            len(self.results),
+        )

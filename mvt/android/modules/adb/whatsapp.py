@@ -24,13 +24,18 @@ class Whatsapp(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         text = record["data"].replace("\n", "\\n")
@@ -38,7 +43,7 @@ class Whatsapp(AndroidExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": f"whatsapp_msg_{record['direction']}",
-            "data": f"\"{text}\""
+            "data": f'"{text}"',
         }
 
     def check_indicators(self) -> None:
@@ -61,9 +66,11 @@ class Whatsapp(AndroidExtraction):
         """
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT * FROM messages;
-        """)
+        """
+        )
         names = [description[0] for description in cur.description]
 
         messages = []
@@ -75,32 +82,30 @@ class Whatsapp(AndroidExtraction):
             if not message["data"]:
                 continue
 
-            message["direction"] = ("send" if message["key_from_me"] == 1 else "received")
+            message["direction"] = "send" if message["key_from_me"] == 1 else "received"
             message["isodate"] = convert_unix_to_iso(message["timestamp"])
 
             # If we find links in the messages or if they are empty we add them
             # to the list.
-            if (check_for_links(message["data"])
-                    or message["data"].strip() == ""):
+            if check_for_links(message["data"]) or message["data"].strip() == "":
                 if message.get("thumb_image"):
-                    message["thumb_image"] = base64.b64encode(
-                        message["thumb_image"])
+                    message["thumb_image"] = base64.b64encode(message["thumb_image"])
 
                 messages.append(message)
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages containing links",
-                      len(messages))
+        self.log.info(
+            "Extracted a total of %d WhatsApp messages containing links", len(messages)
+        )
         self.results = messages
 
     def run(self) -> None:
         self._adb_connect()
 
         try:
-            self._adb_process_file(os.path.join("/", WHATSAPP_PATH),
-                                                self._parse_db)
+            self._adb_process_file(os.path.join("/", WHATSAPP_PATH), self._parse_db)
         except Exception as exc:
             self.log.error(exc)
 
