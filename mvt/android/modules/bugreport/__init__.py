@@ -13,5 +13,14 @@ from .getprop import Getprop
 from .packages import Packages
 from .receivers import Receivers
 
-BUGREPORT_MODULES = [Accessibility, Activities, Appops, BatteryDaily,
-                     BatteryHistory, DBInfo, Getprop, Packages, Receivers]
+BUGREPORT_MODULES = [
+    Accessibility,
+    Activities,
+    Appops,
+    BatteryDaily,
+    BatteryHistory,
+    DBInfo,
+    Getprop,
+    Packages,
+    Receivers,
+]

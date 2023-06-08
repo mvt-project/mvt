@@ -26,7 +26,7 @@ class DownloadAPKs(AndroidExtraction):
     def __init__(
         self,
         results_path: Optional[str] = None,
-        all_apks: Optional[bool] = False,
+        all_apks: bool = False,
         packages: Optional[list] = None,
     ) -> None:
         """Initialize module.
@@ -66,27 +66,31 @@ class DownloadAPKs(AndroidExtraction):
         if "==/" in remote_path:
             file_name = "_" + remote_path.split("==/")[1].replace(".apk", "")
 
-        local_path = os.path.join(self.results_path_apks,
-                                  f"{package_name}{file_name}.apk")
+        local_path = os.path.join(
+            self.results_path_apks, f"{package_name}{file_name}.apk"
+        )
         name_counter = 0
         while True:
             if not os.path.exists(local_path):
                 break
 
             name_counter += 1
-            local_path = os.path.join(self.results_path_apks,
-                                      f"{package_name}{file_name}_{name_counter}.apk")
+            local_path = os.path.join(
+                self.results_path_apks, f"{package_name}{file_name}_{name_counter}.apk"
+            )
 
         try:
             self._adb_download(remote_path, local_path)
         except InsufficientPrivileges:
-            log.error("Unable to pull package file from %s: insufficient privileges, "
-                      "it might be a system app", remote_path)
+            log.error(
+                "Unable to pull package file from %s: insufficient privileges, "
+                "it might be a system app",
+                remote_path,
+            )
             self._adb_reconnect()
             return None
         except Exception as exc:
-            log.exception("Failed to pull package file from %s: %s",
-                          remote_path, exc)
+            log.exception("Failed to pull package file from %s: %s", remote_path, exc)
             self._adb_reconnect()
             return None
 
@@ -106,10 +110,10 @@ class DownloadAPKs(AndroidExtraction):
         self.packages = m.results
 
     def pull_packages(self) -> None:
-        """Download all files of all selected packages from the device.
-        """
-        log.info("Starting extraction of installed APKs at folder %s",
-                 self.results_path)
+        """Download all files of all selected packages from the device."""
+        log.info(
+            "Starting extraction of installed APKs at folder %s", self.results_path
+        )
 
         # If the user provided the flag --all-apks we select all packages.
         packages_selection = []
@@ -123,8 +127,10 @@ class DownloadAPKs(AndroidExtraction):
                 if not package.get("system", False):
                     packages_selection.append(package)
 
-            log.info("Selected only %d packages which are not marked as \"system\"",
-                     len(packages_selection))
+            log.info(
+                'Selected only %d packages which are not marked as "system"',
+                len(packages_selection),
+            )
 
         if len(packages_selection) == 0:
             log.info("No packages were selected for download")
@@ -136,19 +142,26 @@ class DownloadAPKs(AndroidExtraction):
         if not os.path.exists(self.results_path_apks):
             os.makedirs(self.results_path_apks, exist_ok=True)
 
-        for i in track(range(len(packages_selection)),
-                       description=f"Downloading {len(packages_selection)} packages..."):
+        for i in track(
+            range(len(packages_selection)),
+            description=f"Downloading {len(packages_selection)} packages...",
+        ):
             package = packages_selection[i]
 
-            log.info("[%d/%d] Package: %s", i, len(packages_selection),
-                     package["package_name"])
+            log.info(
+                "[%d/%d] Package: %s",
+                i,
+                len(packages_selection),
+                package["package_name"],
+            )
 
             # Sometimes the package path contains multiple lines for multiple
             # apks. We loop through each line and download each file.
             for package_file in package["files"]:
                 device_path = package_file["path"]
-                local_path = self.pull_package_file(package["package_name"],
-                                                    device_path)
+                local_path = self.pull_package_file(
+                    package["package_name"], device_path
+                )
                 if not local_path:
                     continue
 

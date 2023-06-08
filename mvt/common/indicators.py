@@ -34,8 +34,7 @@ class Indicators:
 
         for ioc_file_name in os.listdir(MVT_INDICATORS_FOLDER):
             if ioc_file_name.lower().endswith(".stix2"):
-                self.parse_stix2(os.path.join(MVT_INDICATORS_FOLDER,
-                                              ioc_file_name))
+                self.parse_stix2(os.path.join(MVT_INDICATORS_FOLDER, ioc_file_name))
 
     def _check_stix2_env_variable(self) -> None:
         """
@@ -49,8 +48,9 @@ class Indicators:
             if os.path.isfile(path):
                 self.parse_stix2(path)
             else:
-                self.log.error("Path specified with env MVT_STIX2 is not a valid file: %s",
-                               path)
+                self.log.error(
+                    "Path specified with env MVT_STIX2 is not a valid file: %s", path
+                )
 
     def _new_collection(
         self,
@@ -58,7 +58,7 @@ class Indicators:
         name: Optional[str] = None,
         description: Optional[str] = None,
         file_name: Optional[str] = None,
-        file_path: Optional[str] = None
+        file_path: Optional[str] = None,
     ) -> dict:
         return {
             "id": cid,
@@ -78,8 +78,7 @@ class Indicators:
             "count": 0,
         }
 
-    def _add_indicator(self, ioc: str, ioc_coll: dict,
-                       ioc_coll_list: list) -> None:
+    def _add_indicator(self, ioc: str, ioc_coll: dict, ioc_coll_list: list) -> None:
         ioc = ioc.strip("'")
         if ioc not in ioc_coll_list:
             ioc_coll_list.append(ioc)
@@ -91,43 +90,51 @@ class Indicators:
 
         if key == "domain-name:value":
             # We force domain names to lower case.
-            self._add_indicator(ioc=value.lower(),
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["domains"])
+            self._add_indicator(
+                ioc=value.lower(),
+                ioc_coll=collection,
+                ioc_coll_list=collection["domains"],
+            )
         elif key == "process:name":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["processes"])
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["processes"]
+            )
         elif key == "email-addr:value":
             # We force email addresses to lower case.
-            self._add_indicator(ioc=value.lower(),
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["emails"])
+            self._add_indicator(
+                ioc=value.lower(),
+                ioc_coll=collection,
+                ioc_coll_list=collection["emails"],
+            )
         elif key == "file:name":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["file_names"])
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["file_names"]
+            )
         elif key == "file:path":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["file_paths"])
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["file_paths"]
+            )
         elif key == "file:hashes.sha256":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["files_sha256"])
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["files_sha256"]
+            )
         elif key == "app:id":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["app_ids"])
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["app_ids"]
+            )
         elif key == "configuration-profile:id":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["ios_profile_ids"])
+            self._add_indicator(
+                ioc=value,
+                ioc_coll=collection,
+                ioc_coll_list=collection["ios_profile_ids"],
+            )
 
         elif key == "android-property:name":
-            self._add_indicator(ioc=value,
-                                ioc_coll=collection,
-                                ioc_coll_list=collection["android_property_names"])
+            self._add_indicator(
+                ioc=value,
+                ioc_coll=collection,
+                ioc_coll_list=collection["android_property_names"],
+            )
 
     def parse_stix2(self, file_path: str) -> None:
         """Extract indicators from a STIX2 file.
@@ -142,8 +149,10 @@ class Indicators:
             try:
                 data = json.load(handle)
             except json.decoder.JSONDecodeError:
-                self.log.critical("Unable to parse STIX2 indicator file. "
-                                  "The file is corrupted or in the wrong format!")
+                self.log.critical(
+                    "Unable to parse STIX2 indicator file. "
+                    "The file is corrupted or in the wrong format!"
+                )
                 return
 
         malware = {}
@@ -163,10 +172,13 @@ class Indicators:
 
         collections = []
         for mal_id, mal_values in malware.items():
-            collection = self._new_collection(mal_id, mal_values.get("name"),
-                                              mal_values.get("description"),
-                                              os.path.basename(file_path),
-                                              file_path)
+            collection = self._new_collection(
+                mal_id,
+                mal_values.get("name"),
+                mal_values.get("description"),
+                os.path.basename(file_path),
+                file_path,
+            )
             collections.append(collection)
 
         # We loop through all indicators.
@@ -192,13 +204,17 @@ class Indicators:
                     break
 
         for coll in collections:
-            self.log.info("Extracted %d indicators for collection with name \"%s\"",
-                          coll["count"], coll["name"])
+            self.log.info(
+                'Extracted %d indicators for collection with name "%s"',
+                coll["count"],
+                coll["name"],
+            )
 
         self.ioc_collections.extend(collections)
 
-    def load_indicators_files(self, files: list,
-                              load_default: Optional[bool] = True) -> None:
+    def load_indicators_files(
+        self, files: list, load_default: Optional[bool] = True
+    ) -> None:
         """
         Load a list of indicators files.
         """
@@ -206,16 +222,14 @@ class Indicators:
             if os.path.isfile(file_path):
                 self.parse_stix2(file_path)
             else:
-                self.log.warning("No indicators file exists at path %s",
-                                 file_path)
+                self.log.warning("No indicators file exists at path %s", file_path)
 
         # Load downloaded indicators and any indicators from env variable.
         if load_default:
             self._load_downloaded_indicators()
 
         self._check_stix2_env_variable()
-        self.log.info("Loaded a total of %d unique indicators",
-                      self.total_ioc_count)
+        self.log.info("Loaded a total of %d unique indicators", self.total_ioc_count)
 
     def get_iocs(self, ioc_type: str) -> Iterator[Dict[str, Any]]:
         for ioc_collection in self.ioc_collections:
@@ -249,17 +263,19 @@ class Indicators:
                 # HTTP HEAD request.
                 unshortened = orig_url.unshorten()
 
-                self.log.debug("Found a shortened URL %s -> %s",
-                               url, unshortened)
+                self.log.debug("Found a shortened URL %s -> %s", url, unshortened)
                 if unshortened is None:
                     return None
 
                 # Now we check for any nested URL shorteners.
                 dest_url = URL(unshortened)
                 if dest_url.check_if_shortened():
-                    self.log.debug("Original URL %s appears to shorten another "
-                                   "shortened URL %s ... checking!",
-                                   orig_url.url, dest_url.url)
+                    self.log.debug(
+                        "Original URL %s appears to shorten another "
+                        "shortened URL %s ... checking!",
+                        orig_url.url,
+                        dest_url.url,
+                    )
                     return self.check_domain(dest_url.url)
 
                 final_url = dest_url
@@ -271,9 +287,12 @@ class Indicators:
             # match.
             for ioc in self.get_iocs("domains"):
                 if ioc["value"].lower() in url:
-                    self.log.warning("Maybe found a known suspicious domain %s "
-                                     "matching indicators from \"%s\"",
-                                     url, ioc["name"])
+                    self.log.warning(
+                        "Maybe found a known suspicious domain %s "
+                        'matching indicators from "%s"',
+                        url,
+                        ioc["name"],
+                    )
                     return ioc
 
             # If nothing matched, we can quit here.
@@ -285,27 +304,41 @@ class Indicators:
             # First we check the full domain.
             if final_url.domain.lower() == ioc["value"]:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a known suspicious domain %s "
-                                     "shortened as %s matching indicators from \"%s\"",
-                                     final_url.url, orig_url.url, ioc["name"])
+                    self.log.warning(
+                        "Found a known suspicious domain %s "
+                        'shortened as %s matching indicators from "%s"',
+                        final_url.url,
+                        orig_url.url,
+                        ioc["name"],
+                    )
                 else:
-                    self.log.warning("Found a known suspicious domain %s "
-                                     "matching indicators from \"%s\"",
-                                     final_url.url, ioc["name"])
+                    self.log.warning(
+                        "Found a known suspicious domain %s "
+                        'matching indicators from "%s"',
+                        final_url.url,
+                        ioc["name"],
+                    )
 
                 return ioc
 
             # Then we just check the top level domain.
             if final_url.top_level.lower() == ioc["value"]:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning("Found a sub-domain with suspicious top "
-                                     "level %s shortened as %s matching "
-                                     "indicators from \"%s\"", final_url.url,
-                                     orig_url.url, ioc["name"])
+                    self.log.warning(
+                        "Found a sub-domain with suspicious top "
+                        "level %s shortened as %s matching "
+                        'indicators from "%s"',
+                        final_url.url,
+                        orig_url.url,
+                        ioc["name"],
+                    )
                 else:
-                    self.log.warning("Found a sub-domain with a suspicious top "
-                                     "level %s matching indicators from \"%s\"",
-                                     final_url.url, ioc["name"])
+                    self.log.warning(
+                        "Found a sub-domain with a suspicious top "
+                        'level %s matching indicators from "%s"',
+                        final_url.url,
+                        ioc["name"],
+                    )
 
                 return ioc
 
@@ -344,16 +377,22 @@ class Indicators:
         proc_name = os.path.basename(process)
         for ioc in self.get_iocs("processes"):
             if proc_name == ioc["value"]:
-                self.log.warning("Found a known suspicious process name \"%s\" "
-                                 "matching indicators from \"%s\"",
-                                 process, ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious process name "%s" '
+                    'matching indicators from "%s"',
+                    process,
+                    ioc["name"],
+                )
                 return ioc
 
             if len(proc_name) == 16:
                 if ioc["value"].startswith(proc_name):
-                    self.log.warning("Found a truncated known suspicious "
-                                     "process name \"%s\" matching indicators from \"%s\"",
-                                     process, ioc["name"])
+                    self.log.warning(
+                        "Found a truncated known suspicious "
+                        'process name "%s" matching indicators from "%s"',
+                        process,
+                        ioc["name"],
+                    )
                     return ioc
 
         return None
@@ -390,9 +429,12 @@ class Indicators:
 
         for ioc in self.get_iocs("emails"):
             if email.lower() == ioc["value"].lower():
-                self.log.warning("Found a known suspicious email address \"%s\" "
-                                 "matching indicators from \"%s\"",
-                                 email, ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious email address "%s" '
+                    'matching indicators from "%s"',
+                    email,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -411,9 +453,12 @@ class Indicators:
 
         for ioc in self.get_iocs("file_names"):
             if ioc["value"] == file_name:
-                self.log.warning("Found a known suspicious file name \"%s\" "
-                                 "matching indicators from \"%s\"",
-                                 file_name, ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious file name "%s" '
+                    'matching indicators from "%s"',
+                    file_name,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -439,9 +484,12 @@ class Indicators:
             # Strip any trailing slash from indicator paths to match
             # directories.
             if file_path.startswith(ioc["value"].rstrip("/")):
-                self.log.warning("Found a known suspicious file path \"%s\" "
-                                 "matching indicators form \"%s\"",
-                                 file_path, ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious file path "%s" '
+                    'matching indicators form "%s"',
+                    file_path,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -462,9 +510,12 @@ class Indicators:
         for ioc in self.get_iocs("processes"):
             parts = file_path.split("/")
             if ioc["value"] in parts:
-                self.log.warning("Found known suspicious process name mentioned in file at "
-                                  "path \"%s\" matching indicators from \"%s\"",
-                                  file_path, ioc["name"])
+                self.log.warning(
+                    "Found known suspicious process name mentioned in file at "
+                    'path "%s" matching indicators from "%s"',
+                    file_path,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -484,9 +535,12 @@ class Indicators:
 
         for ioc in self.get_iocs("ios_profile_ids"):
             if profile_uuid in ioc["value"]:
-                self.log.warning("Found a known suspicious profile ID \"%s\" "
-                                 "matching indicators from \"%s\"",
-                                 profile_uuid, ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious profile ID "%s" '
+                    'matching indicators from "%s"',
+                    profile_uuid,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -504,9 +558,12 @@ class Indicators:
 
         for ioc in self.get_iocs("files_sha256"):
             if file_hash.lower() == ioc["value"].lower():
-                self.log.warning("Found a known suspicious file with hash \"%s\" "
-                                 "matching indicators from \"%s\"",
-                                 file_hash, ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious file with hash "%s" '
+                    'matching indicators from "%s"',
+                    file_hash,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -525,9 +582,12 @@ class Indicators:
 
         for ioc in self.get_iocs("app_ids"):
             if app_id.lower() == ioc["value"].lower():
-                self.log.warning("Found a known suspicious app with ID \"%s\" "
-                                 "matching indicators from \"%s\"", app_id,
-                                 ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious app with ID "%s" '
+                    'matching indicators from "%s"',
+                    app_id,
+                    ioc["name"],
+                )
                 return ioc
 
         return None
@@ -545,9 +605,12 @@ class Indicators:
 
         for ioc in self.get_iocs("android_property_names"):
             if property_name.lower() == ioc["value"].lower():
-                self.log.warning("Found a known suspicious Android property \"%s\" "
-                                 "matching indicators from \"%s\"", property_name,
-                                 ioc["name"])
+                self.log.warning(
+                    'Found a known suspicious Android property "%s" '
+                    'matching indicators from "%s"',
+                    property_name,
+                    ioc["name"],
+                )
                 return ioc
 
         return None

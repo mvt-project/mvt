@@ -8,8 +8,7 @@ import os
 import sqlite3
 from typing import Optional, Union
 
-from mvt.common.utils import (convert_chrometime_to_datetime,
-                              convert_datetime_to_iso)
+from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
 
 from .base import AndroidExtraction
 
@@ -24,13 +23,18 @@ class ChromeHistory(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
         self.results = []
 
     def serialize(self, record: dict) -> Union[dict, list]:
@@ -39,7 +43,7 @@ class ChromeHistory(AndroidExtraction):
             "module": self.__class__.__name__,
             "event": "visit",
             "data": f"{record['id']} - {record['url']} (visit ID: {record['visit_id']}, "
-                    f"redirect source: {record['redirect_source']})"
+            f"redirect source: {record['redirect_source']})",
         }
 
     def check_indicators(self) -> None:
@@ -59,7 +63,8 @@ class ChromeHistory(AndroidExtraction):
         assert isinstance(self.results, list)  # assert results type for mypy
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT
                 urls.id,
                 urls.url,
@@ -69,31 +74,35 @@ class ChromeHistory(AndroidExtraction):
             FROM urls
             JOIN visits ON visits.url = urls.id
             ORDER BY visits.visit_time;
-        """)
+        """
+        )
 
         for item in cur:
-            self.results.append({
-                "id": item[0],
-                "url": item[1],
-                "visit_id": item[2],
-                "timestamp": item[3],
-                "isodate": convert_datetime_to_iso(
-                    convert_chrometime_to_datetime(item[3])),
-                "redirect_source": item[4],
-            })
+            self.results.append(
+                {
+                    "id": item[0],
+                    "url": item[1],
+                    "visit_id": item[2],
+                    "timestamp": item[3],
+                    "isodate": convert_datetime_to_iso(
+                        convert_chrometime_to_datetime(item[3])
+                    ),
+                    "redirect_source": item[4],
+                }
+            )
 
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d history items",
-                      len(self.results))
+        self.log.info("Extracted a total of %d history items", len(self.results))
 
     def run(self) -> None:
         self._adb_connect()
 
         try:
-            self._adb_process_file(os.path.join("/", CHROME_HISTORY_PATH),
-                                   self._parse_db)
+            self._adb_process_file(
+                os.path.join("/", CHROME_HISTORY_PATH), self._parse_db
+            )
         except Exception as exc:
             self.log.error(exc)
 

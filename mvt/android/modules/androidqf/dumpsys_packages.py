@@ -6,9 +6,11 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from mvt.android.modules.adb.packages import (DANGEROUS_PERMISSIONS,
-                                              DANGEROUS_PERMISSIONS_THRESHOLD,
-                                              ROOT_PACKAGES)
+from mvt.android.modules.adb.packages import (
+    DANGEROUS_PERMISSIONS,
+    DANGEROUS_PERMISSIONS_THRESHOLD,
+    ROOT_PACKAGES,
+)
 from mvt.android.parsers.dumpsys import parse_dumpsys_packages
 
 from .base import AndroidQFModule
@@ -22,34 +24,43 @@ class DumpsysPackages(AndroidQFModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[List[Dict[str, Any]]] = None
+        results: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         entries = []
         for entry in ["timestamp", "first_install_time", "last_update_time"]:
             if entry in record:
-                entries.append({
-                    "timestamp": record[entry],
-                    "module": self.__class__.__name__,
-                    "event": entry,
-                    "data": f"Package {record['package_name']} "
-                            f"({record['uid']})",
-                })
+                entries.append(
+                    {
+                        "timestamp": record[entry],
+                        "module": self.__class__.__name__,
+                        "event": entry,
+                        "data": f"Package {record['package_name']} "
+                        f"({record['uid']})",
+                    }
+                )
 
         return entries
 
     def check_indicators(self) -> None:
         for result in self.results:
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning("Found an installed package related to "
-                                 "rooting/jailbreaking: \"%s\"",
-                                 result["package_name"])
+                self.log.warning(
+                    "Found an installed package related to "
+                    'rooting/jailbreaking: "%s"',
+                    result["package_name"],
+                )
                 self.detected.append(result)
                 continue
 
@@ -99,8 +110,10 @@ class DumpsysPackages(AndroidQFModule):
                     dangerous_permissions_count += 1
 
             if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
-                self.log.info("Found package \"%s\" requested %d potentially dangerous permissions",
-                              result["package_name"],
-                              dangerous_permissions_count)
+                self.log.info(
+                    'Found package "%s" requested %d potentially dangerous permissions',
+                    result["package_name"],
+                    dangerous_permissions_count,
+                )
 
         self.log.info("Extracted details on %d packages", len(self.results))

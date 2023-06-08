@@ -13,7 +13,6 @@ from .utils import get_artifact_folder
 
 
 class TestCheckBugreportCommand:
-
     def test_check(self):
         runner = CliRunner()
         path = os.path.join(get_artifact_folder(), "android_data/bugreport/")

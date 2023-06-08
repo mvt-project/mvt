@@ -254,7 +254,6 @@ SHORTENER_DOMAINS = [
 
 
 class URL:
-
     def __init__(self, url: str) -> None:
         if isinstance(url, bytes):
             url = url.decode()
@@ -273,9 +272,11 @@ class URL:
         :rtype: str
 
         """
-        return get_tld(self.url,
-                       as_object=True,
-                       fix_protocol=True).parsed_url.netloc.lower().lstrip("www.")
+        return (
+            get_tld(self.url, as_object=True, fix_protocol=True)
+            .parsed_url.netloc.lower()
+            .lstrip("www.")
+        )
 
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
@@ -286,9 +287,7 @@ class URL:
         :rtype: str
 
         """
-        return get_tld(self.url,
-                       as_object=True,
-                       fix_protocol=True).fld.lower()
+        return get_tld(self.url, as_object=True, fix_protocol=True).fld.lower()
 
     def check_if_shortened(self) -> bool:
         """Check if the URL is among list of shortener services.

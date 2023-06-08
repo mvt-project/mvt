@@ -30,13 +30,18 @@ class Shortcuts(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         found_urls = ""
@@ -47,17 +52,20 @@ class Shortcuts(IOSExtraction):
         if record["description"]:
             desc = record["description"].decode("utf-8", errors="ignore")
 
-        return [{
-            "timestamp": record["isodate"],
-            "module": self.__class__.__name__,
-            "event": "shortcut_created",
-            "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
-        }, {
-            "timestamp": record["modified_date"],
-            "module": self.__class__.__name__,
-            "event": "shortcut_modified",
-            "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}"
-        }]
+        return [
+            {
+                "timestamp": record["isodate"],
+                "module": self.__class__.__name__,
+                "event": "shortcut_created",
+                "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}",
+            },
+            {
+                "timestamp": record["modified_date"],
+                "module": self.__class__.__name__,
+                "event": "shortcut_modified",
+                "data": f"iOS Shortcut '{record['shortcut_name'].decode('utf-8')}': {desc} {found_urls}",
+            },
+        ]
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -70,15 +78,17 @@ class Shortcuts(IOSExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=SHORTCUT_BACKUP_IDS,
-                                root_paths=SHORTCUT_ROOT_PATHS)
+        self._find_ios_database(
+            backup_ids=SHORTCUT_BACKUP_IDS, root_paths=SHORTCUT_ROOT_PATHS
+        )
         self.log.info("Found Shortcuts database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
         conn.text_factory = bytes
         cur = conn.cursor()
         try:
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT
                     ZSHORTCUT.Z_PK as "shortcut_id",
                     ZSHORTCUT.ZNAME as "shortcut_name",
@@ -88,9 +98,10 @@ class Shortcuts(IOSExtraction):
                     ZSHORTCUTACTIONS.ZDATA as "action_data"
                 FROM ZSHORTCUT
                 LEFT JOIN ZSHORTCUTACTIONS ON ZSHORTCUTACTIONS.ZSHORTCUT == ZSHORTCUT.Z_PK;
-            """)
+            """
+            )
         except sqlite3.OperationalError:
-            # Table ZSHORTCUT does not exist
+            # Table ZSHORTCUT does not exist
             self.log.info("Invalid shortcut database format, skipping...")
             cur.close()
             conn.close()
@@ -105,8 +116,7 @@ class Shortcuts(IOSExtraction):
                 shortcut[names[index]] = value
 
             try:
-                action_data = plistlib.load(io.BytesIO(
-                    shortcut.pop("action_data", [])))
+                action_data = plistlib.load(io.BytesIO(shortcut.pop("action_data", [])))
                 actions = []
                 for action_entry in action_data:
                     action = {}
@@ -122,15 +132,18 @@ class Shortcuts(IOSExtraction):
                     action["urls"] = [url.rstrip("',") for url in extracted_urls]
                     actions.append(action)
                 shortcut["parsed_actions"] = len(actions)
-                shortcut["action_urls"] = list(itertools.chain(
-                    *[action["urls"] for action in actions]))
+                shortcut["action_urls"] = list(
+                    itertools.chain(*[action["urls"] for action in actions])
+                )
             except plistlib.InvalidFileException:
                 self.log.debug("Shortcut without action data")
                 shortcut["action_urls"] = None
                 shortcut["parsed_actions"] = 0
 
             shortcut["isodate"] = convert_mactime_to_iso(shortcut.pop("created_date"))
-            shortcut["modified_date"] = convert_mactime_to_iso(shortcut["modified_date"])
+            shortcut["modified_date"] = convert_mactime_to_iso(
+                shortcut["modified_date"]
+            )
             self.results.append(shortcut)
 
         cur.close()

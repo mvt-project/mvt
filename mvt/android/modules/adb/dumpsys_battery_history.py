@@ -19,13 +19,18 @@ class DumpsysBatteryHistory(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -45,5 +50,4 @@ class DumpsysBatteryHistory(AndroidExtraction):
 
         self.results = parse_dumpsys_battery_history(output)
 
-        self.log.info("Extracted %d records from battery history",
-                      len(self.results))
+        self.log.info("Extracted %d records from battery history", len(self.results))

@@ -14,7 +14,6 @@ log = logging.getLogger(__name__)
 
 
 class CmdAndroidCheckADB(Command):
-
     def __init__(
         self,
         target_path: Optional[str] = None,
@@ -22,11 +21,17 @@ class CmdAndroidCheckADB(Command):
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
     ) -> None:
-        super().__init__(target_path=target_path, results_path=results_path,
-                         ioc_files=ioc_files, module_name=module_name,
-                         serial=serial, fast_mode=fast_mode, log=log)
+        super().__init__(
+            target_path=target_path,
+            results_path=results_path,
+            ioc_files=ioc_files,
+            module_name=module_name,
+            serial=serial,
+            fast_mode=fast_mode,
+            log=log,
+        )
 
         self.name = "check-adb"
         self.modules = ADB_MODULES

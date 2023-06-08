@@ -28,13 +28,18 @@ class OSAnalyticsADDaily(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -42,9 +47,9 @@ class OSAnalyticsADDaily(IOSExtraction):
             "module": self.__class__.__name__,
             "event": "osanalytics_addaily",
             "data": f"{record['package']} WIFI IN: {record['wifi_in']}, "
-                    f"WIFI OUT: {record['wifi_out']} - "
-                    f"WWAN IN: {record['wwan_in']}, "
-                    f"WWAN OUT: {record['wwan_out']}",
+            f"WIFI OUT: {record['wifi_out']} - "
+            f"WWAN IN: {record['wwan_in']}, "
+            f"WWAN OUT: {record['wwan_out']}",
         }
 
     def check_indicators(self) -> None:
@@ -58,23 +63,30 @@ class OSAnalyticsADDaily(IOSExtraction):
                 self.detected.append(result)
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=OSANALYTICS_ADDAILY_BACKUP_IDS,
-                                root_paths=OSANALYTICS_ADDAILY_ROOT_PATHS)
-        self.log.info("Found com.apple.osanalytics.addaily plist at path: %s",
-                      self.file_path)
+        self._find_ios_database(
+            backup_ids=OSANALYTICS_ADDAILY_BACKUP_IDS,
+            root_paths=OSANALYTICS_ADDAILY_ROOT_PATHS,
+        )
+        self.log.info(
+            "Found com.apple.osanalytics.addaily plist at path: %s", self.file_path
+        )
 
         with open(self.file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
 
         for app, values in file_plist.get("netUsageBaseline", {}).items():
-            self.results.append({
-                "package": app,
-                "ts": convert_datetime_to_iso(values[0]),
-                "wifi_in": values[1],
-                "wifi_out": values[2],
-                "wwan_in": values[3],
-                "wwan_out": values[4],
-            })
+            self.results.append(
+                {
+                    "package": app,
+                    "ts": convert_datetime_to_iso(values[0]),
+                    "wifi_in": values[1],
+                    "wifi_out": values[2],
+                    "wwan_in": values[3],
+                    "wwan_out": values[4],
+                }
+            )
 
-        self.log.info("Extracted a total of %d com.apple.osanalytics.addaily entries",
-                      len(self.results))
+        self.log.info(
+            "Extracted a total of %d com.apple.osanalytics.addaily entries",
+            len(self.results),
+        )

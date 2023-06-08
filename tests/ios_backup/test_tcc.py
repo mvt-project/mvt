@@ -13,7 +13,6 @@ from ..utils import get_ios_backup_folder
 
 
 class TestTCCtModule:
-
     def test_tcc(self):
         m = TCC(target_path=get_ios_backup_folder())
         run_module(m)

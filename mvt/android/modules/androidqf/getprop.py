@@ -22,7 +22,7 @@ INTERESTING_PROPERTIES = [
     "ro.product.locale",
     "ro.product.vendor.manufacturer",
     "ro.product.vendor.model",
-    "ro.product.vendor.name"
+    "ro.product.vendor.name",
 ]
 
 
@@ -34,13 +34,18 @@ class Getprop(AndroidQFModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
         self.results = []
 
     def check_indicators(self) -> None:
@@ -68,9 +73,12 @@ class Getprop(AndroidQFModule):
                 self.log.info("%s: %s", entry["name"], entry["value"])
             if entry["name"] == "ro.build.version.security_patch":
                 last_patch = datetime.strptime(entry["value"], "%Y-%m-%d")
-                if (datetime.now() - last_patch) > timedelta(days=6*31):
-                    self.log.warning("This phone has not received security "
-                                     "updates for more than six months "
-                                     "(last update: %s)", entry["value"])
+                if (datetime.now() - last_patch) > timedelta(days=6 * 31):
+                    self.log.warning(
+                        "This phone has not received security "
+                        "updates for more than six months "
+                        "(last update: %s)",
+                        entry["value"],
+                    )
 
         self.log.info("Extracted a total of %d properties", len(self.results))

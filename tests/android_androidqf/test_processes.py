@@ -14,7 +14,9 @@ from ..utils import get_artifact_folder
 
 class TestAndroidqfProcessesAnalysis:
     def test_androidqf_processes(self):
-        m = Processes(target_path=os.path.join(get_artifact_folder(), "androidqf"), log=logging)
+        m = Processes(
+            target_path=os.path.join(get_artifact_folder(), "androidqf"), log=logging
+        )
         run_module(m)
         assert len(m.results) == 15
         assert len(m.timeline) == 0

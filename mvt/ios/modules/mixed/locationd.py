@@ -16,7 +16,7 @@ LOCATIOND_BACKUP_IDS = [
 ]
 LOCATIOND_ROOT_PATHS = [
     "private/var/mobile/Library/Caches/locationd/clients.plist",
-    "private/var/root/Library/Caches/locationd/clients.plist"
+    "private/var/root/Library/Caches/locationd/clients.plist",
 ]
 
 
@@ -28,13 +28,18 @@ class LocationdClients(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.timestamps = [
             "ConsumptionPeriodBegin",
@@ -52,12 +57,14 @@ class LocationdClients(IOSExtraction):
         records = []
         for timestamp in self.timestamps:
             if timestamp in record.keys():
-                records.append({
-                    "timestamp": record[timestamp],
-                    "module": self.__class__.__name__,
-                    "event": timestamp,
-                    "data": f"{timestamp} from {record['package']}"
-                })
+                records.append(
+                    {
+                        "timestamp": record[timestamp],
+                        "module": self.__class__.__name__,
+                        "event": timestamp,
+                        "data": f"{timestamp} from {record['package']}",
+                    }
+                )
 
         return records
 
@@ -67,12 +74,14 @@ class LocationdClients(IOSExtraction):
 
         for result in self.results:
             parts = result["package"].split("/")
-            proc_name = parts[len(parts)-1]
+            proc_name = parts[len(parts) - 1]
 
             ioc = self.indicators.check_process(proc_name)
             if ioc:
-                self.log.warning("Found a suspicious process name in LocationD entry %s",
-                                 result["package"])
+                self.log.warning(
+                    "Found a suspicious process name in LocationD entry %s",
+                    result["package"],
+                )
                 result["matched_indicator"] = ioc
                 self.detected.append(result)
                 continue
@@ -80,8 +89,10 @@ class LocationdClients(IOSExtraction):
             if "BundlePath" in result:
                 ioc = self.indicators.check_file_path(result["BundlePath"])
                 if ioc:
-                    self.log.warning("Found a suspicious file path in Location D: %s",
-                                     result["BundlePath"])
+                    self.log.warning(
+                        "Found a suspicious file path in Location D: %s",
+                        result["BundlePath"],
+                    )
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -89,8 +100,10 @@ class LocationdClients(IOSExtraction):
             if "Executable" in result:
                 ioc = self.indicators.check_file_path(result["Executable"])
                 if ioc:
-                    self.log.warning("Found a suspicious file path in Location D: %s",
-                                     result["Executable"])
+                    self.log.warning(
+                        "Found a suspicious file path in Location D: %s",
+                        result["Executable"],
+                    )
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -98,8 +111,10 @@ class LocationdClients(IOSExtraction):
             if "Registered" in result:
                 ioc = self.indicators.check_file_path(result["Registered"])
                 if ioc:
-                    self.log.warning("Found a suspicious file path in Location D: %s",
-                                     result["Registered"])
+                    self.log.warning(
+                        "Found a suspicious file path in Location D: %s",
+                        result["Registered"],
+                    )
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
@@ -113,24 +128,25 @@ class LocationdClients(IOSExtraction):
             result["package"] = key
             for timestamp in self.timestamps:
                 if timestamp in result.keys():
-                    result[timestamp] = convert_mactime_to_iso(
-                        result[timestamp])
+                    result[timestamp] = convert_mactime_to_iso(result[timestamp])
 
             self.results.append(result)
 
     def run(self) -> None:
         if self.is_backup:
             self._find_ios_database(backup_ids=LOCATIOND_BACKUP_IDS)
-            self.log.info("Found Locationd Clients plist at path: %s",
-                          self.file_path)
+            self.log.info("Found Locationd Clients plist at path: %s", self.file_path)
             self._extract_locationd_entries(self.file_path)
         elif self.is_fs_dump:
             for locationd_path in self._get_fs_files_from_patterns(
-                    LOCATIOND_ROOT_PATHS):
+                LOCATIOND_ROOT_PATHS
+            ):
                 self.file_path = locationd_path
-                self.log.info("Found Locationd Clients plist at path: %s",
-                              self.file_path)
+                self.log.info(
+                    "Found Locationd Clients plist at path: %s", self.file_path
+                )
                 self._extract_locationd_entries(self.file_path)
 
-        self.log.info("Extracted a total of %d Locationd Clients entries",
-                      len(self.results))
+        self.log.info(
+            "Extracted a total of %d Locationd Clients entries", len(self.results)
+        )

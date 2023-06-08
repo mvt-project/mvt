@@ -13,7 +13,6 @@ from ..utils import get_ios_backup_folder
 
 
 class TestSafariBrowserStateModule:
-
     def test_parsing(self):
         m = SafariBrowserState(target_path=get_ios_backup_folder())
         m.is_backup = True

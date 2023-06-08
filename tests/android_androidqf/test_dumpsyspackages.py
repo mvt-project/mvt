@@ -20,7 +20,10 @@ class TestDumpsysPackagesModule:
         assert len(m.results) == 2
         assert len(m.detected) == 0
         assert len(m.timeline) == 6
-        assert m.results[0]["package_name"] == "com.samsung.android.provider.filterprovider"
+        assert (
+            m.results[0]["package_name"]
+            == "com.samsung.android.provider.filterprovider"
+        )
 
     def test_detection_pkgname(self, indicator_file):
         data_path = get_android_androidqf()

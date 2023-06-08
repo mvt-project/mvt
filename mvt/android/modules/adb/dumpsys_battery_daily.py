@@ -19,13 +19,18 @@ class DumpsysBatteryDaily(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         return {
@@ -33,7 +38,7 @@ class DumpsysBatteryDaily(AndroidExtraction):
             "module": self.__class__.__name__,
             "event": "battery_daily",
             "data": f"Recorded update of package {record['package_name']} "
-                    f"with vers {record['vers']}"
+            f"with vers {record['vers']}",
         }
 
     def check_indicators(self) -> None:
@@ -54,5 +59,6 @@ class DumpsysBatteryDaily(AndroidExtraction):
 
         self.results = parse_dumpsys_battery_daily(output)
 
-        self.log.info("Extracted %d records from battery daily stats",
-                      len(self.results))
+        self.log.info(
+            "Extracted %d records from battery daily stats", len(self.results)
+        )

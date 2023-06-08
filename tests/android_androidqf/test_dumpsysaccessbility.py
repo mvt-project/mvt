@@ -3,8 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from mvt.android.modules.androidqf.dumpsys_accessibility import \
-    DumpsysAccessibility
+from mvt.android.modules.androidqf.dumpsys_accessibility import DumpsysAccessibility
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf

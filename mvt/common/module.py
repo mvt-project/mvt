@@ -35,9 +35,9 @@ class MVTModule:
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None
+        results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
     ) -> None:
         """Initialize module.
 
@@ -70,8 +70,7 @@ class MVTModule:
         with open(json_path, "r", encoding="utf-8") as handle:
             results = json.load(handle)
             if log:
-                log.info("Loaded %d results from \"%s\"",
-                         len(results), json_path)
+                log.info('Loaded %d results from "%s"', len(results), json_path)
             return cls(results=results, log=log)
 
     def get_slug(self) -> str:
@@ -99,20 +98,21 @@ class MVTModule:
 
         if self.results:
             results_file_name = f"{name}.json"
-            results_json_path = os.path.join(self.results_path,
-                                             results_file_name)
+            results_json_path = os.path.join(self.results_path, results_file_name)
             with open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
                     json.dump(self.results, handle, indent=4, default=str)
                 except Exception as exc:
-                    self.log.error("Unable to store results of module %s to file %s: %s",
-                                   self.__class__.__name__, results_file_name,
-                                   exc)
+                    self.log.error(
+                        "Unable to store results of module %s to file %s: %s",
+                        self.__class__.__name__,
+                        results_file_name,
+                        exc,
+                    )
 
         if self.detected:
             detected_file_name = f"{name}_detected.json"
-            detected_json_path = os.path.join(self.results_path,
-                                              detected_file_name)
+            detected_json_path = os.path.join(self.results_path, detected_file_name)
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(self.detected, handle, indent=4, default=str)
 
@@ -151,8 +151,7 @@ class MVTModule:
 
         # De-duplicate timeline entries.
         self.timeline = self._deduplicate_timeline(self.timeline)
-        self.timeline_detected = self._deduplicate_timeline(
-            self.timeline_detected)
+        self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self) -> None:
         """Run the main module procedure."""
@@ -165,42 +164,63 @@ def run_module(module: MVTModule) -> None:
     try:
         module.run()
     except NotImplementedError:
-        module.log.exception("The run() procedure of module %s was not implemented yet!",
-                             module.__class__.__name__)
+        module.log.exception(
+            "The run() procedure of module %s was not implemented yet!",
+            module.__class__.__name__,
+        )
     except InsufficientPrivileges as exc:
-        module.log.info("Insufficient privileges for module %s: %s",
-                        module.__class__.__name__, exc)
+        module.log.info(
+            "Insufficient privileges for module %s: %s", module.__class__.__name__, exc
+        )
     except DatabaseNotFoundError as exc:
-        module.log.info("There might be no data to extract by module %s: %s",
-                        module.__class__.__name__, exc)
+        module.log.info(
+            "There might be no data to extract by module %s: %s",
+            module.__class__.__name__,
+            exc,
+        )
     except DatabaseCorruptedError as exc:
-        module.log.error("The %s module database seems to be corrupted: %s",
-                         module.__class__.__name__, exc)
+        module.log.error(
+            "The %s module database seems to be corrupted: %s",
+            module.__class__.__name__,
+            exc,
+        )
     except Exception as exc:
-        module.log.exception("Error in running extraction from module %s: %s",
-                             module.__class__.__name__, exc)
+        module.log.exception(
+            "Error in running extraction from module %s: %s",
+            module.__class__.__name__,
+            exc,
+        )
     else:
         try:
             module.check_indicators()
         except NotImplementedError:
-            module.log.info("The %s module does not support checking for indicators",
-                            module.__class__.__name__)
+            module.log.info(
+                "The %s module does not support checking for indicators",
+                module.__class__.__name__,
+            )
         except Exception as exc:
-            module.log.exception("Error when checking indicators from module %s: %s",
-                                 module.__class__.__name__, exc)
+            module.log.exception(
+                "Error when checking indicators from module %s: %s",
+                module.__class__.__name__,
+                exc,
+            )
 
         else:
             if module.indicators and not module.detected:
-                module.log.info("The %s module produced no detections!",
-                                module.__class__.__name__)
+                module.log.info(
+                    "The %s module produced no detections!", module.__class__.__name__
+                )
 
         try:
             module.to_timeline()
         except NotImplementedError:
             pass
         except Exception as exc:
-            module.log.exception("Error when serializing data from module %s: %s",
-                                 module.__class__.__name__, exc)
+            module.log.exception(
+                "Error when serializing data from module %s: %s",
+                module.__class__.__name__,
+                exc,
+            )
 
         module.save_to_json()
 
@@ -213,15 +233,19 @@ def save_timeline(timeline: list, timeline_path: str) -> None:
 
     """
     with open(timeline_path, "a+", encoding="utf-8") as handle:
-        csvoutput = csv.writer(handle, delimiter=",", quotechar="\"",
-                               quoting=csv.QUOTE_ALL, escapechar='\\')
+        csvoutput = csv.writer(
+            handle, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL, escapechar="\\"
+        )
         csvoutput.writerow(["UTC Timestamp", "Plugin", "Event", "Description"])
 
-        for event in sorted(timeline, key=lambda x: x["timestamp"]
-                            if x["timestamp"] is not None else ""):
-            csvoutput.writerow([
-                event.get("timestamp"),
-                event.get("module"),
-                event.get("event"),
-                event.get("data"),
-            ])
+        for event in sorted(
+            timeline, key=lambda x: x["timestamp"] if x["timestamp"] is not None else ""
+        ):
+            csvoutput.writerow(
+                [
+                    event.get("timestamp"),
+                    event.get("module"),
+                    event.get("event"),
+                    event.get("data"),
+                ]
+            )

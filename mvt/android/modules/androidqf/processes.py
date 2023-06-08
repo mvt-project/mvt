@@ -17,13 +17,18 @@ class Processes(AndroidQFModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -55,7 +60,7 @@ class Processes(AndroidQFModule):
 
             # Sometimes WCHAN is empty.
             if len(proc) == 8:
-                proc = proc[:5] + [''] + proc[5:]
+                proc = proc[:5] + [""] + proc[5:]
 
             # Sometimes there is the security label.
             if proc[0].startswith("u:r"):
@@ -68,18 +73,20 @@ class Processes(AndroidQFModule):
             if len(proc) < 9:
                 proc = proc[:5] + [""] + proc[5:]
 
-            self.results.append({
-                "user": proc[0],
-                "pid": int(proc[1]),
-                "ppid": int(proc[2]),
-                "virtual_memory_size": int(proc[3]),
-                "resident_set_size": int(proc[4]),
-                "wchan": proc[5],
-                "aprocress": proc[6],
-                "stat": proc[7],
-                "proc_name": proc[8].strip("[]"),
-                "label": label,
-            })
+            self.results.append(
+                {
+                    "user": proc[0],
+                    "pid": int(proc[1]),
+                    "ppid": int(proc[2]),
+                    "virtual_memory_size": int(proc[3]),
+                    "resident_set_size": int(proc[4]),
+                    "wchan": proc[5],
+                    "aprocress": proc[6],
+                    "stat": proc[7],
+                    "proc_name": proc[8].strip("[]"),
+                    "label": label,
+                }
+            )
 
     def run(self) -> None:
         ps_files = self._get_files_by_pattern("*/ps.txt")

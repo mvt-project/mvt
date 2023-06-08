@@ -16,8 +16,10 @@ class MutuallyExclusiveOption(Option):
         help_msg = kwargs.get("help", "")
         if self.mutually_exclusive:
             ex_str = ", ".join(self.mutually_exclusive)
-            kwargs["help"] = (f"{help_msg} NOTE: This argument is mutually exclusive with arguments"
-                              f"[{ex_str}].")
+            kwargs["help"] = (
+                f"{help_msg} NOTE: This argument is mutually exclusive with arguments"
+                f"[{ex_str}]."
+            )
 
         super().__init__(*args, **kwargs)
 

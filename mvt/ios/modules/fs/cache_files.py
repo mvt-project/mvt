@@ -12,29 +12,35 @@ from ..base import IOSExtraction
 
 
 class CacheFiles(IOSExtraction):
-
     def __init__(
         self,
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         records = []
         for item in self.results[record]:
-            records.append({
-                "timestamp": item["isodate"],
-                "module": self.__class__.__name__,
-                "event": "cache_response",
-                "data": f"{record} recorded visit to URL {item['url']}"
-            })
+            records.append(
+                {
+                    "timestamp": item["isodate"],
+                    "module": self.__class__.__name__,
+                    "event": "cache_response",
+                    "data": f"{record} recorded visit to URL {item['url']}",
+                }
+            )
 
         return records
 
@@ -49,7 +55,9 @@ class CacheFiles(IOSExtraction):
                 if ioc:
                     value["matched_indicator"] = ioc
                     if key not in self.detected:
-                        self.detected[key] = [value, ]
+                        self.detected[key] = [
+                            value,
+                        ]
                     else:
                         self.detected[key].append(value)
 
@@ -69,14 +77,16 @@ class CacheFiles(IOSExtraction):
             self.results[key_name] = []
 
         for row in cur:
-            self.results[key_name].append({
-                "entry_id": row[0],
-                "version": row[1],
-                "hash_value": row[2],
-                "storage_policy": row[3],
-                "url": row[4],
-                "isodate": row[5],
-            })
+            self.results[key_name].append(
+                {
+                    "entry_id": row[0],
+                    "version": row[1],
+                    "hash_value": row[2],
+                    "storage_policy": row[3],
+                    "url": row[4],
+                    "isodate": row[5],
+                }
+            )
 
     def run(self) -> None:
         self.results = {}

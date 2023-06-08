@@ -28,13 +28,18 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.results = [] if not results else results
 
@@ -46,7 +51,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             "timestamp": record["last_seen_isodate"],
             "module": self.__class__.__name__,
             "event": "visit",
-            "data": msg
+            "data": msg,
         }
 
     def check_indicators(self) -> None:
@@ -61,8 +66,10 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 self.detected.append(result)
 
     def _process_observations_db(self, db_path: str, domain: str, path: str) -> None:
-        self.log.info("Found WebKit ResourceLoadStatistics observations.db file at path %s",
-                      db_path)
+        self.log.info(
+            "Found WebKit ResourceLoadStatistics observations.db file at path %s",
+            db_path,
+        )
 
         self._recover_sqlite_db_if_needed(db_path)
 
@@ -70,46 +77,59 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            # FIXME: table contains extra fields with timestamp here
-            cur.execute("""
+            # FIXME: table contains extra fields with timestamp here
+            cur.execute(
+                """
                 SELECT
                     domainID,
                     registrableDomain,
                     lastSeen,
                     hadUserInteraction
                 from ObservedDomains;
-            """)
+            """
+            )
         except sqlite3.OperationalError:
             return
 
         for row in cur:
-            self.results.append({
-                "domain_id": row[0],
-                "registrable_domain": row[1],
-                "last_seen": row[2],
-                "had_user_interaction": bool(row[3]),
-                "last_seen_isodate": convert_unix_to_iso(row[2]),
-                "domain": domain,
-                "path": path
-            })
+            self.results.append(
+                {
+                    "domain_id": row[0],
+                    "registrable_domain": row[1],
+                    "last_seen": row[2],
+                    "had_user_interaction": bool(row[3]),
+                    "last_seen_isodate": convert_unix_to_iso(row[2]),
+                    "domain": domain,
+                    "path": path,
+                }
+            )
 
         if len(self.results) > 0:
-            self.log.info("Extracted a total of %d records from %s",
-                          len(self.results), db_path)
+            self.log.info(
+                "Extracted a total of %d records from %s", len(self.results), db_path
+            )
 
     def run(self) -> None:
         if self.is_backup:
             try:
                 for backup_file in self._get_backup_files_from_manifest(
-                        relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH):
+                    relative_path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH
+                ):
                     db_path = self._get_backup_file_from_id(backup_file["file_id"])
 
                     if db_path:
-                        self._process_observations_db(db_path=db_path, domain=backup_file['domain'], path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH)
+                        self._process_observations_db(
+                            db_path=db_path,
+                            domain=backup_file["domain"],
+                            path=WEBKIT_RESOURCELOADSTATICS_BACKUP_RELPATH,
+                        )
             except Exception as exc:
                 self.log.info("Unable to find WebKit observations.db: %s", exc)
         elif self.is_fs_dump:
             for db_path in self._get_fs_files_from_patterns(
-                    WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS):
+                WEBKIT_RESOURCELOADSTATICS_ROOT_PATHS
+            ):
                 db_rel_path = os.path.relpath(db_path, self.target_path)
-                self._process_observations_db(db_path=db_path, domain="", path=db_rel_path)
+                self._process_observations_db(
+                    db_path=db_path, domain="", path=db_rel_path
+                )

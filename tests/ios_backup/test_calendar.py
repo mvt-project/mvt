@@ -13,7 +13,6 @@ from ..utils import get_ios_backup_folder
 
 
 class TestCalendarModule:
-
     def test_calendar(self):
         m = Calendar(target_path=get_ios_backup_folder())
         run_module(m)

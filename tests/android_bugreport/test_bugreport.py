@@ -15,7 +15,6 @@ from ..utils import get_artifact_folder
 
 
 class TestBugreportAnalysis:
-
     def launch_bug_report_module(self, module):
         fpath = os.path.join(get_artifact_folder(), "android_data/bugreport/")
         m = module(target_path=fpath)
@@ -23,7 +22,9 @@ class TestBugreportAnalysis:
         parent_path = Path(fpath).absolute().as_posix()
         for root, subdirs, subfiles in os.walk(os.path.abspath(fpath)):
             for file_name in subfiles:
-                folder_files.append(os.path.relpath(os.path.join(root, file_name), parent_path))
+                folder_files.append(
+                    os.path.relpath(os.path.join(root, file_name), parent_path)
+                )
         m.from_folder(fpath, folder_files)
         run_module(m)
         return m
@@ -37,7 +38,10 @@ class TestBugreportAnalysis:
     def test_packages_module(self):
         m = self.launch_bug_report_module(Packages)
         assert len(m.results) == 2
-        assert m.results[0]["package_name"] == "com.samsung.android.provider.filterprovider"
+        assert (
+            m.results[0]["package_name"]
+            == "com.samsung.android.provider.filterprovider"
+        )
         assert m.results[1]["package_name"] == "com.instagram.android"
         assert len(m.results[0]["permissions"]) == 4
         assert len(m.results[1]["permissions"]) == 32

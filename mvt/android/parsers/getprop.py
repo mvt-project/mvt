@@ -20,10 +20,7 @@ def parse_getprop(output: str) -> List[Dict[str, str]]:
         if not matches or len(matches[0]) != 2:
             continue
 
-        entry = {
-            "name": matches[0][0],
-            "value": matches[0][1]
-        }
+        entry = {"name": matches[0][0], "value": matches[0][1]}
         results.append(entry)
 
     return results

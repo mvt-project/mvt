@@ -12,19 +12,23 @@ from .base import AndroidQFModule
 
 
 class DumpsysAppops(AndroidQFModule):
-
     def __init__(
         self,
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         records = []
@@ -34,13 +38,15 @@ class DumpsysAppops(AndroidQFModule):
 
             for entry in perm["entries"]:
                 if "timestamp" in entry:
-                    records.append({
-                        "timestamp": entry["timestamp"],
-                        "module": self.__class__.__name__,
-                        "event": entry["access"],
-                        "data": f"{record['package_name']} access to "
-                                f"{perm['name']} : {entry['access']}",
-                    })
+                    records.append(
+                        {
+                            "timestamp": entry["timestamp"],
+                            "module": self.__class__.__name__,
+                            "event": entry["access"],
+                            "data": f"{record['package_name']} access to "
+                            f"{perm['name']} : {entry['access']}",
+                        }
+                    )
 
         return records
 
@@ -54,10 +60,14 @@ class DumpsysAppops(AndroidQFModule):
                     continue
 
             for perm in result["permissions"]:
-                if (perm["name"] == "REQUEST_INSTALL_PACKAGES"
-                        and perm["access"] == "allow"):
-                    self.log.info("Package %s with REQUEST_INSTALL_PACKAGES permission",
-                                  result["package_name"])
+                if (
+                    perm["name"] == "REQUEST_INSTALL_PACKAGES"
+                    and perm["access"] == "allow"
+                ):
+                    self.log.info(
+                        "Package %s with REQUEST_INSTALL_PACKAGES permission",
+                        result["package_name"],
+                    )
 
     def run(self) -> None:
         dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
@@ -73,11 +83,12 @@ class DumpsysAppops(AndroidQFModule):
                     continue
 
                 if in_package:
-                    if line.startswith("-------------------------------------------------------------------------------"):  # pylint: disable=line-too-long
+                    if line.startswith(
+                        "-------------------------------------------------------------------------------"
+                    ):  # pylint: disable=line-too-long
                         break
 
                     lines.append(line.rstrip())
 
         self.results = parse_dumpsys_appops("\n".join(lines))
-        self.log.info("Identified %d applications in AppOps Manager",
-                      len(self.results))
+        self.log.info("Identified %d applications in AppOps Manager", len(self.results))

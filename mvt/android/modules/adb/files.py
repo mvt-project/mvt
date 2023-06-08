@@ -30,13 +30,18 @@ class Files(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
         self.full_find = False
 
     def serialize(self, record: dict) -> Union[dict, list, None]:
@@ -53,12 +58,15 @@ class Files(AndroidExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if result.get("is_suid"):
-                self.log.warning("Found an SUID file in a non-standard directory \"%s\".",
-                                 result["path"])
+                self.log.warning(
+                    'Found an SUID file in a non-standard directory "%s".',
+                    result["path"],
+                )
 
             if self.indicators and self.indicators.check_file_path(result["path"]):
-                self.log.warning("Found a known suspicous file at path: \"%s\"",
-                                 result["path"])
+                self.log.warning(
+                    'Found a known suspicous file at path: "%s"', result["path"]
+                )
                 self.detected.append(result)
 
     def backup_file(self, file_path: str) -> None:
@@ -73,13 +81,13 @@ class Files(AndroidExtraction):
         local_file_path = os.path.join(local_files_folder, local_file_name)
 
         try:
-            self._adb_download(remote_path=file_path,
-                               local_path=local_file_path)
+            self._adb_download(remote_path=file_path, local_path=local_file_path)
         except Exception:
             pass
         else:
-            self.log.info("Downloaded file %s to local copy at %s",
-                          file_path, local_file_path)
+            self.log.info(
+                "Downloaded file %s to local copy at %s", file_path, local_file_path
+            )
 
     def find_files(self, folder: str) -> None:
         assert isinstance(self.results, list)
@@ -92,20 +100,21 @@ class Files(AndroidExtraction):
                 if len(file_line) < 6:
                     self.log.info("Skipping invalid file info - %s", file_line.rstrip())
                     continue
-                [unix_timestamp, mode, size,
-                 owner, group, full_path] = file_info
+                [unix_timestamp, mode, size, owner, group, full_path] = file_info
                 mod_time = convert_unix_to_iso(unix_timestamp)
 
-                self.results.append({
-                    "path": full_path,
-                    "modified_time": mod_time,
-                    "mode": mode,
-                    "is_suid": (int(mode, 8) & stat.S_ISUID) == 2048,
-                    "is_sgid": (int(mode, 8) & stat.S_ISGID) == 1024,
-                    "size": size,
-                    "owner": owner,
-                    "group": group,
-                })
+                self.results.append(
+                    {
+                        "path": full_path,
+                        "modified_time": mod_time,
+                        "mode": mode,
+                        "is_suid": (int(mode, 8) & stat.S_ISUID) == 2048,
+                        "is_sgid": (int(mode, 8) & stat.S_ISGID) == 1024,
+                        "size": size,
+                        "owner": owner,
+                        "group": group,
+                    }
+                )
         else:
             output = self._adb_command(f"find '{folder}' -type f 2> /dev/null")
             for file_line in output.splitlines():
@@ -123,15 +132,15 @@ class Files(AndroidExtraction):
             self.find_files(tmp_folder)
 
         for entry in self.results:
-            self.log.info("Found file in tmp folder at path %s",
-                          entry.get("path"))
+            self.log.info("Found file in tmp folder at path %s", entry.get("path"))
             self.backup_file(entry.get("path"))
 
         for media_folder in ANDROID_MEDIA_FOLDERS:
             self.find_files(media_folder)
 
-        self.log.info("Found %s files in primary Android tmp and media folders",
-                      len(self.results))
+        self.log.info(
+            "Found %s files in primary Android tmp and media folders", len(self.results)
+        )
 
         if self.fast_mode:
             self.log.info("Flag --fast was enabled: skipping full file listing")

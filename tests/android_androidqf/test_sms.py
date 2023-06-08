@@ -14,7 +14,9 @@ from ..utils import get_artifact_folder
 
 class TestAndroidqfSMSAnalysis:
     def test_androidqf_sms(self):
-        m = SMS(target_path=os.path.join(get_artifact_folder(), "androidqf"), log=logging)
+        m = SMS(
+            target_path=os.path.join(get_artifact_folder(), "androidqf"), log=logging
+        )
         run_module(m)
         assert len(m.results) == 2
         assert len(m.timeline) == 0

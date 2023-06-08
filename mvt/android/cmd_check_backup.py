@@ -14,9 +14,12 @@ from typing import List, Optional
 from rich.prompt import Prompt
 
 from mvt.android.modules.backup.base import BackupExtraction
-from mvt.android.parsers.backup import (AndroidBackupParsingError,
-                                        InvalidBackupPassword, parse_ab_header,
-                                        parse_backup_file)
+from mvt.android.parsers.backup import (
+    AndroidBackupParsingError,
+    InvalidBackupPassword,
+    parse_ab_header,
+    parse_backup_file,
+)
 from mvt.common.command import Command
 
 from .modules.backup import BACKUP_MODULES
@@ -25,7 +28,6 @@ log = logging.getLogger(__name__)
 
 
 class CmdAndroidCheckBackup(Command):
-
     def __init__(
         self,
         target_path: Optional[str] = None,
@@ -33,13 +35,19 @@ class CmdAndroidCheckBackup(Command):
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
-        hashes: Optional[bool] = False,
+        fast_mode: bool = False,
+        hashes: bool = False,
     ) -> None:
-        super().__init__(target_path=target_path, results_path=results_path,
-                         ioc_files=ioc_files, module_name=module_name,
-                         serial=serial, fast_mode=fast_mode, hashes=hashes,
-                         log=log)
+        super().__init__(
+            target_path=target_path,
+            results_path=results_path,
+            ioc_files=ioc_files,
+            module_name=module_name,
+            serial=serial,
+            fast_mode=fast_mode,
+            hashes=hashes,
+            log=log,
+        )
 
         self.name = "check-backup"
         self.modules = BACKUP_MODULES
@@ -85,16 +93,18 @@ class CmdAndroidCheckBackup(Command):
             self.target_path = Path(self.target_path).absolute().as_posix()
             for root, subdirs, subfiles in os.walk(os.path.abspath(self.target_path)):
                 for fname in subfiles:
-                    self.backup_files.append(os.path.relpath(os.path.join(root, fname),
-                                                             self.target_path))
+                    self.backup_files.append(
+                        os.path.relpath(os.path.join(root, fname), self.target_path)
+                    )
         else:
-            log.critical("Invalid backup path, path should be a folder or an "
-                         "Android Backup (.ab) file")
+            log.critical(
+                "Invalid backup path, path should be a folder or an "
+                "Android Backup (.ab) file"
+            )
             sys.exit(1)
 
     def module_init(self, module: BackupExtraction) -> None:  # type: ignore[override]
         if self.backup_type == "folder":
             module.from_folder(self.target_path, self.backup_files)
         else:
-            module.from_ab(self.target_path, self.backup_archive,
-                           self.backup_files)
+            module.from_ab(self.target_path, self.backup_archive, self.backup_files)

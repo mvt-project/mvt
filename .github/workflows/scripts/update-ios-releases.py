@@ -12,7 +12,7 @@ from packaging import version
 
 def download_apple_rss(feed_url):
     with urllib.request.urlopen(feed_url) as f:
-        rss_feed = f.read().decode('utf-8')
+        rss_feed = f.read().decode("utf-8")
     print("Downloaded RSS feed from Apple.")
     return rss_feed
 
@@ -27,7 +27,10 @@ def parse_latest_ios_versions(rss_feed_text):
             continue
 
         import re
-        build_match = re.match(r"iOS (?P<version>[\d\.]+) (?P<beta>beta )?(\S*)?\((?P<build>.*)\)", title)
+
+        build_match = re.match(
+            r"iOS (?P<version>[\d\.]+) (?P<beta>beta )?(\S*)?\((?P<build>.*)\)", title
+        )
         if not build_match:
             print("Could not parse iOS build:", title)
             continue
@@ -62,16 +65,22 @@ def update_mvt(mvt_checkout_path, latest_ios_versions):
         print("No new iOS versions found.")
     else:
         print("Found {} new iOS versions.".format(new_entry_count))
-        new_version_list = sorted(current_versions, key=lambda x: version.Version(x["version"]))
+        new_version_list = sorted(
+            current_versions, key=lambda x: version.Version(x["version"])
+        )
         with open(version_path, "w") as version_file:
             json.dump(new_version_list, version_file, indent=4)
 
 
 def main():
     print("Downloading RSS feed...")
-    mvt_checkout_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+    mvt_checkout_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../../")
+    )
 
-    rss_feed = download_apple_rss("https://developer.apple.com/news/releases/rss/releases.rss")
+    rss_feed = download_apple_rss(
+        "https://developer.apple.com/news/releases/rss/releases.rss"
+    )
     latest_ios_version = parse_latest_ios_versions(rss_feed)
     update_mvt(mvt_checkout_path, latest_ios_version)
 

@@ -15,7 +15,6 @@ from ..utils import get_android_backup_folder
 
 
 class TestBackupModule:
-
     def test_module_folder(self):
         backup_path = get_android_backup_folder()
         mod = SMS(target_path=backup_path)

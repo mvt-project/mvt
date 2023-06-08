@@ -13,6 +13,14 @@ from .processes import Processes
 from .settings import Settings
 from .sms import SMS
 
-ANDROIDQF_MODULES = [DumpsysActivities, DumpsysReceivers, DumpsysAccessibility,
-                     DumpsysAppops, Processes, Getprop, Settings, SMS,
-                     DumpsysPackages]
+ANDROIDQF_MODULES = [
+    DumpsysActivities,
+    DumpsysReceivers,
+    DumpsysAccessibility,
+    DumpsysAppops,
+    Processes,
+    Getprop,
+    Settings,
+    SMS,
+    DumpsysPackages,
+]

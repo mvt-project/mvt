@@ -209,7 +209,7 @@ QUERIES = [
         LEFT JOIN
             ZCONTACTS
             ON ZINTERACTIONS.ZSENDER = ZCONTACTS.Z_PK
-    """
+    """,
 ]
 
 
@@ -221,13 +221,18 @@ class InteractionC(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.timestamps = [
             "start_date",
@@ -254,22 +259,25 @@ class InteractionC(IOSExtraction):
             if record[timestamp] in processed:
                 continue
 
-            records.append({
-                "timestamp": record[timestamp],
-                "module": self.__class__.__name__,
-                "event": timestamp,
-                "data": f"[{record['bundle_id']}] {record['account']} - "
-                        f"from {record['sender_display_name']} ({record['sender_identifier']}) "
-                        f"to {record.get('recipient_display_name', '')} ({record.get('recipient_identifier', '')}):"
-                        f" {record.get('content', '')}"
-            })
+            records.append(
+                {
+                    "timestamp": record[timestamp],
+                    "module": self.__class__.__name__,
+                    "event": timestamp,
+                    "data": f"[{record['bundle_id']}] {record['account']} - "
+                    f"from {record['sender_display_name']} ({record['sender_identifier']}) "
+                    f"to {record.get('recipient_display_name', '')} ({record.get('recipient_identifier', '')}):"
+                    f" {record.get('content', '')}",
+                }
+            )
             processed.append(record[timestamp])
 
         return records
 
     def run(self) -> None:
-        self._find_ios_database(backup_ids=INTERACTIONC_BACKUP_IDS,
-                                root_paths=INTERACTIONC_ROOT_PATHS)
+        self._find_ios_database(
+            backup_ids=INTERACTIONC_BACKUP_IDS, root_paths=INTERACTIONC_ROOT_PATHS
+        )
         self.log.info("Found InteractionC database at path: %s", self.file_path)
 
         conn = sqlite3.connect(self.file_path)
@@ -287,7 +295,9 @@ class InteractionC(IOSExtraction):
                     try:
                         cur.execute(QUERIES[3])
                     except sqlite3.OperationalError as e:
-                        self.log.info("Error while reading the InteractionC table: %s", e)
+                        self.log.info(
+                            "Error while reading the InteractionC table: %s", e
+                        )
                         return None
 
         names = [description[0] for description in cur.description]
@@ -307,5 +317,4 @@ class InteractionC(IOSExtraction):
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d InteractionC events",
-                      len(self.results))
+        self.log.info("Extracted a total of %d InteractionC events", len(self.results))

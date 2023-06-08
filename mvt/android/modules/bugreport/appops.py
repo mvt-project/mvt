@@ -19,13 +19,18 @@ class Appops(BugReportModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         records = []
@@ -35,13 +40,15 @@ class Appops(BugReportModule):
 
             for entry in perm["entries"]:
                 if "timestamp" in entry:
-                    records.append({
-                        "timestamp": entry["timestamp"],
-                        "module": self.__class__.__name__,
-                        "event": entry["access"],
-                        "data": f"{record['package_name']} access to "
-                                f"{perm['name']}: {entry['access']}",
-                    })
+                    records.append(
+                        {
+                            "timestamp": entry["timestamp"],
+                            "module": self.__class__.__name__,
+                            "event": entry["access"],
+                            "data": f"{record['package_name']} access to "
+                            f"{perm['name']}: {entry['access']}",
+                        }
+                    )
 
         return records
 
@@ -55,16 +62,22 @@ class Appops(BugReportModule):
                     continue
 
             for perm in result["permissions"]:
-                if (perm["name"] == "REQUEST_INSTALL_PACKAGES"
-                        and perm["access"] == "allow"):
-                    self.log.info("Package %s with REQUEST_INSTALL_PACKAGES permission",
-                                  result["package_name"])
+                if (
+                    perm["name"] == "REQUEST_INSTALL_PACKAGES"
+                    and perm["access"] == "allow"
+                ):
+                    self.log.info(
+                        "Package %s with REQUEST_INSTALL_PACKAGES permission",
+                        result["package_name"],
+                    )
 
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
-            self.log.error("Unable to find dumpstate file. "
-                           "Did you provide a valid bug report archive?")
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
         lines = []
@@ -77,12 +90,15 @@ class Appops(BugReportModule):
             if not in_appops:
                 continue
 
-            if line.strip().startswith("------------------------------------------------------------------------------"):  # pylint: disable=line-too-long
+            if line.strip().startswith(
+                "------------------------------------------------------------------------------"
+            ):  # pylint: disable=line-too-long
                 break
 
             lines.append(line)
 
         self.results = parse_dumpsys_appops("\n".join(lines))
 
-        self.log.info("Identified a total of %d packages in App-Ops Manager",
-                      len(self.results))
+        self.log.info(
+            "Identified a total of %d packages in App-Ops Manager", len(self.results)
+        )

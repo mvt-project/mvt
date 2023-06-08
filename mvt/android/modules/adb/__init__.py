@@ -23,8 +23,24 @@ from .settings import Settings
 from .sms import SMS
 from .whatsapp import Whatsapp
 
-ADB_MODULES = [ChromeHistory, SMS, Whatsapp, Processes, Getprop, Settings,
-               SELinuxStatus, DumpsysBatteryHistory, DumpsysBatteryDaily,
-               DumpsysReceivers, DumpsysActivities, DumpsysAccessibility,
-               DumpsysDBInfo, DumpsysFull, DumpsysAppOps, Packages, Logcat,
-               RootBinaries, Files]
+ADB_MODULES = [
+    ChromeHistory,
+    SMS,
+    Whatsapp,
+    Processes,
+    Getprop,
+    Settings,
+    SELinuxStatus,
+    DumpsysBatteryHistory,
+    DumpsysBatteryDaily,
+    DumpsysReceivers,
+    DumpsysActivities,
+    DumpsysAccessibility,
+    DumpsysDBInfo,
+    DumpsysFull,
+    DumpsysAppOps,
+    Packages,
+    Logcat,
+    RootBinaries,
+    Files,
+]

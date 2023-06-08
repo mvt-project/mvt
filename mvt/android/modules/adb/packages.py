@@ -93,59 +93,65 @@ class Packages(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         records = []
 
         timestamps = [
-            {
-                "event": "package_install",
-                "timestamp": record["timestamp"]
-            },
+            {"event": "package_install", "timestamp": record["timestamp"]},
             {
                 "event": "package_first_install",
-                "timestamp": record["first_install_time"]
+                "timestamp": record["first_install_time"],
             },
-            {
-                "event": "package_last_update",
-                "timestamp": record["last_update_time"]
-            },
+            {"event": "package_last_update", "timestamp": record["last_update_time"]},
         ]
 
         for timestamp in timestamps:
-            records.append({
-                "timestamp": timestamp["timestamp"],
-                "module": self.__class__.__name__,
-                "event": timestamp["event"],
-                "data": f"{record['package_name']} (system: {record['system']},"
-                        f" third party: {record['third_party']})",
-            })
+            records.append(
+                {
+                    "timestamp": timestamp["timestamp"],
+                    "module": self.__class__.__name__,
+                    "event": timestamp["event"],
+                    "data": f"{record['package_name']} (system: {record['system']},"
+                    f" third party: {record['third_party']})",
+                }
+            )
 
         return records
 
     def check_indicators(self) -> None:
         for result in self.results:
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning("Found an installed package related to "
-                                 "rooting/jailbreaking: \"%s\"",
-                                 result["package_name"])
+                self.log.warning(
+                    "Found an installed package related to "
+                    'rooting/jailbreaking: "%s"',
+                    result["package_name"],
+                )
                 self.detected.append(result)
                 continue
 
             if result["package_name"] in SECURITY_PACKAGES and result["disabled"]:
-                self.log.warning("Found a security package disabled: \"%s\"",
-                                 result["package_name"])
+                self.log.warning(
+                    'Found a security package disabled: "%s"', result["package_name"]
+                )
 
             if result["package_name"] in SYSTEM_UPDATE_PACKAGES and result["disabled"]:
-                self.log.warning("System OTA update package \"%s\" disabled on the phone",
-                                 result["package_name"])
+                self.log.warning(
+                    'System OTA update package "%s" disabled on the phone',
+                    result["package_name"],
+                )
 
             if not self.indicators:
                 continue
@@ -239,22 +245,24 @@ class Packages(AndroidExtraction):
         for file_path in output.splitlines():
             file_path = file_path.strip()
 
-            md5 = self._adb_command(
-                f"md5sum {file_path}").split(" ", maxsplit=1)[0]
-            sha1 = self._adb_command(
-                f"sha1sum {file_path}").split(" ", maxsplit=1)[0]
-            sha256 = self._adb_command(
-                f"sha256sum {file_path}").split(" ", maxsplit=1)[0]
-            sha512 = self._adb_command(
-                f"sha512sum {file_path}").split(" ", maxsplit=1)[0]
+            md5 = self._adb_command(f"md5sum {file_path}").split(" ", maxsplit=1)[0]
+            sha1 = self._adb_command(f"sha1sum {file_path}").split(" ", maxsplit=1)[0]
+            sha256 = self._adb_command(f"sha256sum {file_path}").split(" ", maxsplit=1)[
+                0
+            ]
+            sha512 = self._adb_command(f"sha512sum {file_path}").split(" ", maxsplit=1)[
+                0
+            ]
 
-            package_files.append({
-                "path": file_path,
-                "md5": md5,
-                "sha1": sha1,
-                "sha256": sha256,
-                "sha512": sha512,
-            })
+            package_files.append(
+                {
+                    "path": file_path,
+                    "md5": md5,
+                    "sha1": sha1,
+                    "sha256": sha256,
+                    "sha512": sha512,
+                }
+            )
 
         return package_files
 
@@ -290,8 +298,7 @@ class Packages(AndroidExtraction):
                 "files": package_files,
             }
 
-            dumpsys_package = self._adb_command(
-                f"dumpsys package {package_name}")
+            dumpsys_package = self._adb_command(f"dumpsys package {package_name}")
             package_details = self.parse_package_for_details(dumpsys_package)
             new_package.update(package_details)
 
@@ -324,10 +331,12 @@ class Packages(AndroidExtraction):
                     dangerous_permissions_count += 1
 
             if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
-                self.log.info("Third-party package \"%s\" requested %d "
-                              "potentially dangerous permissions",
-                              result["package_name"],
-                              dangerous_permissions_count)
+                self.log.info(
+                    'Third-party package "%s" requested %d '
+                    "potentially dangerous permissions",
+                    result["package_name"],
+                    dangerous_permissions_count,
+                )
 
         packages_to_lookup = []
         for result in self.results:
@@ -335,14 +344,18 @@ class Packages(AndroidExtraction):
                 continue
 
             packages_to_lookup.append(result)
-            self.log.info("Found non-system package with name \"%s\" installed by \"%s\" on %s",
-                          result["package_name"], result["installer"],
-                          result["timestamp"])
+            self.log.info(
+                'Found non-system package with name "%s" installed by "%s" on %s',
+                result["package_name"],
+                result["installer"],
+                result["timestamp"],
+            )
 
         if not self.fast_mode:
             self.check_virustotal(packages_to_lookup)
 
-        self.log.info("Extracted at total of %d installed package names",
-                      len(self.results))
+        self.log.info(
+            "Extracted at total of %d installed package names", len(self.results)
+        )
 
         self._adb_disconnect()

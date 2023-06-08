@@ -16,13 +16,20 @@ from typing import Callable, Optional
 from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
 from adb_shell.auth.keygen import keygen, write_public_keyfile
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
-from adb_shell.exceptions import (AdbCommandFailureException, DeviceAuthError,
-                                  UsbDeviceNotFoundError, UsbReadFailedError)
+from adb_shell.exceptions import (
+    AdbCommandFailureException,
+    DeviceAuthError,
+    UsbDeviceNotFoundError,
+    UsbReadFailedError,
+)
 from rich.prompt import Prompt
 from usb1 import USBErrorAccess, USBErrorBusy
 
-from mvt.android.parsers.backup import (InvalidBackupPassword, parse_ab_header,
-                                        parse_backup_file)
+from mvt.android.parsers.backup import (
+    InvalidBackupPassword,
+    parse_ab_header,
+    parse_backup_file,
+)
 from mvt.common.module import InsufficientPrivileges, MVTModule
 
 ADB_KEY_PATH = os.path.expanduser("~/.android/adbkey")
@@ -37,13 +44,18 @@ class AndroidExtraction(MVTModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.device = None
         self.serial = None
@@ -78,36 +90,49 @@ class AndroidExtraction(MVTModule):
             try:
                 self.device = AdbDeviceUsb(serial=self.serial)
             except UsbDeviceNotFoundError:
-                self.log.critical("No device found. Make sure it is connected and unlocked.")
+                self.log.critical(
+                    "No device found. Make sure it is connected and unlocked."
+                )
                 sys.exit(-1)
         # Otherwise we try to use the TCP transport.
         else:
             addr = self.serial.split(":")
             if len(addr) < 2:
-                raise ValueError("TCP serial number must follow the format: `address:port`")
+                raise ValueError(
+                    "TCP serial number must follow the format: `address:port`"
+                )
 
-            self.device = AdbDeviceTcp(addr[0], int(addr[1]),
-                                       default_transport_timeout_s=30.)
+            self.device = AdbDeviceTcp(
+                addr[0], int(addr[1]), default_transport_timeout_s=30.0
+            )
 
         while True:
             try:
                 self.device.connect(rsa_keys=[signer], auth_timeout_s=5)
             except (USBErrorBusy, USBErrorAccess):
-                self.log.critical("Device is busy, maybe run `adb kill-server` and try again.")
+                self.log.critical(
+                    "Device is busy, maybe run `adb kill-server` and try again."
+                )
                 sys.exit(-1)
             except DeviceAuthError:
-                self.log.error("You need to authorize this computer on the Android device. "
-                               "Retrying in 5 seconds...")
+                self.log.error(
+                    "You need to authorize this computer on the Android device. "
+                    "Retrying in 5 seconds..."
+                )
                 time.sleep(5)
             except UsbReadFailedError:
-                self.log.error("Unable to connect to the device over USB. "
-                               "Try to unplug, plug the device and start again.")
+                self.log.error(
+                    "Unable to connect to the device over USB. "
+                    "Try to unplug, plug the device and start again."
+                )
                 sys.exit(-1)
             except OSError as exc:
                 if exc.errno == 113 and self.serial:
-                    self.log.critical("Unable to connect to the device %s: "
-                                      "did you specify the correct IP address?",
-                                      self.serial)
+                    self.log.critical(
+                        "Unable to connect to the device %s: "
+                        "did you specify the correct IP address?",
+                        self.serial,
+                    )
                     sys.exit(-1)
             else:
                 break
@@ -144,9 +169,11 @@ class AndroidExtraction(MVTModule):
     def _adb_root_or_die(self) -> None:
         """Check if we have a `su` binary, otherwise raise an Exception."""
         if not self._adb_check_if_root():
-            raise InsufficientPrivileges("This module is optionally available "
-                                         "in case the device is already rooted."
-                                         " Do NOT root your own device!")
+            raise InsufficientPrivileges(
+                "This module is optionally available "
+                "in case the device is already rooted."
+                " Do NOT root your own device!"
+            )
 
     def _adb_command_as_root(self, command):
         """Execute an adb shell command.
@@ -177,7 +204,7 @@ class AndroidExtraction(MVTModule):
         remote_path: str,
         local_path: str,
         progress_callback: Optional[Callable] = None,
-        retry_root: Optional[bool] = True
+        retry_root: Optional[bool] = True,
     ) -> None:
         """Download a file form the device.
 
@@ -192,41 +219,48 @@ class AndroidExtraction(MVTModule):
             self.device.pull(remote_path, local_path, progress_callback)
         except AdbCommandFailureException as exc:
             if retry_root:
-                self._adb_download_root(remote_path, local_path,
-                                        progress_callback)
+                self._adb_download_root(remote_path, local_path, progress_callback)
             else:
-                raise Exception(f"Unable to download file {remote_path}: {exc}") from exc
+                raise Exception(
+                    f"Unable to download file {remote_path}: {exc}"
+                ) from exc
 
     def _adb_download_root(
         self,
         remote_path: str,
         local_path: str,
-        progress_callback: Optional[Callable] = None
+        progress_callback: Optional[Callable] = None,
     ) -> None:
         try:
             # Check if we have root, if not raise an Exception.
             self._adb_root_or_die()
 
             # We generate a random temporary filename.
-            allowed_chars = (string.ascii_uppercase
-                             + string.ascii_lowercase
-                             + string.digits)
-            tmp_filename = "tmp_" + ''.join(random.choices(allowed_chars, k=10))
+            allowed_chars = (
+                string.ascii_uppercase + string.ascii_lowercase + string.digits
+            )
+            tmp_filename = "tmp_" + "".join(random.choices(allowed_chars, k=10))
 
             # We create a temporary local file.
             new_remote_path = f"/sdcard/{tmp_filename}"
 
             # We copy the file from the data folder to /sdcard/.
             cp_output = self._adb_command_as_root(f"cp {remote_path} {new_remote_path}")
-            if cp_output.startswith("cp: ") and "No such file or directory" in cp_output:
+            if (
+                cp_output.startswith("cp: ")
+                and "No such file or directory" in cp_output
+            ):
                 raise Exception(f"Unable to process file {remote_path}: File not found")
             if cp_output.startswith("cp: ") and "Permission denied" in cp_output:
-                raise Exception(f"Unable to process file {remote_path}: Permission denied")
+                raise Exception(
+                    f"Unable to process file {remote_path}: Permission denied"
+                )
 
             # We download from /sdcard/ to the local temporary file.
             # If it doesn't work now, don't try again (retry_root=False)
-            self._adb_download(new_remote_path, local_path, progress_callback,
-                               retry_root=False)
+            self._adb_download(
+                new_remote_path, local_path, progress_callback, retry_root=False
+            )
 
             # Delete the copy on /sdcard/.
             self._adb_command(f"rm -rf {new_remote_path}")
@@ -234,8 +268,7 @@ class AndroidExtraction(MVTModule):
         except AdbCommandFailureException as exc:
             raise Exception(f"Unable to download file {remote_path}: {exc}") from exc
 
-    def _adb_process_file(self, remote_path: str,
-                          process_routine: Callable) -> None:
+    def _adb_process_file(self, remote_path: str, process_routine: Callable) -> None:
         """Download a local copy of a file which is only accessible as root.
         This is a wrapper around process_routine.
 
@@ -273,8 +306,10 @@ class AndroidExtraction(MVTModule):
         self._adb_command(f"rm -f {new_remote_path}")
 
     def _generate_backup(self, package_name: str) -> bytes:
-        self.log.info("Please check phone and accept Android backup prompt. "
-                      "You may need to set a backup password. \a")
+        self.log.info(
+            "Please check phone and accept Android backup prompt. "
+            "You may need to set a backup password. \a"
+        )
 
         # TODO: Base64 encoding as temporary fix to avoid byte-mangling over
         #       the shell transport...
@@ -284,19 +319,19 @@ class AndroidExtraction(MVTModule):
         header = parse_ab_header(backup_output)
 
         if not header["backup"]:
-            self.log.error("Extracting SMS via Android backup failed. "
-                           "No valid backup data found.")
+            self.log.error(
+                "Extracting SMS via Android backup failed. "
+                "No valid backup data found."
+            )
             return None
 
         if header["encryption"] == "none":
             return parse_backup_file(backup_output, password=None)
 
         for _ in range(0, 3):
-            backup_password = Prompt.ask("Enter backup password",
-                                         password=True)
+            backup_password = Prompt.ask("Enter backup password", password=True)
             try:
-                decrypted_backup_tar = parse_backup_file(backup_output,
-                                                         backup_password)
+                decrypted_backup_tar = parse_backup_file(backup_output, backup_password)
                 return decrypted_backup_tar
             except InvalidBackupPassword:
                 self.log.error("You provided the wrong password! Please try again...")

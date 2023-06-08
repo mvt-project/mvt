@@ -26,9 +26,27 @@ from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
 
-MIXED_MODULES = [Calls, ChromeFavicon, ChromeHistory, Contacts, FirefoxFavicon,
-                 FirefoxHistory, IDStatusCache, InteractionC, LocationdClients,
-                 OSAnalyticsADDaily, Datausage, SafariBrowserState, SafariHistory,
-                 TCC, SMS, SMSAttachments, WebkitResourceLoadStatistics,
-                 WebkitSessionResourceLog, Whatsapp, Shortcuts, Applications,
-                 Calendar]
+MIXED_MODULES = [
+    Calls,
+    ChromeFavicon,
+    ChromeHistory,
+    Contacts,
+    FirefoxFavicon,
+    FirefoxHistory,
+    IDStatusCache,
+    InteractionC,
+    LocationdClients,
+    OSAnalyticsADDaily,
+    Datausage,
+    SafariBrowserState,
+    SafariHistory,
+    TCC,
+    SMS,
+    SMSAttachments,
+    WebkitResourceLoadStatistics,
+    WebkitSessionResourceLog,
+    Whatsapp,
+    Shortcuts,
+    Applications,
+    Calendar,
+]

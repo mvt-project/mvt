@@ -53,7 +53,7 @@ ANDROID_DANGEROUS_SETTINGS = [
         "description": "enabled installation of non Google Play apps",
         "key": "install_non_market_apps",
         "safe_value": "0",
-    }
+    },
 ]
 
 
@@ -65,13 +65,18 @@ class Settings(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.results = {} if not results else results
 
@@ -82,8 +87,12 @@ class Settings(AndroidExtraction):
                     # Check if one of the dangerous settings is using an unsafe
                     # value (different than the one specified).
                     if danger["key"] == key and danger["safe_value"] != value:
-                        self.log.warning("Found suspicious setting \"%s = %s\" (%s)",
-                                         key, value, danger["description"])
+                        self.log.warning(
+                            'Found suspicious setting "%s = %s" (%s)',
+                            key,
+                            value,
+                            danger["description"],
+                        )
                         break
 
     def run(self) -> None:

@@ -19,13 +19,18 @@ class SELinuxStatus(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: Optional[bool] = False,
+        fast_mode: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None
+        results: Optional[list] = None,
     ) -> None:
-        super().__init__(file_path=file_path, target_path=target_path,
-                         results_path=results_path, fast_mode=fast_mode,
-                         log=log, results=results)
+        super().__init__(
+            file_path=file_path,
+            target_path=target_path,
+            results_path=results_path,
+            fast_mode=fast_mode,
+            log=log,
+            results=results,
+        )
 
         self.results = {} if not results else results
 
@@ -40,4 +45,4 @@ class SELinuxStatus(AndroidExtraction):
         if status == "enforcing":
             self.log.info("SELinux is being regularly enforced")
         else:
-            self.log.warning("SELinux status is \"%s\"!", status)
+            self.log.warning('SELinux status is "%s"!', status)

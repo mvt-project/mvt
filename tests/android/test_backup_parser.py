@@ -11,7 +11,6 @@ from ..utils import get_artifact
 
 
 class TestBackupParsing:
-
     def test_parsing_noencryption(self):
         file = get_artifact("android_backup/backup.ab")
         with open(file, "rb") as f:
@@ -20,7 +19,10 @@ class TestBackupParsing:
 
         m = hashlib.sha256()
         m.update(ddata)
-        assert m.hexdigest() == "ce1ac5009fea5187a9f546b51e1446ba450243ae91d31dc779233ec0937b5d18"
+        assert (
+            m.hexdigest()
+            == "ce1ac5009fea5187a9f546b51e1446ba450243ae91d31dc779233ec0937b5d18"
+        )
         sms = parse_tar_for_sms(ddata)
         assert isinstance(sms, list)
         assert len(sms) == 2
@@ -35,7 +37,10 @@ class TestBackupParsing:
 
         m = hashlib.sha256()
         m.update(ddata)
-        assert m.hexdigest() == "f365ace1effbc4902c6aeba241ca61544f8a96ad456c1861808ea87b7dd03896"
+        assert (
+            m.hexdigest()
+            == "f365ace1effbc4902c6aeba241ca61544f8a96ad456c1861808ea87b7dd03896"
+        )
         sms = parse_tar_for_sms(ddata)
         assert isinstance(sms, list)
         assert len(sms) == 1
@@ -50,7 +55,10 @@ class TestBackupParsing:
 
         m = hashlib.sha256()
         m.update(ddata)
-        assert m.hexdigest() == "33e73df2ede9798dcb3a85c06200ee41c8f52dd2f2e50ffafcceb0407bc13e3a"
+        assert (
+            m.hexdigest()
+            == "33e73df2ede9798dcb3a85c06200ee41c8f52dd2f2e50ffafcceb0407bc13e3a"
+        )
         sms = parse_tar_for_sms(ddata)
         print(sms)
         assert isinstance(sms, list)
