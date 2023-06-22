@@ -868,6 +868,10 @@
         "build": "19H349"
     },
     {
+        "version": "15.7.7",
+        "build": "19H357"
+    },
+    {
         "build": "20A362",
         "version": "16.0"
     },
@@ -919,5 +923,9 @@
         "version": "16.5",
         "beta": null,
         "build": "20F66"
+    },
+    {
+        "version": "16.5.1",
+        "build": "20F75"
     }
 ]
