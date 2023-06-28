@@ -158,6 +158,7 @@ class Manifest(IOSExtraction):
                         "mode": oct(self._get_key(file_metadata, "Mode")),
                         "owner": self._get_key(file_metadata, "UserID"),
                         "size": self._get_key(file_metadata, "Size"),
+                        "type": "file" if file_data["flags"] == 1 else "directory",
                     })
                 except Exception:
                     self.log.exception("Error reading manifest file metadata for file with ID %s "

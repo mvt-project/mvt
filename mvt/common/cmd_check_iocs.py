@@ -7,6 +7,7 @@ import logging
 import os
 from typing import Optional
 
+from mvt.common.module import PostAnalysisModule
 from mvt.common.command import Command
 
 log = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class CmdCheckIOCS(Command):
     def run(self) -> None:
         assert self.target_path is not None
         all_modules = []
+        post_modules = []
         for entry in self.modules:
             if entry not in all_modules:
                 all_modules.append(entry)
@@ -43,18 +45,24 @@ class CmdCheckIOCS(Command):
             name_only, _ = os.path.splitext(file_name)
             file_path = os.path.join(self.target_path, file_name)
 
-            for iocs_module in all_modules:
-                if self.module_name and iocs_module.__name__ != self.module_name:
+            for module in all_modules:
+                if self.module_name and module.__name__ != self.module_name:
                     continue
 
-                if iocs_module().get_slug() != name_only:
+                # Handle post-analysis modules at the end
+                if issubclass(module, PostAnalysisModule) and module not in post_modules:
+                    post_modules.append(module)
+                    continue
+
+                # Skip if the current result file does not match the module name
+                if module().get_slug() != name_only:
                     continue
 
                 log.info("Loading results from \"%s\" with module %s",
-                         file_name, iocs_module.__name__)
+                         file_name, module.__name__)
 
-                m = iocs_module.from_json(file_path,
-                                          log=logging.getLogger(iocs_module.__module__))
+                m = module.from_json(file_path,
+                                     log=logging.getLogger(module.__module__))
                 if self.iocs.total_ioc_count > 0:
                     m.indicators = self.iocs
                     m.indicators.log = m.log
@@ -65,6 +73,13 @@ class CmdCheckIOCS(Command):
                     continue
                 else:
                     total_detections += len(m.detected)
+
+        # Run post-analysis modules at end
+        for post_module in post_modules:
+            m = post_module.from_results(self.target_path, log=log)
+            m.run()
+            total_detections += len(m.detected)
+
 
         if total_detections > 0:
             log.warning("The check of the results produced %d detections!",

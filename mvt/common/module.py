@@ -7,6 +7,7 @@ import csv
 import logging
 import os
 import re
+import glob
 from typing import Any, Dict, List, Optional, Union
 
 import simplejson as json
@@ -225,3 +226,51 @@ def save_timeline(timeline: list, timeline_path: str) -> None:
                 event.get("event"),
                 event.get("data"),
             ])
+
+
+class PostAnalysisModule(MVTModule):
+    """
+    Base module for implementing post-processing rules against the output of
+    multiple MVT modules
+    """
+    @classmethod
+    def from_results(cls, results_path: str, log: logging.Logger):
+        results = cls.load_results(results_path, log=log)
+        return cls(results=results, log=log)
+
+    @classmethod
+    def load_results(cls, results_path: str, log: logging.Logger):
+        """Load the results from a directory of json file."""
+        # TODO: Move this to run once before loading all post-processing modules
+        module_results = {}
+        for json_path in glob.glob(os.path.join(results_path, "*.json")):
+            module_name, _ = os.path.splitext(os.path.basename(json_path))
+            with open(json_path, "r", encoding="utf-8") as handle:
+                try:
+                    module_results[module_name] = json.load(handle)
+                except Exception as exc:
+                    log.error("Unable to load results from file %s: %s",
+                              json_path, exc)
+
+        if not module_results:
+            log.error("Did not find any MVT results at %s", results_path)
+
+        return module_results
+
+    def load_timeline(self):
+        """Load timeline from CSV file"""
+        timeline = []
+        timeline_path = os.path.join(self.results_path, "timeline.csv")
+        with open(timeline_path, "r", encoding="utf-8") as handle:
+            csvinput = csv.reader(handle, delimiter=",", quotechar="\"",
+                                  quoting=csv.QUOTE_ALL, escapechar='\\')
+            for row in csvinput:
+                if row[0] == "UTC Timestamp":
+                    continue
+                timeline.append({
+                    "timestamp": row[0],
+                    "module": row[1],
+                    "event": row[2],
+                    "data": row[3],
+                })
+        return timeline

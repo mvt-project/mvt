@@ -33,6 +33,7 @@ class Command:
     ) -> None:
         self.name = ""
         self.modules = []
+        self.modules_post = []
 
         self.target_path = target_path
         self.results_path = results_path
@@ -139,7 +140,7 @@ class Command:
     def list_modules(self) -> None:
         self.log.info("Following is the list of available %s modules:",
                       self.name)
-        for module in self.modules:
+        for module in (self.modules + self.modules_post):
             self.log.info(" - %s", module.__name__)
 
     def init(self) -> None:

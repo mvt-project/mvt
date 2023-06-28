@@ -26,6 +26,7 @@ from .decrypt import DecryptBackup
 from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
+from .modules.post_analysis import POST_ANALYSIS_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")
@@ -234,7 +235,7 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
     cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
-    cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES
+    cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES + POST_ANALYSIS_MODULES
 
     if list_modules:
         cmd.list_modules()
