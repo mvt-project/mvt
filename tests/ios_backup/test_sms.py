@@ -17,7 +17,7 @@ class TestSMSModule:
         m = SMS(target_path=get_ios_backup_folder())
         run_module(m)
         assert len(m.results) == 1
-        assert len(m.timeline) == 1
+        assert len(m.timeline) == 2  # SMS received and read events.
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
