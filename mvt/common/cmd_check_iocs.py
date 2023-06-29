@@ -8,6 +8,7 @@ import os
 from typing import Optional
 
 from mvt.common.command import Command
+from mvt.common.utils import exec_or_profile
 
 log = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ class CmdCheckIOCS(Command):
                     m.indicators.log = m.log
 
                 try:
-                    m.check_indicators()
+                    exec_or_profile("m.check_indicators()", globals(), locals())
                 except NotImplementedError:
                     continue
                 else:

@@ -8,6 +8,7 @@ import hashlib
 import logging
 import os
 import re
+import cProfile
 from typing import Any, Iterator, Union
 
 from rich.logging import RichHandler
@@ -225,3 +226,11 @@ def set_verbose_logging(verbose: bool = False):
         handler.setLevel(logging.DEBUG)
     else:
         handler.setLevel(logging.INFO)
+
+
+def exec_or_profile(module, globals, locals):
+    """Hook for profiling MVT modules"""
+    if int(os.environ.get("MVT_PROFILE", False)):
+        cProfile.runctx(module, globals, locals)
+    else:
+        exec(module, globals, locals)

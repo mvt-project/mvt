@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional, Union
 
 import simplejson as json
 
+from .utils import exec_or_profile
+
 
 class DatabaseNotFoundError(Exception):
     pass
@@ -162,7 +164,7 @@ def run_module(module: MVTModule) -> None:
     module.log.info("Running module %s...", module.__class__.__name__)
 
     try:
-        module.run()
+        exec_or_profile("module.run()", globals(), locals())
     except NotImplementedError:
         module.log.exception(
             "The run() procedure of module %s was not implemented yet!",
@@ -192,7 +194,7 @@ def run_module(module: MVTModule) -> None:
         )
     else:
         try:
-            module.check_indicators()
+            exec_or_profile("module.check_indicators()", globals(), locals())
         except NotImplementedError:
             module.log.info(
                 "The %s module does not support checking for indicators",
