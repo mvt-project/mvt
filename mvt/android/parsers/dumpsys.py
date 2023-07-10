@@ -339,6 +339,17 @@ def parse_dumpsys_appops(output: str) -> List[Dict[str, Any]]:
 
         if line.startswith("  Uid "):
             uid = line[6:-1]
+            if entry:
+                perm["entries"].append(entry)
+                entry = {}
+
+            if package:
+                if perm:
+                    package["permissions"].append(perm)
+
+                perm = {}
+                results.append(package)
+            package = {}
             continue
 
         if line.startswith("    Package "):
@@ -360,7 +371,7 @@ def parse_dumpsys_appops(output: str) -> List[Dict[str, Any]]:
             }
             continue
 
-        if line.startswith("      ") and line[6] != " ":
+        if package and line.startswith("      ") and line[6] != " ":
             if entry:
                 perm["entries"].append(entry)
                 entry = {}
