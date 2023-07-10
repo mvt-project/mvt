@@ -3,12 +3,12 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import cProfile
 import datetime
 import hashlib
 import logging
 import os
 import re
-import cProfile
 from typing import Any, Iterator, Union
 
 from rich.logging import RichHandler

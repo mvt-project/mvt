@@ -6,8 +6,8 @@
 import json
 import logging
 import os
-from typing import Any, Dict, Iterator, List, Optional, Union
 from functools import lru_cache
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import ahocorasick
 from appdirs import user_data_dir

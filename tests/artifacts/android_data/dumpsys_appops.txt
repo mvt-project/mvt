@@ -98,3 +98,22 @@ Current AppOps Service state:
       TOAST_WINDOW (allow):
       READ_EXTERNAL_STORAGE (allow):
       WRITE_EXTERNAL_STORAGE (allow):
+  Uid u0a110:
+    state=cch
+      COARSE_LOCATION: mode=ignore
+      LEGACY_STORAGE: mode=allow
+    Package org.fdroid.fdroid:
+      SYSTEM_ALERT_WINDOW (default):
+          Reject: [top-s]2021-10-25 23:46:46.738 (-100d15h17m19s123ms) proxy[uid=0, pkg=null]
+      TOAST_WINDOW (allow):
+          Access: [bg-s] 2022-01-24 05:16:25.882 (-10d8h47m39s979ms) duration=+1s942ms proxy[uid=0, pkg=null]
+          Access: [cch-s] 2021-11-19 05:10:10.740 (-76d8h53m55s121ms) proxy[uid=0, pkg=null]
+      READ_EXTERNAL_STORAGE (allow):
+      WRITE_EXTERNAL_STORAGE (allow):
+      RUN_IN_BACKGROUND (allow):
+          Access: [top-s] 2022-02-02 23:20:35.135 (-14h43m30s726ms) proxy[uid=0, pkg=null]
+          Access: [bg-s] 2022-02-03 11:24:26.636 (-2h39m39s225ms) proxy[uid=0, pkg=null]
+          Access: [cch-s] 2022-02-03 11:24:25.771 (-2h39m40s90ms) proxy[uid=0, pkg=null]
+      REQUEST_INSTALL_PACKAGES (allow):
+          Access: [top-s] 2022-02-02 23:20:13.096 (-14h43m52s765ms) proxy[uid=0, pkg=null]
+      REQUEST_DELETE_PACKAGES (allow):

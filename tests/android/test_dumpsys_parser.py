@@ -20,7 +20,7 @@ class TestDumpsysParsing:
 
         res = parse_dumpsys_appops(data)
 
-        assert len(res) == 12
+        assert len(res) == 13
         assert res[0]["package_name"] == "com.android.phone"
         assert res[0]["uid"] == "0"
         assert len(res[0]["permissions"]) == 1
