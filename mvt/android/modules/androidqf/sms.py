@@ -3,8 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1
 
-import getpass
 import logging
+from rich.prompt import Prompt
 from typing import Optional
 
 from mvt.android.parsers.backup import (
@@ -56,13 +56,25 @@ class SMS(AndroidQFModule):
             self.log.critical("Invalid backup format, backup.ab was not analysed")
             return
 
+        # the default is to allow interactivity
+        interactive = "interactive" not in self.module_options or self.module_options["interactive"]
         password = None
         if header["encryption"] != "none":
-            password = getpass.getpass(prompt="Backup Password: ", stream=None)
+            if "backup_password" in self.module_options:
+                password = self.module_options["backup_password"]
+            elif interactive:
+                password = Prompt.ask(prompt="Enter backup password", password=True)
+            else:
+                self.log.warning(
+                    "Cannot decrypt backup, because interactivity"
+                    " was disabled and the password was not"
+                    " supplied"
+                )
         try:
             tardata = parse_backup_file(data, password=password)
         except InvalidBackupPassword:
-            self.log.critical("Invalid backup password")
+            if "backup_password" in self.module_options or interactive:
+                self.log.critical("Invalid backup password")
             return
         except AndroidBackupParsingError:
             self.log.critical(
