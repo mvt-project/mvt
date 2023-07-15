@@ -1,21 +1,19 @@
 name: Ruff
-on: [push]
-
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 jobs:
   ruff_py3:
     name: Ruff syntax check
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.9
-          architecture: x64
       - name: Checkout
         uses: actions/checkout@master
       - name: Install Dependencies
         run: |
-          pip install ruff
+          pip install --user ruff
       - name: ruff
         run: |
-          ruff check .
+          ruff --format=github .
