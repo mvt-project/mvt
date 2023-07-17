@@ -221,7 +221,7 @@ class InteractionC(IOSExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: bool = False,
+        module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
         results: Optional[list] = None,
     ) -> None:
@@ -229,7 +229,7 @@ class InteractionC(IOSExtraction):
             file_path=file_path,
             target_path=target_path,
             results_path=results_path,
-            fast_mode=fast_mode,
+            module_options=module_options,
             log=log,
             results=results,
         )

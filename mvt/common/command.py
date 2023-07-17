@@ -28,7 +28,7 @@ class Command:
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: bool = False,
+        module_options: Optional[dict] = None,
         hashes: bool = False,
         log: logging.Logger = logging.getLogger(__name__),
     ) -> None:
@@ -40,8 +40,12 @@ class Command:
         self.ioc_files = ioc_files if ioc_files else []
         self.module_name = module_name
         self.serial = serial
-        self.fast_mode = fast_mode
         self.log = log
+
+        # This dictionary can contain options that will be passed down from
+        # the Command to all modules. This can for example be used to pass
+        # down a password to decrypt a backup or flags which are need by some modules.
+        self.module_options = module_options if module_options else {}
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
@@ -172,7 +176,7 @@ class Command:
             m = module(
                 target_path=self.target_path,
                 results_path=self.results_path,
-                fast_mode=self.fast_mode,
+                module_options=self.module_options,
                 log=module_logger,
             )
 

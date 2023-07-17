@@ -21,7 +21,7 @@ class CmdCheckIOCS(Command):
         ioc_files: Optional[list] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
-        fast_mode: bool = False,
+        module_options: Optional[dict] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -29,7 +29,7 @@ class CmdCheckIOCS(Command):
             ioc_files=ioc_files,
             module_name=module_name,
             serial=serial,
-            fast_mode=fast_mode,
+            module_options=module_options,
             log=log,
         )
 

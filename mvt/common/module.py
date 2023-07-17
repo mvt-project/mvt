@@ -37,7 +37,7 @@ class MVTModule:
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: bool = False,
+        module_options: Optional[Dict[str, Any]] = None,
         log: logging.Logger = logging.getLogger(__name__),
         results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
     ) -> None:
@@ -59,7 +59,7 @@ class MVTModule:
         self.file_path = file_path
         self.target_path = target_path
         self.results_path = results_path
-        self.fast_mode = fast_mode
+        self.module_options = module_options if module_options else {}
         self.log = log
         self.indicators = None
         self.results = results if results else []

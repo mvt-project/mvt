@@ -145,12 +145,14 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
 @click.pass_context
 def check_adb(ctx, serial, iocs, output, fast, list_modules, module, verbose):
     set_verbose_logging(verbose)
+    module_options = {"fast_mode": fast}
+
     cmd = CmdAndroidCheckADB(
         results_path=output,
         ioc_files=iocs,
         module_name=module,
         serial=serial,
-        fast_mode=fast,
+        module_options=module_options,
     )
 
     if list_modules:

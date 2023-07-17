@@ -5,7 +5,7 @@
 
 import logging
 import sqlite3
-from typing import Union
+from typing import Union, Optional
 
 from mvt.common.utils import convert_mactime_to_iso
 
@@ -25,7 +25,7 @@ class Calls(IOSExtraction):
         file_path: str = None,
         target_path: str = None,
         results_path: str = None,
-        fast_mode: bool = False,
+        module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
         results: list = [],
     ) -> None:
@@ -33,7 +33,7 @@ class Calls(IOSExtraction):
             file_path=file_path,
             target_path=target_path,
             results_path=results_path,
-            fast_mode=fast_mode,
+            module_options=module_options,
             log=log,
             results=results,
         )
