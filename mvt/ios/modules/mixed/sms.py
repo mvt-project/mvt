@@ -63,9 +63,10 @@ class SMS(IOSExtraction):
         for message in self.results:
             alert = "ALERT: State-sponsored attackers may be targeting your iPhone"
             if message.get("text", "").startswith(alert):
-                self.log.warning(
-                    "Apple warning about state-sponsored attack received on the %s",
-                    message["isodate"],
+                self.alerts.medium(
+                    f"Apple warning about state-sponsored attack received on the {message['isodate']}",
+                    event_time=message["isodate"],
+                    event=message,
                 )
 
         if not self.indicators:
