@@ -219,13 +219,14 @@ def check_backup(
     ctx, iocs, output, fast, list_modules, module, hashes, verbose, backup_path
 ):
     set_verbose_logging(verbose)
+    module_options = {"fast_mode": fast}
 
     cmd = CmdIOSCheckBackup(
         target_path=backup_path,
         results_path=output,
         ioc_files=iocs,
         module_name=module,
-        fast_mode=fast,
+        module_options=module_options,
         hashes=hashes,
     )
 
@@ -269,12 +270,14 @@ def check_backup(
 @click.pass_context
 def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dump_path):
     set_verbose_logging(verbose)
+    module_options = {"fast_mode": fast}
+
     cmd = CmdIOSCheckFS(
         target_path=dump_path,
         results_path=output,
         ioc_files=iocs,
         module_name=module,
-        fast_mode=fast,
+        module_options=module_options,
         hashes=hashes,
     )
 

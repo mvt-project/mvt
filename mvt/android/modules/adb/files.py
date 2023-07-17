@@ -30,7 +30,7 @@ class Files(AndroidExtraction):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: bool = False,
+        module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
         results: Optional[list] = None,
     ) -> None:
@@ -38,7 +38,7 @@ class Files(AndroidExtraction):
             file_path=file_path,
             target_path=target_path,
             results_path=results_path,
-            fast_mode=fast_mode,
+            module_options=module_options,
             log=log,
             results=results,
         )
@@ -142,8 +142,10 @@ class Files(AndroidExtraction):
             "Found %s files in primary Android tmp and media folders", len(self.results)
         )
 
-        if self.fast_mode:
-            self.log.info("Flag --fast was enabled: skipping full file listing")
+        if self.module_options.get("fast_mode", None):
+            self.log.info(
+                "The `fast_mode` option was enabled: skipping full file listing"
+            )
         else:
             self.log.info("Processing full file listing. This may take a while...")
             self.find_files("/")

@@ -19,7 +19,7 @@ class AndroidQFModule(MVTModule):
         file_path: Optional[str] = None,
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
-        fast_mode: bool = False,
+        module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
         results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
     ) -> None:
@@ -27,7 +27,7 @@ class AndroidQFModule(MVTModule):
             file_path=file_path,
             target_path=target_path,
             results_path=results_path,
-            fast_mode=fast_mode,
+            module_options=module_options,
             log=log,
             results=results,
         )
