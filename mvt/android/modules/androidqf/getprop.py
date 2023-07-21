@@ -4,29 +4,15 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from datetime import datetime, timedelta
 from typing import Optional
 
+from mvt.android.modules.detection_mixins import GetPropDetectionMixin
 from mvt.android.parsers.getprop import parse_getprop
 
 from .base import AndroidQFModule
 
-INTERESTING_PROPERTIES = [
-    "gsm.sim.operator.alpha",
-    "gsm.sim.operator.iso-country",
-    "persist.sys.timezone",
-    "ro.boot.serialno",
-    "ro.build.version.sdk",
-    "ro.build.version.security_patch",
-    "ro.product.cpu.abi",
-    "ro.product.locale",
-    "ro.product.vendor.manufacturer",
-    "ro.product.vendor.model",
-    "ro.product.vendor.name",
-]
 
-
-class Getprop(AndroidQFModule):
+class Getprop(GetPropDetectionMixin, AndroidQFModule):
     """This module extracts data from get properties."""
 
     def __init__(
@@ -48,16 +34,6 @@ class Getprop(AndroidQFModule):
         )
         self.results = []
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_android_property_name(result.get("name", ""))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-
     def run(self) -> None:
         getprop_files = self._get_files_by_pattern("*/getprop.txt")
         if not getprop_files:
@@ -68,17 +44,4 @@ class Getprop(AndroidQFModule):
             data = f.read()
 
         self.results = parse_getprop(data)
-        for entry in self.results:
-            if entry["name"] in INTERESTING_PROPERTIES:
-                self.log.info("%s: %s", entry["name"], entry["value"])
-            if entry["name"] == "ro.build.version.security_patch":
-                last_patch = datetime.strptime(entry["value"], "%Y-%m-%d")
-                if (datetime.now() - last_patch) > timedelta(days=6 * 31):
-                    self.log.warning(
-                        "This phone has not received security "
-                        "updates for more than six months "
-                        "(last update: %s)",
-                        entry["value"],
-                    )
-
         self.log.info("Extracted a total of %d properties", len(self.results))
