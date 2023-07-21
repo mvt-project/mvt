@@ -91,19 +91,6 @@ class Manifest(IOSExtraction):
             if not result.get("relative_path"):
                 continue
 
-            if result["domain"]:
-                if (
-                    os.path.basename(result["relative_path"])
-                    == "com.apple.CrashReporter.plist"
-                    and result["domain"] == "RootDomain"
-                ):
-                    self.log.warning(
-                        "Found a potentially suspicious "
-                        '"com.apple.CrashReporter.plist" file created in RootDomain'
-                    )
-                    self.detected.append(result)
-                    continue
-
             if not self.indicators:
                 continue
 
