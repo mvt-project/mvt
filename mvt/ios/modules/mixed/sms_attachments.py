@@ -54,6 +54,20 @@ class SMSAttachments(IOSExtraction):
             f"has_user_info: {record['has_user_info']})",
         }
 
+    def check_indicators(self) -> None:
+        for attachment in self.results:
+            if (
+                attachment["filename"].startswith("/var/tmp/")
+                and attachment["filename"].endswith("-1")
+                and attachment["direction"] == "received"
+            ):
+                self.log.warning(
+                    "Suspicious iMessage attachment %s on %s",
+                    attachment["filename"],
+                    attachment["isodate"],
+                )
+                self.detected.append(attachment)
+
     def run(self) -> None:
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
@@ -101,19 +115,6 @@ class SMSAttachments(IOSExtraction):
             attachment["has_user_info"] = attachment["user_info"] is not None
             attachment["service"] = attachment["service"] or "Unknown"
             attachment["filename"] = attachment["filename"] or "NULL"
-
-            if (
-                attachment["filename"].startswith("/var/tmp/")
-                and attachment["filename"].endswith("-1")
-                and attachment["direction"] == "received"
-            ):
-                self.log.warning(
-                    "Suspicious iMessage attachment %s on %s",
-                    attachment["filename"],
-                    attachment["isodate"],
-                )
-                self.detected.append(attachment)
-
             self.results.append(attachment)
 
         cur.close()

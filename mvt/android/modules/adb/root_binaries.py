@@ -30,6 +30,11 @@ class RootBinaries(AndroidExtraction):
             results=results,
         )
 
+    def check_indicators(self) -> None:
+        for root_binary in self.results:
+            self.detected.append(root_binary)
+            self.log.warning('Found root binary "%s"', root_binary)
+
     def run(self) -> None:
         root_binaries = [
             "su",
@@ -60,7 +65,6 @@ class RootBinaries(AndroidExtraction):
             if "which: not found" in output:
                 continue
 
-            self.detected.append(root_binary)
-            self.log.warning('Found root binary "%s"', root_binary)
+            self.results.append(root_binary)
 
         self._adb_disconnect()

@@ -60,6 +60,14 @@ class SMS(IOSExtraction):
         ]
 
     def check_indicators(self) -> None:
+        for message in self.results:
+            alert = "ALERT: State-sponsored attackers may be targeting your iPhone"
+            if message.get("text", "").startswith(alert):
+                self.log.warning(
+                    "Apple warning about state-sponsored attack received on the %s",
+                    message["isodate"],
+                    )
+
         if not self.indicators:
             return
 
@@ -137,17 +145,9 @@ class SMS(IOSExtraction):
             if not message.get("text", None):
                 message["text"] = ""
 
-            alert = "ALERT: State-sponsored attackers may be targeting your iPhone"
-            if message.get("text", "").startswith(alert):
-                self.log.warning(
-                    "Apple warning about state-sponsored attack received on the %s",
-                    message["isodate"],
-                )
-            else:
-                # Extract links from the SMS message.
-                message_links = check_for_links(message.get("text", ""))
-                message["links"] = message_links
-
+            # Extract links from the SMS message.
+            message_links = check_for_links(message.get("text", ""))
+            message["links"] = message_links
             self.results.append(message)
 
         cur.close()
