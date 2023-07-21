@@ -66,7 +66,7 @@ class SMS(IOSExtraction):
                 self.log.warning(
                     "Apple warning about state-sponsored attack received on the %s",
                     message["isodate"],
-                    )
+                )
 
         if not self.indicators:
             return
