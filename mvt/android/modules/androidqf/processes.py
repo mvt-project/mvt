@@ -7,9 +7,10 @@ import logging
 from typing import Optional
 
 from .base import AndroidQFModule
+from mvt.android.modules.detection_mixins import ProcessDetectionMixin
 
 
-class Processes(AndroidQFModule):
+class Processes(ProcessDetectionMixin, AndroidQFModule):
     """This module analyse running processes"""
 
     def __init__(
@@ -29,30 +30,6 @@ class Processes(AndroidQFModule):
             log=log,
             results=results,
         )
-
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            proc_name = result.get("proc_name", "")
-            if not proc_name:
-                continue
-
-            # Skipping this process because of false positives.
-            if result["proc_name"] == "gatekeeperd":
-                continue
-
-            ioc = self.indicators.check_app_id(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
-            ioc = self.indicators.check_process(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
 
     def _parse_ps(self, data):
         for line in data.split("\n")[1:]:

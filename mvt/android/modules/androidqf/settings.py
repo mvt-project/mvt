@@ -6,12 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.modules.adb.settings import ANDROID_DANGEROUS_SETTINGS
+from mvt.android.modules.detection_mixins import SettingsDetectionMixin
+
 
 from .base import AndroidQFModule
 
 
-class Settings(AndroidQFModule):
+class Settings(SettingsDetectionMixin, AndroidQFModule):
     """This module analyse setting files"""
 
     def __init__(
@@ -51,16 +52,6 @@ class Settings(AndroidQFModule):
                         self.results[namespace][key] = value
                     except IndexError:
                         continue
-
-                    for danger in ANDROID_DANGEROUS_SETTINGS:
-                        if danger["key"] == key and danger["safe_value"] != value:
-                            self.log.warning(
-                                'Found suspicious setting "%s = %s" (%s)',
-                                key,
-                                value,
-                                danger["description"],
-                            )
-                            break
 
         self.log.info(
             "Identified %d settings", sum([len(val) for val in self.results.values()])
