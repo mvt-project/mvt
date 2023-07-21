@@ -2,9 +2,10 @@ PWD = $(shell pwd)
 
 check:
 	flake8
-	pytest -q
 	ruff check -q .
 	black --check .
+	pytest -q
+
 
 clean:
 	rm -rf $(PWD)/build $(PWD)/dist $(PWD)/mvt.egg-info
