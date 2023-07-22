@@ -6,13 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.modules.detection_mixins import GetPropDetectionMixin
-from mvt.android.parsers.getprop import parse_getprop
+from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
 
 from .base import AndroidQFModule
 
 
-class Getprop(GetPropDetectionMixin, AndroidQFModule):
+class Getprop(GetPropArtifact, AndroidQFModule):
     """This module extracts data from get properties."""
 
     def __init__(
@@ -43,5 +42,5 @@ class Getprop(GetPropDetectionMixin, AndroidQFModule):
         with open(getprop_files[0]) as f:
             data = f.read()
 
-        self.results = parse_getprop(data)
+        self.parse(data)
         self.log.info("Extracted a total of %d properties", len(self.results))

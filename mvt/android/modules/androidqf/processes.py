@@ -6,11 +6,12 @@
 import logging
 from typing import Optional
 
+from mvt.android.artifacts.processes import Processes as ProcessesArtifact
+
 from .base import AndroidQFModule
-from mvt.android.modules.detection_mixins import ProcessDetectionMixin
 
 
-class Processes(ProcessDetectionMixin, AndroidQFModule):
+class Processes(ProcessesArtifact, AndroidQFModule):
     """This module analyse running processes"""
 
     def __init__(
@@ -31,46 +32,12 @@ class Processes(ProcessDetectionMixin, AndroidQFModule):
             results=results,
         )
 
-    def _parse_ps(self, data):
-        for line in data.split("\n")[1:]:
-            proc = line.split()
-
-            # Sometimes WCHAN is empty.
-            if len(proc) == 8:
-                proc = proc[:5] + [""] + proc[5:]
-
-            # Sometimes there is the security label.
-            if proc[0].startswith("u:r"):
-                label = proc[0]
-                proc = proc[1:]
-            else:
-                label = ""
-
-            # Sometimes there is no WCHAN.
-            if len(proc) < 9:
-                proc = proc[:5] + [""] + proc[5:]
-
-            self.results.append(
-                {
-                    "user": proc[0],
-                    "pid": int(proc[1]),
-                    "ppid": int(proc[2]),
-                    "virtual_memory_size": int(proc[3]),
-                    "resident_set_size": int(proc[4]),
-                    "wchan": proc[5],
-                    "aprocress": proc[6],
-                    "stat": proc[7],
-                    "proc_name": proc[8].strip("[]"),
-                    "label": label,
-                }
-            )
-
     def run(self) -> None:
         ps_files = self._get_files_by_pattern("*/ps.txt")
         if not ps_files:
             return
 
         with open(ps_files[0]) as handle:
-            self._parse_ps(handle.read())
+            self.parse(handle.read())
 
         self.log.info("Identified %d running processes", len(self.results))

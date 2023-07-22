@@ -6,11 +6,12 @@
 import logging
 from typing import Optional
 
+from mvt.android.artifacts.settings import Settings as SettingsArtifact
+
 from .base import AndroidExtraction
-from mvt.android.modules.detection_mixins import SettingsDetectionMixin
 
 
-class Settings(SettingsDetectionMixin, AndroidExtraction):
+class Settings(SettingsArtifact, AndroidExtraction):
     """This module extracts Android system settings."""
 
     def __init__(

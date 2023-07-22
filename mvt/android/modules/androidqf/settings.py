@@ -6,13 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.modules.detection_mixins import SettingsDetectionMixin
-
+from mvt.android.artifacts.settings import Settings as SettingsArtifact
 
 from .base import AndroidQFModule
 
 
-class Settings(SettingsDetectionMixin, AndroidQFModule):
+class Settings(SettingsArtifact, AndroidQFModule):
     """This module analyse setting files"""
 
     def __init__(

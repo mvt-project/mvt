@@ -6,11 +6,12 @@
 import logging
 from typing import Optional
 
+from mvt.android.artifacts.processes import Processes as ProcessesArtifact
+
 from .base import AndroidExtraction
-from mvt.android.modules.detection_mixins import ProcessDetectionMixin
 
 
-class Processes(ProcessDetectionMixin, AndroidExtraction):
+class Processes(ProcessesArtifact, AndroidExtraction):
     """This module extracts details on running processes."""
 
     def __init__(
@@ -35,33 +36,7 @@ class Processes(ProcessDetectionMixin, AndroidExtraction):
         self._adb_connect()
 
         output = self._adb_command("ps -A")
-
-        for line in output.splitlines()[1:]:
-            line = line.strip()
-            if line == "":
-                continue
-
-            fields = line.split()
-            proc = {
-                "user": fields[0],
-                "pid": fields[1],
-                "parent_pid": fields[2],
-                "vsize": fields[3],
-                "rss": fields[4],
-            }
-
-            # Sometimes WCHAN is empty, so we need to re-align output fields.
-            if len(fields) == 8:
-                proc["wchan"] = ""
-                proc["pc"] = fields[5]
-                proc["name"] = fields[7]
-            elif len(fields) == 9:
-                proc["wchan"] = fields[5]
-                proc["pc"] = fields[6]
-                proc["name"] = fields[8]
-
-            self.results.append(proc)
-
+        self.parse(output)
         self._adb_disconnect()
 
         self.log.info("Extracted records on a total of %d processes", len(self.results))

@@ -6,13 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.modules.detection_mixins import GetPropDetectionMixin
-from mvt.android.parsers import parse_getprop
+from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
 
 from .base import AndroidExtraction
 
 
-class Getprop(GetPropDetectionMixin, AndroidExtraction):
+class Getprop(GetPropArtifact, AndroidExtraction):
     """This module extracts device properties from getprop command."""
 
     def __init__(
@@ -40,5 +39,5 @@ class Getprop(GetPropDetectionMixin, AndroidExtraction):
         output = self._adb_command("getprop")
         self._adb_disconnect()
 
-        self.results = parse_getprop(output)
+        self.parse(output)
         self.log.info("Extracted %d Android system properties", len(self.results))
