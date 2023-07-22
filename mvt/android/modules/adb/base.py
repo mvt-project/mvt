@@ -312,7 +312,7 @@ class AndroidExtraction(MVTModule):
         )
 
         if self.module_options.get("backup_password", None):
-            self.log.notice(
+            self.log.warning(
                 "Backup password already set from command line or environment "
                 "variable. You should use the same password if enabling encryption!"
             )

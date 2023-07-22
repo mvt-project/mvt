@@ -76,7 +76,7 @@ class CmdAndroidCheckBackup(Command):
                 )
                 if not password:
                     log.critical("No backup password provided.")
-                    return
+                    sys.exit(1)
             try:
                 tardata = parse_backup_file(data, password=password)
             except InvalidBackupPassword:
