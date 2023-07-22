@@ -4,10 +4,11 @@
 #   https://license.mvt.re/1.1/
 
 import os
+import logging
 
 from click.testing import CliRunner
 
-from mvt.android.cli import check_androidqf
+from mvt.android.cli import check_backup
 
 from .utils import get_artifact_folder
 
@@ -15,22 +16,15 @@ from .utils import get_artifact_folder
 TEST_BACKUP_PASSWORD = "123456"
 
 
-class TestCheckAndroidqfCommand:
-    def test_check(self):
-        runner = CliRunner()
-        path = os.path.join(get_artifact_folder(), "androidqf")
-        result = runner.invoke(check_androidqf, [path])
-        assert result.exit_code == 0
-
+class TestCheckAndroidBackupCommand:
     def test_check_encrypted_backup_prompt_valid(self, mocker):
         """Prompt for password on CLI"""
         prompt_mock = mocker.patch(
             "rich.prompt.Prompt.ask", return_value=TEST_BACKUP_PASSWORD
         )
-
         runner = CliRunner()
-        path = os.path.join(get_artifact_folder(), "androidqf_encrypted")
-        result = runner.invoke(check_androidqf, [path])
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+        result = runner.invoke(check_backup, [path])
 
         assert prompt_mock.call_count == 1
         assert result.exit_code == 0
@@ -42,13 +36,26 @@ class TestCheckAndroidqfCommand:
         )
 
         runner = CliRunner()
-        path = os.path.join(get_artifact_folder(), "androidqf_encrypted")
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
         result = runner.invoke(
-            check_androidqf, ["--backup-password", TEST_BACKUP_PASSWORD, path]
+            check_backup, ["--backup-password", TEST_BACKUP_PASSWORD, path]
         )
 
         assert prompt_mock.call_count == 0
         assert result.exit_code == 0
+
+    def test_check_encrypted_backup_cli_invalid(self, mocker, caplog):
+        """Provide password as CLI argument"""
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+
+        with caplog.at_level(logging.CRITICAL):
+            result = runner.invoke(
+                check_backup, ["--backup-password", "invalid_password", path]
+            )
+
+        assert result.exit_code == 1
+        assert "Invalid backup password" in caplog.text
 
     def test_check_encrypted_backup_env(self, mocker):
         """Provide password as environment variable"""
@@ -58,8 +65,8 @@ class TestCheckAndroidqfCommand:
 
         os.environ["MVT_ANDROID_BACKUP_PASSWORD"] = TEST_BACKUP_PASSWORD
         runner = CliRunner()
-        path = os.path.join(get_artifact_folder(), "androidqf_encrypted")
-        result = runner.invoke(check_androidqf, [path])
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+        result = runner.invoke(check_backup, [path])
 
         assert prompt_mock.call_count == 0
         assert result.exit_code == 0

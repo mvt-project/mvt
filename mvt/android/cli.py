@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
 
 import click
 
@@ -34,11 +33,11 @@ from .modules.adb import ADB_MODULES
 from .modules.adb.packages import Packages
 from .modules.backup import BACKUP_MODULES
 from .modules.bugreport import BUGREPORT_MODULES
+from .modules.backup.helpers import cli_load_android_backup_password
 
 init_logging()
 log = logging.getLogger("mvt")
 
-MVT_ANDROID_BACKUP_PASSWORD = "MVT_ANDROID_BACKUP_PASSWORD"
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
@@ -130,7 +129,7 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
 # ==============================================================================
 @cli.command(
     "check-adb",
-    help="Check an Android device over adb",
+    help="Check an Android device over ADB",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
@@ -146,11 +145,28 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
+@click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def check_adb(ctx, serial, iocs, output, fast, list_modules, module, verbose):
+def check_adb(
+    ctx,
+    serial,
+    iocs,
+    output,
+    fast,
+    list_modules,
+    module,
+    non_interactive,
+    backup_password,
+    verbose,
+):
     set_verbose_logging(verbose)
-    module_options = {"fast_mode": fast}
+    module_options = {
+        "fast_mode": fast,
+        "interactive": not non_interactive,
+        "backup_password": cli_load_android_backup_password(log, backup_password),
+    }
 
     cmd = CmdAndroidCheckADB(
         results_path=output,
@@ -256,24 +272,6 @@ def check_backup(
 ):
     set_verbose_logging(verbose)
 
-    if backup_password:
-        log.info(
-            "Your password may be visible in the process table because it "
-            "was supplied on the command line!"
-        )
-
-        if MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-            log.info(
-                "Ignoring %s environment variable, using --backup-password argument instead",
-                MVT_ANDROID_BACKUP_PASSWORD,
-            )
-    elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-        log.info(
-            "Using backup password from %s environment variable",
-            MVT_ANDROID_BACKUP_PASSWORD,
-        )
-        backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
-
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(
         target_path=backup_path,
@@ -282,7 +280,7 @@ def check_backup(
         hashes=True,
         module_options={
             "interactive": not non_interactive,
-            "backup_password": backup_password,
+            "backup_password": cli_load_android_backup_password(log, backup_password),
         },
     )
 
@@ -340,24 +338,6 @@ def check_androidqf(
 ):
     set_verbose_logging(verbose)
 
-    if backup_password:
-        log.info(
-            "Your password may be visible in the process table because it "
-            "was supplied on the command line!"
-        )
-
-        if MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-            log.info(
-                "Ignoring %s environment variable, using --backup-password argument instead",
-                MVT_ANDROID_BACKUP_PASSWORD,
-            )
-    elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-        log.info(
-            "Using backup password from %s environment variable",
-            MVT_ANDROID_BACKUP_PASSWORD,
-        )
-        backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
-
     cmd = CmdAndroidCheckAndroidQF(
         target_path=androidqf_path,
         results_path=output,
@@ -366,7 +346,7 @@ def check_androidqf(
         hashes=hashes,
         module_options={
             "interactive": not non_interactive,
-            "backup_password": backup_password,
+            "backup_password": cli_load_android_backup_password(log, backup_password),
         },
     )
 

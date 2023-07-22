@@ -22,7 +22,6 @@ from adb_shell.exceptions import (
     UsbDeviceNotFoundError,
     UsbReadFailedError,
 )
-from rich.prompt import Prompt
 from usb1 import USBErrorAccess, USBErrorBusy
 
 from mvt.android.parsers.backup import (
@@ -30,6 +29,7 @@ from mvt.android.parsers.backup import (
     parse_ab_header,
     parse_backup_file,
 )
+from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.common.module import InsufficientPrivileges, MVTModule
 
 ADB_KEY_PATH = os.path.expanduser("~/.android/adbkey")
@@ -311,6 +311,12 @@ class AndroidExtraction(MVTModule):
             "You may need to set a backup password. \a"
         )
 
+        if self.module_options.get("backup_password", None):
+            self.log.warning(
+                "Backup password already set from command line or environment "
+                "variable. You should use the same password if enabling encryption!"
+            )
+
         # TODO: Base64 encoding as temporary fix to avoid byte-mangling over
         #       the shell transport...
         cmd = f"/system/bin/bu backup -nocompress '{package_name}' | base64"
@@ -329,7 +335,12 @@ class AndroidExtraction(MVTModule):
             return parse_backup_file(backup_output, password=None)
 
         for _ in range(0, 3):
-            backup_password = Prompt.ask("Enter backup password", password=True)
+            backup_password = prompt_or_load_android_backup_password(
+                self.log, self.module_options
+            )
+            if not backup_password:
+                # Fail as no backup password loaded for this encrypted backup
+                self.log.critical("No backup password provided.")
             try:
                 decrypted_backup_tar = parse_backup_file(backup_output, backup_password)
                 return decrypted_backup_tar
