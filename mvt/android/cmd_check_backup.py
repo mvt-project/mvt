@@ -11,8 +11,6 @@ import tarfile
 from pathlib import Path
 from typing import List, Optional
 
-from rich.prompt import Prompt
-
 from mvt.android.modules.backup.base import BackupExtraction
 from mvt.android.parsers.backup import (
     AndroidBackupParsingError,
@@ -20,6 +18,7 @@ from mvt.android.parsers.backup import (
     parse_ab_header,
     parse_backup_file,
 )
+from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.common.command import Command
 
 from .modules.backup import BACKUP_MODULES
@@ -72,7 +71,12 @@ class CmdAndroidCheckBackup(Command):
 
             password = None
             if header["encryption"] != "none":
-                password = Prompt.ask("Enter backup password", password=True)
+                password = prompt_or_load_android_backup_password(
+                    log, self.module_options
+                )
+                if not password:
+                    log.critical("No backup password provided.")
+                    return
             try:
                 tardata = parse_backup_file(data, password=password)
             except InvalidBackupPassword:

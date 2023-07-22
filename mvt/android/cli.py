@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import os
 
 import click
 
@@ -34,11 +33,11 @@ from .modules.adb import ADB_MODULES
 from .modules.adb.packages import Packages
 from .modules.backup import BACKUP_MODULES
 from .modules.bugreport import BUGREPORT_MODULES
+from .modules.backup.helpers import cli_load_android_backup_password
 
 init_logging()
 log = logging.getLogger("mvt")
 
-MVT_ANDROID_BACKUP_PASSWORD = "MVT_ANDROID_BACKUP_PASSWORD"
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
@@ -244,23 +243,17 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_password, verbose, backup_path):
+def check_backup(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    non_interactive,
+    backup_password,
+    verbose,
+    backup_path,
+):
     set_verbose_logging(verbose)
-
-    if backup_password:
-        log.info(
-            "Your password may be visible in the process table because it "
-            "was supplied on the command line!"
-        )
-
-        if MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-            log.info(
-                "Ignoring %s environment variable, using --backup-password argument instead",
-                MVT_ANDROID_BACKUP_PASSWORD,
-            )
-    elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-        log.info("Using backup password from %s environment variable", MVT_ANDROID_BACKUP_PASSWORD)
-        backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
 
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(
@@ -268,7 +261,10 @@ def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_passwo
         results_path=output,
         ioc_files=iocs,
         hashes=True,
-        module_options={"interactive": not non_interactive, "backup_password": backup_password},
+        module_options={
+            "interactive": not non_interactive,
+            "backup_password": cli_load_android_backup_password(log, backup_password),
+        },
     )
 
     if list_modules:
@@ -312,24 +308,18 @@ def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_passwo
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
-    ctx, iocs, output, list_modules, module, hashes, non_interactive, backup_password, verbose, androidqf_path
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    hashes,
+    non_interactive,
+    backup_password,
+    verbose,
+    androidqf_path,
 ):
     set_verbose_logging(verbose)
-
-    if backup_password:
-        log.info(
-            "Your password may be visible in the process table because it "
-            "was supplied on the command line!"
-        )
-
-        if MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-            log.info(
-                "Ignoring %s environment variable, using --backup-password argument instead",
-                MVT_ANDROID_BACKUP_PASSWORD,
-            )
-    elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-        log.info("Using backup password from %s environment variable", MVT_ANDROID_BACKUP_PASSWORD)
-        backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
 
     cmd = CmdAndroidCheckAndroidQF(
         target_path=androidqf_path,
@@ -337,7 +327,10 @@ def check_androidqf(
         ioc_files=iocs,
         module_name=module,
         hashes=hashes,
-        module_options={"interactive": not non_interactive, "backup_password": backup_password},
+        module_options={
+            "interactive": not non_interactive,
+            "backup_password": cli_load_android_backup_password(log, backup_password),
+        },
     )
 
     if list_modules:
