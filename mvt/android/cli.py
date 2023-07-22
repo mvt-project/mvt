@@ -244,7 +244,16 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_password, verbose, backup_path):
+def check_backup(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    non_interactive,
+    backup_password,
+    verbose,
+    backup_path,
+):
     set_verbose_logging(verbose)
 
     if backup_password:
@@ -259,7 +268,10 @@ def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_passwo
                 MVT_ANDROID_BACKUP_PASSWORD,
             )
     elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-        log.info("Using backup password from %s environment variable", MVT_ANDROID_BACKUP_PASSWORD)
+        log.info(
+            "Using backup password from %s environment variable",
+            MVT_ANDROID_BACKUP_PASSWORD,
+        )
         backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
 
     # Always generate hashes as backups are generally small.
@@ -268,7 +280,10 @@ def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_passwo
         results_path=output,
         ioc_files=iocs,
         hashes=True,
-        module_options={"interactive": not non_interactive, "backup_password": backup_password},
+        module_options={
+            "interactive": not non_interactive,
+            "backup_password": backup_password,
+        },
     )
 
     if list_modules:
@@ -312,7 +327,16 @@ def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_passwo
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
-    ctx, iocs, output, list_modules, module, hashes, non_interactive, backup_password, verbose, androidqf_path
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    hashes,
+    non_interactive,
+    backup_password,
+    verbose,
+    androidqf_path,
 ):
     set_verbose_logging(verbose)
 
@@ -328,7 +352,10 @@ def check_androidqf(
                 MVT_ANDROID_BACKUP_PASSWORD,
             )
     elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
-        log.info("Using backup password from %s environment variable", MVT_ANDROID_BACKUP_PASSWORD)
+        log.info(
+            "Using backup password from %s environment variable",
+            MVT_ANDROID_BACKUP_PASSWORD,
+        )
         backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
 
     cmd = CmdAndroidCheckAndroidQF(
@@ -337,7 +364,10 @@ def check_androidqf(
         ioc_files=iocs,
         module_name=module,
         hashes=hashes,
-        module_options={"interactive": not non_interactive, "backup_password": backup_password},
+        module_options={
+            "interactive": not non_interactive,
+            "backup_password": backup_password,
+        },
     )
 
     if list_modules:

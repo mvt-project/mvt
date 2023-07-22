@@ -57,7 +57,10 @@ class SMS(AndroidQFModule):
             return
 
         # the default is to allow interactivity
-        interactive = "interactive" not in self.module_options or self.module_options["interactive"]
+        interactive = (
+            "interactive" not in self.module_options
+            or self.module_options["interactive"]
+        )
         password = None
         if header["encryption"] != "none":
             if "backup_password" in self.module_options:
