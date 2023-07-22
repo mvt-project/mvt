@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+import os
 
 import click
 
@@ -14,6 +15,8 @@ from mvt.common.help import (
     HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
     HELP_MSG_MODULE,
+    HELP_MSG_NONINTERACTIVE,
+    HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_OUTPUT,
     HELP_MSG_SERIAL,
     HELP_MSG_VERBOSE,
@@ -34,6 +37,8 @@ from .modules.bugreport import BUGREPORT_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")
+
+MVT_ANDROID_BACKUP_PASSWORD = "MVT_ANDROID_BACKUP_PASSWORD"
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
@@ -234,14 +239,36 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 )
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
+@click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_backup(ctx, iocs, output, list_modules, verbose, backup_path):
+def check_backup(ctx, iocs, output, list_modules, non_interactive, backup_password, verbose, backup_path):
     set_verbose_logging(verbose)
+
+    if backup_password:
+        log.info(
+            "Your password may be visible in the process table because it "
+            "was supplied on the command line!"
+        )
+
+        if MVT_ANDROID_BACKUP_PASSWORD in os.environ:
+            log.info(
+                "Ignoring %s environment variable, using --backup-password argument instead",
+                MVT_ANDROID_BACKUP_PASSWORD,
+            )
+    elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
+        log.info("Using backup password from %s environment variable", MVT_ANDROID_BACKUP_PASSWORD)
+        backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
+
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(
-        target_path=backup_path, results_path=output, ioc_files=iocs, hashes=True
+        target_path=backup_path,
+        results_path=output,
+        ioc_files=iocs,
+        hashes=True,
+        module_options={"interactive": not non_interactive, "backup_password": backup_password},
     )
 
     if list_modules:
@@ -279,19 +306,38 @@ def check_backup(ctx, iocs, output, list_modules, verbose, backup_path):
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
+@click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
-    ctx, iocs, output, list_modules, module, hashes, verbose, androidqf_path
+    ctx, iocs, output, list_modules, module, hashes, non_interactive, backup_password, verbose, androidqf_path
 ):
     set_verbose_logging(verbose)
+
+    if backup_password:
+        log.info(
+            "Your password may be visible in the process table because it "
+            "was supplied on the command line!"
+        )
+
+        if MVT_ANDROID_BACKUP_PASSWORD in os.environ:
+            log.info(
+                "Ignoring %s environment variable, using --backup-password argument instead",
+                MVT_ANDROID_BACKUP_PASSWORD,
+            )
+    elif MVT_ANDROID_BACKUP_PASSWORD in os.environ:
+        log.info("Using backup password from %s environment variable", MVT_ANDROID_BACKUP_PASSWORD)
+        backup_password = os.environ[MVT_ANDROID_BACKUP_PASSWORD]
+
     cmd = CmdAndroidCheckAndroidQF(
         target_path=androidqf_path,
         results_path=output,
         ioc_files=iocs,
         module_name=module,
         hashes=hashes,
+        module_options={"interactive": not non_interactive, "backup_password": backup_password},
     )
 
     if list_modules:
