@@ -11,7 +11,6 @@ from mvt.android.cli import check_androidqf
 
 from .utils import get_artifact_folder
 
-
 TEST_BACKUP_PASSWORD = "123456"
 
 

@@ -24,12 +24,12 @@ from adb_shell.exceptions import (
 )
 from usb1 import USBErrorAccess, USBErrorBusy
 
+from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.android.parsers.backup import (
     InvalidBackupPassword,
     parse_ab_header,
     parse_backup_file,
 )
-from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.common.module import InsufficientPrivileges, MVTModule
 
 ADB_KEY_PATH = os.path.expanduser("~/.android/adbkey")

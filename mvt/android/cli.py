@@ -9,13 +9,13 @@ import click
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (
+    HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_FAST,
     HELP_MSG_HASHES,
     HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
     HELP_MSG_MODULE,
     HELP_MSG_NONINTERACTIVE,
-    HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_OUTPUT,
     HELP_MSG_SERIAL,
     HELP_MSG_VERBOSE,
@@ -32,8 +32,8 @@ from .cmd_download_apks import DownloadAPKs
 from .modules.adb import ADB_MODULES
 from .modules.adb.packages import Packages
 from .modules.backup import BACKUP_MODULES
-from .modules.bugreport import BUGREPORT_MODULES
 from .modules.backup.helpers import cli_load_android_backup_password
+from .modules.bugreport import BUGREPORT_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")

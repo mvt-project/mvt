@@ -6,6 +6,7 @@
 import fnmatch
 import logging
 import os
+import zipfile
 from typing import Any, Dict, List, Optional, Union
 
 from mvt.common.module import MVTModule
@@ -31,13 +32,28 @@ class AndroidQFModule(MVTModule):
             log=log,
             results=results,
         )
+        self._path: str = target_path
+        self.files: List[str] = []
+        self.archive: Optional[zipfile.ZipFile] = None
 
-        self._path = target_path
-        self._files = []
+    def from_folder(self, parent_path: str, files: List[str]):
+        self.parent_path = parent_path
+        self.files = files
 
-        for root, dirs, files in os.walk(target_path):
-            for name in files:
-                self._files.append(os.path.join(root, name))
+    def from_zip_file(self, archive: zipfile.ZipFile, files: List[str]):
+        self.archive = archive
+        self.files = files
 
-    def _get_files_by_pattern(self, pattern):
-        return fnmatch.filter(self._files, pattern)
+    def _get_files_by_pattern(self, pattern: str):
+        return fnmatch.filter(self.files, pattern)
+
+    def _get_file_content(self, file_path):
+        if self.archive:
+            handle = self.archive.open(file_path)
+        else:
+            handle = open(os.path.join(self.parent_path, file_path), "rb")
+
+        data = handle.read()
+        handle.close()
+
+        return data

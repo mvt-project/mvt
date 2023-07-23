@@ -64,8 +64,7 @@ class Getprop(AndroidQFModule):
             self.log.info("getprop.txt file not found")
             return
 
-        with open(getprop_files[0]) as f:
-            data = f.read()
+        data = self._get_file_content(getprop_files[0]).decode("utf-8")
 
         self.results = parse_getprop(data)
         for entry in self.results:

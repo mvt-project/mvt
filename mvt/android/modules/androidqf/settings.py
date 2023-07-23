@@ -38,29 +38,28 @@ class Settings(AndroidQFModule):
             namespace = setting_file[setting_file.rfind("_") + 1 : -4]
 
             self.results[namespace] = {}
+            data = self._get_file_content(setting_file)
+            for line in data.decode("utf-8").split("\n"):
+                line = line.strip()
+                try:
+                    key, value = line.split("=", 1)
+                except ValueError:
+                    continue
 
-            with open(setting_file) as handle:
-                for line in handle:
-                    line = line.strip()
-                    try:
-                        key, value = line.split("=", 1)
-                    except ValueError:
-                        continue
+                try:
+                    self.results[namespace][key] = value
+                except IndexError:
+                    continue
 
-                    try:
-                        self.results[namespace][key] = value
-                    except IndexError:
-                        continue
-
-                    for danger in ANDROID_DANGEROUS_SETTINGS:
-                        if danger["key"] == key and danger["safe_value"] != value:
-                            self.log.warning(
-                                'Found suspicious setting "%s = %s" (%s)',
-                                key,
-                                value,
-                                danger["description"],
-                            )
-                            break
+                for danger in ANDROID_DANGEROUS_SETTINGS:
+                    if danger["key"] == key and danger["safe_value"] != value:
+                        self.log.warning(
+                            'Found suspicious setting "%s = %s" (%s)',
+                            key,
+                            value,
+                            danger["description"],
+                        )
+                        break
 
         self.log.info(
             "Identified %d settings", sum([len(val) for val in self.results.values()])

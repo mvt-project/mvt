@@ -49,21 +49,21 @@ class DumpsysAccessibility(AndroidQFModule):
 
         lines = []
         in_accessibility = False
-        with open(dumpsys_file[0]) as handle:
-            for line in handle:
-                if line.strip().startswith("DUMP OF SERVICE accessibility:"):
-                    in_accessibility = True
-                    continue
+        data = self._get_file_content(dumpsys_file[0])
+        for line in data.decode("utf-8").split("\n"):
+            if line.strip().startswith("DUMP OF SERVICE accessibility:"):
+                in_accessibility = True
+                continue
 
-                if not in_accessibility:
-                    continue
+            if not in_accessibility:
+                continue
 
-                if line.strip().startswith(
-                    "-------------------------------------------------------------------------------"
-                ):  # pylint: disable=line-too-long
-                    break
+            if line.strip().startswith(
+                "-------------------------------------------------------------------------------"
+            ):  # pylint: disable=line-too-long
+                break
 
-                lines.append(line.rstrip())
+            lines.append(line.rstrip())
 
         self.results = parse_dumpsys_accessibility("\n".join(lines))
 

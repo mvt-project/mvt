@@ -93,7 +93,5 @@ class Processes(AndroidQFModule):
         if not ps_files:
             return
 
-        with open(ps_files[0]) as handle:
-            self._parse_ps(handle.read())
-
+        self._parse_ps(self._get_file_content(ps_files[0]).decode("utf-8"))
         self.log.info("Identified %d running processes", len(self.results))

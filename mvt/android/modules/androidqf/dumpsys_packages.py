@@ -78,13 +78,12 @@ class DumpsysPackages(AndroidQFModule):
             self.log.info("Dumpsys file not found")
             return
 
-        with open(dumpsys_file[0]) as handle:
-            data = handle.read().split("\n")
+        data = self._get_file_content(dumpsys_file[0])
 
         package = []
         in_service = False
         in_package_list = False
-        for line in data:
+        for line in data.decode("utf-8").split("\n"):
             if line.strip().startswith("DUMP OF SERVICE package:"):
                 in_service = True
                 continue
