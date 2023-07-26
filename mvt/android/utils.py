@@ -5,7 +5,7 @@
 from datetime import datetime, timedelta
 
 
-def warn_android_patch_level(self, patch_level: str, log) -> bool:
+def warn_android_patch_level(patch_level: str, log) -> bool:
     """Alert if Android patch level out-of-date"""
     patch_date = datetime.strptime(patch_level, "%Y-%m-%d")
     if (datetime.now() - patch_date) > timedelta(days=6 * 31):

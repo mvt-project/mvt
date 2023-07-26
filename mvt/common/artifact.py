@@ -19,7 +19,7 @@ class Artifact:
         """
         Parse the artifact, adds the parsed information to self.results
         """
-        NotImplementedError
+        raise NotImplementedError
 
     def check_indicators(self) -> None:
         """Check the results of this module against a provided list of
