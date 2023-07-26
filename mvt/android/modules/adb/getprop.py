@@ -4,15 +4,14 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from datetime import datetime, timedelta
 from typing import Optional
 
-from mvt.android.parsers import parse_getprop
+from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
 
 from .base import AndroidExtraction
 
 
-class Getprop(AndroidExtraction):
+class Getprop(GetPropArtifact, AndroidExtraction):
     """This module extracts device properties from getprop command."""
 
     def __init__(
@@ -35,33 +34,10 @@ class Getprop(AndroidExtraction):
 
         self.results = {} if not results else results
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_android_property_name(result.get("name", ""))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-
     def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("getprop")
         self._adb_disconnect()
 
-        self.results = parse_getprop(output)
-
-        # Alert if phone is outdated.
-        for entry in self.results:
-            if entry.get("name", "") != "ro.build.version.security_patch":
-                continue
-            patch_date = datetime.strptime(entry["value"], "%Y-%m-%d")
-            if (datetime.now() - patch_date) > timedelta(days=6 * 30):
-                self.log.warning(
-                    "This phone has not received security updates "
-                    "for more than six months (last update: %s)",
-                    entry["value"],
-                )
-
+        self.parse(output)
         self.log.info("Extracted %d Android system properties", len(self.results))

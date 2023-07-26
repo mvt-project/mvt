@@ -12,4 +12,3 @@ from .dumpsys import (
     parse_dumpsys_dbinfo,
     parse_dumpsys_receiver_resolver_table,
 )
-from .getprop import parse_getprop

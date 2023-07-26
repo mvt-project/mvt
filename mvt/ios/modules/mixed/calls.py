@@ -5,7 +5,7 @@
 
 import logging
 import sqlite3
-from typing import Union, Optional
+from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
 
