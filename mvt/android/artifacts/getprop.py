@@ -5,6 +5,8 @@
 import re
 from typing import Dict, List
 
+from mvt.android.utils import warn_android_patch_level
+
 from .artifact import AndroidArtifact
 
 INTERESTING_PROPERTIES = [
@@ -45,7 +47,7 @@ class GetProp(AndroidArtifact):
                 self.log.info("%s: %s", entry["name"], entry["value"])
 
             if entry["name"] == "ro.build.version.security_patch":
-                self.warn_patch_level(entry["value"], self.log)
+                warn_android_patch_level(entry["value"], self.log)
 
         if not self.indicators:
             return
