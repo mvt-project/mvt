@@ -206,7 +206,7 @@ class Indicators:
                     break
 
         for coll in collections:
-            self.log.info(
+            self.log.debug(
                 'Extracted %d indicators for collection with name "%s"',
                 coll["count"],
                 coll["name"],
