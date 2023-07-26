@@ -6,10 +6,12 @@
 import logging
 from typing import Optional
 
+from mvt.android.artifacts.processes import Processes as ProcessesArtifact
+
 from .base import AndroidQFModule
 
 
-class Processes(AndroidQFModule):
+class Processes(ProcessesArtifact, AndroidQFModule):
     """This module analyse running processes"""
 
     def __init__(
@@ -30,68 +32,10 @@ class Processes(AndroidQFModule):
             results=results,
         )
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            proc_name = result.get("proc_name", "")
-            if not proc_name:
-                continue
-
-            # Skipping this process because of false positives.
-            if result["proc_name"] == "gatekeeperd":
-                continue
-
-            ioc = self.indicators.check_app_id(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
-            ioc = self.indicators.check_process(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-
-    def _parse_ps(self, data):
-        for line in data.split("\n")[1:]:
-            proc = line.split()
-
-            # Sometimes WCHAN is empty.
-            if len(proc) == 8:
-                proc = proc[:5] + [""] + proc[5:]
-
-            # Sometimes there is the security label.
-            if proc[0].startswith("u:r"):
-                label = proc[0]
-                proc = proc[1:]
-            else:
-                label = ""
-
-            # Sometimes there is no WCHAN.
-            if len(proc) < 9:
-                proc = proc[:5] + [""] + proc[5:]
-
-            self.results.append(
-                {
-                    "user": proc[0],
-                    "pid": int(proc[1]),
-                    "ppid": int(proc[2]),
-                    "virtual_memory_size": int(proc[3]),
-                    "resident_set_size": int(proc[4]),
-                    "wchan": proc[5],
-                    "aprocress": proc[6],
-                    "stat": proc[7],
-                    "proc_name": proc[8].strip("[]"),
-                    "label": label,
-                }
-            )
-
     def run(self) -> None:
         ps_files = self._get_files_by_pattern("*/ps.txt")
         if not ps_files:
             return
 
-        self._parse_ps(self._get_file_content(ps_files[0]).decode("utf-8"))
+        self.parse(self._get_file_content(ps_files[0]).decode("utf-8"))
         self.log.info("Identified %d running processes", len(self.results))
