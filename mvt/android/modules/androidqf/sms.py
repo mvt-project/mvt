@@ -6,6 +6,7 @@
 import logging
 from typing import Optional
 
+from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.android.parsers.backup import (
     AndroidBackupParsingError,
     InvalidBackupPassword,
@@ -13,7 +14,6 @@ from mvt.android.parsers.backup import (
     parse_backup_file,
     parse_tar_for_sms,
 )
-from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 
 from .base import AndroidQFModule
 
@@ -96,8 +96,5 @@ class SMS(AndroidQFModule):
             self.log.info("No backup data found")
             return
 
-        with open(files[0], "rb") as handle:
-            data = handle.read()
-
-        self.parse_backup(data)
+        self.parse_backup(self._get_file_content(files[0]))
         self.log.info("Identified %d SMS in backup data", len(self.results))

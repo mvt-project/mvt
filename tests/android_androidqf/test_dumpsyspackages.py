@@ -4,18 +4,22 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+from pathlib import Path
 
 from mvt.android.modules.androidqf.dumpsys_packages import DumpsysPackages
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 
-from ..utils import get_android_androidqf
+from ..utils import get_android_androidqf, list_files
 
 
 class TestDumpsysPackagesModule:
     def test_parsing(self):
         data_path = get_android_androidqf()
         m = DumpsysPackages(target_path=data_path)
+        files = list_files(data_path)
+        parent_path = Path(data_path).absolute().parent.as_posix()
+        m.from_folder(parent_path, files)
         run_module(m)
         assert len(m.results) == 2
         assert len(m.detected) == 0
@@ -28,6 +32,9 @@ class TestDumpsysPackagesModule:
     def test_detection_pkgname(self, indicator_file):
         data_path = get_android_androidqf()
         m = DumpsysPackages(target_path=data_path)
+        files = list_files(data_path)
+        parent_path = Path(data_path).absolute().parent.as_posix()
+        m.from_folder(parent_path, files)
         ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.sec.android.app.DataCreate")

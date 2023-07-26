@@ -3,15 +3,14 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
 import logging
+import os
 
 from click.testing import CliRunner
 
 from mvt.android.cli import check_backup
 
 from .utils import get_artifact_folder
-
 
 TEST_BACKUP_PASSWORD = "123456"
 

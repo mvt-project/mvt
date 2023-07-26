@@ -76,19 +76,19 @@ class DumpsysAppops(AndroidQFModule):
 
         lines = []
         in_package = False
-        with open(dumpsys_file[0]) as handle:
-            for line in handle:
-                if line.startswith("DUMP OF SERVICE appops:"):
-                    in_package = True
-                    continue
+        data = self._get_file_content(dumpsys_file[0])
+        for line in data.decode("utf-8").split("\n"):
+            if line.startswith("DUMP OF SERVICE appops:"):
+                in_package = True
+                continue
 
-                if in_package:
-                    if line.startswith(
-                        "-------------------------------------------------------------------------------"
-                    ):  # pylint: disable=line-too-long
-                        break
+            if in_package:
+                if line.startswith(
+                    "-------------------------------------------------------------------------------"
+                ):  # pylint: disable=line-too-long
+                    break
 
-                    lines.append(line.rstrip())
+                lines.append(line.rstrip())
 
         self.results = parse_dumpsys_appops("\n".join(lines))
         self.log.info("Identified %d applications in AppOps Manager", len(self.results))

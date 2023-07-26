@@ -7,7 +7,6 @@ import os
 
 from rich.prompt import Prompt
 
-
 MVT_ANDROID_BACKUP_PASSWORD = "MVT_ANDROID_BACKUP_PASSWORD"
 
 
