@@ -10,33 +10,6 @@ from typing import Any, Dict, List
 from mvt.common.utils import convert_datetime_to_iso
 
 
-def parse_dumpsys_accessibility(output: str) -> List[Dict[str, str]]:
-    results = []
-
-    in_services = False
-    for line in output.splitlines():
-        if line.strip().startswith("installed services:"):
-            in_services = True
-            continue
-
-        if not in_services:
-            continue
-
-        if line.strip() == "}":
-            break
-
-        service = line.split(":")[1].strip()
-
-        results.append(
-            {
-                "package_name": service.split("/")[0],
-                "service": service,
-            }
-        )
-
-    return results
-
-
 def parse_dumpsys_activity_resolver_table(output: str) -> Dict[str, Any]:
     results = {}
 

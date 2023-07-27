@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_accessibility
+from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibility as DAA
 
 from .base import AndroidExtraction
 
 
-class DumpsysAccessibility(AndroidExtraction):
+class DumpsysAccessibility(DAA, AndroidExtraction):
     """This module extracts stats on accessibility."""
 
     def __init__(
@@ -32,23 +32,12 @@ class DumpsysAccessibility(AndroidExtraction):
             results=results,
         )
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
     def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("dumpsys accessibility")
         self._adb_disconnect()
 
-        self.results = parse_dumpsys_accessibility(output)
+        self.parse(output)
 
         for result in self.results:
             self.log.info(

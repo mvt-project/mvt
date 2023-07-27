@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_accessibility
+from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibility as DAA
 
 from .base import BugReportModule
 
 
-class Accessibility(BugReportModule):
+class Accessibility(DAA, BugReportModule):
     """This module extracts stats on accessibility."""
 
     def __init__(
@@ -32,44 +32,21 @@ class Accessibility(BugReportModule):
             results=results,
         )
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        full_dumpsys = self._get_dumpstate_file()
+        if not full_dumpsys:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        lines = []
-        in_accessibility = False
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip() == "DUMP OF SERVICE accessibility:":
-                in_accessibility = True
-                continue
+        content = self.extract_dumpsys_section(
+            full_dumpsys.decode("utf-8", errors="ignore"),
+            "DUMP OF SERVICE accessibility:",
+        )
+        self.parse(content)
 
-            if not in_accessibility:
-                continue
-
-            if line.strip().startswith(
-                "------------------------------------------------------------------------------"
-            ):  # pylint: disable=line-too-long
-                break
-
-            lines.append(line)
-
-        self.results = parse_dumpsys_accessibility("\n".join(lines))
         for result in self.results:
             self.log.info(
                 'Found installed accessibility service "%s"', result.get("service")

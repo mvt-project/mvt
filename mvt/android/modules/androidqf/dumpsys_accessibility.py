@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_accessibility
+from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibility as DAA
 
 from .base import AndroidQFModule
 
 
-class DumpsysAccessibility(AndroidQFModule):
+class DumpsysAccessibility(DAA, AndroidQFModule):
     """This module analyse dumpsys accessbility"""
 
     def __init__(
@@ -32,40 +32,14 @@ class DumpsysAccessibility(AndroidQFModule):
             results=results,
         )
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-
     def run(self) -> None:
         dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
         if not dumpsys_file:
             return
 
-        lines = []
-        in_accessibility = False
-        data = self._get_file_content(dumpsys_file[0])
-        for line in data.decode("utf-8").split("\n"):
-            if line.strip().startswith("DUMP OF SERVICE accessibility:"):
-                in_accessibility = True
-                continue
-
-            if not in_accessibility:
-                continue
-
-            if line.strip().startswith(
-                "-------------------------------------------------------------------------------"
-            ):  # pylint: disable=line-too-long
-                break
-
-            lines.append(line.rstrip())
-
-        self.results = parse_dumpsys_accessibility("\n".join(lines))
+        data = self._get_file_content(dumpsys_file[0]).decode("utf-8", errors="replace")
+        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE accessibility:")
+        self.parse(content)
 
         for result in self.results:
             self.log.info(

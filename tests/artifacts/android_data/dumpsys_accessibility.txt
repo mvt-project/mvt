@@ -1,0 +1,40 @@
+ACCESSIBILITY MANAGER (dumpsys accessibility)
+
+User state[attributes:{id=0, currentUser=true
+  mIsNavBarMagnificationAssignedToAccessibilityButton = false
+
+  mIsNavBarMagnifierWindowAssignedToAccessibilityButton = false
+  mIsNavBarAmplifyAmbientSoundAssignedToAccessibilityButton = false
+  mIsAmplifyAmbientSoundEnabled = false
+  mIsBixbyRunning = false
+  mIsMagniferWindowEnabled = false
+  mIsFollowTypingFocusEnabled = false
+  mIsTapDurationEnabled = false
+  mIsTouchBlockingEnabled = false
+  mIsTextHighContrastEnabled = false
+  mIsDisplayMagnificationEnabled = false
+  mIsNavBarMagnificationEnabled = false
+  mIsAutoclickEnabled = false
+  mIsPerformGesturesEnabled = false
+  mIsFilterKeyEventsEnabled = false
+  mAccessibilityFocusOnlyInActiveWindow = true
+  mUserNonInteractiveUiTimeout = 0
+  mUserInteractiveUiTimeout = 0
+  mBindInstantServiceAllowed = false
+  mIsGestureNaviBar = false
+  }
+  installed services: {
+    0 : com.android.settings/com.samsung.android.settings.development.gpuwatch.GPUWatchInterceptor
+    1 : com.samsung.accessibility/.universalswitch.UniversalSwitchService
+    2 : com.samsung.accessibility/com.samsung.android.app.talkback.TalkBackService
+    3 : com.sec.android.app.camera/com.samsung.android.glview.AccessibilityGestureHandler
+  }
+  enabled services: {
+  }
+  binding services: {
+  }
+  bound services:{
+  }
+  AccessibilityInputFilter:{
+  }]
+
