@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_activity_resolver_table
+from mvt.android.artifacts.dumpsys_package_activities import DumpsysPackageActivities
 
 from .base import BugReportModule
 
 
-class Activities(BugReportModule):
+class Activities(DumpsysPackageActivities, BugReportModule):
     """This module extracts details on receivers for risky activities."""
 
     def __init__(
@@ -32,19 +32,7 @@ class Activities(BugReportModule):
             results=results,
         )
 
-        self.results = results if results else {}
-
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for intent, activities in self.results.items():
-            for activity in activities:
-                ioc = self.indicators.check_app_id(activity["package_name"])
-                if ioc:
-                    activity["matched_indicator"] = ioc
-                    self.detected.append({intent: activity})
-                    continue
+        self.results = results if results else []
 
     def run(self) -> None:
         content = self._get_dumpstate_file()
@@ -55,23 +43,12 @@ class Activities(BugReportModule):
             )
             return
 
-        lines = []
-        in_package = False
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip() == "DUMP OF SERVICE package:":
-                in_package = True
-                continue
+        # Extract package section
+        section = self.extract_dumpsys_section(
+            content.decode("utf-8", errors="ignore"), "DUMP OF SERVICE package:"
+        )
 
-            if not in_package:
-                continue
+        # Parse
+        self.parse(section)
 
-            if line.strip().startswith(
-                "------------------------------------------------------------------------------"
-            ):  # pylint: disable=line-too-long
-                break
-
-            lines.append(line)
-
-        self.results = parse_dumpsys_activity_resolver_table("\n".join(lines))
-
-        self.log.info("Extracted activities for %d intents", len(self.results))
+        self.log.info("Extracted %d package activities", len(self.results))

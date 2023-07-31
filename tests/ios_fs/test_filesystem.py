@@ -2,14 +2,15 @@
 # Copyright (c) 2021-2023 Claudio Guarnieri.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
-import pytest
 import logging
+
+import pytest
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 from mvt.ios.modules.fs.filesystem import Filesystem
 
-from ..utils import get_ios_backup_folder, delete_tmp_db_files
+from ..utils import delete_tmp_db_files, get_ios_backup_folder
 
 
 @pytest.fixture()

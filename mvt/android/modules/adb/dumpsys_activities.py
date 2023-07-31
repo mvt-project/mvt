@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_activity_resolver_table
+from mvt.android.artifacts.dumpsys_package_activities import DumpsysPackageActivities
 
 from .base import AndroidExtraction
 
 
-class DumpsysActivities(AndroidExtraction):
+class DumpsysActivities(DumpsysPackageActivities, AndroidExtraction):
     """This module extracts details on receivers for risky activities."""
 
     def __init__(
@@ -32,25 +32,12 @@ class DumpsysActivities(AndroidExtraction):
             results=results,
         )
 
-        self.results = results if results else {}
-
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for intent, activities in self.results.items():
-            for activity in activities:
-                ioc = self.indicators.check_app_id(activity["package_name"])
-                if ioc:
-                    activity["matched_indicator"] = ioc
-                    self.detected.append({intent: activity})
-                    continue
+        self.results = results if results else []
 
     def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("dumpsys package")
         self._adb_disconnect()
+        self.parse(output)
 
-        self.results = parse_dumpsys_activity_resolver_table(output)
-
-        self.log.info("Extracted activities for %d intents", len(self.results))
+        self.log.info("Extracted %d package activities", len(self.results))

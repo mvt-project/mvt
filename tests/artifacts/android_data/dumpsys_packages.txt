@@ -9,6 +9,32 @@ Libraries:
   android.test.mock ->  (jar) /system/framework/android.test.mock.jar
 
 
+Activity Resolver Table:
+  Full MIME Types:
+      text/comma-separated-values:
+        18d43d com.samsung.android.messaging/.ui.RcsTransferContent
+        72c6194 com.samsung.android.scloud/.app.ui.drive.activity.UploadToDriveActivity2 (2 filters)
+        a8101e7 com.samsung.android.scloud/.app.ui.drive.activity.UploadToDriveActivity (2 filters)
+      application/com.google.android.gms.car:
+        f6b2432 com.google.android.gms/.car.FirstActivity
+      slide/*:
+        651d583 com.android.bluetooth/.opp.BluetoothOppLauncherActivity (2 filters)
+      application/pkix-cert:
+        6380300 com.android.certinstaller/.CertInstallerMain
+
+  Non-Data Actions:
+      com.samsung.android.intent.SOCIAL_UPDATES_FEED_VIEW:
+        b928288 com.samsung.android.app.social/.feed.FeedsActivity
+      android.settings.FINGERPRINT_SETUP:
+        e573421 com.android.settings/.biometrics.fingerprint.SetupFingerprintEnrollIntroduction
+      com.msc.action.samsungaccount.myinfowebview_external:
+        f897046 com.osp.app.signin/com.samsung.android.samsungaccount.authentication.ui.check.user.MyProfileWebView
+      com.google.android.gms.autofill.ACTION_SETTINGS:
+        9de5207 com.google.android.gms/.autofill.ui.AutofillSettingsPrivacyHubActivity
+
+
+
+
 
 Packages:
   Package [com.samsung.android.provider.filterprovider] (d64f8e0):
