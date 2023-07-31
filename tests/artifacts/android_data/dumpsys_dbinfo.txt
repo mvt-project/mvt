@@ -1,0 +1,23 @@
+DUMP OF SERVICE dbinfo:
+Applications Database Info:
+
+** Database info for pid 8817 [com.wssyncmldm] **
+
+  Attached db: false
+Connection pool for /data/user/0/com.wssyncmldm/databases/idmsdk.db:
+  Open: true
+  Max connections: 1
+  Total execution time: 46
+  Configuration: openFlags=268435456, isLegacyCompatibilityWalEnabled=false, journalMode=, syncMode=
+  Secure db: false
+  Available primary connection:
+    Connection #0:
+      isPrimaryConnection: true
+      onlyAllowReadOnlyOperations: true
+      Most recently executed operations:
+        0: [2023-07-27 12:21:44.097] [Pid:(0)]executeForCursorWindow took 2ms - succeeded, sql="PRAGMA database_list;", path=/data/user/0/com.wssyncmldm/databases/idmsdk.db
+        1: [2023-07-27 12:21:44.096] [Pid:(0)]executeForLong took 0ms - succeeded, sql="PRAGMA page_size;", path=/data/user/0/com.wssyncmldm/databases/idmsdk.db
+        2: [2023-07-27 12:21:44.092] [Pid:(0)]executeForLong took 4ms - succeeded, sql="PRAGMA page_count;", path=/data/user/0/com.wssyncmldm/databases/idmsdk.db
+        3: [2023-07-26 19:27:41.386] [Pid:(8817)]executeForCursorWindow took 2ms - succeeded, sql="SELECT path, name, acl, scope, format, type, depth, value FROM x6g1q14r75 WHERE (path = './DMAcc/x6g1q14r75/AppAuth/client/AAuthName') ORDER BY depth ASC", path=/data/user/0/com.wssyncmldm/databases/idmsdk.db
+        4: [2023-07-26 19:27:41.385] [Pid:(8817)]prepare took 0ms - succeeded, sql="SELECT path, name, acl, scope, format, type, depth, value FROM x6g1q14r75 WHERE (path = './DMAcc/x6g1q14r75/AppAuth/client/AAuthName') ORDER BY depth ASC", path=/data/user/0/com.wssyncmldm/databases/idmsdk.db
+

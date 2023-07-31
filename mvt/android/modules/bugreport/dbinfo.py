@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_dbinfo
+from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfo
 
 from .base import BugReportModule
 
 
-class DBInfo(BugReportModule):
+class DBInfo(DumpsysDBInfo, BugReportModule):
     """This module extracts records from battery daily updates."""
 
     slug = "dbinfo"
@@ -34,47 +34,20 @@ class DBInfo(BugReportModule):
             results=results,
         )
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            path = result.get("path", "")
-            for part in path.split("/"):
-                ioc = self.indicators.check_app_id(part)
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
-                    continue
-
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        data = self._get_dumpstate_file()
+        if not data:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        in_dbinfo = False
-        lines = []
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip() == "DUMP OF SERVICE dbinfo:":
-                in_dbinfo = True
-                continue
+        section = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="ignore"), "DUMP OF SERVICE dbinfo:"
+        )
 
-            if not in_dbinfo:
-                continue
-
-            if line.strip().startswith(
-                "------------------------------------------------------------------------------"
-            ):  # pylint: disable=line-too-long
-                break
-
-            lines.append(line)
-
-        self.results = parse_dumpsys_dbinfo("\n".join(lines))
-
+        self.parse(section)
         self.log.info(
             "Extracted a total of %d database connection pool records",
             len(self.results),

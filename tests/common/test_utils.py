@@ -62,5 +62,5 @@ class TestHashes:
         assert hashes[1]["file_path"] == os.path.join(path, "dumpsys.txt")
         assert (
             hashes[1]["sha256"]
-            == "bac858001784657a43c7cfa771fd1fc4a49428eb6b7c458a1ebf2fdeef78dd86"
+            == "c6be3ada77674f5bb9750d24e84b9b7ccf8db0cd4a896d9c17f9456eeab4bd0b"
         )

@@ -250,5 +250,30 @@ Current AppOps Service state:
       WRITE_EXTERNAL_STORAGE (allow):
 
 
+-------------------------------------------------------------------------------
+DUMP OF SERVICE dbinfo:
+Applications Database Info:
+
+** Database info for pid 5748 [com.sec.android.inputmethod] **
+
+  Attached db: false
+Connection pool for /data/user/0/com.sec.android.inputmethod/databases/StickerRecentList:
+  Open: true
+  Max connections: 4
+  Total execution time: 61
+  Configuration: openFlags=805306368, isLegacyCompatibilityWalEnabled=false, journalMode=, syncMode=
+  Secure db: false
+  Use WAL mode.
+  Available primary connection:
+    Connection #0:
+      isPrimaryConnection: true
+      onlyAllowReadOnlyOperations: false
+      Most recently executed operations:
+        0: [2023-07-27 12:21:44.458] [Pid:(0)]executeForCursorWindow took 1ms - succeeded, sql="PRAGMA database_list;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
+        1: [2023-07-27 12:21:44.456] [Pid:(0)]executeForLong took 0ms - succeeded, sql="PRAGMA page_size;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
+        2: [2023-07-27 12:21:44.455] [Pid:(0)]executeForLong took 2ms - succeeded, sql="PRAGMA page_count;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
+        3: [2023-07-26 16:50:25.321] [Pid:(0)]executeForCursorWindow took 0ms - succeeded, sql="PRAGMA database_list;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
+        4: [2023-07-26 16:50:25.320] [Pid:(0)]executeForLong took 0ms - succeeded, sql="PRAGMA page_size;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
+        5: [2023-07-26 16:50:25.318] [Pid:(0)]executeForLong took 2ms - succeeded, sql="PRAGMA page_count;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
 
 

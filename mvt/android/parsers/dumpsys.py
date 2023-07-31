@@ -118,67 +118,6 @@ def parse_dumpsys_battery_history(output: str) -> List[Dict[str, Any]]:
     return results
 
 
-def parse_dumpsys_dbinfo(output: str) -> List[Dict[str, Any]]:
-    results = []
-
-    rxp = re.compile(
-        r".*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\""
-    )  # pylint: disable=line-too-long
-    rxp_no_pid = re.compile(
-        r".*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\""
-    )  # pylint: disable=line-too-long
-
-    pool = None
-    in_operations = False
-    for line in output.splitlines():
-        if line.startswith("Connection pool for "):
-            pool = line.replace("Connection pool for ", "").rstrip(":")
-
-        if not pool:
-            continue
-
-        if line.strip() == "Most recently executed operations:":
-            in_operations = True
-            continue
-
-        if not in_operations:
-            continue
-
-        if not line.startswith("        "):
-            in_operations = False
-            pool = None
-            continue
-
-        matches = rxp.findall(line)
-        if not matches:
-            matches = rxp_no_pid.findall(line)
-            if not matches:
-                continue
-
-            match = matches[0]
-            results.append(
-                {
-                    "isodate": match[0],
-                    "action": match[1],
-                    "sql": match[2],
-                    "path": pool,
-                }
-            )
-        else:
-            match = matches[0]
-            results.append(
-                {
-                    "isodate": match[0],
-                    "pid": match[1],
-                    "action": match[2],
-                    "sql": match[3],
-                    "path": pool,
-                }
-            )
-
-    return results
-
-
 def parse_dumpsys_receiver_resolver_table(output: str) -> Dict[str, Any]:
     results = {}
 

@@ -8,14 +8,10 @@ from typing import Optional
 
 from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfo as DBI
 
-from .base import AndroidExtraction
+from .base import AndroidQFModule
 
 
-class DumpsysDBInfo(DBI, AndroidExtraction):
-    """This module extracts records from battery daily updates."""
-
-    slug = "dumpsys_dbinfo"
-
+class DumpsysDBInfo(DBI, AndroidQFModule):
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -35,13 +31,16 @@ class DumpsysDBInfo(DBI, AndroidExtraction):
         )
 
     def run(self) -> None:
-        self._adb_connect()
-        output = self._adb_command("dumpsys dbinfo")
-        self._adb_disconnect()
+        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
+        if not dumpsys_file:
+            return
 
-        self.parse(output)
-
-        self.log.info(
-            "Extracted a total of %d records from database information",
-            len(self.results),
+        # Extract dumpsys DBInfo section
+        data = self._get_file_content(dumpsys_file[0])
+        section = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE dbinfo:"
         )
+
+        # Parse it
+        self.parse(section)
+        self.log.info("Identified %d DB Info entries", len(self.results))
