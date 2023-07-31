@@ -37,6 +37,18 @@ def get_indicator_file():
     print("PYTEST env", os.getenv("PYTEST_CURRENT_TEST"))
 
 
+def delete_tmp_db_files(file_path):
+    """
+    Remove Sqlite temporary files that appear on some platforms
+
+    These can cause filesystem tests to fail depending on the OS.
+    """
+    for file_name in ["Manifest.db-wal", "Manifest.db-shm"]:
+        path = os.path.join(file_path, file_name)
+        if os.path.isfile(path):
+            os.remove(path)
+
+
 def list_files(path: str):
     files = []
     parent_path = Path(path).absolute().parent.as_posix()
