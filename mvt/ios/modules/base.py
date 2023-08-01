@@ -167,7 +167,7 @@ class IOSExtraction(MVTModule):
 
         """
         file_path = None
-        # First we check if the was an explicit file path specified.
+        # First we check if there was an explicit file path specified.
         if not self.file_path:
             # If not, we first try with backups.
             # We construct the path to the file according to the iTunes backup
@@ -187,11 +187,16 @@ class IOSExtraction(MVTModule):
                     for found_path in self._get_fs_files_from_patterns(root_paths):
                         file_path = found_path
                         break
+            # If we do not find any, we fail.
+            if file_path:
+                self.file_path = file_path
+            else:
+                raise DatabaseNotFoundError("unable to find the module's database file")
 
-        # If we do not find any, we fail.
-        if file_path:
-            self.file_path = file_path
+        # If there was an explicit file path specified, check if it actually exists.
         else:
-            raise DatabaseNotFoundError("unable to find the module's database file")
+            # If it doesn't exist, we fail.
+            if not os.path.exists(self.file_path):
+                raise DatabaseNotFoundError("unable to find the module's database file")
 
         self._recover_sqlite_db_if_needed(self.file_path)
