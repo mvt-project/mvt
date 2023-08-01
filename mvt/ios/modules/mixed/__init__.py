@@ -25,6 +25,7 @@ from .tcc import TCC
 from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
+from .viber import Viber
 
 MIXED_MODULES = [
     Calls,
@@ -46,6 +47,7 @@ MIXED_MODULES = [
     WebkitResourceLoadStatistics,
     WebkitSessionResourceLog,
     Whatsapp,
+    Viber,
     Shortcuts,
     Applications,
     Calendar,
