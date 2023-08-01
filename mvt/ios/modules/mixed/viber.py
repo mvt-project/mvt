@@ -75,10 +75,13 @@ class Viber(IOSExtraction):
             conn.close()
             raise
         for query_result in cur:
-            message = {}
-            message["text"] = query_result[1]
-            message["isodate"] = convert_mactime_to_iso(query_result[0])
-            message["links"] = list(set(shortened_url))
-            self.results.append(message)
+            message_text = query_result[1]
+            message_links = check_for_links(message_text)
+            if message_links:
+                message = {}
+                message["text"] = message_text
+                message["isodate"] = convert_mactime_to_iso(query_result[0])
+                message["links"] = message_links
+                self.results.append(message)
         cur.close()
         conn.close()
