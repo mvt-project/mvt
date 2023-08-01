@@ -16,8 +16,8 @@ class TestFilesystem:
     def test_filesystem(self):
         m = Filesystem(target_path=get_ios_backup_folder())
         run_module(m)
-        assert len(m.results) == 14
-        assert len(m.timeline) == 14
+        assert len(m.results) == 16
+        assert len(m.timeline) == 16
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file):
@@ -30,6 +30,6 @@ class TestFilesystem:
         )
         m.indicators = ind
         run_module(m)
-        assert len(m.results) == 14
-        assert len(m.timeline) == 14
+        assert len(m.results) == 16
+        assert len(m.timeline) == 16
         assert len(m.detected) == 1
