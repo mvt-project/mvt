@@ -4,14 +4,14 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_appops
+from mvt.android.artifacts.dumpsys_appops import DumpsysAppops as DAO
 
 from .base import AndroidQFModule
 
 
-class DumpsysAppops(AndroidQFModule):
+class DumpsysAppops(DAO, AndroidQFModule):
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -30,65 +30,17 @@ class DumpsysAppops(AndroidQFModule):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
-        records = []
-        for perm in record["permissions"]:
-            if "entries" not in perm:
-                continue
-
-            for entry in perm["entries"]:
-                if "timestamp" in entry:
-                    records.append(
-                        {
-                            "timestamp": entry["timestamp"],
-                            "module": self.__class__.__name__,
-                            "event": entry["access"],
-                            "data": f"{record['package_name']} access to "
-                            f"{perm['name']} : {entry['access']}",
-                        }
-                    )
-
-        return records
-
-    def check_indicators(self) -> None:
-        for result in self.results:
-            if self.indicators:
-                ioc = self.indicators.check_app_id(result.get("package_name"))
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
-                    continue
-
-            for perm in result["permissions"]:
-                if (
-                    perm["name"] == "REQUEST_INSTALL_PACKAGES"
-                    and perm["access"] == "allow"
-                ):
-                    self.log.info(
-                        "Package %s with REQUEST_INSTALL_PACKAGES permission",
-                        result["package_name"],
-                    )
-
     def run(self) -> None:
         dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
         if not dumpsys_file:
             return
 
-        lines = []
-        in_package = False
+        # Extract section
         data = self._get_file_content(dumpsys_file[0])
-        for line in data.decode("utf-8").split("\n"):
-            if line.startswith("DUMP OF SERVICE appops:"):
-                in_package = True
-                continue
+        section = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE appops:"
+        )
 
-            if in_package:
-                if line.startswith(
-                    "-------------------------------------------------------------------------------"
-                ):  # pylint: disable=line-too-long
-                    break
-
-                lines.append(line.rstrip())
-
-        self.results = parse_dumpsys_appops("\n".join(lines))
+        # Parse it
+        self.parse(section)
         self.log.info("Identified %d applications in AppOps Manager", len(self.results))

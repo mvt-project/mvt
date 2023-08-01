@@ -4,10 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import re
-from datetime import datetime
 from typing import Any, Dict, List
-
-from mvt.common.utils import convert_datetime_to_iso
 
 
 def parse_dumpsys_battery_daily(output: str) -> list:
@@ -172,104 +169,6 @@ def parse_dumpsys_receiver_resolver_table(output: str) -> Dict[str, Any]:
                 "receiver": receiver,
             }
         )
-
-    return results
-
-
-def parse_dumpsys_appops(output: str) -> List[Dict[str, Any]]:
-    results = []
-    perm = {}
-    package = {}
-    entry = {}
-    uid = None
-    in_packages = False
-
-    for line in output.splitlines():
-        if line.startswith("  Uid 0:"):
-            in_packages = True
-
-        if not in_packages:
-            continue
-
-        if line.startswith("  Uid "):
-            uid = line[6:-1]
-            if entry:
-                perm["entries"].append(entry)
-                entry = {}
-
-            if package:
-                if perm:
-                    package["permissions"].append(perm)
-
-                perm = {}
-                results.append(package)
-            package = {}
-            continue
-
-        if line.startswith("    Package "):
-            if entry:
-                perm["entries"].append(entry)
-                entry = {}
-
-            if package:
-                if perm:
-                    package["permissions"].append(perm)
-
-                perm = {}
-                results.append(package)
-
-            package = {
-                "package_name": line[12:-1],
-                "permissions": [],
-                "uid": uid,
-            }
-            continue
-
-        if package and line.startswith("      ") and line[6] != " ":
-            if entry:
-                perm["entries"].append(entry)
-                entry = {}
-            if perm:
-                package["permissions"].append(perm)
-                perm = {}
-
-            perm["name"] = line.split()[0]
-            perm["entries"] = []
-            if len(line.split()) > 1:
-                perm["access"] = line.split()[1][1:-2]
-
-            continue
-
-        if line.startswith("          "):
-            # Permission entry like:
-            # Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
-            if entry:
-                perm["entries"].append(entry)
-                entry = {}
-
-            entry["access"] = line.split(":")[0].strip()
-            entry["type"] = line[line.find("[") + 1 : line.find("]")]
-
-            try:
-                entry["timestamp"] = convert_datetime_to_iso(
-                    datetime.strptime(
-                        line[line.find("]") + 1 : line.find("(")].strip(),
-                        "%Y-%m-%d %H:%M:%S.%f",
-                    )
-                )
-            except ValueError:
-                # Invalid date format
-                pass
-
-        if line.strip() == "":
-            break
-
-    if entry:
-        perm["entries"].append(entry)
-    if perm:
-        package["permissions"].append(perm)
-    if package:
-        results.append(package)
 
     return results
 
