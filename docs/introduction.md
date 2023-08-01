@@ -8,7 +8,7 @@ Mobile Verification Toolkit (MVT) is a collection of utilities designed to facil
 - Extract diagnostic information from Android devices through the adb protocol.
 - Compare extracted records to a provided list of malicious indicators in STIX2 format.
 - Generate JSON logs of extracted records, and separate JSON logs of all detected malicious traces.
-- Generate a unified chronological timeline of extracted records, along with a timeline all detected malicious traces.
+- Generate a unified chronological timeline of extracted records, along with a timeline of all detected malicious traces.
 
 MVT is a forensic research tool intended for technologists and investigators. Using it requires understanding the basics of forensic analysis and using command-line tools. MVT is not intended for end-user self-assessment. If you are concerned with the security of your device please seek expert assistance.
 
@@ -17,14 +17,13 @@ MVT is a forensic research tool intended for technologists and investigators. Us
 MVT supports using [indicators of compromise (IOCs)](https://github.com/mvt-project/mvt-indicators) to scan mobile devices for potential traces of targeting or infection by known spyware campaigns. This includes IOCs published by [Amnesty International](https://github.com/AmnestyTech/investigations/) and other research groups.
 
 !!! warning
-    Public indicators of compromise are insufficient to determine that a device is "clean", and not targeted with a particular spyware tool. Reliance on public indicators alone can miss recent forensic traces and give a false sense of security.
+Public indicators of compromise are insufficient to determine that a device is "clean", and not targeted with a particular spyware tool. Reliance on public indicators alone can miss recent forensic traces and give a false sense of security.
 
     Reliable and comprehensive digital forensic support and triage requires access to non-public indicators, research and threat intelligence.
 
     Such support is available to civil society through [Amnesty International's Security Lab](https://www.amnesty.org/en/tech/) or [Access Now’s Digital Security Helpline](https://www.accessnow.org/help/).
 
 More information about using indicators of compromise with MVT is available in the [documentation](iocs.md).
-
 
 ## Consensual Forensics
 
