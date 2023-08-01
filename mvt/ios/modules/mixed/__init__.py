@@ -22,6 +22,7 @@ from .shortcuts import Shortcuts
 from .sms import SMS
 from .sms_attachments import SMSAttachments
 from .tcc import TCC
+from .viber import Viber
 from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
@@ -43,6 +44,7 @@ MIXED_MODULES = [
     TCC,
     SMS,
     SMSAttachments,
+    Viber,
     WebkitResourceLoadStatistics,
     WebkitSessionResourceLog,
     Whatsapp,
