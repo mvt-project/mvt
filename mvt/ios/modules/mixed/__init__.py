@@ -11,6 +11,7 @@ from .chrome_history import ChromeHistory
 from .contacts import Contacts
 from .firefox_favicon import FirefoxFavicon
 from .firefox_history import FirefoxHistory
+from .global_preferences import GlobalPreferences
 from .idstatuscache import IDStatusCache
 from .interactionc import InteractionC
 from .locationd import LocationdClients
@@ -49,4 +50,5 @@ MIXED_MODULES = [
     Shortcuts,
     Applications,
     Calendar,
+    GlobalPreferences,
 ]

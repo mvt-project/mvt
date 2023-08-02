@@ -12,7 +12,7 @@ from mvt.ios.modules.mixed.tcc import TCC
 from ..utils import get_ios_backup_folder
 
 
-class TestTCCtModule:
+class TestTCCModule:
     def test_tcc(self):
         m = TCC(target_path=get_ios_backup_folder())
         run_module(m)

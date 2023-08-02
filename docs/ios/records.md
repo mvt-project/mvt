@@ -142,6 +142,16 @@ If indicators are provided through the command-line, they are checked against th
 
 ---
 
+### `global_preferences.json`
+
+!!! info "Availability"
+    Backup: :material-check:
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `GlobalPreferences` module. The module extracts records from a Plist file located at */private/var/mobile/Library/Preferences/.GlobalPreferences.plist*, which contains a system preferences including if Lockdown Mode is enabled.
+
+---
+
 ### `id_status_cache.json`
 
 !!! info "Availability"

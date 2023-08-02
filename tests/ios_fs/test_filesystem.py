@@ -24,8 +24,8 @@ class TestFilesystem:
     def test_filesystem(self, cleanup_tmp_artifacts):
         m = Filesystem(target_path=get_ios_backup_folder())
         run_module(m)
-        assert len(m.results) == 14
-        assert len(m.timeline) == 14
+        assert len(m.results) == 15
+        assert len(m.timeline) == 15
         assert len(m.detected) == 0
 
     def test_detection(self, indicator_file, cleanup_tmp_artifacts):
@@ -38,6 +38,6 @@ class TestFilesystem:
         )
         m.indicators = ind
         run_module(m)
-        assert len(m.results) == 14
-        assert len(m.timeline) == 14
+        assert len(m.results) == 15
+        assert len(m.timeline) == 15
         assert len(m.detected) == 1
