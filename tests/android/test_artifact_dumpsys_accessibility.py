@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 import logging
 
-from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibility
+from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
 from mvt.common.indicators import Indicators
 
 from ..utils import get_artifact
@@ -12,7 +12,7 @@ from ..utils import get_artifact
 
 class TestDumpsysAccessibilityArtifact:
     def test_parsing(self):
-        da = DumpsysAccessibility()
+        da = DumpsysAccessibilityArtifact()
         file = get_artifact("android_data/dumpsys_accessibility.txt")
         with open(file) as f:
             data = f.read()
@@ -27,7 +27,7 @@ class TestDumpsysAccessibilityArtifact:
         )
 
     def test_ioc_check(self, indicator_file):
-        da = DumpsysAccessibility()
+        da = DumpsysAccessibilityArtifact()
         file = get_artifact("android_data/dumpsys_accessibility.txt")
         with open(file) as f:
             data = f.read()

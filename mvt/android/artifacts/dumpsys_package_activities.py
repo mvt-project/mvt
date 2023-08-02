@@ -5,7 +5,7 @@
 from .artifact import AndroidArtifact
 
 
-class DumpsysPackageActivities(AndroidArtifact):
+class DumpsysPackageActivitiesArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         if not self.indicators:
             return

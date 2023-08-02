@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 import logging
 
-from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfo
+from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfoArtifact
 from mvt.common.indicators import Indicators
 
 from ..utils import get_artifact
@@ -12,7 +12,7 @@ from ..utils import get_artifact
 
 class TestDumpsysDBinfoArtifact:
     def test_parsing(self):
-        dbi = DumpsysDBInfo()
+        dbi = DumpsysDBInfoArtifact()
         file = get_artifact("android_data/dumpsys_dbinfo.txt")
         with open(file) as f:
             data = f.read()
@@ -27,7 +27,7 @@ class TestDumpsysDBinfoArtifact:
         )
 
     def test_ioc_check(self, indicator_file):
-        dbi = DumpsysDBInfo()
+        dbi = DumpsysDBInfoArtifact()
         file = get_artifact("android_data/dumpsys_dbinfo.txt")
         with open(file) as f:
             data = f.read()

@@ -10,7 +10,7 @@ from mvt.common.utils import convert_datetime_to_iso
 from .artifact import AndroidArtifact
 
 
-class DumpsysAppops(AndroidArtifact):
+class DumpsysAppopsArtifact(AndroidArtifact):
     """
     Parser for dumpsys app ops info
     """

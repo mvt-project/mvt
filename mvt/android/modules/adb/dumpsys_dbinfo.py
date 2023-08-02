@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfo as DBI
+from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfoArtifact
 
 from .base import AndroidExtraction
 
 
-class DumpsysDBInfo(DBI, AndroidExtraction):
+class DumpsysDBInfo(DumpsysDBInfoArtifact, AndroidExtraction):
     """This module extracts records from battery daily updates."""
 
     slug = "dumpsys_dbinfo"

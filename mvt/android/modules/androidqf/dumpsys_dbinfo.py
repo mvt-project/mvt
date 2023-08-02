@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfo as DBI
+from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfoArtifact
 
 from .base import AndroidQFModule
 
 
-class DumpsysDBInfo(DBI, AndroidQFModule):
+class DumpsysDBInfo(DumpsysDBInfoArtifact, AndroidQFModule):
     def __init__(
         self,
         file_path: Optional[str] = None,

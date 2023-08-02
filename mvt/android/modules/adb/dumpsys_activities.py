@@ -6,12 +6,14 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_package_activities import DumpsysPackageActivities
+from mvt.android.artifacts.dumpsys_package_activities import (
+    DumpsysPackageActivitiesArtifact,
+)
 
 from .base import AndroidExtraction
 
 
-class DumpsysActivities(DumpsysPackageActivities, AndroidExtraction):
+class DumpsysActivities(DumpsysPackageActivitiesArtifact, AndroidExtraction):
     """This module extracts details on receivers for risky activities."""
 
     def __init__(

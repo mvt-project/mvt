@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibility as DAA
+from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
 
 from .base import AndroidQFModule
 
 
-class DumpsysAccessibility(DAA, AndroidQFModule):
+class DumpsysAccessibility(DumpsysAccessibilityArtifact, AndroidQFModule):
     """This module analyse dumpsys accessbility"""
 
     def __init__(

@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_appops import DumpsysAppops
+from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
 
 from .base import BugReportModule
 
 
-class Appops(DumpsysAppops, BugReportModule):
+class Appops(DumpsysAppopsArtifact, BugReportModule):
     """This module extracts information on package from App-Ops Manager."""
 
     def __init__(

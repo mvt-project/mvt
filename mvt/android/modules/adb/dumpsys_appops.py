@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_appops import DumpsysAppops as DAO
+from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
 
 from .base import AndroidExtraction
 
 
-class DumpsysAppOps(DAO, AndroidExtraction):
+class DumpsysAppOps(DumpsysAppopsArtifact, AndroidExtraction):
     """This module extracts records from App-op Manager."""
 
     slug = "dumpsys_appops"

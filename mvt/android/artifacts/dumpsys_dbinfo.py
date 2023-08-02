@@ -7,7 +7,7 @@ import re
 from .artifact import AndroidArtifact
 
 
-class DumpsysDBInfo(AndroidArtifact):
+class DumpsysDBInfoArtifact(AndroidArtifact):
     """
     Parser for dumpsys DBInfo service
     """

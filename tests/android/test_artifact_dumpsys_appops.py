@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 import logging
 
-from mvt.android.artifacts.dumpsys_appops import DumpsysAppops
+from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
 from mvt.common.indicators import Indicators
 
 from ..utils import get_artifact
@@ -12,7 +12,7 @@ from ..utils import get_artifact
 
 class TestDumpsysAppopsArtifact:
     def test_parsing(self):
-        da = DumpsysAppops()
+        da = DumpsysAppopsArtifact()
         da.log = logging
         file = get_artifact("android_data/dumpsys_appops.txt")
         with open(file) as f:
@@ -31,7 +31,7 @@ class TestDumpsysAppopsArtifact:
         assert len(da.results[11]["permissions"]) == 4
 
     def test_ioc_check(self, indicator_file):
-        da = DumpsysAppops()
+        da = DumpsysAppopsArtifact()
         da.log = logging
         file = get_artifact("android_data/dumpsys_appops.txt")
         with open(file) as f:

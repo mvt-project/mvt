@@ -5,7 +5,7 @@
 from .artifact import AndroidArtifact
 
 
-class DumpsysAccessibility(AndroidArtifact):
+class DumpsysAccessibilityArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         if not self.indicators:
             return

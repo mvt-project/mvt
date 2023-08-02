@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_appops import DumpsysAppops as DAO
+from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
 
 from .base import AndroidQFModule
 
 
-class DumpsysAppops(DAO, AndroidQFModule):
+class DumpsysAppops(DumpsysAppopsArtifact, AndroidQFModule):
     def __init__(
         self,
         file_path: Optional[str] = None,

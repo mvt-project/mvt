@@ -4,7 +4,9 @@
 #   https://license.mvt.re/1.1/
 import logging
 
-from mvt.android.artifacts.dumpsys_package_activities import DumpsysPackageActivities
+from mvt.android.artifacts.dumpsys_package_activities import (
+    DumpsysPackageActivitiesArtifact,
+)
 from mvt.common.indicators import Indicators
 
 from ..utils import get_artifact
@@ -12,7 +14,7 @@ from ..utils import get_artifact
 
 class TestDumpsysPackageActivitiesArtifact:
     def test_parsing(self):
-        dpa = DumpsysPackageActivities()
+        dpa = DumpsysPackageActivitiesArtifact()
         file = get_artifact("android_data/dumpsys_packages.txt")
         with open(file) as f:
             data = f.read()
@@ -27,7 +29,7 @@ class TestDumpsysPackageActivitiesArtifact:
         )
 
     def test_ioc_check(self, indicator_file):
-        dpa = DumpsysPackageActivities()
+        dpa = DumpsysPackageActivitiesArtifact()
         file = get_artifact("android_data/dumpsys_packages.txt")
         with open(file) as f:
             data = f.read()
