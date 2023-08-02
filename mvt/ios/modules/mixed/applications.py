@@ -79,9 +79,10 @@ class Applications(IOSExtraction):
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
                     continue
-
+            # Some apps installed from apple store with sourceApp "com.apple.AppStore.ProductPageExtension"
             if result.get("sourceApp", "com.apple.AppStore") not in [
                 "com.apple.AppStore",
+                "com.apple.AppStore.ProductPageExtension",
                 "com.apple.dmd",
                 "dmd",
             ]:
