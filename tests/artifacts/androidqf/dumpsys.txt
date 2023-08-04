@@ -277,3 +277,87 @@ Connection pool for /data/user/0/com.sec.android.inputmethod/databases/StickerRe
         5: [2023-07-26 16:50:25.318] [Pid:(0)]executeForLong took 2ms - succeeded, sql="PRAGMA page_count;", path=/data/user/0/com.sec.android.inputmethod/databases/StickerRecentList
 
 
+-------------------------------------------------------------------------------
+DUMP OF SERVICE batterystats:
+Battery History (0% used, 11KB used of 4096KB, 79 strings using 9632):
+                    0 (19) RESET:TIME: 2023-07-27-12-34-18
+                    0 (2) 100 c0100024 status=discharging health=good plug=none temp=260 volt=4345 current=226 ap_temp=27 -nr_connected -wifi_ap -otg misc_event=0x0 online=1 current_event=0x0 txshare_event=0x0 charge=3000 modemRailChargemAh=0 wifiRailChargemAh=0 +running +wake_lock +screen phone_signal_strength=great brightness=bright +wifi_running +wifi +usb_data wifi_signal_strength=3 wifi_suppl=disconn +ble_scan top=1000:"com.wssyncmldm"
+                    0 (2) 100 c0100024 user=0:"0"
+                    0 (2) 100 c0100024 userfg=0:"0"
+               +343ms (3) 100 80000024 -wake_lock -screen -usb_data stats=0:"get-stats"
+             +1s235ms (4) 100 c0000020 +wake_lock=1000:"ActivityManager-Sleep" brightness=dark stats=0:"screen-state"
+             +1s314ms (1) 100 80000020 -wake_lock
+             +1s320ms (2) 100 c0000020 +wake_lock=1001:"*telephony-radio*"
+             +1s321ms (1) 100 80000020 -wake_lock
+             +1s321ms (2) 100 c0000020 +wake_lock=1001:"*telephony-radio*"
+             +1s332ms (1) 100 80000020 -wake_lock
+             +1s332ms (2) 100 c0000020 +wake_lock=1001:"*telephony-radio*"
+             +1s334ms (1) 100 80000020 -wake_lock
+             +1s441ms (2) 100 c0000020 +wake_lock=1000:"startDream"
+             +1s751ms (1) 100 80000020 -wake_lock
+             +1s809ms (2) 100 c0000020 +wake_lock=1001:"*telephony-radio*"
+             +1s811ms (1) 100 80000020 -wake_lock
+             +1s811ms (2) 100 c0000020 +wake_lock=1001:"*telephony-radio*"
+             +1s821ms (1) 100 80000020 -wake_lock
+             +1s821ms (2) 100 c0000020 +wake_lock=1001:"*telephony-radio*"
+             +1s823ms (1) 100 80000020 -wake_lock -ble_scan
+             +2s042ms (2) 100 c0000020 +wake_lock=u0a12:"Wakeful StateMachine: GeofencerStateMachine"
+             +2s044ms (1) 100 80000020 -wake_lock
+             +2s050ms (2) 100 c0000020 +wake_lock=u0a12:"NlpWakeLock"
+
+Daily stats:
+  Current start time: 2023-07-27-02-02-56
+  Next min deadline: 2023-07-28-01-00-00
+  Next max deadline: 2023-07-28-03-00-00
+  Current daily discharge step durations:
+    #0: +2h44m59s971ms to 98 (screen-off, power-save-off, device-idle-on)
+      Discharge total time: 11d 10h 59m 57s 100ms  (from 1 steps)
+      Discharge screen off time: 11d 10h 59m 57s 100ms  (from 1 steps)
+      Discharge screen off device idle time: 11d 10h 59m 57s 100ms  (from 1 steps)
+  Current daily charge step durations:
+    #0: +2m32s269ms to 100 (power-save-off, device-idle-off)
+      Charge total time: 4h 13m 46s 900ms  (from 1 steps)
+  Daily from 2023-07-26-03-02-02 to 2023-07-27-02-02-56:
+    Discharge step durations:
+      #0: +2h21m35s4ms to 75 (screen-off, power-save-off)
+      #1: +2h19m0s999ms to 76 (screen-off, power-save-off)
+      #2: +1h46m26s999ms to 77 (screen-off, power-save-off)
+      #3: +2h24m32s6ms to 78 (screen-off, power-save-off, device-idle-on)
+      #4: +2h44m58s966ms to 79 (screen-off, power-save-off, device-idle-on)
+        Discharge total time: 9d 16h 11m 19s 400ms  (from 5 steps)
+        Discharge screen off time: 9d 16h 11m 19s 400ms  (from 5 steps)
+        Discharge screen off device idle time: 10d 17h 55m 48s 600ms  (from 2 steps)
+    Charge step durations:
+      #0: +5m45s118ms to 100 (screen-off, power-save-off, device-idle-off)
+      #1: +1m0s998ms to 99 (screen-off, power-save-off, device-idle-off)
+      #2: +2m1s894ms to 98 (screen-off, power-save-off, device-idle-off)
+      #3: +1m0s973ms to 97 (screen-off, power-save-off, device-idle-off)
+      #4: +3m33s239ms to 96 (screen-off, power-save-off, device-idle-off)
+    Charge step durations:
+      #0: +30s531ms to 100 (screen-off, power-save-off, device-idle-off)
+      #1: +30s527ms to 99 (screen-off, power-save-off, device-idle-off)
+      #2: +30s571ms to 98 (screen-off, power-save-off, device-idle-off)
+      #3: +1m1s53ms to 97 (screen-off, power-save-off, device-idle-off)
+      #4: +30s580ms to 96 (screen-off, power-save-off, device-idle-off)
+      #5: +30s568ms to 95 (screen-off, power-save-off, device-idle-off)
+      #6: +20s407ms to 94 (screen-off, power-save-off, device-idle-off)
+      #7: +7m16s300ms to 93 (screen-off, power-save-off, device-idle-off)
+      #8: +5m55s313ms to 92 (screen-off, power-save-off, device-idle-off)
+      #9: +6m35s856ms to 91 (screen-off, power-save-off, device-idle-off)
+      #10: +4m17s981ms to 90 (screen-off, power-save-off, device-idle-off)
+      #11: +3m43s342ms to 89 (screen-off, power-save-off, device-idle-off)
+        Charge total time: 4h 24m 18s 500ms  (from 12 steps)
+        Charge screen off time: 4h 24m 18s 500ms  (from 12 steps)
+    Package changes:
+      Update com.google.android.gm vers=63983425
+      Update com.google.android.gm vers=63983425
+      Update com.google.android.gm vers=63983425
+      Update com.google.android.gm vers=63983425
+      Update org.mozilla.firefox vers=2015962857
+      Update org.mozilla.firefox vers=2015962857
+      Update org.mozilla.firefox vers=2015962857
+      Update org.mozilla.firefox vers=2015962857
+      Update com.google.android.projection.gearhead vers=99632623
+      Update com.google.android.projection.gearhead vers=99632623
+      Update com.google.android.projection.gearhead vers=99632623
+

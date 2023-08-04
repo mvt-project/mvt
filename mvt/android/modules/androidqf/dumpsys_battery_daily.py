@@ -8,12 +8,10 @@ from typing import Optional
 
 from mvt.android.artifacts.dumpsys_battery_daily import DumpsysBatteryDailyArtifact
 
-from .base import BugReportModule
+from .base import AndroidQFModule
 
 
-class BatteryDaily(DumpsysBatteryDailyArtifact, BugReportModule):
-    """This module extracts records from battery daily updates."""
-
+class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, AndroidQFModule):
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -33,17 +31,16 @@ class BatteryDaily(DumpsysBatteryDailyArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
-            self.log.error(
-                "Unable to find dumpstate file. "
-                "Did you provide a valid bug report archive?"
-            )
+        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
+        if not dumpsys_file:
             return
 
-        dumpsys_section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
+        # Extract section
+        data = self._get_file_content(dumpsys_file[0])
+        section = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
         )
-        self.parse(dumpsys_section)
 
+        # Parse it
+        self.parse(section)
         self.log.info("Extracted a total of %d battery daily stats", len(self.results))

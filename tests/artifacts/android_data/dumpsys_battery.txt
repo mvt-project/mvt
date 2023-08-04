@@ -9,3 +9,52 @@ Battery History (0% used, 2720 used of 4096KB, 31 strings using 2694):
     +2d23h22m24s588ms (2) 079 +usb_data +top=u0a44:"com.sec.android.app.launcher"
 
 
+Daily stats:
+  Current start time: 2022-08-17-01-15-45
+  Next min deadline: 2022-08-18-01-00-00
+  Next max deadline: 2022-08-18-03-00-00
+  Current daily discharge step durations:
+    #0: +3h32m16s12ms to 96 (power-save-off)
+    #1: +2h44m44s14ms to 97 (screen-off, power-save-off, device-idle-on)
+    #2: +2h0m41s988ms to 98 (screen-off, power-save-off, device-idle-on)
+      Discharge total time: 11d 12h 30m 0s 400ms  (from 3 steps)
+      Discharge screen off time: 9d 21h 51m 40s 100ms  (from 2 steps)
+      Discharge screen off device idle time: 9d 21h 51m 40s 100ms  (from 2 steps)
+  Current daily charge step durations:
+    #0: +5m4s541ms to 99 (screen-off, power-save-off, device-idle-off)
+    #1: +3m33s300ms to 98 (screen-off, power-save-off, device-idle-off)
+      Charge total time: 7h 11m 32s 0ms  (from 2 steps)
+      Charge screen off time: 7h 11m 32s 0ms  (from 2 steps)
+  Daily from 2022-08-16-15-56-39 to 2022-08-17-01-15-45:
+    Charge step durations:
+      #0: +5m15s53ms to 100 (screen-off, power-save-off, device-idle-off)
+      #1: +5m35s358ms to 99 (screen-off, power-save-off, device-idle-off)
+      #2: +3m43s598ms to 98 (screen-off, power-save-off, device-idle-off)
+      #3: +3m33s400ms to 97 (screen-off, power-save-off, device-idle-off)
+      #4: +2m32s364ms to 96 (screen-off, power-save-off, device-idle-off)
+      #5: +3m53s485ms to 95 (screen-off, power-save-off, device-idle-off)
+      #6: +3m43s317ms to 94 (screen-off, power-save-off, device-idle-off)
+      #7: +3m13s27ms to 93 (screen-off, power-save-off, device-idle-off)
+      #8: +1h9m49s978ms to 92 (power-save-off, device-idle-off)
+      #9: +3m43s682ms to 92 (screen-off, power-save-off, device-idle-off)
+      #10: +6m15s588ms to 91 (screen-off, power-save-off, device-idle-off)
+    Package changes:
+      Update com.facebook.services vers=385230290
+      Update com.facebook.services vers=385230290
+      Update com.facebook.services vers=385230290
+      Update com.facebook.services vers=385230290
+      Update com.facebook.services vers=385230290
+      Update com.facebook.services vers=385230290
+      Update com.facebook.katana vers=315814651
+      Update com.facebook.katana vers=315814651
+      Update com.facebook.katana vers=315814651
+      Update com.facebook.katana vers=315814651
+      Update com.facebook.katana vers=315814651
+      Update com.facebook.katana vers=315814651
+      Update com.facebook.system vers=385230279
+      Update com.facebook.system vers=385230279
+      Update com.facebook.system vers=385230279
+      Update com.facebook.system vers=385230279
+      Update com.facebook.system vers=385230279
+      Update com.facebook.system vers=385230279
+

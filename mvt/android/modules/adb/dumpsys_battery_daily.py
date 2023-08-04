@@ -4,14 +4,14 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_battery_daily
+from mvt.android.artifacts.dumpsys_battery_daily import DumpsysBatteryDailyArtifact
 
 from .base import AndroidExtraction
 
 
-class DumpsysBatteryDaily(AndroidExtraction):
+class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, AndroidExtraction):
     """This module extracts records from battery daily updates."""
 
     def __init__(
@@ -32,32 +32,12 @@ class DumpsysBatteryDaily(AndroidExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
-        return {
-            "timestamp": record["from"],
-            "module": self.__class__.__name__,
-            "event": "battery_daily",
-            "data": f"Recorded update of package {record['package_name']} "
-            f"with vers {record['vers']}",
-        }
-
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
     def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("dumpsys batterystats --daily")
         self._adb_disconnect()
 
-        self.results = parse_dumpsys_battery_daily(output)
+        self.parse(output)
 
         self.log.info(
             "Extracted %d records from battery daily stats", len(self.results)
