@@ -304,6 +304,13 @@ Battery History (0% used, 11KB used of 4096KB, 79 strings using 9632):
              +2s042ms (2) 100 c0000020 +wake_lock=u0a12:"Wakeful StateMachine: GeofencerStateMachine"
              +2s044ms (1) 100 80000020 -wake_lock
              +2s050ms (2) 100 c0000020 +wake_lock=u0a12:"NlpWakeLock"
+         +23m32s163ms (2) 100 c0000020 +job=u0a134:"com.google.android.gm/com.google.android.libraries.internal.growth.growthkit.internal.jobs.impl.GrowthKitJobService"
+         +23m33s713ms (2) 100 c0000020 +job=u0a134:"com.google.android.gm/.job.ProviderCreatedJob$ProviderCreatedJobService"
+         +23m33s752ms (2) 100 c0000020 +job=u0a134:"com.google.android.gm/com.android.mail.widget.NotifyDatasetChangedJob$NotifyDatasetChangedJobService"
+         +23m33s786ms (2) 100 c0000020 -job=u0a134:"com.google.android.gm/.job.ProviderCreatedJob$ProviderCreatedJobService"
+         +23m33s867ms (2) 100 c0000020 -job=u0a134:"com.google.android.gm/com.google.android.libraries.internal.growth.growthkit.internal.jobs.impl.GrowthKitJobService"
+         +23m33s910ms (2) 100 c0000020 -job=u0a134:"com.google.android.gm/com.android.mail.widget.NotifyDatasetChangedJob$NotifyDatasetChangedJobService"
+
 
 Daily stats:
   Current start time: 2023-07-27-02-02-56

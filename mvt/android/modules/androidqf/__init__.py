@@ -6,6 +6,8 @@
 from .dumpsys_accessibility import DumpsysAccessibility
 from .dumpsys_activities import DumpsysActivities
 from .dumpsys_appops import DumpsysAppops
+from .dumpsys_battery_daily import DumpsysBatteryDaily
+from .dumpsys_battery_history import DumpsysBatteryHistory
 from .dumpsys_dbinfo import DumpsysDBInfo
 from .dumpsys_packages import DumpsysPackages
 from .dumpsys_receivers import DumpsysReceivers
@@ -20,6 +22,8 @@ ANDROIDQF_MODULES = [
     DumpsysAccessibility,
     DumpsysAppops,
     DumpsysDBInfo,
+    DumpsysBatteryDaily,
+    DumpsysBatteryHistory,
     Processes,
     Getprop,
     Settings,

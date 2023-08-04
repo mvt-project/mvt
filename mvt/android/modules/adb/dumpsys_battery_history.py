@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.android.parsers import parse_dumpsys_battery_history
+from mvt.android.artifacts.dumpsys_battery_history import DumpsysBatteryHistoryArtifact
 
 from .base import AndroidExtraction
 
 
-class DumpsysBatteryHistory(AndroidExtraction):
+class DumpsysBatteryHistory(DumpsysBatteryHistoryArtifact, AndroidExtraction):
     """This module extracts records from battery history events."""
 
     def __init__(
@@ -32,22 +32,11 @@ class DumpsysBatteryHistory(AndroidExtraction):
             results=results,
         )
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
     def run(self) -> None:
         self._adb_connect()
         output = self._adb_command("dumpsys batterystats --history")
         self._adb_disconnect()
 
-        self.results = parse_dumpsys_battery_history(output)
+        self.parse(output)
 
         self.log.info("Extracted %d records from battery history", len(self.results))

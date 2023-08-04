@@ -7,66 +7,6 @@ import re
 from typing import Any, Dict, List
 
 
-def parse_dumpsys_battery_history(output: str) -> List[Dict[str, Any]]:
-    results = []
-
-    for line in output.splitlines():
-        if line.startswith("Battery History "):
-            continue
-
-        if line.strip() == "":
-            break
-
-        time_elapsed = line.strip().split(" ", 1)[0]
-
-        event = ""
-        if line.find("+job") > 0:
-            event = "start_job"
-            uid = line[line.find("+job") + 5 : line.find(":")]
-            service = line[line.find(":") + 1 :].strip('"')
-            package_name = service.split("/")[0]
-        elif line.find("-job") > 0:
-            event = "end_job"
-            uid = line[line.find("-job") + 5 : line.find(":")]
-            service = line[line.find(":") + 1 :].strip('"')
-            package_name = service.split("/")[0]
-        elif line.find("+running +wake_lock=") > 0:
-            uid = line[line.find("+running +wake_lock=") + 21 : line.find(":")]
-            event = "wake"
-            service = (
-                line[line.find("*walarm*:") + 9 :].split(" ")[0].strip('"').strip()
-            )
-            if service == "" or "/" not in service:
-                continue
-
-            package_name = service.split("/")[0]
-        elif (line.find("+top=") > 0) or (line.find("-top") > 0):
-            if line.find("+top=") > 0:
-                event = "start_top"
-                top_pos = line.find("+top=")
-            else:
-                event = "end_top"
-                top_pos = line.find("-top=")
-            colon_pos = top_pos + line[top_pos:].find(":")
-            uid = line[top_pos + 5 : colon_pos]
-            service = ""
-            package_name = line[colon_pos + 1 :].strip('"')
-        else:
-            continue
-
-        results.append(
-            {
-                "time_elapsed": time_elapsed,
-                "event": event,
-                "uid": uid,
-                "package_name": package_name,
-                "service": service,
-            }
-        )
-
-    return results
-
-
 def parse_dumpsys_receiver_resolver_table(output: str) -> Dict[str, Any]:
     results = {}
 
