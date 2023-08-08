@@ -6,19 +6,12 @@
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from mvt.android.modules.adb.dumpsys_receivers import (
-    INTENT_DATA_SMS_RECEIVED,
-    INTENT_NEW_OUTGOING_CALL,
-    INTENT_NEW_OUTGOING_SMS,
-    INTENT_PHONE_STATE,
-    INTENT_SMS_RECEIVED,
-)
-from mvt.android.parsers import parse_dumpsys_receiver_resolver_table
+from mvt.android.artifacts.dumpsys_receivers import DumpsysReceiversArtifact
 
 from .base import AndroidQFModule
 
 
-class DumpsysReceivers(AndroidQFModule):
+class DumpsysReceivers(DumpsysReceiversArtifact, AndroidQFModule):
     """This module analyse dumpsys receivers"""
 
     def __init__(
@@ -41,67 +34,16 @@ class DumpsysReceivers(AndroidQFModule):
 
         self.results = results if results else {}
 
-    def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
-        for intent, receivers in self.results.items():
-            for receiver in receivers:
-                if intent == INTENT_NEW_OUTGOING_SMS:
-                    self.log.info(
-                        'Found a receiver to intercept outgoing SMS messages: "%s"',
-                        receiver["receiver"],
-                    )
-                elif intent == INTENT_SMS_RECEIVED:
-                    self.log.info(
-                        'Found a receiver to intercept incoming SMS messages: "%s"',
-                        receiver["receiver"],
-                    )
-                elif intent == INTENT_DATA_SMS_RECEIVED:
-                    self.log.info(
-                        'Found a receiver to intercept incoming data SMS message: "%s"',
-                        receiver["receiver"],
-                    )
-                elif intent == INTENT_PHONE_STATE:
-                    self.log.info(
-                        "Found a receiver monitoring "
-                        'telephony state/incoming calls: "%s"',
-                        receiver["receiver"],
-                    )
-                elif intent == INTENT_NEW_OUTGOING_CALL:
-                    self.log.info(
-                        'Found a receiver monitoring outgoing calls: "%s"',
-                        receiver["receiver"],
-                    )
-
-                ioc = self.indicators.check_app_id(receiver["package_name"])
-                if ioc:
-                    receiver["matched_indicator"] = ioc
-                    self.detected.append({intent: receiver})
-
     def run(self) -> None:
         dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
         if not dumpsys_file:
             return
-
-        in_receivers = False
-        lines = []
         data = self._get_file_content(dumpsys_file[0])
-        for line in data.decode("utf-8").split("\n"):
-            if line.strip() == "DUMP OF SERVICE package:":
-                in_receivers = True
-                continue
 
-            if not in_receivers:
-                continue
+        dumpsys_section = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE package:"
+        )
 
-            if line.strip().startswith(
-                "------------------------------------------------------------------------------"
-            ):  # pylint: disable=line-too-long
-                break
-
-            lines.append(line.rstrip())
-
-        self.results = parse_dumpsys_receiver_resolver_table("\n".join(lines))
+        self.parse(dumpsys_section)
 
         self.log.info("Extracted receivers for %d intents", len(self.results))

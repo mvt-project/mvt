@@ -55,7 +55,7 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                         result["package_name"],
                     )
 
-    def parse(self, output: str) -> List[Dict[str, Any]]:
+    def parse(self, output: str) -> None:
         self.results: List[Dict[str, Any]] = []
         perm = {}
         package = {}

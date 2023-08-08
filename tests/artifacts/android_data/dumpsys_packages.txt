@@ -150,3 +150,25 @@ Packages:
 
 
 
+
+Receiver Resolver Table:
+  Full MIME Types:
+      application/gmail-ls:
+        231cb24 com.google.android.gm/.GmailReceiver
+        3441042 com.google.android.gm/.widget.GoogleMailWidgetProvider (3 filters)
+        cf0a68d com.google.android.gm/.widget.GmailWidgetProvider (3 filters)
+      vnd.android.cursor.dir/voicemails:
+        39596b6 com.samsung.android.app.telephonyui/com.android.voicemail.impl.sync.VoicemailProviderChangeReceiver
+      application/*:
+        8e50848 com.android.vending/com.google.android.finsky.recoverymode.download.impl.RecoveryModeDownloadBroadcastReceiver
+
+  Non-Data Actions:
+      com.android.storagemanager.automatic.SHOW_NOTIFICATION:
+        417c3b3 com.android.storagemanager/.automatic.NotificationController
+      android.provider.action.EXTERNAL_PROVIDER_CHANGE:
+        b310d70 com.samsung.android.messaging/.service.syncservice.ExtProviderChangeReceiver
+      com.google.android.projection.gearhead.RESET_USB_FUNCTION:
+        da90126 com.google.android.projection.gearhead/com.google.android.apps.auto.components.connectivity.reset.ConnectionResetReceiver
+      com.samsung.cmh.action.CMH_SYNC:
+        d5c0372 com.samsung.cmh/.core.SystemBroadcastReceiver$CMHBroadcastReceiver
+

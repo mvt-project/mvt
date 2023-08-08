@@ -18,7 +18,7 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
                 self.detected.append(result)
                 continue
 
-    def parse(self, content: str):
+    def parse(self, content: str) -> None:
         """
         Parse the Dumpsys Accessibility section/
         Adds results to self.results (List[Dict[str, str]])
