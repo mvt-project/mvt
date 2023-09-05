@@ -152,6 +152,22 @@
         "description": "iPhone 13 Pro Max"
     },
     {
+        "identifier": "iPhone14,4",
+        "description": "iPhone 13 Mini"
+    },
+    {
+        "identifier": "iPhone14,5",
+        "description": "iPhone 13"
+    },
+    {
+        "identifier": "iPhone14,6",
+        "description": "iPhone SE 3rd Gen"
+    },
+    {
+        "identifier": "iPhone14,7",
+        "description": "iPhone 14"
+    },
+    {
         "identifier": "iPhone14,8",
         "decription": "iPhone 14 Plus"
     },
