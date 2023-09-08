@@ -40,9 +40,9 @@ class GlobalPreferences(IOSExtraction):
         for entry in self.results:
             if entry["entry"] == "LDMGlobalEnabled":
                 if entry["value"]:
-                    self.log.info("Lockdown mode enabled")
+                    self.log.warning("Lockdown mode enabled")
                 else:
-                    self.log.info("Lockdown mode disabled")
+                    self.log.warning("Lockdown mode disabled")
 
     def process_file(self, file_path: str) -> None:
         with open(file_path, "rb") as handle:
