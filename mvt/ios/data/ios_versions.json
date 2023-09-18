@@ -945,7 +945,15 @@
         "build": "20G81"
     },
     {
-        "version": "17",
+        "version": "17.0",
+        "build": "21A327"
+    },
+    {
+        "version": "17.0",
         "build": "21A329"
+    },
+    {
+        "version": "17.0",
+        "build": "21A331"
     }
 ]
