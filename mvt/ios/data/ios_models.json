@@ -179,4 +179,20 @@
         "identifier": "iPhone15,3",
         "description": "iPhone 14 Pro Max"
     }
+    {
+        "identifier": "iPhone15,4",
+        "description": "iPhone 15"
+    }
+    {
+        "identifier": "iPhone15,5",
+        "description": "iPhone 15 Plus"
+    }
+    {
+        "identifier": "iPhone16,1",
+        "description": "iPhone 15 Pro"
+    }
+    {
+        "identifier": "iPhone16,2",
+        "description": "iPhone 15 Pro Max"
+    }    
 ]
