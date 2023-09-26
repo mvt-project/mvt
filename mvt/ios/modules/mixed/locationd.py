@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import base64
 import logging
 import plistlib
 from typing import Optional, Union
@@ -86,6 +87,15 @@ class LocationdClients(IOSExtraction):
                 self.detected.append(result)
                 continue
 
+            if "BundleId" in result:
+                ioc = self.indicators.check_process(result["BundleId"])
+                if ioc:
+                    self.log.warning(
+                        "Found a suspicious process name in LocationD entry %s",
+                        result["package"],
+                    )
+                    result["matched_indicator"] = ioc
+
             if "BundlePath" in result:
                 ioc = self.indicators.check_file_path(result["BundlePath"])
                 if ioc:
@@ -109,6 +119,9 @@ class LocationdClients(IOSExtraction):
                     continue
 
             if "Registered" in result:
+                # Sometimes registered is a bool
+                if isinstance(result["Registered"], bool):
+                    continue
                 ioc = self.indicators.check_file_path(result["Registered"])
                 if ioc:
                     self.log.warning(
@@ -124,11 +137,22 @@ class LocationdClients(IOSExtraction):
             file_plist = plistlib.load(handle)
 
         for key, _ in file_plist.items():
+            # Some migration information are int and not dicts
+            if not isinstance(file_plist[key], dict):
+                continue
+            # FIXME: unclear key format in iOS 17
+            key = key.rstrip(":")
+
             result = file_plist[key]
             result["package"] = key
             for timestamp in self.timestamps:
                 if timestamp in result.keys():
                     result[timestamp] = convert_mactime_to_iso(result[timestamp])
+
+            if "ClientStorageToken" in result:
+                result["ClientStorageToken"] = base64.b64encode(
+                    result["ClientStorageToken"]
+                )
 
             self.results.append(result)
 
