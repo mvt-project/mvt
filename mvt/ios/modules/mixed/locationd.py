@@ -141,10 +141,8 @@ class LocationdClients(IOSExtraction):
             if not isinstance(file_plist[key], dict):
                 continue
             # FIXME: unclear key format in iOS 17
-            key = key.rstrip(":")
-
             result = file_plist[key]
-            result["package"] = key
+            result["package"] = key.rstrip(":")
             for timestamp in self.timestamps:
                 if timestamp in result.keys():
                     result[timestamp] = convert_mactime_to_iso(result[timestamp])
