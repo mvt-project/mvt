@@ -35,13 +35,20 @@ def parse_latest_ios_versions(rss_feed_text):
             print("Could not parse iOS build:", title)
             continue
 
+        # Handle iOS beta releases
         release_info = build_match.groupdict()
-        if release_info["beta"]:
+        release_beta = release_info.pop("beta")
+        if release_beta:
             print("Skipping beta release:", title)
             continue
 
-        release_info.pop("beta")
-        latest_ios_versions.append(release_info)
+        # Some iOS releases have multiple build number for different hardware models.
+        # We will split these into separate entries and record each build number.
+        build_list = release_info.pop("build")
+        build_variants = build_list.split(" | ")
+        for build_number in build_variants:
+            release_info["build"] = build_number
+            latest_ios_versions.append(release_info)
 
     return latest_ios_versions
 
