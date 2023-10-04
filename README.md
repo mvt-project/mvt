@@ -32,7 +32,7 @@ More information about using indicators of compromise with MVT is available in t
 
 ## Installation
 
-MVT can be installed from sources or from [PyPi](https://pypi.org/project/mvt/) (you will need some dependencies, check the [documentation](https://docs.mvt.re/en/latest/install/)):
+MVT can be installed from sources or from [PyPI](https://pypi.org/project/mvt/) (you will need some dependencies, check the [documentation](https://docs.mvt.re/en/latest/install/)):
 
 ```
 pip3 install mvt
