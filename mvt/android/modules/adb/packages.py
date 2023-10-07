@@ -105,6 +105,7 @@ class Packages(AndroidExtraction):
             log=log,
             results=results,
         )
+        self._user_needed = False
 
     def serialize(self, record: dict) -> Union[dict, list]:
         records = []
@@ -236,7 +237,10 @@ class Packages(AndroidExtraction):
         return parse_dumpsys_package_for_details("\n".join(lines))
 
     def _get_files_for_package(self, package_name: str) -> list:
-        output = self._adb_command(f"pm path {package_name}")
+        command = f"pm path {package_name}"
+        if self._user_needed:
+            command += " --user 0"
+        output = self._adb_command(command)
         output = output.strip().replace("package:", "")
         if not output:
             return []
@@ -270,6 +274,9 @@ class Packages(AndroidExtraction):
         self._adb_connect()
 
         packages = self._adb_command("pm list packages -u -i -f")
+        if "java.lang.SecurityException" in packages or packages.strip() == "":
+            self._user_needed = True
+            packages = self._adb_command("pm list packages -u -i -f --user 0")
 
         for line in packages.splitlines():
             line = line.strip()
@@ -310,7 +317,10 @@ class Packages(AndroidExtraction):
             {"field": "third_party", "arg": "-3"},
         ]
         for cmd in cmds:
-            output = self._adb_command(f"pm list packages {cmd['arg']}")
+            command = f"pm list packages {cmd['arg']}"
+            if self._user_needed:
+                command += " --user 0"
+            output = self._adb_command(command)
             for line in output.splitlines():
                 line = line.strip()
                 if not line.startswith("package:"):
