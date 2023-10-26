@@ -16,4 +16,4 @@ jobs:
           pip install --user ruff
       - name: ruff
         run: |
-          ruff --format=github .
+          ruff check --output-format github .
