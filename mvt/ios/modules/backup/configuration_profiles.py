@@ -102,6 +102,11 @@ class ConfigurationProfiles(IOSExtraction):
 
             conf_file_path = self._get_backup_file_from_id(conf_file["file_id"])
             if not conf_file_path:
+                self.log.debug(
+                    "Missing file %s in backup (%s)",
+                    conf_file["file_id"],
+                    conf_file["relative_path"],
+                )
                 continue
 
             with open(conf_file_path, "rb") as handle:
