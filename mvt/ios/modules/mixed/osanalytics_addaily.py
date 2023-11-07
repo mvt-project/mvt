@@ -86,7 +86,16 @@ class OSAnalyticsADDaily(IOSExtraction):
                 }
             )
 
-        self.log.info(
-            "Extracted a total of %d com.apple.osanalytics.addaily entries",
-            len(self.results),
-        )
+        if len(self.results) > 0:
+            dates = sorted([entry["ts"] for entry in self.results])
+            self.log.info(
+                "Extracted a total of %d com.apple.osanalytics.addaily entries between %s and %s",
+                len(self.results),
+                dates[0][:19],
+                dates[len(dates) - 1][:19],
+            )
+        else:
+            self.log.info(
+                "Extracted a total of %d com.apple.osanalytics.addaily entries",
+                len(self.results),
+            )
