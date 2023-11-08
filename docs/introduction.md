@@ -21,7 +21,7 @@ MVT supports using [indicators of compromise (IOCs)](https://github.com/mvt-proj
 
     Reliable and comprehensive digital forensic support and triage requires access to non-public indicators, research and threat intelligence.
 
-    Such support is available to civil society through [Amnesty International's Security Lab](https://www.amnesty.org/en/tech/) or [Access Now’s Digital Security Helpline](https://www.accessnow.org/help/).
+    Such support is available to civil society through [Amnesty International's Security Lab](https://securitylab.amnesty.org/contact-us/) or [Access Now’s Digital Security Helpline](https://www.accessnow.org/help/).
 
 More information about using indicators of compromise with MVT is available in the [documentation](iocs.md).
 
