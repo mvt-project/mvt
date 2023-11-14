@@ -10,8 +10,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Union
 
-from .encoding import CustomJSONEncoder
-from .utils import exec_or_profile
+from .utils import CustomJSONEncoder, exec_or_profile
 
 
 class DatabaseNotFoundError(Exception):
