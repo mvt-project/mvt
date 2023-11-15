@@ -92,7 +92,7 @@ class NetBase(IOSExtraction):
                     "wwan_out": row[8],
                     "live_id": row[9],
                     "live_proc_id": row[10],
-                    "live_isodate": live_timestamp if row[10] else first_isodate,
+                    "live_isodate": live_timestamp if row[11] else first_isodate,
                 }
             )
 
