@@ -4,14 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import csv
+import json
 import logging
 import os
 import re
 from typing import Any, Dict, List, Optional, Union
 
-import simplejson as json
-
-from .utils import exec_or_profile
+from .utils import CustomJSONEncoder, exec_or_profile
 
 
 class DatabaseNotFoundError(Exception):
@@ -103,7 +102,7 @@ class MVTModule:
             results_json_path = os.path.join(self.results_path, results_file_name)
             with open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
-                    json.dump(self.results, handle, indent=4, default=str)
+                    json.dump(self.results, handle, indent=4, cls=CustomJSONEncoder)
                 except Exception as exc:
                     self.log.error(
                         "Unable to store results of module %s to file %s: %s",
@@ -116,7 +115,7 @@ class MVTModule:
             detected_file_name = f"{name}_detected.json"
             detected_json_path = os.path.join(self.results_path, detected_file_name)
             with open(detected_json_path, "w", encoding="utf-8") as handle:
-                json.dump(self.detected, handle, indent=4, default=str)
+                json.dump(self.detected, handle, indent=4, cls=CustomJSONEncoder)
 
     def serialize(self, record: dict) -> Union[dict, list, None]:
         raise NotImplementedError

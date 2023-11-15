@@ -3,10 +3,13 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
+from datetime import datetime
 
 from mvt.common.utils import (
+    CustomJSONEncoder,
     convert_datetime_to_iso,
     convert_mactime_to_iso,
     convert_unix_to_iso,
@@ -63,4 +66,30 @@ class TestHashes:
         assert (
             hashes[1]["sha256"]
             == "cfae0e04ef139b5a2ae1e2b3d400ce67eb98e67ff66f56ba2a580fe41bc120d0"
+        )
+
+
+class TestCustomJSONEncoder:
+    def test__normal_input(self):
+        assert json.dumps({"a": "b"}, cls=CustomJSONEncoder) == '{"a": "b"}'
+
+    def test__datetime_object(self):
+        assert (
+            json.dumps(
+                {"timestamp": datetime(2023, 11, 13, 12, 21, 49, 727467)},
+                cls=CustomJSONEncoder,
+            )
+            == '{"timestamp": "2023-11-13 12:21:49.727467"}'
+        )
+
+    def test__bytes_non_utf_8(self):
+        assert (
+            json.dumps({"identifier": b"\xa8\xa9"}, cls=CustomJSONEncoder)
+            == """{"identifier": "\\\\xa8\\\\xa9"}"""
+        )
+
+    def test__bytes_valid_utf_8(self):
+        assert (
+            json.dumps({"name": "家".encode()}, cls=CustomJSONEncoder)
+            == '{"name": "\\u5bb6"}'
         )

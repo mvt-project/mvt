@@ -6,12 +6,35 @@
 import cProfile
 import datetime
 import hashlib
+import json
 import logging
 import os
 import re
 from typing import Any, Iterator, Union
 
 from rich.logging import RichHandler
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    """
+    Custom JSON encoder to handle non-standard types.
+
+    Some modules are storing non-UTF-8 bytes in their results dictionaries.
+    This causes exceptions when the results are being encoded as JSON.
+
+    Of course this means that when MVT is run via `check-iocs` with existing
+    results, the encoded version will be loaded back into the dictionary.
+    Modules should ensure they encode anything that needs to be compared
+    against an indicator in a JSON-friendly type.
+    """
+
+    def default(self, o):
+        if isinstance(o, bytes):
+            # Decode as utf-8, replace any invalid UTF-8 bytes with escaped hex
+            return o.decode("utf-8", errors="backslashreplace")
+
+        # For all other types try to use the string representation.
+        return str(o)
 
 
 def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
