@@ -85,7 +85,7 @@ class TestCustomJSONEncoder:
     def test__bytes_non_utf_8(self):
         assert (
             json.dumps({"identifier": b"\xa8\xa9"}, cls=CustomJSONEncoder)
-            == '{"identifier": "0xa8a9"}'
+            == """{"identifier": "\\\\xa8\\\\xa9"}"""
         )
 
     def test__bytes_valid_utf_8(self):

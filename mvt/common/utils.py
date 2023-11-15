@@ -30,12 +30,8 @@ class CustomJSONEncoder(json.JSONEncoder):
 
     def default(self, o):
         if isinstance(o, bytes):
-            # If it's utf-8, try and use that first
-            try:
-                return o.decode("utf-8")
-            except UnicodeError:
-                # Otherwise use a hex representation for any byte type
-                return "0x" + o.hex()
+            # Decode as utf-8, replace any invalid UTF-8 bytes with escaped hex
+            return o.decode("utf-8", errors="backslashreplace")
 
         # For all other types try to use the string representation.
         return str(o)
