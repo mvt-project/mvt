@@ -53,7 +53,7 @@ class CmdCheckIOCS(Command):
                 if self.module_name and iocs_module.__name__ != self.module_name:
                     continue
 
-                if iocs_module().get_slug() != name_only:
+                if iocs_module.get_slug() != name_only:
                     continue
 
                 log.info(
