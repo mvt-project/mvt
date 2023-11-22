@@ -74,12 +74,13 @@ class MVTModule:
                 log.info('Loaded %d results from "%s"', len(results), json_path)
             return cls(results=results, log=log)
 
-    def get_slug(self) -> str:
+    @classmethod
+    def get_slug(cls) -> str:
         """Use the module's class name to retrieve a slug"""
-        if self.slug:
-            return self.slug
+        if cls.slug:
+            return cls.slug
 
-        sub = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", self.__class__.__name__)
+        sub = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", cls.__name__)
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", sub).lower()
 
     def check_indicators(self) -> None:
