@@ -57,12 +57,12 @@ RUN git clone https://github.com/libimobiledevice/libplist \
 
 # Installing MVT
 # --------------
-RUN pip3 install mvt
+RUN pip3 install git+https://github.com/mvt-project/mvt.git@main
 
 # Installing ABE
 # --------------
 RUN mkdir /opt/abe \
-  && wget https://github.com/nelenkov/android-backup-extractor/releases/download/20210709062403-4c55371/abe.jar -O /opt/abe/abe.jar \
+  && wget https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar -O /opt/abe/abe.jar \
 # Create alias for abe
   && echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
