@@ -42,6 +42,7 @@ jobs:
     - name: Test with pytest and coverage
       run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=mvt tests/ | tee pytest-coverage.txt
     - name: Pytest coverage comment
+      continue-on-error: true # Workflows running on a fork can't post comments
       uses: MishaKav/pytest-coverage-comment@main
       if: github.event_name == 'pull_request'
       with:
