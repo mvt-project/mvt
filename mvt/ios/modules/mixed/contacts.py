@@ -44,7 +44,7 @@ class Contacts(IOSExtraction):
         )
         self.log.info("Found Contacts database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         try:
             cur.execute(

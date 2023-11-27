@@ -86,7 +86,7 @@ class SMS(IOSExtraction):
         self.log.info("Found SMS database at path: %s", self.file_path)
 
         try:
-            conn = sqlite3.connect(self.file_path)
+            conn = self._open_sqlite_db(self.file_path)
             cur = conn.cursor()
             cur.execute(
                 """
@@ -103,7 +103,7 @@ class SMS(IOSExtraction):
             conn.close()
             if "database disk image is malformed" in str(exc):
                 self._recover_sqlite_db_if_needed(self.file_path, forced=True)
-                conn = sqlite3.connect(self.file_path)
+                conn = self._open_sqlite_db(self.file_path)
                 cur = conn.cursor()
                 cur.execute(
                     """

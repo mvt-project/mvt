@@ -64,7 +64,7 @@ class CacheFiles(IOSExtraction):
     def _process_cache_file(self, file_path):
         self.log.info("Processing cache file at path: %s", file_path)
 
-        conn = sqlite3.connect(file_path)
+        conn = self._open_sqlite_db(file_path)
         cur = conn.cursor()
 
         try:

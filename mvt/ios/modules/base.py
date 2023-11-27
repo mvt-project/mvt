@@ -49,7 +49,7 @@ class IOSExtraction(MVTModule):
         """
         # TODO: Find a better solution.
         if not forced:
-            conn = sqlite3.connect(file_path)
+            conn = self._open_sqlite_db(file_path)
             cur = conn.cursor()
 
             try:
@@ -91,6 +91,9 @@ class IOSExtraction(MVTModule):
 
         self.log.info("Database at path %s recovered successfully!", file_path)
 
+    def _open_sqlite_db(self, file_path: str) -> sqlite3.Connection:
+        return sqlite3.connect(f"file:{file_path}?immutable=1")
+
     def _get_backup_files_from_manifest(
         self, relative_path: Optional[str] = None, domain: Optional[str] = None
     ) -> Iterator[dict]:
@@ -109,7 +112,7 @@ class IOSExtraction(MVTModule):
         base_sql = "SELECT fileID, domain, relativePath FROM Files WHERE "
 
         try:
-            conn = sqlite3.connect(manifest_db_path)
+            conn = self._open_sqlite_db(manifest_db_path)
             cur = conn.cursor()
             if relative_path and domain:
                 cur.execute(

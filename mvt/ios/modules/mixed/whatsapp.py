@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import sqlite3
 from typing import Optional, Union
 
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
@@ -69,7 +68,7 @@ class Whatsapp(IOSExtraction):
         )
         self.log.info("Found WhatsApp database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
 
         # Query all messages and join tables which can contain media attachments

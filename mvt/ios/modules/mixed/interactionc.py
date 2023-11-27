@@ -280,7 +280,7 @@ class InteractionC(IOSExtraction):
         )
         self.log.info("Found InteractionC database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
 
         try:
