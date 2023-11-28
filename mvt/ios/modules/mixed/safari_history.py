@@ -5,7 +5,6 @@
 
 import logging
 import os
-import sqlite3
 from typing import Optional, Union
 
 from mvt.common.url import URL
@@ -115,7 +114,7 @@ class SafariHistory(IOSExtraction):
 
     def _process_history_db(self, history_path):
         self._recover_sqlite_db_if_needed(history_path)
-        conn = sqlite3.connect(history_path)
+        conn = self._open_sqlite_db(history_path)
         cur = conn.cursor()
         cur.execute(
             """

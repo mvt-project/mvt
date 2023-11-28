@@ -8,7 +8,6 @@ import io
 import logging
 import os
 import plistlib
-import sqlite3
 from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
@@ -124,7 +123,7 @@ class Manifest(IOSExtraction):
 
         self.log.info("Found Manifest.db database at path: %s", manifest_db_path)
 
-        conn = sqlite3.connect(manifest_db_path)
+        conn = self._open_sqlite_db(manifest_db_path)
         cur = conn.cursor()
 
         cur.execute("SELECT * FROM Files;")

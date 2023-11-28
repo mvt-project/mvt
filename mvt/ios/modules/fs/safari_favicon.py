@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import sqlite3
 from typing import Optional, Union
 
 from mvt.common.utils import convert_mactime_to_iso
@@ -61,7 +60,7 @@ class SafariFavicon(IOSExtraction):
                 self.detected.append(result)
 
     def _process_favicon_db(self, file_path):
-        conn = sqlite3.connect(file_path)
+        conn = self._open_sqlite_db(file_path)
 
         # Fetch valid icon cache.
         cur = conn.cursor()

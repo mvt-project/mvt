@@ -85,7 +85,7 @@ class Analytics(IOSExtraction):
     def _extract_analytics_data(self):
         artifact = self.file_path.split("/")[-1]
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
 
         try:

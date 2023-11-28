@@ -95,7 +95,7 @@ class TCC(IOSExtraction):
                 self.detected.append(result)
 
     def process_db(self, file_path):
-        conn = sqlite3.connect(file_path)
+        conn = self._open_sqlite_db(file_path)
         cur = conn.cursor()
         db_version = "v3"
         try:

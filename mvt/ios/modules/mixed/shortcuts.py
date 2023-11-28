@@ -83,7 +83,7 @@ class Shortcuts(IOSExtraction):
         )
         self.log.info("Found Shortcuts database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         conn.text_factory = bytes
         cur = conn.cursor()
         try:

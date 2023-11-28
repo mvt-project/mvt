@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import sqlite3
 from typing import Optional, Union
 
 from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
@@ -67,7 +66,7 @@ class ChromeHistory(IOSExtraction):
         )
         self.log.info("Found Chrome history database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         cur.execute(
             """

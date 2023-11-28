@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import sqlite3
 from base64 import b64encode
 from typing import Optional, Union
 
@@ -72,7 +71,7 @@ class SMSAttachments(IOSExtraction):
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
 
-        conn = sqlite3.connect(self.file_path)
+        conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         cur.execute(
             """

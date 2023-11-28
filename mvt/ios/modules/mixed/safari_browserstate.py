@@ -76,7 +76,7 @@ class SafariBrowserState(IOSExtraction):
 
     def _process_browser_state_db(self, db_path):
         self._recover_sqlite_db_if_needed(db_path)
-        conn = sqlite3.connect(db_path)
+        conn = self._open_sqlite_db(db_path)
 
         cur = conn.cursor()
         try:
