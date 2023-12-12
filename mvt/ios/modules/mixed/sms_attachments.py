@@ -55,6 +55,11 @@ class SMSAttachments(IOSExtraction):
 
     def check_indicators(self) -> None:
         for attachment in self.results:
+            # Check for known malicious filenames.
+            if self.indicators.check_file_path(attachment["filename"]):
+                print("Found malicious filename", attachment["filename"])
+                self.detected.append(attachment)
+
             if (
                 attachment["filename"].startswith("/var/tmp/")
                 and attachment["filename"].endswith("-1")
