@@ -44,20 +44,25 @@ class SMS(IOSExtraction):
     def serialize(self, record: dict) -> Union[dict, list]:
         text = record["text"].replace("\n", "\\n")
         sms_data = f"{record['service']}: {record['guid']} \"{text}\" from {record['phone_number']} ({record['account']})"
-        return [
+        sms_data = [
             {
                 "timestamp": record["isodate"],
                 "module": self.__class__.__name__,
                 "event": "sms_received",
                 "data": sms_data,
             },
-            {
-                "timestamp": record["isodate_read"],
-                "module": self.__class__.__name__,
-                "event": "sms_read",
-                "data": sms_data,
-            },
         ]
+        # If the message was read, we add an extra event.
+        if record["isodate_read"]:
+            sms_data.append(
+                {
+                    "timestamp": record["isodate_read"],
+                    "module": self.__class__.__name__,
+                    "event": "sms_read",
+                    "data": sms_data,
+                }
+            )
+        return sms_data
 
     def check_indicators(self) -> None:
         for message in self.results:
