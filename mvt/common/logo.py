@@ -10,7 +10,7 @@ from .version import MVT_VERSION
 
 
 def check_updates() -> None:
-    # First we check for MVT version udpates.
+    # First we check for MVT version updates.
     mvt_updates = MVTUpdates()
     try:
         latest_version = mvt_updates.check()
