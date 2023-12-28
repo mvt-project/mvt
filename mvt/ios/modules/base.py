@@ -92,7 +92,7 @@ class IOSExtraction(MVTModule):
         self.log.info("Database at path %s recovered successfully!", file_path)
 
     def _open_sqlite_db(self, file_path: str) -> sqlite3.Connection:
-        return sqlite3.connect(f"file:{file_path}?immutable=1")
+        return sqlite3.connect(f"file:{file_path}?immutable=1", uri=True)
 
     def _get_backup_files_from_manifest(
         self, relative_path: Optional[str] = None, domain: Optional[str] = None
