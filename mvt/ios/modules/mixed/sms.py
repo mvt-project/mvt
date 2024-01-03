@@ -44,7 +44,7 @@ class SMS(IOSExtraction):
     def serialize(self, record: dict) -> Union[dict, list]:
         text = record["text"].replace("\n", "\\n")
         sms_data = f"{record['service']}: {record['guid']} \"{text}\" from {record['phone_number']} ({record['account']})"
-        sms_data = [
+        records = [
             {
                 "timestamp": record["isodate"],
                 "module": self.__class__.__name__,
@@ -54,7 +54,7 @@ class SMS(IOSExtraction):
         ]
         # If the message was read, we add an extra event.
         if record["isodate_read"]:
-            sms_data.append(
+            records.append(
                 {
                     "timestamp": record["isodate_read"],
                     "module": self.__class__.__name__,
@@ -62,7 +62,7 @@ class SMS(IOSExtraction):
                     "data": sms_data,
                 }
             )
-        return sms_data
+        return records
 
     def check_indicators(self) -> None:
         for message in self.results:
