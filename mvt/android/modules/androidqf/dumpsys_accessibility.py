@@ -12,7 +12,7 @@ from .base import AndroidQFModule
 
 
 class DumpsysAccessibility(DumpsysAccessibilityArtifact, AndroidQFModule):
-    """This module analyse dumpsys accessbility"""
+    """This module analyses dumpsys accessibility"""
 
     def __init__(
         self,
