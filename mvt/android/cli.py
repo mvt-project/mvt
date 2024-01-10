@@ -72,7 +72,7 @@ def version():
     is_flag=True,
     help="Extract all packages installed on the phone, including system packages",
 )
-@click.option("--virustotal", "-v", is_flag=True, help="Check packages on VirusTotal")
+@click.option("--virustotal", "-V", is_flag=True, help="Check packages on VirusTotal")
 @click.option(
     "--output",
     "-o",
