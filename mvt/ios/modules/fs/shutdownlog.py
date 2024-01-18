@@ -70,6 +70,9 @@ class ShutdownLog(IOSExtraction):
 
     def process_shutdownlog(self, content):
         current_processes = []
+        recent_processes = []
+        times_delayed = 0
+        delay = 0.0
         for line in content.split("\n"):
             line = line.strip()
 
@@ -78,9 +81,22 @@ class ShutdownLog(IOSExtraction):
                     {
                         "pid": line[line.find("pid: ") + 5 : line.find(" (")],
                         "client": line[line.find("(") + 1 : line.find(")")],
+                        "delay": delay,
+                        "times_delayed": times_delayed,
                     }
                 )
+            elif line.startswith("After "):
+                # Consider the previous processes
+                # End of the current processes
+                for p in current_processes:
+                    recent_processes.append(p)
+                delay = float(line.split(" ")[1][:-2])
+                times_delayed += 1
+                current_processes = []
             elif line.startswith("SIGTERM: "):
+                for p in current_processes:
+                    recent_processes.append(p)
+
                 try:
                     mac_timestamp = int(line[line.find("[") + 1 : line.find("]")])
                 except ValueError:
@@ -92,16 +108,21 @@ class ShutdownLog(IOSExtraction):
 
                 isodate = convert_mactime_to_iso(mac_timestamp, from_2001=False)
 
-                for current_process in current_processes:
+                for process in recent_processes:
                     self.results.append(
                         {
                             "isodate": isodate,
-                            "pid": current_process["pid"],
-                            "client": current_process["client"],
+                            "pid": process["pid"],
+                            "client": process["client"],
+                            "delay": process["delay"],
+                            "times_delayed": process["times_delayed"],
                         }
                     )
 
                 current_processes = []
+                recent_processes = []
+                times_delayed = 0
+                delay = 0.0
 
         self.results = sorted(self.results, key=lambda entry: entry["isodate"])
 
