@@ -90,7 +90,7 @@ class ShutdownLog(IOSExtraction):
                 # End of the current processes
                 for p in current_processes:
                     recent_processes.append(p)
-                delay = float(line.split(" ")[1][:-2])
+                delay += float(line.split(" ")[1][:-2])
                 times_delayed += 1
                 current_processes = []
             elif line.startswith("SIGTERM: "):
