@@ -69,9 +69,9 @@ class Calls(IOSExtraction):
                     "isodate": convert_mactime_to_iso(row[0]),
                     "duration": row[1],
                     "location": row[2],
-                    "number": row[3].decode("utf-8")
-                    if row[3] and row[3] is bytes
-                    else row[3],
+                    "number": (
+                        row[3].decode("utf-8") if row[3] and row[3] is bytes else row[3]
+                    ),
                     "provider": row[4],
                 }
             )
