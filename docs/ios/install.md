@@ -45,7 +45,7 @@ Once the idevice tools are available you can check if everything works fine by c
 ideviceinfo
 ```
 
-This should some many details on the connected iOS device. If you are connecting the device to your laptop for the first time, it will require to unlock and enter the PIN code on the mobile device. If it complains that no device is connected and the mobile device is indeed plugged in through the USB cable, you might need to do this first, although typically the pairing is automatically done when connecting the device:
+This should show many details on the connected iOS device. If you are connecting the device to your laptop for the first time, it will require to unlock and enter the PIN code on the mobile device. If it complains that no device is connected and the mobile device is indeed plugged in through the USB cable, you might need to do this first, although typically the pairing is automatically done when connecting the device:
 
 ```bash
 sudo usbmuxd -f -d
