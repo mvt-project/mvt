@@ -83,7 +83,7 @@ class DumpsysPackages(AndroidQFModule):
         package = []
         in_service = False
         in_package_list = False
-        for line in data.decode("utf-8").split("\n"):
+        for line in data.decode("utf-8", errors="ignore").split("\n"):
             if line.strip().startswith("DUMP OF SERVICE package:"):
                 in_service = True
                 continue
