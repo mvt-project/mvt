@@ -4,85 +4,24 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from rich.console import Console
 from rich.progress import track
 from rich.table import Table
 from rich.text import Text
 
-from mvt.android.parsers.dumpsys import parse_dumpsys_package_for_details
+from mvt.android.artifacts.dumpsys_packages import DumpsysPackagesArtifact
+from mvt.android.utils import (
+    DANGEROUS_PERMISSIONS,
+    DANGEROUS_PERMISSIONS_THRESHOLD,
+    ROOT_PACKAGES,
+    SECURITY_PACKAGES,
+    SYSTEM_UPDATE_PACKAGES,
+)
 from mvt.common.virustotal import VTNoKey, VTQuotaExceeded, virustotal_lookup
 
 from .base import AndroidExtraction
-
-DANGEROUS_PERMISSIONS_THRESHOLD = 10
-DANGEROUS_PERMISSIONS = [
-    "android.permission.ACCESS_COARSE_LOCATION",
-    "android.permission.ACCESS_FINE_LOCATION",
-    "android.permission.AUTHENTICATE_ACCOUNTS",
-    "android.permission.CAMERA",
-    "android.permission.DISABLE_KEYGUARD",
-    "android.permission.PROCESS_OUTGOING_CALLS",
-    "android.permission.READ_CALENDAR",
-    "android.permission.READ_CALL_LOG",
-    "android.permission.READ_CONTACTS",
-    "android.permission.READ_PHONE_STATE",
-    "android.permission.READ_SMS",
-    "android.permission.RECEIVE_MMS",
-    "android.permission.RECEIVE_SMS",
-    "android.permission.RECEIVE_WAP_PUSH",
-    "android.permission.RECORD_AUDIO",
-    "android.permission.SEND_SMS",
-    "android.permission.SYSTEM_ALERT_WINDOW",
-    "android.permission.USE_CREDENTIALS",
-    "android.permission.USE_SIP",
-    "com.android.browser.permission.READ_HISTORY_BOOKMARKS",
-]
-ROOT_PACKAGES: List[str] = [
-    "com.noshufou.android.su",
-    "com.noshufou.android.su.elite",
-    "eu.chainfire.supersu",
-    "com.koushikdutta.superuser",
-    "com.thirdparty.superuser",
-    "com.yellowes.su",
-    "com.koushikdutta.rommanager",
-    "com.koushikdutta.rommanager.license",
-    "com.dimonvideo.luckypatcher",
-    "com.chelpus.lackypatch",
-    "com.ramdroid.appquarantine",
-    "com.ramdroid.appquarantinepro",
-    "com.devadvance.rootcloak",
-    "com.devadvance.rootcloakplus",
-    "de.robv.android.xposed.installer",
-    "com.saurik.substrate",
-    "com.zachspong.temprootremovejb",
-    "com.amphoras.hidemyroot",
-    "com.amphoras.hidemyrootadfree",
-    "com.formyhm.hiderootPremium",
-    "com.formyhm.hideroot",
-    "me.phh.superuser",
-    "eu.chainfire.supersu.pro",
-    "com.kingouser.com",
-    "com.topjohnwu.magisk",
-]
-SECURITY_PACKAGES = [
-    "com.policydm",
-    "com.samsung.android.app.omcagent",
-    "com.samsung.android.securitylogagent",
-    "com.sec.android.soagent",
-]
-SYSTEM_UPDATE_PACKAGES = [
-    "com.android.updater",
-    "com.google.android.gms",
-    "com.huawei.android.hwouc",
-    "com.lge.lgdmsclient",
-    "com.motorola.ccc.ota",
-    "com.oneplus.opbackup",
-    "com.oppo.ota",
-    "com.transsion.systemupdate",
-    "com.wssyncmldm",
-]
 
 
 class Packages(AndroidExtraction):
@@ -234,7 +173,9 @@ class Packages(AndroidExtraction):
             if line.strip() == "Packages:":
                 in_packages = True
 
-        return parse_dumpsys_package_for_details("\n".join(lines))
+        return DumpsysPackagesArtifact.parse_dumpsys_package_for_details(
+            "\n".join(lines)
+        )
 
     def _get_files_for_package(self, package_name: str) -> list:
         command = f"pm path {package_name}"

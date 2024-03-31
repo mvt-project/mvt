@@ -4,19 +4,15 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
-from mvt.android.modules.adb.packages import (
-    DANGEROUS_PERMISSIONS,
-    DANGEROUS_PERMISSIONS_THRESHOLD,
-    ROOT_PACKAGES,
-)
-from mvt.android.parsers.dumpsys import parse_dumpsys_packages
+from mvt.android.artifacts.dumpsys_packages import DumpsysPackagesArtifact
+from mvt.android.utils import DANGEROUS_PERMISSIONS, DANGEROUS_PERMISSIONS_THRESHOLD
 
 from .base import BugReportModule
 
 
-class Packages(BugReportModule):
+class Packages(DumpsysPackagesArtifact, BugReportModule):
     """This module extracts details on receivers for risky activities."""
 
     def __init__(
@@ -37,83 +33,18 @@ class Packages(BugReportModule):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
-        records = []
-
-        timestamps = [
-            {"event": "package_install", "timestamp": record["timestamp"]},
-            {
-                "event": "package_first_install",
-                "timestamp": record["first_install_time"],
-            },
-            {"event": "package_last_update", "timestamp": record["last_update_time"]},
-        ]
-
-        for timestamp in timestamps:
-            records.append(
-                {
-                    "timestamp": timestamp["timestamp"],
-                    "module": self.__class__.__name__,
-                    "event": timestamp["event"],
-                    "data": f"Install or update of package {record['package_name']}",
-                }
-            )
-
-        return records
-
-    def check_indicators(self) -> None:
-        for result in self.results:
-            if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning(
-                    "Found an installed package related to "
-                    'rooting/jailbreaking: "%s"',
-                    result["package_name"],
-                )
-                self.detected.append(result)
-                continue
-
-            if not self.indicators:
-                continue
-
-            ioc = self.indicators.check_app_id(result.get("package_name"))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
-
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        data = self._get_dumpstate_file()
+        if not data:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        in_package = False
-        in_packages_list = False
-        lines = []
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip() == "DUMP OF SERVICE package:":
-                in_package = True
-                continue
-
-            if not in_package:
-                continue
-
-            if line.strip() == "Packages:":
-                in_packages_list = True
-                continue
-
-            if not in_packages_list:
-                continue
-
-            if line.strip() == "":
-                break
-
-            lines.append(line)
-
-        self.results = parse_dumpsys_packages("\n".join(lines))
+        data = data.decode("utf-8", errors="replace")
+        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE package:")
+        self.parse(content)
 
         for result in self.results:
             dangerous_permissions_count = 0

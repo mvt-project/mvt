@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 import logging
 
-
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 from mvt.ios.modules.fs.filesystem import Filesystem
