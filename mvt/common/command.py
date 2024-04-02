@@ -160,6 +160,17 @@ class Command:
     def finish(self) -> None:
         raise NotImplementedError
 
+    def _show_support_message(self) -> None:
+        support_message = "Please seek reputable expert help if you have serious concerns about a possible spyware attack. Such support is available to human rights defenders and civil society through Amnesty International's Security Lab at https://securitylab.amnesty.org/get-help/?c=mvt"
+        if self.detected_count == 0:
+            self.log.info(
+                f"NOTE:\nUsing MVT with public indicators of compromise (IOCs) WILL NOT automatically detect advanced attacks.\n\n{support_message}"
+            )
+        else:
+            self.log.warning(
+                f"NOTE:\nDetected indicators of compromise. Only expert review can confirm if the detected indicators are signs of an attack.\n\n{support_message}"
+            )
+
     def run(self) -> None:
         try:
             self.init()
@@ -208,3 +219,4 @@ class Command:
 
         self._store_timeline()
         self._store_info()
+        self._show_support_message()
