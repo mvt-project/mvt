@@ -164,7 +164,7 @@ class Command:
         """Warn if ADB is enabled"""
         if type(self).__name__ in ["CmdAndroidCheckADB", "CmdAndroidCheckAndroidQF"]:
             self.log.info(
-                "Please disable ADB (Android Debug Bridge) on the device once finished with the acquisition. "
+                "Please disable Developer Options and ADB (Android Debug Bridge) on the device once finished with the acquisition. "
                 "ADB is a powerful tool which can allow unauthorized access to the device."
             )
 
