@@ -38,6 +38,8 @@ MVT can be installed from sources or from [PyPI](https://pypi.org/project/mvt/) 
 pip3 install mvt
 ```
 
+On Gentoo Linux you can emerge [app-forensics/mvt](https://gpo.zugaina.org/Overlays/guru/app-forensics/mvt) from Guru overlay.
+
 For alternative installation options and known issues, please refer to the [documentation](https://docs.mvt.re/en/latest/install/) as well as [GitHub Issues](https://github.com/mvt-project/mvt/issues).
 
 
