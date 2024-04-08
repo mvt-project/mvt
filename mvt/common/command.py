@@ -160,15 +160,25 @@ class Command:
     def finish(self) -> None:
         raise NotImplementedError
 
+    def _show_disable_adb_warning(self) -> None:
+        """Warn if ADB is enabled"""
+        if type(self).__name__ in ["CmdAndroidCheckADB", "CmdAndroidCheckAndroidQF"]:
+            self.log.info(
+                "Please disable ADB (Android Debug Bridge) on the device once finished with the acquisition. "
+                "ADB is a powerful tool which can allow unauthorized access to the device."
+            )
+
     def _show_support_message(self) -> None:
         support_message = "Please seek reputable expert help if you have serious concerns about a possible spyware attack. Such support is available to human rights defenders and civil society through Amnesty International's Security Lab at https://securitylab.amnesty.org/get-help/?c=mvt"
         if self.detected_count == 0:
             self.log.info(
-                f"NOTE:\nUsing MVT with public indicators of compromise (IOCs) WILL NOT automatically detect advanced attacks.\n\n{support_message}"
+                f"[bold]NOTE:[/bold] Using MVT with public indicators of compromise (IOCs) [bold]WILL NOT[/bold] automatically detect advanced attacks.\n\n{support_message}",
+                extra={"markup": True},
             )
         else:
             self.log.warning(
-                f"NOTE:\nDetected indicators of compromise. Only expert review can confirm if the detected indicators are signs of an attack.\n\n{support_message}"
+                f"[bold]NOTE: Detected indicators of compromise[/bold]. Only expert review can confirm if the detected indicators are signs of an attack.\n\n{support_message}",
+                extra={"markup": True},
             )
 
     def run(self) -> None:
@@ -219,4 +229,6 @@ class Command:
 
         self._store_timeline()
         self._store_info()
+
+        self._show_disable_adb_warning()
         self._show_support_message()
