@@ -66,8 +66,11 @@ class SMS(IOSExtraction):
 
     def check_indicators(self) -> None:
         for message in self.results:
-            alert = "ALERT: State-sponsored attackers may be targeting your iPhone"
-            if message.get("text", "").startswith(alert):
+            alert_old = "ALERT: State-sponsored attackers may be targeting your iPhone"
+            alert_new = "ALERT: Apple detected a targeted mercenary spyware attack against your iPhone"
+            if message.get("text", "").startswith(alert_old) or message.get(
+                "text", ""
+            ).startswith(alert_new):
                 self.log.warning(
                     "Apple warning about state-sponsored attack received on the %s",
                     message["isodate"],
