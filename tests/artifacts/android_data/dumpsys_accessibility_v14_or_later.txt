@@ -1,0 +1,46 @@
+DUMP OF SERVICE accessibility:
+Service host process PID: 633
+Threads in use: 0/14
+Client PIDs: 2445, 2428, 2405, 2235, 2215, 2164, 2148, 2130, 2104, 2062, 1879, 1824, 1736, 1748, 1746, 1617, 1605, 1606, 1582, 1538, 1523, 1474, 1307, 1237, 1118, 1081, 1076, 1023, 997, 978, 882, 187
+ACCESSIBILITY MANAGER (dumpsys accessibility)
+
+currentUserId=0
+hasWindowMagnificationConnection=false
+Magnifier on display#0
+    MagnificationConfig[mode: 1, activated: false, scale: 1.0, centerX: 360.0, centerY: 640.0] 
+    Magnification region=SkRegion((3,3,717,1277))
+    IdOfLastServiceToMagnify=-1
+    SupportWindowMagnification=true
+    WindowMagnificationConnectionState=DISCONNECTED
+User state[
+     attributes:{id=0, touchExplorationEnabled=false, serviceHandlesDoubleTap=false, requestMultiFingerGestures=false, requestTwoFingerPassthrough=false, sendMotionEventsEnabledfalse, displayMagnificationEnabled=false, autoclickEnabled=false, nonInteractiveUiTimeout=0, interactiveUiTimeout=0, installedServiceCount=2, magnificationModes={0=1}, magnificationCapabilities=3, audioDescriptionByDefaultEnabled=false, magnificationFollowTypingEnabled=true, alwaysOnMagnificationEnabled=true}
+     shortcut key:{}
+     button:{}
+     button target:{null}
+     Bound services:{Service[label=Accessibility service, feedbackType[FEEDBACK_SPOKEN, FEEDBACK_HAPTIC, FEEDBACK_AUDIBLE, FEEDBACK_VISUAL, FEEDBACK_GENERIC, FEEDBACK_BRAILLE], capabilities=11, eventTypes=TYPES_ALL_MASK, notificationTimeout=1000, requestA11yBtn=false]}
+     Enabled services:{{com.malware.accessibility/com.malware.service.malwareservice}}
+     Binding services:{}
+     Crashed services:{}
+     Client list info:{
+          Client list callbacks: 6
+          Client list killed: false
+          Client list broadcasts count: -1
+          Registered clients:{
+[com.malware.accessibility][com.android.launcher3][com.android.systemui][com.android.launcher3][com.android.settings.intelligence][com.android.inputmethod.latin]}]
+
+Window attributes:[{1=AccessibilityWindowAttributes{mAccessibilityWindowTitle=nullmLocales=[en_US]}, 2=AccessibilityWindowAttributes{mAccessibilityWindowTitle=nullmLocales=[en_US]}, 3=AccessibilityWindowAttributes{mAccessibilityWindowTitle=nullmLocales=[en_US]}, 4=AccessibilityWindowAttributes{mAccessibilityWindowTitle=nullmLocales=[en_US]}, 5=AccessibilityWindowAttributes{mAccessibilityWindowTitle=nullmLocales=[en_US]}, 6=AccessibilityWindowAttributes{mAccessibilityWindowTitle=nullmLocales=[en_US]}, 7=AccessibilityWindowAttributes{mAccessibilityWindowTitle=HomemLocales=[en_US]}, 9=AccessibilityWindowAttributes{mAccessibilityWindowTitle=SettingsmLocales=[en_US]}, 10=AccessibilityWindowAttributes{mAccessibilityWindowTitle=Settings SuggestionsmLocales=[en_US]}}]
+A11yInputFilter Info : 
+Enabled features of Display [0] = [KeyboardInterceptor]
+Global client list info:{
+    Client list callbacks: 4
+    Client list killed: false
+    Client list broadcasts count: -1
+    Registered clients:{
+[com.android.permissioncontroller][com.android.dynsystem, com.android.server.telecom, com.android.keychain, com.android.settings, com.android.localtransport, com.android.wallpaperbackup, com.android.inputdevices, com.android.providers.settings, android, com.android.emulator.multidisplay, com.android.location.fused][com.android.emulator.multidisplay, com.android.wallpaperbackup, com.android.settings, com.android.keychain, com.android.dynsystem, com.android.inputdevices, com.android.providers.settings, com.android.localtransport, com.android.server.telecom, android, com.android.location.fused][com.android.systemui]
+
+Proxy manager state:
+    Number of proxy connections: 0
+    Registered proxy connections:
+Accessibility Display Listener:
+    SystemUI uid: 10076
+    1 valid display: 0

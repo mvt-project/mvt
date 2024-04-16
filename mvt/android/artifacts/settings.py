@@ -51,6 +51,11 @@ ANDROID_DANGEROUS_SETTINGS = [
         "key": "install_non_market_apps",
         "safe_value": "0",
     },
+    {
+        "description": "enabled accessibility services",
+        "key": "accessibility_enabled",
+        "safe_value": "0",
+    },
 ]
 
 
