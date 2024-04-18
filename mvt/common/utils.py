@@ -53,20 +53,23 @@ def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
 def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
     """Converts datetime to ISO string.
 
-    :param datetime: datetime.
+    :param datetime: datetime, naive or timezone aware
     :type datetime: datetime.datetime
     :returns: ISO datetime string in YYYY-mm-dd HH:MM:SS.ms format.
     :rtype: str
 
     """
     try:
+        if date_time.tzinfo:
+            # Timezone aware object - convert to UTC
+            date_time = date_time.astimezone(tz=datetime.UTC)
         return date_time.strftime("%Y-%m-%d %H:%M:%S.%f")
     except Exception:
         return ""
 
 
 def convert_unix_to_utc_datetime(
-    timestamp: Union[int, float, str]
+    timestamp: Union[int, float, str],
 ) -> datetime.datetime:
     """Converts a unix epoch timestamp to UTC datetime.
 

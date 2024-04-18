@@ -42,6 +42,14 @@ class TestDateConversions:
         converted = convert_unix_to_utc_datetime(TEST_DATE_EPOCH)
         assert convert_datetime_to_iso(converted) == TEST_DATE_ISO
 
+    def test_convert_timezone_aware_to_iso(self):
+        assert (
+            convert_datetime_to_iso(
+                datetime.strptime("2024-09-30 11:21:20+0200", "%Y-%m-%d %H:%M:%S%z")
+            )
+            == "2024-09-30 09:21:20.000000"
+        )
+
 
 class TestHashes:
     def test_hash_from_file(self):
