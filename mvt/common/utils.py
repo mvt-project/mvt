@@ -59,13 +59,10 @@ def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
     :rtype: str
 
     """
-    try:
-        if date_time.tzinfo:
-            # Timezone aware object - convert to UTC
-            date_time = date_time.astimezone(tz=datetime.UTC)
-        return date_time.strftime("%Y-%m-%d %H:%M:%S.%f")
-    except Exception:
-        return ""
+    if date_time.tzinfo:
+        # Timezone aware object - convert to UTC
+        date_time = date_time.astimezone(tz=datetime.timezone.utc)
+    return date_time.strftime("%Y-%m-%d %H:%M:%S.%f")
 
 
 def convert_unix_to_utc_datetime(
