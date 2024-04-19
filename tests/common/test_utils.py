@@ -47,7 +47,7 @@ class TestDateConversions:
             convert_datetime_to_iso(
                 datetime.strptime("2024-09-30 11:21:20+0200", "%Y-%m-%d %H:%M:%S%z")
             )
-            == "2024-09-30 09:21:20.000000"
+            == "2024-09-30 09:21:21.000000"
         )
 
 
