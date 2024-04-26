@@ -112,8 +112,15 @@ class SMSAttachments(IOSExtraction):
                     value = b64encode(value).decode()
                 attachment[names[index]] = value
 
-            attachment["isodate"] = convert_mactime_to_iso(attachment["created_date"])
-            attachment["start_date"] = convert_mactime_to_iso(attachment["start_date"])
+            if attachment["created_date"]:
+                attachment["isodate"] = convert_mactime_to_iso(
+                    attachment["created_date"]
+                )
+            if attachment["start_date"]:
+                attachment["start_date"] = convert_mactime_to_iso(
+                    attachment["start_date"]
+                )
+
             attachment["direction"] = (
                 "sent" if attachment["is_outgoing"] == 1 else "received"
             )

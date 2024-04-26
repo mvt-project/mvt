@@ -144,7 +144,9 @@ class SMS(IOSExtraction):
 
             # We convert Mac's ridiculous timestamp format.
             message["isodate"] = convert_mactime_to_iso(message["date"])
-            message["isodate_read"] = convert_mactime_to_iso(message["date_read"])
+            if message["date_read"]:
+                message["isodate_read"] = convert_mactime_to_iso(message["date_read"])
+
             message["direction"] = (
                 "sent" if message.get("is_from_me", 0) == 1 else "received"
             )
