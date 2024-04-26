@@ -53,7 +53,7 @@ class SMS(IOSExtraction):
             },
         ]
         # If the message was read, we add an extra event.
-        if record["isodate_read"]:
+        if record.get("isodate_read", None):
             records.append(
                 {
                     "timestamp": record["isodate_read"],
