@@ -59,6 +59,9 @@ def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
     :rtype: str
 
     """
+    if not date_time:
+        return ""
+
     if date_time.tzinfo:
         # Timezone aware object - convert to UTC
         date_time = date_time.astimezone(tz=datetime.timezone.utc)
