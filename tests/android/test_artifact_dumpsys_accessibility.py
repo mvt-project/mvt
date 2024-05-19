@@ -26,6 +26,18 @@ class TestDumpsysAccessibilityArtifact:
             == "com.android.settings/com.samsung.android.settings.development.gpuwatch.GPUWatchInterceptor"
         )
 
+    def test_parsing_v14_aosp_format(self):
+        da = DumpsysAccessibilityArtifact()
+        file = get_artifact("android_data/dumpsys_accessibility_v14_or_later.txt")
+        with open(file) as f:
+            data = f.read()
+
+        assert len(da.results) == 0
+        da.parse(data)
+        assert len(da.results) == 1
+        assert da.results[0]["package_name"] == "com.malware.accessibility"
+        assert da.results[0]["service"] == "com.malware.service.malwareservice"
+
     def test_ioc_check(self, indicator_file):
         da = DumpsysAccessibilityArtifact()
         file = get_artifact("android_data/dumpsys_accessibility.txt")

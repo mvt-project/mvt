@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from .artifact import AndroidArtifact
+import re
 
 
 class DumpsysAccessibilityArtifact(AndroidArtifact):
@@ -25,6 +26,8 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
 
         :param content: content of the accessibility section (string)
         """
+
+        # "Old" syntax
         in_services = False
         for line in content.splitlines():
             if line.strip().startswith("installed services:"):
@@ -35,6 +38,7 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
                 continue
 
             if line.strip() == "}":
+                # At end of installed services
                 break
 
             service = line.split(":")[1].strip()
@@ -45,3 +49,19 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
                     "service": service,
                 }
             )
+
+        # "New" syntax - AOSP >= 14 (?)
+        # Looks like:
+        # Enabled services:{{com.azure.authenticator/com.microsoft.brooklyn.module.accessibility.BrooklynAccessibilityService}, {com.agilebits.onepassword/com.agilebits.onepassword.filling.accessibility.FillingAccessibilityService}}
+
+        for line in content.splitlines():
+            if line.strip().startswith("Enabled services:"):
+                matches = re.finditer(r"{([^{]+?)}", line)
+
+                for match in matches:
+                    # Each match is in format: <package_name>/<service>
+                    package_name, _, service = match.group(1).partition("/")
+
+                    self.results.append(
+                        {"package_name": package_name, "service": service}
+                    )
