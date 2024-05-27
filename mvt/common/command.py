@@ -85,6 +85,15 @@ class Command:
         )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
+
+        # MVT can be run in a loop
+        # Old file handlers stick around in subsequent loops
+        # Remove any existing logging.FileHandler instances
+        for handler in logger.handlers:
+            if isinstance(handler, logging.FileHandler):
+                logger.removeHandler(handler)
+
+        # And finally add the new one
         logger.addHandler(file_handler)
 
     def _store_timeline(self) -> None:
