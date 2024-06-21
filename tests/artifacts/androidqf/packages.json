@@ -1,0 +1,233 @@
+[
+    {
+        "name": "com.whatsapp",
+        "files": [
+            {
+                "path": "/data/app/~~/com.whatsapp-~~/base.apk",
+                "local_name": "",
+                "md5": "5870bd06e642de410c54705226ecfa9a",
+                "sha1": "6cb06e9ab5619345f930c2b2096b4dd013a10ec9",
+                "sha256": "744ed47f8176ec423840344c33e88bd2c96e8988cda0797f3415bb5229efc12b",
+                "sha512": "f222f742b0bd302c82e202bc78f7ff8b2de4acfc8d606994245ffa80998b003e215cad82cae023abe4f65c0da0a56fa9890e9bb3a753af6dac848a753ac07aee",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "556c6019249bbc0cab70495178d3a9d1",
+                    "Sha1": "38a0f7d505fe18fec64fbf343ecaaaf310dbd799",
+                    "Sha256": "3987d043d10aefaf5a8710b3671418fe57e0e19b653c9df82558feb5ffce5d44",
+                    "ValidFrom": "2010-06-25T23:07:16Z",
+                    "ValidTo": "2044-02-15T23:07:16Z",
+                    "Issuer": "C=US, ST=California, L=Santa Clara, O=WhatsApp Inc., OU=Engineering, CN=Brian Acton",
+                    "Subject": "C=US, ST=California, L=Santa Clara, O=WhatsApp Inc., OU=Engineering, CN=Brian Acton",
+                    "SignatureAlgorithm": "DSA-SHA1",
+                    "SerialNumber": 1277507236
+                },
+                "certificate_error": "",
+                "trusted_certificate": true
+            }
+        ],
+        "installer": "null",
+        "uid": 10271,
+        "disabled": false,
+        "system": false,
+        "third_party": true
+    },
+    {
+        "name": "app.revanced.manager.flutter",
+        "files": [
+            {
+                "path": "/data/app/~~==/app.revanced.manager.flutter-==/base.apk",
+                "local_name": "",
+                "md5": "aae9b55c6f2592233518bb5a173e8505",
+                "sha1": "9185a83dae0fc8a0ba79f89f3c84fe8a038f93af",
+                "sha256": "6ddb76f6180ca8bc0a11d5b343ac9ad8f137a351f20c080e989ca4310973d319",
+                "sha512": "923a57d4cdf2e7d48539307abbd12f982d61f393a1d058ceef0f6109301d21fedf0fe73c667f8add37fb35da570ac35c6b911360d9bf0389aa0bbbd53103ff46",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "f822d70f449d798f0688e2c7358a429c",
+                    "Sha1": "93adc8e2bd1687644f1143e184bcbfd57912ff2c",
+                    "Sha256": "b6362c6ea7888efd15c0800f480786ad0f5b133b4f84e12d46afba5f9eac1223",
+                    "ValidFrom": "2022-09-14T11:45:44Z",
+                    "ValidTo": "2050-01-30T11:45:44Z",
+                    "Issuer": "C=Unknown, ST=Unknown, L=Unknown, O=ReVanced, OU=ReVanced, CN=ReVanced Manager",
+                    "Subject": "C=Unknown, ST=Unknown, L=Unknown, O=ReVanced, OU=ReVanced, CN=ReVanced Manager",
+                    "SignatureAlgorithm": "SHA256-RSA",
+                    "SerialNumber": 710526530
+                },
+                "certificate_error": "",
+                "trusted_certificate": false
+            }
+        ],
+        "installer": "com.google.android.packageinstaller",
+        "uid": 10266,
+        "disabled": false,
+        "system": false,
+        "third_party": true
+    },
+    {
+        "name": "com.google.android.youtube",
+        "files": [
+            {
+                "path": "/data/app/~~==/com.google.android.youtube-==/base.apk",
+                "local_name": "",
+                "md5": "3ec11b187ec6195e9ca4b5be671eba34",
+                "sha1": "33a9a89836690966498ba106283e76eff430365b",
+                "sha256": "a81b6392ab855905763272cf1a248b0d09fc675a91eabe7ef4ed589356a35241",
+                "sha512": "c736fbd07fe52539d8e96f6489a49c915c2bac472f0203f6187d167e2e3623f07db9e70b0fbc0494f6eeffb66a4cf71da56ad70503dc8138512faa3c1e847174",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "d046fc5d1fc3cd0e57c5444097cd5449",
+                    "Sha1": "24bb24c05e47e0aefa68a58a766179d9b613a600",
+                    "Sha256": "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a",
+                    "ValidFrom": "2008-12-02T02:07:58Z",
+                    "ValidTo": "2036-04-19T02:07:58Z",
+                    "Issuer": "C=US, ST=CA, L=Mountain View, O=Google, Inc, OU=Google, Inc, CN=Unknown",
+                    "Subject": "C=US, ST=CA, L=Mountain View, O=Google, Inc, OU=Google, Inc, CN=Unknown",
+                    "SignatureAlgorithm": "MD5-RSA",
+                    "SerialNumber": 1228183678
+                },
+                "certificate_error": "",
+                "trusted_certificate": true
+            }
+        ],
+        "installer": "com.google.android.packageinstaller",
+        "uid": 10194,
+        "disabled": false,
+        "system": true,
+        "third_party": false
+    },
+    {
+        "name": "org.fdroid.fdroid",
+        "files": [
+            {
+                "path": "/data/app/~~-==/org.fdroid.fdroid-==/base.apk",
+                "local_name": "",
+                "md5": "1f7524d15b3d229e5e89af609551e640",
+                "sha1": "4ce271a8ac2afb9f584f1deb165f1ab4768c50b0",
+                "sha256": "dc3bb88f6419ee7dde7d1547a41569aa03282fe00e0dc43ce035efd7c9d27d75",
+                "sha512": "40e9bfaf6c2833078e370c85001adcb7493851a5146d2b4067a9909266a0d7904f80825f040c8c6e0cb59ec6e8c0825d522ff963f6db780b049a24d47f81b289",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "17c55c628056e193e95644e989792786",
+                    "Sha1": "05f2e65928088981b317fc9a6dbfe04b0fa13b4e",
+                    "Sha256": "43238d512c1e5eb2d6569f4a3afbf5523418b82e0a3ed1552770abb9a9c9ccab",
+                    "ValidFrom": "2010-07-23T17:10:24Z",
+                    "ValidTo": "2037-12-08T17:10:24Z",
+                    "Issuer": "C=UK, ST=Unknown, L=Wetherby, O=Unknown, OU=Unknown, CN=Ciaran Gultnieks",
+                    "Subject": "C=UK, ST=Unknown, L=Wetherby, O=Unknown, OU=Unknown, CN=Ciaran Gultnieks",
+                    "SignatureAlgorithm": "SHA1-RSA",
+                    "SerialNumber": 1279905024
+                },
+                "certificate_error": "",
+                "trusted_certificate": false
+            }
+        ],
+        "installer": "com.google.android.packageinstaller",
+        "uid": 10267,
+        "disabled": false,
+        "system": false,
+        "third_party": true
+    },
+    {
+        "name": "org.nuclearfog.apollo",
+        "files": [
+            {
+                "path": "/data/app/~~==/org.nuclearfog.apollo-==/base.apk",
+                "local_name": "",
+                "md5": "69f611758cc911f472fcabad6151684a",
+                "sha1": "1f5e450ef1901e245d4828735e0e93f0f94fb4da",
+                "sha256": "00bdfc80a397b449bef89dd2051ddd3c9d2a64e954176420b40c90a2af956799",
+                "sha512": "2af8037e0e226cba9f32227f709afc32fd8871c0077f73d00d59353d67ab843cb6641a5e0101d494699aeb91dcd136767fe9d76b30df65e1a1153f3c5b51a837",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "2bef3d492d62fad190a8b6b7d71d42a4",
+                    "Sha1": "cad23563b5be0c33611d827ee0da6ad5ef3be39a",
+                    "Sha256": "e1a418c51baa829917daa2e86d7509a8a10470e44280c20146b70ea550bfe1ab",
+                    "ValidFrom": "2022-01-15T20:17:10Z",
+                    "ValidTo": "2047-01-09T20:17:10Z",
+                    "Issuer": "C=DE, ST=Saarland, CN=nuclearfog",
+                    "Subject": "C=DE, ST=Saarland, CN=nuclearfog",
+                    "SignatureAlgorithm": "SHA256-RSA",
+                    "SerialNumber": 75365821
+                },
+                "certificate_error": "",
+                "trusted_certificate": false
+            }
+        ],
+        "installer": "org.fdroid.fdroid",
+        "uid": 10272,
+        "disabled": false,
+        "system": false,
+        "third_party": true
+    },
+    {
+        "name": "com.malware.blah",
+        "files": [
+            {
+                "path": "/data/app/~~-==/com.malware.blah-==/base.apk",
+                "local_name": "",
+                "md5": "349ba2de140fccaf2ed2ac20f66e711f",
+                "sha1": "2cc5b4a70ada9229fb50d30f525392f2d66f58d6",
+                "sha256": "79a3569fbb63a9167ad8a2dad963616bb01474c87d769c7640f6d6810c448eae",
+                "sha512": "df1bbbfa6e895054b36093548558ee0d9fbf61ef09e617d3b3b158ba9f9c11825dbbf7e84711331afb80fc24ea0e5aa07a9db1919932c109c34fefec3c02d184",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "54d5b5aca1e7e76bb1a26c61a9381b93",
+                    "Sha1": "4ba9d1f82adb7be841bcf53b03ddae857747199a",
+                    "Sha256": "c3e8cafdcd10e7cd9b2ec67f7abd4447b840431126066f6b16ed42151d2b4d64",
+                    "ValidFrom": "2021-01-15T22:03:53Z",
+                    "ValidTo": "2051-01-15T22:03:53Z",
+                    "Issuer": "C=US, ST=California, L=Mountain View, O=Google Inc., OU=Android, CN=Android",
+                    "Subject": "C=US, ST=California, L=Mountain View, O=Google Inc., OU=Android, CN=Android",
+                    "SignatureAlgorithm": "SHA256-RSA",
+                    "SerialNumber": 955466096586930338769951715633687128507538251257
+                },
+                "certificate_error": "",
+                "trusted_certificate": false
+            }
+        ],
+        "installer": "null",
+        "uid": 10058,
+        "disabled": false,
+        "system": true,
+        "third_party": false
+    },
+    {
+        "name": "com.malware.muahaha",
+        "files": [
+            {
+                "path": "/data/app/~~-==/com.malware.meh-==/base.apk",
+                "local_name": "",
+                "md5": "349ba2de140fccaf2ed2ac20f66e711f",
+                "sha1": "2cc5b4a70ada9229fb50d30f525392f2d66f58d6",
+                "sha256": "31037a27af59d4914906c01ad14a318eee2f3e31d48da8954dca62a99174e3fa",
+                "sha512": "df1bbbfa6e895054b36093548558ee0d9fbf61ef09e617d3b3b158ba9f9c11825dbbf7e84711331afb80fc24ea0e5aa07a9db1919932c109c34fefec3c02d184",
+                "error": "",
+                "verified_certificate": true,
+                "certificate": {
+                    "Md5": "54d5b5aca1e7e76bb1a26c61a9381b93",
+                    "Sha1": "4ba9d1f82adb7be841bcf53b03ddae857747199a",
+                    "Sha256": "31037a27af59d4914906c01ad14a318eee2f3e31d48da8954dca62a99174e3fa",
+                    "ValidFrom": "2021-01-15T22:03:53Z",
+                    "ValidTo": "2051-01-15T22:03:53Z",
+                    "Issuer": "C=US, ST=California, L=Mountain View, O=Google Inc., OU=Android, CN=Android",
+                    "Subject": "C=US, ST=California, L=Mountain View, O=Google Inc., OU=Android, CN=Android",
+                    "SignatureAlgorithm": "SHA256-RSA",
+                    "SerialNumber": 955466096586930338769951715633687128507538251257
+                },
+                "certificate_error": "",
+                "trusted_certificate": false
+            }
+        ],
+        "installer": "null",
+        "uid": 10058,
+        "disabled": false,
+        "system": true,
+        "third_party": false
+    }
+]

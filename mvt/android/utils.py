@@ -91,3 +91,15 @@ SYSTEM_UPDATE_PACKAGES = [
     "com.transsion.systemupdate",
     "com.wssyncmldm",
 ]
+
+# Apps installed from the Play store have this installer
+PLAY_STORE_INSTALLERS = ["com.android.vending"]
+
+# Installer id for apps from common 3rd party stores
+THIRD_PARTY_STORE_INSTALLERS = ["com.aurora.store", "org.fdroid.fdroid"]
+
+# Packages installed via a browser have these installers
+BROWSER_INSTALLERS = [
+    "com.google.android.packageinstaller",
+    "com.android.packageinstaller",
+]
