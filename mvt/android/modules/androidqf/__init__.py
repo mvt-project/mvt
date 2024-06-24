@@ -12,6 +12,7 @@ from .dumpsys_dbinfo import DumpsysDBInfo
 from .dumpsys_packages import DumpsysPackages
 from .dumpsys_receivers import DumpsysReceivers
 from .getprop import Getprop
+from .packages import Packages
 from .processes import Processes
 from .settings import Settings
 from .sms import SMS
@@ -24,6 +25,7 @@ ANDROIDQF_MODULES = [
     DumpsysDBInfo,
     DumpsysBatteryDaily,
     DumpsysBatteryHistory,
+    Packages,
     Processes,
     Getprop,
     Settings,
