@@ -7,3 +7,5 @@ security: # configuration for the `safety check` command
     ignore-vulnerabilities: # Here you can list multiple specific vulnerabilities you want to ignore (optionally for a time period)
         67599: # Example vulnerability ID
             reason: disputed, inapplicable
+        70612:
+            reason: disputed, inapplicable
