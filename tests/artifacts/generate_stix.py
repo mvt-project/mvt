@@ -13,6 +13,7 @@ def generate_test_stix_file(file_path):
         os.remove(file_path)
 
     domains = ["example.org"]
+    ip_addresses = ["198.51.100.1"]
     processes = ["Launch"]
     emails = ["foobar@example.org"]
     filenames = ["/var/foobar/txt"]
@@ -25,6 +26,15 @@ def generate_test_stix_file(file_path):
         i = Indicator(
             indicator_types=["malicious-activity"],
             pattern="[domain-name:value='{}']".format(d),
+            pattern_type="stix",
+        )
+        res.append(i)
+        res.append(Relationship(i, "indicates", malware))
+
+    for a in ip_addresses:
+        i = Indicator(
+            indicator_types=["malicious-activity"],
+            pattern="[ipv4-addr:value='{}']".format(d),
             pattern_type="stix",
         )
         res.append(i)
