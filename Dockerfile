@@ -105,9 +105,12 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
 # Create main image
 FROM ubuntu:22.04 as main
 
-LABEL url="https://mvt.re"
-LABEL vcs-url="https://github.com/mvt-project/mvt"
-LABEL description="MVT is a forensic tool to look for signs of infection in smartphone devices."
+LABEL org.opencontainers.image.url="https://mvt.re"
+LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
+LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
+LABEL org.opencontainers.image.title="Mobile Verification Toolkit"
+LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
+LABEL org.opencontainers.image.base.name=docker.io/library/ubuntu:22.04
 
 # Install runtime dependencies
 ARG DEBIAN_FRONTEND=noninteractive
