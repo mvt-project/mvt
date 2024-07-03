@@ -102,27 +102,24 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
   && cd .. && rm -rf usbmuxd && mv /build/lib /build/usr/lib
 
 
-# Create main image
-FROM ubuntu:22.04 as main
+# Main image
+# ----------
+FROM python:3.10.14-alpine3.20 as main
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
 LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
-LABEL org.opencontainers.image.title="Mobile Verification Toolkit"
+LABEL org.opencontainers.image.title="Mobile Verification Toolkit (iOS)"
 LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
-LABEL org.opencontainers.image.base.name=docker.io/library/ubuntu:22.04
+LABEL org.opencontainers.image.base.name=docker.io/library/python:3.10.14-alpine3.20
 
 # Install runtime dependencies
-ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
-  && apt-get install -y \
-  adb \
-  default-jre-headless \
-  libcurl4 \
+RUN apk add --no-cache \
+  gcompat \
+  libcurl \
   libssl3 \
-  libusb-1.0-0 \
-  python3 \
-  sqlite3
+  libusb \
+  sqlite
 COPY --from=build-libplist /build /
 COPY --from=build-libimobiledevice-glue /build /
 COPY --from=build-libtatsu /build /
@@ -131,24 +128,8 @@ COPY --from=build-libimobiledevice /build /
 COPY --from=build-usbmuxd /build /
 
 # Install mvt
-RUN apt-get update \
-  && apt-get install -y git python3-pip \
+RUN apk add --no-cache git \
   && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
-  && apt-get remove -y python3-pip git && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/*
+  && apk del git
 
-# Installing ABE
-ADD https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
-# Create alias for abe
-RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
-
-# Generate adb key folder
-RUN mkdir /root/.android && adb keygen /root/.android/adbkey
-
-# Setup investigations environment
-RUN mkdir /home/cases
-WORKDIR /home/cases
-RUN echo 'echo "Mobile Verification Toolkit @ Docker\n------------------------------------\n\nYou can find information about how to use this image for Android (https://github.com/mvt-project/mvt/tree/master/docs/android) and iOS (https://github.com/mvt-project/mvt/tree/master/docs/ios) in the official docs of the project.\n"' >> ~/.bashrc \
-  && echo 'echo "Note that to perform the debug via USB you might need to give the Docker image access to the USB using \"docker run -it --privileged -v /dev/bus/usb:/dev/bus/usb mvt\" or, preferably, the \"--device=\" parameter.\n"' >> ~/.bashrc
-
-CMD /bin/bash
+ENTRYPOINT [ "/usr/local/bin/mvt-ios" ]

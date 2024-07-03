@@ -1,0 +1,32 @@
+# Create main image
+FROM python:3.10.14-alpine3.20 as main
+
+LABEL org.opencontainers.image.url="https://mvt.re"
+LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
+LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
+LABEL org.opencontainers.image.title="Mobile Verification Toolkit (Android)"
+LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
+LABEL org.opencontainers.image.base.name=docker.io/library/python:3.10.14-alpine3.20
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+  android-tools \
+  git \
+  libusb \
+  openjdk11-jre-headless \
+  sqlite
+
+# Install mvt
+RUN apk add --no-cache git \
+  && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
+  && apk del git
+
+# Installing ABE
+ADD https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
+# Create alias for abe
+RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
+
+# Generate adb key folder
+RUN mkdir /root/.android && adb keygen /root/.android/adbkey
+
+ENTRYPOINT [ "/usr/local/bin/mvt-android" ]
