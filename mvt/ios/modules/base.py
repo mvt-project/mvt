@@ -49,7 +49,11 @@ class IOSExtraction(MVTModule):
         """
         # TODO: Find a better solution.
         if not forced:
-            conn = self._open_sqlite_db(file_path)
+            # If the database is open, do not use immutable
+            if os.path.isfile(file_path + "-shm"):
+                conn = sqlite3.connect(file_path)
+            else:
+                conn = self._open_sqlite_db(file_path)
             cur = conn.cursor()
 
             try:
