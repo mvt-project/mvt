@@ -55,8 +55,9 @@ class Whatsapp(AndroidExtraction):
                 continue
 
             message_links = check_for_links(message["data"])
-            if self.indicators.check_domains(message_links):
+            if self.indicators.check_urls(message_links):
                 self.detected.append(message)
+                continue
 
     def _parse_db(self, db_path: str) -> None:
         """Parse an Android msgstore.db WhatsApp database file.

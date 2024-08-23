@@ -73,15 +73,18 @@ class Indicators:
             "emails": [],
             "file_names": [],
             "file_paths": [],
+            "files_md5": [],
+            "files_sha1": [],
             "files_sha256": [],
             "app_ids": [],
             "ios_profile_ids": [],
             "android_property_names": [],
+            "urls": [],
             "count": 0,
         }
 
     def _add_indicator(self, ioc: str, ioc_coll: dict, ioc_coll_list: list) -> None:
-        ioc = ioc.strip("'")
+        ioc = ioc.replace("'", "").strip()
         if ioc not in ioc_coll_list:
             ioc_coll_list.append(ioc)
             ioc_coll["count"] += 1
@@ -89,6 +92,7 @@ class Indicators:
 
     def _process_indicator(self, indicator: dict, collection: dict) -> None:
         key, value = indicator.get("pattern", "").strip("[]").split("=")
+        key = key.strip()
 
         if key == "domain-name:value":
             # We force domain names to lower case.
@@ -116,6 +120,14 @@ class Indicators:
             self._add_indicator(
                 ioc=value, ioc_coll=collection, ioc_coll_list=collection["file_paths"]
             )
+        elif key == "file:hashes.md5":
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["files_md5"]
+            )
+        elif key == "file:hashes.sha1":
+            self._add_indicator(
+                ioc=value, ioc_coll=collection, ioc_coll_list=collection["files_sha1"]
+            )
         elif key == "file:hashes.sha256":
             self._add_indicator(
                 ioc=value, ioc_coll=collection, ioc_coll_list=collection["files_sha256"]
@@ -137,6 +149,14 @@ class Indicators:
                 ioc_coll=collection,
                 ioc_coll_list=collection["android_property_names"],
             )
+        elif key == "url:value":
+            self._add_indicator(
+                ioc=value,
+                ioc_coll=collection,
+                ioc_coll_list=collection["urls"],
+            )
+        else:
+            self.log.debug("Can't add indicator %s, type %s not supported", value, key)
 
     def parse_stix2(self, file_path: str) -> None:
         """Extract indicators from a STIX2 file.
@@ -160,13 +180,17 @@ class Indicators:
         malware = {}
         indicators = []
         relationships = []
+        reports = []
         for entry in data.get("objects", []):
             entry_type = entry.get("type", "")
+            # Consider both malware and reports as collections
             if entry_type == "malware":
                 malware[entry["id"]] = {
                     "name": entry["name"],
                     "description": entry.get("description", ""),
                 }
+            elif entry_type == "report":
+                reports.append(entry)
             elif entry_type == "indicator":
                 indicators.append(entry)
             elif entry_type == "relationship":
@@ -183,27 +207,58 @@ class Indicators:
             )
             collections.append(collection)
 
+        for report in reports:
+            collection = self._new_collection(
+                report["id"],
+                report.get("name", ""),
+                report.get("description", ""),
+                os.path.basename(file_path),
+                file_path,
+            )
+            collections.append(collection)
+
+        # Adds a default collection
+        default_collection = self._new_collection(
+            "0",
+            "Default collection",
+            "Collection with IOCs unrelated to malware or reports",
+            os.path.basename(file_path),
+            file_path,
+        )
+
         # We loop through all indicators.
         for indicator in indicators:
             malware_id = None
 
-            # We loop through all relationships and find the one pertinent to
-            # the current indicator.
-            for relationship in relationships:
-                if relationship["source_ref"] != indicator["id"]:
-                    continue
+            # We loop through reports first to see if the indicator is in the refs
+            for report in reports:
+                for ref in report.get("object_refs", []):
+                    if ref == indicator["id"]:
+                        malware_id = report["id"]
+                        break
 
-                # Look for a malware definition with the correct identifier.
-                if relationship["target_ref"] in malware.keys():
-                    malware_id = relationship["target_ref"]
-                    break
+            if malware_id is None:
+                # We loop through all relationships and find the one pertinent to
+                # the current indicator.
+                for relationship in relationships:
+                    if relationship["source_ref"] != indicator["id"]:
+                        continue
 
-            # Now we look for the correct collection matching the malware ID we
-            # got from the relationship.
-            for collection in collections:
-                if collection["id"] == malware_id:
-                    self._process_indicator(indicator, collection)
-                    break
+                    # Look for a malware definition with the correct identifier.
+                    if relationship["target_ref"] in malware.keys():
+                        malware_id = relationship["target_ref"]
+                        break
+
+            if malware_id is not None:
+                # Now we look for the correct collection matching the malware ID we
+                # got from the relationship.
+                for collection in collections:
+                    if collection["id"] == malware_id:
+                        self._process_indicator(indicator, collection)
+                        break
+            else:
+                # Adds to the default collection
+                self._process_indicator(indicator, default_collection)
 
         for coll in collections:
             self.log.debug(
@@ -213,6 +268,9 @@ class Indicators:
             )
 
         self.ioc_collections.extend(collections)
+        if default_collection["count"] > 0:
+            # Adds the default collection only if therare some IOCs in it
+            self.ioc_collections.append(default_collection)
 
     def load_indicators_files(
         self, files: list, load_default: Optional[bool] = True
@@ -251,7 +309,7 @@ class Indicators:
         Build an Aho-Corasick automaton from a list of iocs (i.e indicators)
         Returns an Aho-Corasick automaton
 
-        This data-structue and algorithim allows for fast matching of a large number
+        This data-structue and algorithm allows for fast matching of a large number
         of match strings (i.e IOCs) against a large body of text. This will also
         match strings containing the IOC, so it is important to confirm the
         match is a valid IOC before using it.
@@ -261,7 +319,7 @@ class Indicators:
                     print(ioc)
 
         We use an LRU cache to avoid rebuilding the automaton every time we call a
-        function such as check_domain().
+        function such as check_url().
         """
         automaton = ahocorasick.Automaton()
         if ioc_type:
@@ -269,7 +327,7 @@ class Indicators:
         elif ioc_list:
             iocs = ioc_list
         else:
-            raise ValueError("Must provide either ioc_tyxpe or ioc_list")
+            raise ValueError("Must provide either ioc_type or ioc_list")
 
         for ioc in iocs:
             automaton.add_word(ioc["value"], ioc)
@@ -277,7 +335,7 @@ class Indicators:
         return automaton
 
     @lru_cache()
-    def check_domain(self, url: str) -> Union[dict, None]:
+    def check_url(self, url: str) -> Union[dict, None]:
         """Check if a given URL matches any of the provided domain indicators.
 
         :param url: URL to match against domain indicators
@@ -290,9 +348,21 @@ class Indicators:
         if not isinstance(url, str):
             return None
 
-        # Create an Aho-Corasick automaton from the list of domains
-        domain_matcher = self.get_ioc_matcher("domains")
+        # Check the URL first
+        for ioc in self.get_iocs("urls"):
+            if ioc["value"] == url:
+                self.log.warning(
+                    "Found a known suspicious URL %s "
+                    'matching indicator "%s" from "%s"',
+                    url,
+                    ioc["value"],
+                    ioc["name"],
+                )
+                return ioc
 
+        # Then check the domain
+        # Create an Aho-Corasick automaton from the list of urls
+        domain_matcher = self.get_ioc_matcher("domains")
         try:
             # First we use the provided URL.
             orig_url = URL(url)
@@ -316,7 +386,7 @@ class Indicators:
                         orig_url.url,
                         dest_url.url,
                     )
-                    return self.check_domain(dest_url.url)
+                    return self.check_url(dest_url.url)
 
                 final_url = dest_url
             else:
@@ -389,7 +459,7 @@ class Indicators:
 
         return None
 
-    def check_domains(self, urls: list) -> Union[dict, None]:
+    def check_urls(self, urls: list) -> Union[dict, None]:
         """Check a list of URLs against the provided list of domain indicators.
 
         :param urls: List of URLs to check against domain indicators
@@ -401,7 +471,7 @@ class Indicators:
             return None
 
         for url in urls:
-            check = self.check_domain(url)
+            check = self.check_url(url)
             if check:
                 return check
 
@@ -591,9 +661,9 @@ class Indicators:
         return None
 
     def check_file_hash(self, file_hash: str) -> Union[dict, None]:
-        """Check the provided SHA256 file hash against the list of indicators.
+        """Check the provided file hash against the list of indicators.
 
-        :param file_hash: SHA256 hash to check
+        :param file_hash: hash to check
         :type file_hash: str
         :returns: Indicator details if matched, otherwise None
 
@@ -601,7 +671,14 @@ class Indicators:
         if not file_hash:
             return None
 
-        for ioc in self.get_iocs("files_sha256"):
+        if len(file_hash) == 32:
+            hash_type = "md5"
+        elif len(file_hash) == 40:
+            hash_type = "sha1"
+        else:
+            hash_type = "sha256"
+
+        for ioc in self.get_iocs("files_" + hash_type):
             if file_hash.lower() == ioc["value"].lower():
                 self.log.warning(
                     'Found a known suspicious file with hash "%s" '
@@ -659,3 +736,15 @@ class Indicators:
                 return ioc
 
         return None
+
+    def check_domain(self, url: str) -> Union[dict, None]:
+        """
+        Renamed check_url now, kept for compatibility
+        """
+        return self.check_url(url)
+
+    def check_domains(self, urls: list) -> Union[dict, None]:
+        """
+        Renamed check_domains, kept for compatibility
+        """
+        return self.check_urls(urls)

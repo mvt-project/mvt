@@ -84,7 +84,7 @@ class SMS(IOSExtraction):
             # Making sure not link was ignored
             if message_links == []:
                 message_links = check_for_links(result.get("text", ""))
-            ioc = self.indicators.check_domains(message_links)
+            ioc = self.indicators.check_urls(message_links)
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)

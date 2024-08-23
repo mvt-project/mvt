@@ -60,7 +60,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
 
         self.detected = []
         for result in self.results:
-            ioc = self.indicators.check_domain(result["registrable_domain"])
+            ioc = self.indicators.check_url(result["registrable_domain"])
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)

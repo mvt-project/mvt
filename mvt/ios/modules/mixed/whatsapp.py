@@ -57,7 +57,7 @@ class Whatsapp(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_domains(result.get("links", []))
+            ioc = self.indicators.check_urls(result.get("links", []))
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)

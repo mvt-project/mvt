@@ -70,14 +70,8 @@ class Analytics(IOSExtraction):
                     self.detected.append(new_result)
                     continue
 
-                ioc = self.indicators.check_domain(value)
+                ioc = self.indicators.check_url(value)
                 if ioc:
-                    self.log.warning(
-                        'Found mention of a malicious domain "%s" in %s file at %s',
-                        value,
-                        result["artifact"],
-                        result["isodate"],
-                    )
                     new_result = copy.copy(result)
                     new_result["matched_indicator"] = ioc
                     self.detected.append(new_result)
