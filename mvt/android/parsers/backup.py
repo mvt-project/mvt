@@ -230,7 +230,9 @@ def parse_sms_file(data):
             entry["body"] = entry["mms_body"]
             entry.pop("mms_body")
 
-        message_links = check_for_links(entry["body"])
+        body = entry.get("body", None)
+        if body:
+            message_links = check_for_links(entry["body"])
 
         entry["isodate"] = convert_unix_to_iso(int(entry["date"]) / 1000)
         entry["direction"] = "sent" if int(entry["date_sent"]) else "received"
