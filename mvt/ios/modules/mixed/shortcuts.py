@@ -119,9 +119,8 @@ class Shortcuts(IOSExtraction):
                 action_data = plistlib.load(io.BytesIO(shortcut.pop("action_data", [])))
                 actions = []
                 for action_entry in action_data:
-                    action = {}
-                    action["identifier"] = action_entry["WFWorkflowActionIdentifier"]
-                    action["parameters"] = action_entry["WFWorkflowActionParameters"]
+                    action = {"identifier": action_entry["WFWorkflowActionIdentifier"],
+                              "parameters": action_entry["WFWorkflowActionParameters"]}
 
                     # URLs might be in multiple fields, do a simple regex search
                     # across the parameters.
