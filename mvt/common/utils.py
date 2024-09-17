@@ -78,7 +78,7 @@ def convert_unix_to_utc_datetime(
     :returns: datetime.
 
     """
-    return datetime.datetime.utcfromtimestamp(float(timestamp))
+    return datetime.datetime.fromtimestamp(float(timestamp), tz=datetime.timezone.utc)
 
 
 def convert_unix_to_iso(timestamp: Union[int, float, str]) -> str:
