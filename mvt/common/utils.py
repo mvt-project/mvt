@@ -53,8 +53,8 @@ def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
 def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
     """Converts datetime to ISO string.
 
-    :param datetime: datetime, naive or timezone aware
-    :type datetime: datetime.datetime
+    :param date_time: datetime, naive or timezone aware
+    :type date_time: datetime.datetime
     :returns: ISO datetime string in YYYY-mm-dd HH:MM:SS.ms format.
     :rtype: str
 

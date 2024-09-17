@@ -334,8 +334,6 @@ class URL:
     def get_domain(self) -> str:
         """Get the domain from a URL.
 
-        :param url: URL to parse
-        :type url: str
         :returns: Domain name extracted from URL
         :rtype: str
 
@@ -349,8 +347,6 @@ class URL:
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
 
-        :param url: URL to parse
-        :type url: str
         :returns: Top-level domain name extracted from URL
         :rtype: str
 
