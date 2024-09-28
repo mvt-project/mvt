@@ -3,14 +3,14 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 from typing import Optional
-import json
 
 from mvt.android.utils import (
-    ROOT_PACKAGES,
     BROWSER_INSTALLERS,
     PLAY_STORE_INSTALLERS,
+    ROOT_PACKAGES,
     THIRD_PARTY_STORE_INSTALLERS,
 )
 
