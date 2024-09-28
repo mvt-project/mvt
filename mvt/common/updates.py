@@ -23,7 +23,7 @@ INDICATORS_CHECK_FREQUENCY = 12
 
 class MVTUpdates:
     def check(self) -> str:
-        res = requests.get("https://pypi.org/pypi/mvt/json")
+        res = requests.get("https://pypi.org/pypi/mvt/json", timeout=15)
         data = res.json()
         latest_version = data.get("info", {}).get("version", "")
 
@@ -69,6 +69,10 @@ class IndicatorsUpdates:
             handle.write(str(timestamp))
 
     def get_latest_update(self) -> int:
+        """
+        Check the time of the latest indicator update.
+        Returns 0 if this file doesn't exists.
+        """
         if not os.path.exists(self.latest_update_path):
             return 0
 
@@ -88,7 +92,7 @@ class IndicatorsUpdates:
         url = self.github_raw_url.format(
             self.index_owner, self.index_repo, self.index_branch, self.index_path
         )
-        res = requests.get(url)
+        res = requests.get(url, timeout=15)
         if res.status_code != 200:
             log.error(
                 "Failed to retrieve indicators index located at %s (error %d)",
@@ -100,7 +104,7 @@ class IndicatorsUpdates:
         return yaml.safe_load(res.content)
 
     def download_remote_ioc(self, ioc_url: str) -> Optional[str]:
-        res = requests.get(ioc_url)
+        res = requests.get(ioc_url, timeout=15)
         if res.status_code != 200:
             log.error(
                 "Failed to download indicators file from %s (error %d)",
@@ -166,7 +170,7 @@ class IndicatorsUpdates:
         file_commit_url = (
             f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}"
         )
-        res = requests.get(file_commit_url)
+        res = requests.get(file_commit_url, timeout=15)
         if res.status_code != 200:
             log.error(
                 "Failed to get details about file %s (error %d)",
@@ -195,6 +199,10 @@ class IndicatorsUpdates:
         return latest_commit_ts
 
     def should_check(self) -> Tuple[bool, int]:
+        """
+        Compare time of the latest indicator check with current time.
+        Returns bool and number of hours since the last check.
+        """
         now = datetime.utcnow()
         latest_check_ts = self.get_latest_check()
         latest_check_dt = datetime.fromtimestamp(latest_check_ts)

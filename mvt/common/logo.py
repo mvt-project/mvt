@@ -3,6 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
+
+import requests
 from rich import print as rich_print
 
 from .updates import IndicatorsUpdates, MVTUpdates
@@ -10,10 +13,13 @@ from .version import MVT_VERSION
 
 
 def check_updates() -> None:
+    log = logging.getLogger("mvt")
     # First we check for MVT version updates.
-    mvt_updates = MVTUpdates()
     try:
+        mvt_updates = MVTUpdates()
         latest_version = mvt_updates.check()
+    except requests.exceptions.Timeout:
+        log.verbose("Couldn't check latest MVT version")
     except Exception:
         pass
     else:
@@ -48,6 +54,8 @@ def check_updates() -> None:
 
     try:
         ioc_to_update = ioc_updates.check()
+    except requests.exceptions.Timeout:
+        log.verbose("Couldn't check latest indicators")
     except Exception:
         pass
     else:
