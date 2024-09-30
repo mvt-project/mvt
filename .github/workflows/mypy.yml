@@ -1,9 +1,13 @@
-name: Ruff
-on: [push]
+name: Mypy
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  ruff_py3:
-    name: Ruff syntax check
+  mypy_py3:
+    name: Mypy check
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +21,7 @@ jobs:
         uses: actions/checkout@master
       - name: Install Dependencies
         run: |
-          pip install ruff
-      - name: ruff
+          pip install mypy
+      - name: mypy
         run: |
-          make ruff
+          make mypy
