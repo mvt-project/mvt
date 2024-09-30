@@ -26,4 +26,13 @@ jobs:
           make test-requirements
       - name: Test with pytest
         run: |
-          make test-ci
+          set -o pipefail
+          make test-ci | tee pytest-coverage.txt
+
+      - name: Pytest coverage comment
+        continue-on-error: true # Workflows running on a fork can't post comments
+        uses: MishaKav/pytest-coverage-comment@main
+        if: github.event_name == 'pull_request'
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
