@@ -62,7 +62,7 @@ ignore_missing_imports = true
 packages = "src"
 
 [tool.pytest.ini_options]
-addopts = "-ra -q --cov=./src/mvt --cov-report html"
+addopts = "-ra -q --cov=mvt --cov-report html"
 testpaths = [
     "tests"
 ]
