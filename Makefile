@@ -14,10 +14,10 @@ mypy:
 	mypy
 
 test:
-	pytest
+	python3 -m pytest
 
 test-ci:
-	pytest -v
+	python3 -m pytest -v
 
 install:
 	python3 -m pip install --upgrade -e .
