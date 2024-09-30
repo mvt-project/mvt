@@ -15,7 +15,8 @@ from .artifact import AndroidArtifact
 # to close the previous section. This is a heuristic approach, and may not work in all cases. We can't do
 # this for all sections as we will detect subsections as new sections.
 SECTION_BROKEN_TERMINATORS = [
-    b"VM TRACES AT LAST ANR"
+    b"VM TRACES AT LAST ANR",
+    b"DIGITAL_HALL",
 ]
 
 
@@ -60,11 +61,14 @@ class DumpStateArtifact(AndroidArtifact):
         if header_match.group(2):
             section_command = header_match.group(2).strip(b"()")
         else:
-            # Some headers can missed the command
+            # Some headers can missing the command
             section_command = ""
-            # import pdb; pdb.set_trace()
 
-        has_broken_terminator = section_name in SECTION_BROKEN_TERMINATORS
+        has_broken_terminator = False
+        for broken_section in SECTION_BROKEN_TERMINATORS:
+            if broken_section in section_name:
+                has_broken_terminator = True
+                break
 
         section = {
             "section_name": section_name,
@@ -90,14 +94,22 @@ class DumpStateArtifact(AndroidArtifact):
 
         # Regexes to parse headers
         section_name_re = re.compile(rb"------ ([\w\d\s\-\/\&]+)(\(.*\))? ------")
+        end_of_section_re = re.compile(rb"------ End of .* ------")
         missing_file_error_re = re.compile(rb"\*\*\* (.*): No such file or directory")
-        generic_error_re = re.compile(rb"\*\*\* (.*)")
+        generic_error_re = re.compile(rb"\*\*\* (.*) (?<!\*\*\*)$")
 
         section = None
 
         # Parse each line in dumpstate and look for headers
         for line in text.splitlines():
             if not section:
+                # If we find an end section when not in a section, we can skip
+                # It's probably the trailing line of a section.
+                end_of_section_match = re.match(end_of_section_re, line)
+                if end_of_section_match:
+                    self.unparsed_lines.append(line)
+                    continue
+
                 possible_section_header = re.match(section_name_re, line)
                 if possible_section_header:
                     section = self._get_section_header(possible_section_header)
@@ -139,7 +151,10 @@ class DumpStateArtifact(AndroidArtifact):
                     pass
 
             # Handle lines with special meaning
-            if re.match(missing_file_error_re, line) or  re.match(generic_error_re, line):
+            # TODO: This is failing as sometime errors are followed by a terminator and sometimes not.
+            if re.match(missing_file_error_re, line) or re.match(
+                generic_error_re, line
+            ):
                 # The line in a failed file read which is dumped without an header end section.
                 section["failed"] = True
                 section["lines"].append(line)

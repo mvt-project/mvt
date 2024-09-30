@@ -37,6 +37,9 @@ class TestAndroidArtifactDumpState:
             elif section["section_name"] == b"MODEM CRASH HISTORY":
                 # Test parsing where section only has an error message
                 assert len(section["lines"]) == 1
-                assert section["lines"][0] == b"*** /data/tombstones//modem/mcrash_history: No such file or directory"
+                assert (
+                    section["lines"][0]
+                    == b"*** /data/tombstones//modem/mcrash_history: No such file or directory"
+                )
 
-        assert len(dumpstate.unparsed_lines) == 10
+        assert len(dumpstate.unparsed_lines) == 11

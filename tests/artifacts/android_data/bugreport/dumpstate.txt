@@ -271,8 +271,8 @@ Packages:
 ------ 0.557s was the duration of 'DUMPSYS CRITICAL' ------
 ------ 0.023s was the duration of 'DUMPSYS CRITICAL PROTO' ------
 ------ SERIALIZE PERFETTO TRACE (perfetto --save-for-bugreport) ------
-test
 ------ 0.036s was the duration of 'SERIALIZE PERFETTO TRACE' ------
+------ End of SERIALIZE PERFETTO TRACE (perfetto --save-for-bugreport) ------
 ------ MODEM CRASH HISTORY (/data/tombstones//modem/mcrash_history) ------
 *** /data/tombstones//modem/mcrash_history: No such file or directory
 ------ SYSTEM LOG (logcat -v threadtime -v printable -v uid -d *:v) ------
