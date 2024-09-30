@@ -92,7 +92,6 @@ max-complexity = 10
 include-package-data = true
 package-dir = {"" = "src"}
 
-
 [tool.setuptools.packages.find]
 where = ["src"]
 
