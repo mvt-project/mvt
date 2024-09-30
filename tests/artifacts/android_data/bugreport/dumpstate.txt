@@ -1,3 +1,25 @@
+========================================================
+== dumpstate: 2024-04-21 10:00:11
+========================================================
+
+Build: TP1A.220624.014
+Uptime: up 0 weeks, 0 days, 0 hours, 20 minutes,  load average: 20.00, 19.92, 15.46
+Bugreport format version: 2.0
+Dumpstate info: id=1 pid=21015 dry_run=0 parallel_run=1 args=/system/bin/dumpstate -S bugreport_mode=
+
+------ DUMPSYS CRITICAL (/system/bin/dumpsys) ------
+-------------------------------------------------------------------------------
+DUMP OF SERVICE CRITICAL SurfaceFlinger:
+now = 1202781815070
+Build configuration: [sf PRESENT_TIME_OFFSET=0 FORCE_HWC_FOR_RBG_TO_YUV=1 MAX_VIRT_DISPLAY_DIM=0 RUNNING_WITHOUT_SYNC_FRAMEWORK=0 NUM_FRAMEBUFFER_SURFACE_BUFFERS=3]
+
+Display identification data:
+Display 0 (HWC display 0): no identification data
+
+Wide-Color information:
+Device has wide color built-in display: 0
+Device uses color management: 1
+
 Currently running services:
   AAS
   AODManagerService
@@ -246,6 +268,16 @@ Packages:
         com.instagram.direct.share.handler.DirectMultipleExternalMediaShareActivity
         com.instagram.share.handleractivity.ClipsShareHandlerActivity
         com.instagram.direct.share.handler.DirectMultipleExternalMediaShareActivityInterop
-
-
-
+------ 0.557s was the duration of 'DUMPSYS CRITICAL' ------
+------ 0.023s was the duration of 'DUMPSYS CRITICAL PROTO' ------
+------ SERIALIZE PERFETTO TRACE (perfetto --save-for-bugreport) ------
+test
+------ 0.036s was the duration of 'SERIALIZE PERFETTO TRACE' ------
+------ MODEM CRASH HISTORY (/data/tombstones//modem/mcrash_history) ------
+*** /data/tombstones//modem/mcrash_history: No such file or directory
+------ SYSTEM LOG (logcat -v threadtime -v printable -v uid -d *:v) ------
+--------- beginning of system
+05-28 09:44:19.845  root   578   578 I vold    : Vold 3.0 (the awakening) firing up
+05-28 09:44:19.845  root   578   578 D vold    : Detected support for: exfat ext4 f2fs ntfs vfat
+05-28 09:44:19.849  root   578   578 W vold    : [libfs_mgr]Warning: unknown flag: resize
+------ 0.417s was the duration of 'SYSTEM LOG' ------
