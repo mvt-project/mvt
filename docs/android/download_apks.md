@@ -1,6 +1,6 @@
 # Downloading APKs from an Android phone
 
-MVT allows to attempt to download all available installed packages (APKs) in order to further inspect them and potentially identify any which might be malicious in nature.
+MVT allows you to attempt to download all available installed packages (APKs) from a device in order to further inspect them and potentially identify any which might be malicious in nature.
 
 You can do so by launching the following command:
 
