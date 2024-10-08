@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import glob
 import json
 import logging
 import os
@@ -50,13 +51,11 @@ class Indicators:
             if os.path.isfile(path) and path.lower().endswith(".stix2"):
                 self.parse_stix2(path)
             if os.path.isdir(path):
-                for root, dirs, files in os.walk(path):
-                    for filename in files:
-                        if filename.lower().endswith(".stix2"):
-                            self.parse_stix2(os.path.join(root, filename))
+                for file in glob.glob(os.path.join(path, "**", "*.stix2", recursive=True)):
+                    self.parse_stix2(file)
             else:
                 self.log.error(
-                    "Path specified with env MVT_STIX2 is not a valid file: %s", path
+                    "Path specified with env MVT_STIX2 is not a valid path: %s", path
                 )
 
     def _new_collection(
