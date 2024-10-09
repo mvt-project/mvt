@@ -64,7 +64,7 @@ class IndicatorsUpdates:
         return 0
 
     def set_latest_check(self) -> None:
-        timestamp = int(datetime.utcnow().timestamp())
+        timestamp = int(datetime.now().timestamp())
         with open(self.latest_check_path, "w", encoding="utf-8") as handle:
             handle.write(str(timestamp))
 
@@ -80,7 +80,7 @@ class IndicatorsUpdates:
         return 0
 
     def set_latest_update(self) -> None:
-        timestamp = int(datetime.utcnow().timestamp())
+        timestamp = int(datetime.now().timestamp())
         with open(self.latest_update_path, "w", encoding="utf-8") as handle:
             handle.write(str(timestamp))
 
@@ -195,7 +195,7 @@ class IndicatorsUpdates:
         return latest_commit_ts
 
     def should_check(self) -> Tuple[bool, int]:
-        now = datetime.utcnow()
+        now = datetime.now()
         latest_check_ts = self.get_latest_check()
         latest_check_dt = datetime.fromtimestamp(latest_check_ts)
 

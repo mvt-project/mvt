@@ -65,9 +65,7 @@ class Manifest(IOSExtraction):
         if "modified" not in record or "status_changed" not in record:
             return records
 
-        for timestamp in set(
-            [record["created"], record["modified"], record["status_changed"]]
-        ):
+        for timestamp in {record["created"], record["modified"], record["status_changed"]}:
             macb = ""
             macb += "M" if timestamp == record["modified"] else "-"
             macb += "-"
