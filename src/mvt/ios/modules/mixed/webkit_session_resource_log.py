@@ -86,7 +86,7 @@ class WebkitSessionResourceLog(IOSExtraction):
                     [entry["origin"]] + source_domains + destination_domains
                 )
 
-                ioc = self.indicators.check_domains(all_origins)
+                ioc = self.indicators.check_urls(all_origins)
                 if ioc:
                     entry["matched_indicator"] = ioc
                     self.detected.append(entry)

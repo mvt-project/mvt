@@ -43,8 +43,9 @@ class SMS(BackupExtraction):
             if message_links == []:
                 message_links = check_for_links(message.get("text", ""))
 
-            if self.indicators.check_domains(message_links):
+            if self.indicators.check_urls(message_links):
                 self.detected.append(message)
+                continue
 
     def run(self) -> None:
         sms_path = "apps/com.android.providers.telephony/d_f/*_sms_backup"

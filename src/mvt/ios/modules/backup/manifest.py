@@ -107,7 +107,7 @@ class Manifest(IOSExtraction):
                 except Exception:
                     continue
 
-                ioc = self.indicators.check_domain(part)
+                ioc = self.indicators.check_url(part)
                 if ioc:
                     self.log.warning(
                         'Found mention of domain "%s" in a backup file with '

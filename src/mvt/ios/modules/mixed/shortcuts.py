@@ -72,7 +72,7 @@ class Shortcuts(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_domains(result["action_urls"])
+            ioc = self.indicators.check_urls(result["action_urls"])
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)

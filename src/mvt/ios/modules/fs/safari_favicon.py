@@ -51,9 +51,9 @@ class SafariFavicon(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_domain(result["url"])
+            ioc = self.indicators.check_url(result["url"])
             if not ioc:
-                ioc = self.indicators.check_domain(result["icon_url"])
+                ioc = self.indicators.check_url(result["icon_url"])
 
             if ioc:
                 result["matched_indicator"] = ioc

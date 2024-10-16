@@ -51,8 +51,9 @@ class ChromeHistory(AndroidExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_domain(result["url"]):
+            if self.indicators.check_url(result["url"]):
                 self.detected.append(result)
+                continue
 
     def _parse_db(self, db_path: str) -> None:
         """Parse a Chrome History database file.
