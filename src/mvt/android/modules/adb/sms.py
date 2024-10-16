@@ -114,8 +114,10 @@ class SMS(AndroidExtraction):
             message["isodate"] = convert_unix_to_iso(message["timestamp"])
 
             # Extract links in the message body
-            links = check_for_links(message["body"])
-            message["links"] = links
+            body = message.get("body", None)
+            if body:
+                links = check_for_links(message["body"])
+                message["links"] = links
 
             self.results.append(message)
 
