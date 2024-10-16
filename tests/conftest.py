@@ -40,7 +40,6 @@ def indicators_factory(indicator_file):
         android_property_names=[],
         files_sha256=[],
     ):
-
         ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
 
