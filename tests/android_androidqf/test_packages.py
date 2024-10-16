@@ -4,8 +4,9 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-import pytest
 from pathlib import Path
+
+import pytest
 
 from mvt.android.modules.androidqf.packages import Packages
 from mvt.common.module import run_module
