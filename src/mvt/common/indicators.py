@@ -40,20 +40,15 @@ class Indicators:
 
     def _check_stix2_env_variable(self) -> None:
         """
-        Checks if a variable MVT_STIX2 contains path to a STIX file. Also recursively searches through dirs in MVT_STIX2
+        Checks if a variable MVT_STIX2 contains path to a STIX files.
         """
         if "MVT_STIX2" not in os.environ:
             return
 
         paths = os.environ["MVT_STIX2"].split(":")
         for path in paths:
-            if os.path.isfile(path) and path.lower().endswith(".stix2"):
+            if os.path.isfile(path):
                 self.parse_stix2(path)
-            if os.path.isdir(path):
-                for root, dirs, files in os.walk(path):
-                    for filename in files:
-                        if filename.lower().endswith(".stix2"):
-                            self.parse_stix2(os.path.join(root, filename))
             else:
                 self.log.error(
                     "Path specified with env MVT_STIX2 is not a valid file: %s", path
