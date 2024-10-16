@@ -129,8 +129,7 @@ class Analytics(IOSExtraction):
                 data["isodate"] = isodate
             elif row[0]:
                 isodate = convert_mactime_to_iso(row[0], False)
-                data = {}
-                data["isodate"] = isodate
+                data = {"isodate": isodate}
             elif row[1]:
                 isodate = ""
                 data = plistlib.loads(row[1])
