@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import glob
 import json
 import logging
 import os
@@ -40,18 +41,23 @@ class Indicators:
 
     def _check_stix2_env_variable(self) -> None:
         """
-        Checks if a variable MVT_STIX2 contains path to a STIX files.
+        Checks if a variable MVT_STIX2 contains path to a STIX file. Also recursively searches through dirs in MVT_STIX2
         """
         if "MVT_STIX2" not in os.environ:
             return
 
         paths = os.environ["MVT_STIX2"].split(":")
         for path in paths:
-            if os.path.isfile(path):
+            if os.path.isfile(path) and path.lower().endswith(".stix2"):
                 self.parse_stix2(path)
+            if os.path.isdir(path):
+                for file in glob.glob(
+                    os.path.join(path, "**", "*.stix2", recursive=True)
+                ):
+                    self.parse_stix2(file)
             else:
                 self.log.error(
-                    "Path specified with env MVT_STIX2 is not a valid file: %s", path
+                    "Path specified with env MVT_STIX2 is not a valid path: %s", path
                 )
 
     def _new_collection(
