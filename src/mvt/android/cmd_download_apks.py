@@ -52,7 +52,9 @@ class DownloadAPKs(AndroidExtraction):
             packages = json.load(handle)
             return cls(packages=packages)
 
-    def pull_package_file(self, package_name: str, remote_path: str) -> Union[str,  None]:
+    def pull_package_file(
+        self, package_name: str, remote_path: str
+    ) -> Union[str, None]:
         """Pull files related to specific package from the device.
 
         :param package_name: Name of the package to download

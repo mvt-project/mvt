@@ -35,19 +35,19 @@ class DumpsysBatteryHistoryArtifact(AndroidArtifact):
             event = ""
             if line.find("+job") > 0:
                 event = "start_job"
-                uid = line[line.find("+job") + 5: line.find(":")]
-                service = line[line.find(":") + 1:].strip('"')
+                uid = line[line.find("+job") + 5 : line.find(":")]
+                service = line[line.find(":") + 1 :].strip('"')
                 package_name = service.split("/")[0]
             elif line.find("-job") > 0:
                 event = "end_job"
-                uid = line[line.find("-job") + 5: line.find(":")]
-                service = line[line.find(":") + 1:].strip('"')
+                uid = line[line.find("-job") + 5 : line.find(":")]
+                service = line[line.find(":") + 1 :].strip('"')
                 package_name = service.split("/")[0]
             elif line.find("+running +wake_lock=") > 0:
-                uid = line[line.find("+running +wake_lock=") + 21: line.find(":")]
+                uid = line[line.find("+running +wake_lock=") + 21 : line.find(":")]
                 event = "wake"
                 service = (
-                    line[line.find("*walarm*:") + 9:].split(" ")[0].strip('"').strip()
+                    line[line.find("*walarm*:") + 9 :].split(" ")[0].strip('"').strip()
                 )
                 if service == "" or "/" not in service:
                     continue
@@ -61,9 +61,9 @@ class DumpsysBatteryHistoryArtifact(AndroidArtifact):
                     event = "end_top"
                     top_pos = line.find("-top=")
                 colon_pos = top_pos + line[top_pos:].find(":")
-                uid = line[top_pos + 5: colon_pos]
+                uid = line[top_pos + 5 : colon_pos]
                 service = ""
-                package_name = line[colon_pos + 1:].strip('"')
+                package_name = line[colon_pos + 1 :].strip('"')
             else:
                 continue
 

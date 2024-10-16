@@ -19,13 +19,13 @@ class ShutdownLog(IOSExtraction):
     """This module extracts processes information from the shutdown log file."""
 
     def __init__(
-            self,
-            file_path: Optional[str] = None,
-            target_path: Optional[str] = None,
-            results_path: Optional[str] = None,
-            module_options: Optional[dict] = None,
-            log: logging.Logger = logging.getLogger(__name__),
-            results: Optional[list] = None,
+        self,
+        file_path: Optional[str] = None,
+        target_path: Optional[str] = None,
+        results_path: Optional[str] = None,
+        module_options: Optional[dict] = None,
+        log: logging.Logger = logging.getLogger(__name__),
+        results: Optional[list] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -42,7 +42,7 @@ class ShutdownLog(IOSExtraction):
             "module": self.__class__.__name__,
             "event": "shutdown",
             "data": f"Client {record['client']} with PID {record['pid']} "
-                    "was running when the device was shut down",
+            "was running when the device was shut down",
         }
 
     def check_indicators(self) -> None:
@@ -79,8 +79,8 @@ class ShutdownLog(IOSExtraction):
             if line.startswith("remaining client pid:"):
                 current_processes.append(
                     {
-                        "pid": line[line.find("pid: ") + 5: line.find(" (")],
-                        "client": line[line.find("(") + 1: line.find(")")],
+                        "pid": line[line.find("pid: ") + 5 : line.find(" (")],
+                        "client": line[line.find("(") + 1 : line.find(")")],
                         "delay": delay,
                         "times_delayed": times_delayed,
                     }
@@ -98,11 +98,11 @@ class ShutdownLog(IOSExtraction):
                     recent_processes.append(p)
 
                 try:
-                    mac_timestamp = int(line[line.find("[") + 1: line.find("]")])
+                    mac_timestamp = int(line[line.find("[") + 1 : line.find("]")])
                 except ValueError:
                     try:
                         start = line.find(" @") + 2
-                        mac_timestamp = int(line[start: start + 10])
+                        mac_timestamp = int(line[start : start + 10])
                     except Exception:
                         mac_timestamp = 0
 

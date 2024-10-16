@@ -91,4 +91,3 @@ class BugReportModule(MVTModule):
                 return None
 
             return self._get_file_content(dumpstate_logs[0])
-

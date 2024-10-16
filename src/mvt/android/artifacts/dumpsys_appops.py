@@ -30,7 +30,7 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                             "module": self.__class__.__name__,
                             "event": entry["access"],
                             "data": f"{record['package_name']} access to "
-                                    f"{perm['name']}: {entry['access']}",
+                            f"{perm['name']}: {entry['access']}",
                         }
                     )
 
@@ -47,8 +47,8 @@ class DumpsysAppopsArtifact(AndroidArtifact):
 
             for perm in result["permissions"]:
                 if (
-                        perm["name"] == "REQUEST_INSTALL_PACKAGES"
-                        and perm["access"] == "allow"
+                    perm["name"] == "REQUEST_INSTALL_PACKAGES"
+                    and perm["access"] == "allow"
                 ):
                     self.log.info(
                         "Package %s with REQUEST_INSTALL_PACKAGES " "permission",
@@ -126,12 +126,12 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                     entry = {}
 
                 entry["access"] = line.split(":")[0].strip()
-                entry["type"] = line[line.find("[") + 1: line.find("]")]
+                entry["type"] = line[line.find("[") + 1 : line.find("]")]
 
                 try:
                     entry["timestamp"] = convert_datetime_to_iso(
                         datetime.strptime(
-                            line[line.find("]") + 1: line.find("(")].strip(),
+                            line[line.find("]") + 1 : line.find("(")].strip(),
                             "%Y-%m-%d %H:%M:%S.%f",
                         )
                     )
