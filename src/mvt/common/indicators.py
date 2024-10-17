@@ -107,6 +107,13 @@ class Indicators:
                 ioc_coll=collection,
                 ioc_coll_list=collection["domains"],
             )
+        if key == "ipv4-addr:value":
+            # We treat IP addresses as simple domains here to ease checks.
+            self._add_indicator(
+                ioc=value.strip(),
+                ioc_coll=collection,
+                ioc_coll_list=collection["domains"],
+            )
         elif key == "process:name":
             self._add_indicator(
                 ioc=value, ioc_coll=collection, ioc_coll_list=collection["processes"]
