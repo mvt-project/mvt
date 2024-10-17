@@ -16,7 +16,7 @@ from mvt.common.help import (
     HELP_MSG_DOWNLOAD_ALL_APKS,
     HELP_MSG_VIRUS_TOTAL,
     HELP_MSG_APK_OUTPUT,
-    HELP_MSG_FROM_FILE,
+    HELP_MSG_APKS_FROM_FILE,
     HELP_MSG_VERBOSE,
     HELP_MSG_CHECK_ADB,
     HELP_MSG_IOC,
@@ -72,12 +72,16 @@ def version():
 # ==============================================================================
 # Command: download-apks
 # ==============================================================================
-@cli.command( "download-apks", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DOWNLOAD_APKS)
+@cli.command(
+    "download-apks", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DOWNLOAD_APKS
+)
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True, help=HELP_MSG_DOWNLOAD_ALL_APKS)
 @click.option("--virustotal", "-V", is_flag=True, help=HELP_MSG_VIRUS_TOTAL)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_APK_OUTPUT)
-@click.option( "--from-file", "-f", type=click.Path(exists=True), help=HELP_MSG_FROM_FILE)
+@click.option(
+    "--from-file", "-f", type=click.Path(exists=True), help=HELP_MSG_APKS_FROM_FILE
+)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
 def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose):
@@ -121,8 +125,14 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
 # ==============================================================================
 @cli.command("check-adb", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_ADB)
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
@@ -176,9 +186,17 @@ def check_adb(
 # ==============================================================================
 # Command: check-bugreport
 # ==============================================================================
-@cli.command( "check-bugreport", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_BUGREPORT)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@cli.command(
+    "check-bugreport", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_BUGREPORT
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
@@ -214,9 +232,19 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 # ==============================================================================
 # Command: check-backup
 # ==============================================================================
-@cli.command( "check-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_ANDROID_BACKUP)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@cli.command(
+    "check-backup",
+    context_settings=CONTEXT_SETTINGS,
+    help=HELP_MSG_CHECK_ANDROID_BACKUP,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
@@ -266,9 +294,17 @@ def check_backup(
 # ==============================================================================
 # Command: check-androidqf
 # ==============================================================================
-@cli.command( "check-androidqf", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_ANDROIDQF)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@cli.command(
+    "check-androidqf", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_ANDROIDQF
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
@@ -323,8 +359,14 @@ def check_androidqf(
 # Command: check-iocs
 # ==============================================================================
 @cli.command("check-iocs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOCS)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("FOLDER", type=click.Path(exists=True))

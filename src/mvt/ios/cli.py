@@ -72,12 +72,25 @@ def version():
 # ==============================================================================
 # Command: decrypt-backup
 # ==============================================================================
-@cli.command( "decrypt-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DECRYPT_BACKUP)
+@cli.command(
+    "decrypt-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DECRYPT_BACKUP
+)
 @click.option("--destination", "-d", required=True, help=HELP_MSG_BACKUP_DESTINATION)
-@click.option( "--password", "-p", cls=MutuallyExclusiveOption, mutually_exclusive=["key_file"],
-    help=HELP_MSG_IOS_BACKUP_PASSWORD)
-@click.option( "--key-file", "-k", cls=MutuallyExclusiveOption, type=click.Path(exists=True),
-    mutually_exclusive=["password"], help=HELP_MSG_BACKUP_KEYFILE)
+@click.option(
+    "--password",
+    "-p",
+    cls=MutuallyExclusiveOption,
+    mutually_exclusive=["key_file"],
+    help=HELP_MSG_IOS_BACKUP_PASSWORD,
+)
+@click.option(
+    "--key-file",
+    "-k",
+    cls=MutuallyExclusiveOption,
+    type=click.Path(exists=True),
+    mutually_exclusive=["password"],
+    help=HELP_MSG_BACKUP_KEYFILE,
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
@@ -132,10 +145,17 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
 # ==============================================================================
 # Command: extract-key
 # ==============================================================================
-@cli.command( "extract-key", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_EXTRACT_KEY)
+@cli.command(
+    "extract-key", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_EXTRACT_KEY
+)
 @click.option("--password", "-p", help=HELP_MSG_IOS_BACKUP_PASSWORD)
-@click.option( "--key-file", "-k", required=False, type=click.Path(exists=False, file_okay=True,
-    dir_okay=False, writable=True), help=HELP_MSG_BACKUP_KEYFILE)
+@click.option(
+    "--key-file",
+    "-k",
+    required=False,
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    help=HELP_MSG_BACKUP_KEYFILE,
+)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def extract_key(password, key_file, backup_path):
     backup = DecryptBackup(backup_path)
@@ -168,9 +188,17 @@ def extract_key(password, key_file, backup_path):
 # ==============================================================================
 # Command: check-backup
 # ==============================================================================
-@cli.command( "check-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOS_BACKUP)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@cli.command(
+    "check-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOS_BACKUP
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
@@ -212,8 +240,14 @@ def check_backup(
 # Command: check-fs
 # ==============================================================================
 @cli.command("check-fs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_FS)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True, default=[],
-    help=HELP_MSG_IOC)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
@@ -254,8 +288,14 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
 # Command: check-iocs
 # ==============================================================================
 @cli.command("check-iocs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOCS)
-@click.option( "--iocs", "-i", type=click.Path(exists=True), multiple=True,
-    default=[], help=HELP_MSG_IOC,)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.argument("FOLDER", type=click.Path(exists=True))
