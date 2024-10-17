@@ -14,7 +14,6 @@ import ahocorasick
 from appdirs import user_data_dir
 
 from .url import URL
-import ipaddress
 
 MVT_DATA_FOLDER = user_data_dir("mvt")
 MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
@@ -109,28 +108,12 @@ class Indicators:
                 ioc_coll_list=collection["domains"],
             )
         if key == "ipv4-addr:value":
-            # Check for cidr notation, and add each ip to the domains collection
-            if "/" in value:
-                try:
-                    network = ipaddress.ip_network(value.strip("'"), strict=False)
-                    for ip in network.hosts():
-                        self._add_indicator(
-                            ioc="'" + str(ip) + "'",
-                            ioc_coll=collection,
-                            ioc_coll_list=collection["domains"],
-                        )
-                except ValueError:
-                    self.log.critical(
-                        "Invalid CIDR notation ipv4-addr:value %s in STIX2 indicator file!", value
-                    )
-                    return
-            else:
-                # Single IP address, add to domains collection
-                self._add_indicator(
-                    ioc=value,
-                    ioc_coll=collection,
-                    ioc_coll_list=collection["domains"],
-                )
+            # We treat IP addresses as simple domains here to ease checks.
+            self._add_indicator(
+                ioc=value.strip(),
+                ioc_coll=collection,
+                ioc_coll_list=collection["domains"],
+            )
         elif key == "process:name":
             self._add_indicator(
                 ioc=value, ioc_coll=collection, ioc_coll_list=collection["processes"]

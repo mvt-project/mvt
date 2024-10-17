@@ -37,7 +37,7 @@ def generate_test_stix_file(file_path):
     for a in ip_addresses:
         i = Indicator(
             indicator_types=["malicious-activity"],
-            pattern="[ipv4-addr:value='{}']".format(d),
+            pattern="[ipv4-addr:value='{}']".format(a),
             pattern_type="stix",
         )
         res.append(i)
