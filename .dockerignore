@@ -1,0 +1,2 @@
+# Ignore everything, the dockerfile always pulls from https://github.com/mvt-project/mvt.git@main
+*
