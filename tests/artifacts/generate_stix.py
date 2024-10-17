@@ -17,6 +17,9 @@ def generate_test_stix_file(file_path):
     emails = ["foobar@example.org"]
     filenames = ["/var/foobar/txt"]
     android_property = ["sys.foobar"]
+    sha256 = ["570cd76bf49cf52e0cb347a68bdcf0590b2eaece134e1b1eba7e8d66261bdbe6"]
+    sha1 = ["da0611a300a9ce9aa7a09d1212f203fca5856794"]
+    urls = ["http://example.com/thisisbad"]
 
     res = []
     malware = Malware(name="TestMalware", is_family=False, description="")
@@ -61,6 +64,33 @@ def generate_test_stix_file(file_path):
         i = Indicator(
             indicator_types=["malicious-activity"],
             pattern="[android-property:name='{}']".format(p),
+            pattern_type="stix",
+        )
+        res.append(i)
+        res.append(Relationship(i, "indicates", malware))
+
+    for h in sha256:
+        i = Indicator(
+            indicator_types=["malicious-activity"],
+            pattern="[file:hashes.sha256='{}']".format(h),
+            pattern_type="stix",
+        )
+        res.append(i)
+        res.append(Relationship(i, "indicates", malware))
+
+    for h in sha1:
+        i = Indicator(
+            indicator_types=["malicious-activity"],
+            pattern="[file:hashes.sha1='{}']".format(h),
+            pattern_type="stix",
+        )
+        res.append(i)
+        res.append(Relationship(i, "indicates", malware))
+
+    for u in urls:
+        i = Indicator(
+            indicator_types=["malicious-activity"],
+            pattern="[url:value='{}']".format(u),
             pattern_type="stix",
         )
         res.append(i)
