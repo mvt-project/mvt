@@ -18,10 +18,13 @@ def check_updates() -> None:
     try:
         mvt_updates = MVTUpdates()
         latest_version = mvt_updates.check()
-    except requests.exceptions.Timeout:
-        log.verbose("Couldn't check latest MVT version")
-    except Exception:
-        pass
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        rich_print(
+            "\t\t[bold]Note: Could not check for MVT updates.[/bold] "
+            "You may be working offline. Please update MVT regularly."
+        )
+    except Exception as e:
+        log.error("Error encountered when trying to check latest MVT version: %s", e)
     else:
         if latest_version:
             rich_print(
@@ -54,10 +57,13 @@ def check_updates() -> None:
 
     try:
         ioc_to_update = ioc_updates.check()
-    except requests.exceptions.Timeout:
-        log.verbose("Couldn't check latest indicators")
-    except Exception:
-        pass
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        rich_print(
+            "\t\t[bold]Note: Could not check for indicator updates.[/bold] "
+            "You may be working offline. Please update MVT indicators regularly."
+        )
+    except Exception as e:
+        log.error("Error encountered when trying to check latest MVT indicators: %s", e)
     else:
         if ioc_to_update:
             rich_print(
