@@ -3,13 +3,14 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
 import os
 
 import pytest
 
-from .artifacts.generate_stix import generate_test_stix_file
-import logging
 from mvt.common.indicators import Indicators
+
+from .artifacts.generate_stix import generate_test_stix_file
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -39,7 +40,6 @@ def indicators_factory(indicator_file):
         android_property_names=[],
         files_sha256=[],
     ):
-
         ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
 
