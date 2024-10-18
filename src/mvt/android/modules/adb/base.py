@@ -147,14 +147,14 @@ class AndroidExtraction(MVTModule):
         self._adb_disconnect()
         self._adb_connect()
 
-    def _adb_command(self, command: str) -> str:
+    def _adb_command(self, command: str, decode: bool = True) -> str:
         """Execute an adb shell command.
 
         :param command: Shell command to execute
         :returns: Output of command
 
         """
-        return self.device.shell(command, read_timeout_s=200.0)
+        return self.device.shell(command, read_timeout_s=200.0, decode=decode)
 
     def _adb_check_if_root(self) -> bool:
         """Check if we have a `su` binary on the Android device.

@@ -81,25 +81,32 @@ class DumpsysADBArtifact(AndroidArtifact):
             "key": key_base64,
         }
 
+    def check_indicators(self) -> None:
+        if not self.results:
+            return
+
+        for entry in self.results:
+            for user_key in entry.get("user_keys", []):
+                self.log.debug(
+                    f"Found trusted ADB key for user '{user_key['user']}' with fingerprint "
+                    f"'{user_key['fingerprint']}'"
+                )
+
     def parse(self, content: bytes) -> None:
         """
-        Parse the Dumpsys ADB section/
+        Parse the Dumpsys ADB section
         Adds results to self.results (List[Dict[str, str]])
 
         :param content: content of the ADB section (string)
         """
-
         # TODO: Parse AdbDebuggingManager line in output.
         start_of_json = content.find(b"\n{") + 2
-        end_of_json = content.rfind(b"}\n")
-        json_content = content[start_of_json:end_of_json]
+        end_of_json = content.rfind(b"}\n") - 2
+        json_content = content[start_of_json:end_of_json].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
-
         if parsed.get("debugging_manager") is None:
-            self.log.error(
-                "Unable to find expected ADB entries in dumpsys output"
-            )  # noqa
+            self.log.error("Unable to find expected ADB entries in dumpsys output")  # noqa
             return
         else:
             parsed = parsed["debugging_manager"]
@@ -108,13 +115,7 @@ class DumpsysADBArtifact(AndroidArtifact):
         key_info = []
         for user_key in parsed.get("user_keys"):
             user_info = self.calculate_key_info(user_key)
-            self.log.debug(
-                f"Found trusted ADB key for user '{user_info['user']}' with fingerprint "
-                f"'{user_info['fingerprint']}'"
-            )
             key_info.append(user_info)
 
-        parsed["user_keys_raw"] = parsed["user_keys"]
         parsed["user_keys"] = key_info
-
-        self.results = parsed
+        self.results = [parsed]

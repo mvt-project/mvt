@@ -8,11 +8,11 @@ from typing import Optional
 
 from mvt.android.artifacts.dumpsys_adb import DumpsysADBArtifact
 
-from .base import BugReportModule
+from .base import AndroidQFModule
 
 
-class DumpsysADBState(DumpsysADBArtifact, BugReportModule):
-    """This module extracts ADB key info."""
+class DumpsysADBState(DumpsysADBArtifact, AndroidQFModule):
+    """This module extracts ADB keystore state."""
 
     def __init__(
         self,
@@ -33,14 +33,11 @@ class DumpsysADBState(DumpsysADBArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        full_dumpsys = self._get_dumpstate_file()
-        if not full_dumpsys:
-            self.log.error(
-                "Unable to find dumpstate file. "
-                "Did you provide a valid bug report archive?"
-            )
+        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
+        if not dumpsys_file:
             return
 
+        full_dumpsys = self._get_file_content(dumpsys_file[0])
         content = self.extract_dumpsys_section(
             full_dumpsys,
             b"DUMP OF SERVICE adb:",
