@@ -37,6 +37,7 @@ def indicators_factory(indicator_file):
         file_names=[],
         processes=[],
         app_ids=[],
+        app_cert_hashes=[],
         android_property_names=[],
         files_sha256=[],
     ):
@@ -50,6 +51,7 @@ def indicators_factory(indicator_file):
         ind.ioc_collections[0]["app_ids"].extend(app_ids)
         ind.ioc_collections[0]["android_property_names"].extend(android_property_names)
         ind.ioc_collections[0]["files_sha256"].extend(files_sha256)
+        ind.ioc_collections[0]["app_cert_hashes"].extend(app_cert_hashes)
 
         return ind
 

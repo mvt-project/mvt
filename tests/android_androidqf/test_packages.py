@@ -86,3 +86,19 @@ class TestAndroidqfPackages:
             module.detected[0]["matched_indicator"]["value"]
             == "31037a27af59d4914906c01ad14a318eee2f3e31d48da8954dca62a99174e3fa"
         )
+
+    def test_packages_certificate_hash_ioc(self, module, indicators_factory):
+        module.indicators = indicators_factory(
+            app_cert_hashes=[
+                "c7e56178748be1441370416d4c10e34817ea0c961eb636c8e9d98e0fd79bf730"
+            ]
+        )
+
+        run_module(module)
+
+        assert len(module.detected) == 1
+        assert module.detected[0]["name"] == "com.malware.muahaha"
+        assert (
+            module.detected[0]["matched_indicator"]["value"]
+            == "c7e56178748be1441370416d4c10e34817ea0c961eb636c8e9d98e0fd79bf730"
+        )
