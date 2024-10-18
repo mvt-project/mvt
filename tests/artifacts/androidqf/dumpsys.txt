@@ -249,7 +249,19 @@ Current AppOps Service state:
       READ_EXTERNAL_STORAGE (allow):
       WRITE_EXTERNAL_STORAGE (allow):
 
+-------------------------------------------------------------------------------
+DUMP OF SERVICE adb:
+ADB MANAGER STATE (dumpsys adb):
+{
+  debugging_manager={
+    connected_to_adb=true
+    last_key_received=F0:A1:3D:8C:B3:F4:7B:09:9F:EE:8B:D8:38:2E:BD:C6
+    user_keys=QAAAAPUBsVijHeceeK3bETuudn5I+S+ndOZDsxQDvkjKqSZrM+35YWU+U1d7mayQoh5fghnSIChrg0UxNOjcCxMY5oabt5lWIY4hJ+i1viqcg0UcJFAvW4/9j2wEpYKlIbyBlg5WGqp/wkOXeVn6fLKHETBOZzWG+CMh382OOmiKi5+4b2jLd2WLmKd8fBDfyaONVDhTrpkbwt3ArRqQSRQRr9ufJCCwkLOnKWmRYoyuN+AA7DYAGn+9TuId6edoiu/uAc+f3e8t8t7Rav9ha6ZzwcUuU9k+HwqECnVHdTkwrQvdtxnguiOKuyN+RrjGB+ZUO6acDeGRrB22rvAj2QiT/ldN0wbXiaw22HET99G1id4NiNJwjTKylH3nu3UxvyevUt2s2QbmH4j5CTWKghKstcCSUn72eu7xarfyx49r++FU8TojNzMEZe3H6Z4C/qfU2nQ1DBaBqq9TEgj2eLDSzB8ob9TbvE481sSebS3SiFaS+6pj/wBoA2R+JSWxfdJi/T3jyhs4VcXTFBrHYGop4TrWUqw+FxPSMC0dXXVUcMvpSni0hxLgA8l5GJT0Vu8DjyXOXJpgQ9n4ldfHAM8yXx7NTVklZilAdAbwTryMuSlENcVTo1IVURs3+p3lvOm7kUSEEn4WD39mguRv8Q5Y6R5hLfHKO94oH6Hvbge059/4WVUoGgEAAQA= user@linux
 
+    keystore=ABX 2�� keyStoreo�� version   2�� adbKey/�� key�QAAAAPUBsVijHeceeK3bETuudn5I+S+ndOZDsxQDvkjKqSZrM+35YWU+U1d7mayQoh5fghnSIChrg0UxNOjcCxMY5oabt5lWIY4hJ+i1viqcg0UcJFAvW4/9j2wEpYKlIbyBlg5WGqp/wkOXeVn6fLKHETBOZzWG+CMh382OOmiKi5+4b2jLd2WLmKd8fBDfyaONVDhTrpkbwt3ArRqQSRQRr9ufJCCwkLOnKWmRYoyuN+AA7DYAGn+9TuId6edoiu/uAc+f3e8t8t7Rav9ha6ZzwcUuU9k+HwqECnVHdTkwrQvdtxnguiOKuyN+RrjGB+ZUO6acDeGRrB22rvAj2QiT/ldN0wbXiaw22HET99G1id4NiNJwjTKylH3nu3UxvyevUt2s2QbmH4j5CTWKghKstcCSUn72eu7xarfyx49r++FU8TojNzMEZe3H6Z4C/qfU2nQ1DBaBqq9TEgj2eLDSzB8ob9TbvE481sSebS3SiFaS+6pj/wBoA2R+JSWxfdJi/T3jyhs4VcXTFBrHYGop4TrWUqw+FxPSMC0dXXVUcMvpSni0hxLgA8l5GJT0Vu8DjyXOXJpgQ9n4ldfHAM8yXx7NTVklZilAdAbwTryMuSlENcVTo1IVURs3+p3lvOm7kUSEEn4WD39mguRv8Q5Y6R5hLfHKO94oH6Hvbge059/4WVUoGgEAAQA= user@linux��� lastConnection  �`xY]3 3  
+  }
+}
+--------- 0.001s was the duration of dumpsys adb, ending at: 2024-03-21 11:07:22
 -------------------------------------------------------------------------------
 DUMP OF SERVICE dbinfo:
 Applications Database Info:

@@ -12,6 +12,7 @@ from .dbinfo import DBInfo
 from .getprop import Getprop
 from .packages import Packages
 from .receivers import Receivers
+from .adb_state import DumpsysADBState
 
 BUGREPORT_MODULES = [
     Accessibility,
@@ -23,4 +24,5 @@ BUGREPORT_MODULES = [
     Getprop,
     Packages,
     Receivers,
+    DumpsysADBState,
 ]

@@ -11,6 +11,7 @@ from .dumpsys_battery_history import DumpsysBatteryHistory
 from .dumpsys_dbinfo import DumpsysDBInfo
 from .dumpsys_packages import DumpsysPackages
 from .dumpsys_receivers import DumpsysReceivers
+from .dumpsys_adb import DumpsysADBState
 from .getprop import Getprop
 from .packages import Packages
 from .processes import Processes
@@ -26,6 +27,7 @@ ANDROIDQF_MODULES = [
     DumpsysDBInfo,
     DumpsysBatteryDaily,
     DumpsysBatteryHistory,
+    DumpsysADBState,
     Packages,
     Processes,
     Getprop,
