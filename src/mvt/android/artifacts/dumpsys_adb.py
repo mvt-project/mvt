@@ -100,8 +100,10 @@ class DumpsysADBArtifact(AndroidArtifact):
         :param content: content of the ADB section (string)
         """
         if not content or b"Can't find service: adb" in content:
-            self.log.error("Could not load ADB data from dumpsys. "
-                           "It may not be supported on this device.")
+            self.log.error(
+                "Could not load ADB data from dumpsys. "
+                "It may not be supported on this device."
+            )
             return
 
         # TODO: Parse AdbDebuggingManager line in output.
