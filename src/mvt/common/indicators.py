@@ -107,7 +107,7 @@ class Indicators:
                 ioc_coll=collection,
                 ioc_coll_list=collection["domains"],
             )
-        if key == "ipv4-addr:value":
+        elif key == "ipv4-addr:value":
             # We treat IP addresses as simple domains here to ease checks.
             self._add_indicator(
                 ioc=value.strip(),
@@ -155,7 +155,6 @@ class Indicators:
                 ioc_coll=collection,
                 ioc_coll_list=collection["ios_profile_ids"],
             )
-
         elif key == "android-property:name":
             self._add_indicator(
                 ioc=value,
