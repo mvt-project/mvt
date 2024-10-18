@@ -82,6 +82,7 @@ class Indicators:
             "files_md5": [],
             "files_sha1": [],
             "files_sha256": [],
+            "app_cert_hashes": [],
             "app_ids": [],
             "ios_profile_ids": [],
             "android_property_names": [],
@@ -144,6 +145,24 @@ class Indicators:
         elif key == "file:hashes.sha256":
             self._add_indicator(
                 ioc=value, ioc_coll=collection, ioc_coll_list=collection["files_sha256"]
+            )
+        elif key == "app:cert.md5":
+            self._add_indicator(
+                ioc=value,
+                ioc_coll=collection,
+                ioc_coll_list=collection["app_cert_hashes"],
+            )
+        elif key == "app:cert.sha1":
+            self._add_indicator(
+                ioc=value,
+                ioc_coll=collection,
+                ioc_coll_list=collection["app_cert_hashes"],
+            )
+        elif key == "app:cert.sha256":
+            self._add_indicator(
+                ioc=value,
+                ioc_coll=collection,
+                ioc_coll_list=collection["app_cert_hashes"],
             )
         elif key == "app:id":
             self._add_indicator(
@@ -696,6 +715,29 @@ class Indicators:
                     'Found a known suspicious file with hash "%s" '
                     'matching indicators from "%s"',
                     file_hash,
+                    ioc["name"],
+                )
+                return ioc
+
+        return None
+
+    def check_app_certificate_hash(self, cert_hash: str) -> Union[dict, None]:
+        """Check the provided cert hash against the list of indicators.
+
+        :param cert_hash: hash to check
+        :type cert_hash: str
+        :returns: Indicator details if matched, otherwise None
+
+        """
+        if not cert_hash:
+            return None
+
+        for ioc in self.get_iocs("app_cert_hashes"):
+            if cert_hash.lower() == ioc["value"].lower():
+                self.log.warning(
+                    'Found a known suspicious app certfificate with hash "%s" '
+                    'matching indicators from "%s"',
+                    cert_hash,
                     ioc["name"],
                 )
                 return ioc
