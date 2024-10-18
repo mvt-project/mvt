@@ -58,7 +58,7 @@ class SafariBrowserState(IOSExtraction):
 
         for result in self.results:
             if "tab_url" in result:
-                ioc = self.indicators.check_domain(result["tab_url"])
+                ioc = self.indicators.check_url(result["tab_url"])
                 if ioc:
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
@@ -69,7 +69,7 @@ class SafariBrowserState(IOSExtraction):
 
             for session_entry in result["session_data"]:
                 if "entry_url" in session_entry:
-                    ioc = self.indicators.check_domain(session_entry["entry_url"])
+                    ioc = self.indicators.check_url(session_entry["entry_url"])
                     if ioc:
                         result["matched_indicator"] = ioc
                         self.detected.append(result)

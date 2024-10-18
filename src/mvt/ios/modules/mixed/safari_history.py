@@ -107,7 +107,7 @@ class SafariHistory(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_domain(result["url"])
+            ioc = self.indicators.check_url(result["url"])
             if ioc:
                 result["matched_indicator"] = ioc
                 self.detected.append(result)

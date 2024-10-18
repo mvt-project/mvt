@@ -11,15 +11,6 @@ import click
 from rich.prompt import Prompt
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
-from mvt.common.help import (
-    HELP_MSG_FAST,
-    HELP_MSG_HASHES,
-    HELP_MSG_IOC,
-    HELP_MSG_LIST_MODULES,
-    HELP_MSG_MODULE,
-    HELP_MSG_OUTPUT,
-    HELP_MSG_VERBOSE,
-)
 from mvt.common.logo import logo
 from mvt.common.options import MutuallyExclusiveOption
 from mvt.common.updates import IndicatorsUpdates
@@ -28,7 +19,25 @@ from mvt.common.utils import (
     init_logging,
     set_verbose_logging,
 )
-
+from mvt.common.help import (
+    HELP_MSG_VERSION,
+    HELP_MSG_DECRYPT_BACKUP,
+    HELP_MSG_BACKUP_DESTINATION,
+    HELP_MSG_IOS_BACKUP_PASSWORD,
+    HELP_MSG_BACKUP_KEYFILE,
+    HELP_MSG_HASHES,
+    HELP_MSG_EXTRACT_KEY,
+    HELP_MSG_IOC,
+    HELP_MSG_OUTPUT,
+    HELP_MSG_FAST,
+    HELP_MSG_LIST_MODULES,
+    HELP_MSG_MODULE,
+    HELP_MSG_VERBOSE,
+    HELP_MSG_CHECK_FS,
+    HELP_MSG_CHECK_IOCS,
+    HELP_MSG_STIX2,
+    HELP_MSG_CHECK_IOS_BACKUP,
+)
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
 from .decrypt import DecryptBackup
@@ -55,7 +64,7 @@ def cli():
 # ==============================================================================
 # Command: version
 # ==============================================================================
-@cli.command("version", help="Show the currently installed version of MVT")
+@cli.command("version", help=HELP_MSG_VERSION)
 def version():
     return
 
@@ -64,31 +73,23 @@ def version():
 # Command: decrypt-backup
 # ==============================================================================
 @cli.command(
-    "decrypt-backup",
-    help="Decrypt an encrypted iTunes backup",
-    context_settings=CONTEXT_SETTINGS,
+    "decrypt-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DECRYPT_BACKUP
 )
-@click.option(
-    "--destination",
-    "-d",
-    required=True,
-    help="Path to the folder where to store the decrypted backup",
-)
+@click.option("--destination", "-d", required=True, help=HELP_MSG_BACKUP_DESTINATION)
 @click.option(
     "--password",
     "-p",
     cls=MutuallyExclusiveOption,
-    help="Password to use to decrypt the backup (or, set "
-    f"{MVT_IOS_BACKUP_PASSWORD} environment variable)",
     mutually_exclusive=["key_file"],
+    help=HELP_MSG_IOS_BACKUP_PASSWORD,
 )
 @click.option(
     "--key-file",
     "-k",
     cls=MutuallyExclusiveOption,
     type=click.Path(exists=True),
-    help="File containing raw encryption key to use to decrypt " "the backup",
     mutually_exclusive=["password"],
+    help=HELP_MSG_BACKUP_KEYFILE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
@@ -145,22 +146,15 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
 # Command: extract-key
 # ==============================================================================
 @cli.command(
-    "extract-key",
-    help="Extract decryption key from an iTunes backup",
-    context_settings=CONTEXT_SETTINGS,
+    "extract-key", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_EXTRACT_KEY
 )
-@click.option(
-    "--password",
-    "-p",
-    help="Password to use to decrypt the backup (or, set "
-    f"{MVT_IOS_BACKUP_PASSWORD} environment variable)",
-)
+@click.option("--password", "-p", help=HELP_MSG_IOS_BACKUP_PASSWORD)
 @click.option(
     "--key-file",
     "-k",
-    help="Key file to be written (if unset, will print to STDOUT)",
     required=False,
     type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    help=HELP_MSG_BACKUP_KEYFILE,
 )
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 def extract_key(password, key_file, backup_path):
@@ -195,9 +189,7 @@ def extract_key(password, key_file, backup_path):
 # Command: check-backup
 # ==============================================================================
 @cli.command(
-    "check-backup",
-    help="Extract artifacts from an iTunes backup",
-    context_settings=CONTEXT_SETTINGS,
+    "check-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOS_BACKUP
 )
 @click.option(
     "--iocs",
@@ -247,11 +239,7 @@ def check_backup(
 # ==============================================================================
 # Command: check-fs
 # ==============================================================================
-@cli.command(
-    "check-fs",
-    help="Extract artifacts from a full filesystem dump",
-    context_settings=CONTEXT_SETTINGS,
-)
+@cli.command("check-fs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_FS)
 @click.option(
     "--iocs",
     "-i",
@@ -299,11 +287,7 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
 # ==============================================================================
 # Command: check-iocs
 # ==============================================================================
-@cli.command(
-    "check-iocs",
-    help="Compare stored JSON results to provided indicators",
-    context_settings=CONTEXT_SETTINGS,
-)
+@cli.command("check-iocs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOCS)
 @click.option(
     "--iocs",
     "-i",
@@ -330,11 +314,7 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 # ==============================================================================
 # Command: download-iocs
 # ==============================================================================
-@cli.command(
-    "download-iocs",
-    help="Download public STIX2 indicators",
-    context_settings=CONTEXT_SETTINGS,
-)
+@cli.command("download-iocs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_STIX2)
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()

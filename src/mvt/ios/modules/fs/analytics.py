@@ -70,14 +70,8 @@ class Analytics(IOSExtraction):
                     self.detected.append(new_result)
                     continue
 
-                ioc = self.indicators.check_domain(value)
+                ioc = self.indicators.check_url(value)
                 if ioc:
-                    self.log.warning(
-                        'Found mention of a malicious domain "%s" in %s file at %s',
-                        value,
-                        result["artifact"],
-                        result["isodate"],
-                    )
                     new_result = copy.copy(result)
                     new_result["matched_indicator"] = ioc
                     self.detected.append(new_result)
@@ -129,8 +123,7 @@ class Analytics(IOSExtraction):
                 data["isodate"] = isodate
             elif row[0]:
                 isodate = convert_mactime_to_iso(row[0], False)
-                data = {}
-                data["isodate"] = isodate
+                data = {"isodate": isodate}
             elif row[1]:
                 isodate = ""
                 data = plistlib.loads(row[1])

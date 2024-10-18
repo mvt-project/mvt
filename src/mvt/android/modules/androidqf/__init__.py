@@ -16,6 +16,7 @@ from .packages import Packages
 from .processes import Processes
 from .settings import Settings
 from .sms import SMS
+from .files import Files
 
 ANDROIDQF_MODULES = [
     DumpsysActivities,
@@ -31,4 +32,5 @@ ANDROIDQF_MODULES = [
     Settings,
     SMS,
     DumpsysPackages,
+    Files,
 ]

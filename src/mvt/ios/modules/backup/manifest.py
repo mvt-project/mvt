@@ -65,9 +65,11 @@ class Manifest(IOSExtraction):
         if "modified" not in record or "status_changed" not in record:
             return records
 
-        for timestamp in set(
-            [record["created"], record["modified"], record["status_changed"]]
-        ):
+        for timestamp in {
+            record["created"],
+            record["modified"],
+            record["status_changed"],
+        }:
             macb = ""
             macb += "M" if timestamp == record["modified"] else "-"
             macb += "-"
@@ -105,7 +107,7 @@ class Manifest(IOSExtraction):
                 except Exception:
                     continue
 
-                ioc = self.indicators.check_domain(part)
+                ioc = self.indicators.check_url(part)
                 if ioc:
                     self.log.warning(
                         'Found mention of domain "%s" in a backup file with '

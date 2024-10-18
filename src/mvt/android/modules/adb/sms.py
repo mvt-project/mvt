@@ -85,8 +85,9 @@ class SMS(AndroidExtraction):
             if message_links == []:
                 message_links = check_for_links(message["body"])
 
-            if self.indicators.check_domains(message_links):
+            if self.indicators.check_urls(message_links):
                 self.detected.append(message)
+                continue
 
     def _parse_db(self, db_path: str) -> None:
         """Parse an Android bugle_db SMS database file.
@@ -113,8 +114,10 @@ class SMS(AndroidExtraction):
             message["isodate"] = convert_unix_to_iso(message["timestamp"])
 
             # Extract links in the message body
-            links = check_for_links(message["body"])
-            message["links"] = links
+            body = message.get("body", None)
+            if body:
+                links = check_for_links(message["body"])
+                message["links"] = links
 
             self.results.append(message)
 
