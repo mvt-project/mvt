@@ -110,6 +110,7 @@ LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
 LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
 LABEL org.opencontainers.image.title="Mobile Verification Toolkit"
 LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
+LABEL org.opencontainers.image.licenses="MVT License 1.1"
 LABEL org.opencontainers.image.base.name=docker.io/library/ubuntu:22.04
 
 # Install runtime dependencies
@@ -130,20 +131,25 @@ COPY --from=build-libusbmuxd /build /
 COPY --from=build-libimobiledevice /build /
 COPY --from=build-usbmuxd /build /
 
-# Install mvt
+# Install mvt using the locally checked out source
+COPY . mvt/
 RUN apt-get update \
-  && apt-get install -y git python3-pip \
-  && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
-  && apt-get remove -y python3-pip git && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/*
+   && apt-get install -y git python3-pip \
+   && PIP_NO_CACHE_DIR=1 pip3 install --upgrade pip \
+   && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+   && apt-get remove -y python3-pip git && apt-get autoremove -y \
+   && rm -rf /var/lib/apt/lists/* \
+   && rm -rf mvt
 
 # Installing ABE
-ADD https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
+ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2e11632 \
+  https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
 # Create alias for abe
 RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
 # Generate adb key folder
-RUN mkdir /root/.android && adb keygen /root/.android/adbkey
+RUN echo 'if [ ! -f /root/.android/adbkey ]; then adb keygen /root/.android/adbkey 2&>1 > /dev/null; fi' >> ~/.bashrc
+RUN mkdir /root/.android
 
 # Setup investigations environment
 RUN mkdir /home/cases

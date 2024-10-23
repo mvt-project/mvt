@@ -111,6 +111,7 @@ LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
 LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
 LABEL org.opencontainers.image.title="Mobile Verification Toolkit (iOS)"
 LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
+LABEL org.opencontainers.image.licenses="MVT License 1.1"
 LABEL org.opencontainers.image.base.name=docker.io/library/python:3.10.14-alpine3.20
 
 # Install runtime dependencies
@@ -127,9 +128,10 @@ COPY --from=build-libusbmuxd /build /
 COPY --from=build-libimobiledevice /build /
 COPY --from=build-usbmuxd /build /
 
-# Install mvt
-RUN apk add --no-cache git \
-  && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
-  && apk del git
+# Install mvt using the locally checked out source
+COPY ./ mvt
+RUN apk add --no-cache --virtual .build-deps git gcc musl-dev \
+  && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+  && apk del .build-deps git gcc musl-dev && rm -rf ./mvt
 
 ENTRYPOINT [ "/usr/local/bin/mvt-ios" ]

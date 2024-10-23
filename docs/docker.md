@@ -2,7 +2,22 @@ Using Docker simplifies having all the required dependencies and tools (includin
 
 Install Docker following the [official documentation](https://docs.docker.com/get-docker/).
 
-Once installed, you can clone MVT's repository and build its Docker image:
+Once Docker is installed, you can run MVT by downloading a prebuilt MVT Docker image, or by building a Docker image yourself from the MVT source repo.
+
+### Using the prebuilt Docker image
+
+```bash
+docker pull ghcr.io/mvt-project/mvt
+```
+
+You can then run the Docker container with:
+
+```
+docker run -it ghcr.io/mvt-project/mvt
+```
+
+
+### Build and run Docker image from source
 
 ```bash
 git clone https://github.com/mvt-project/mvt.git
@@ -17,6 +32,9 @@ docker run -it mvt
 ```
 
 If a prompt is spawned successfully, you can close it with `exit`.
+
+
+## Docker usage with Android devices
 
 If you wish to use MVT to test an Android device you will need to enable the container's access to the host's USB devices. You can do so by enabling the `--privileged` flag and mounting the USB bus device as a volume:
 
