@@ -54,7 +54,7 @@ def parse_latest_ios_versions(rss_feed_text):
 
 
 def update_mvt(mvt_checkout_path, latest_ios_versions):
-    version_path = os.path.join(mvt_checkout_path, "mvt/ios/data/ios_versions.json")
+    version_path = os.path.join(mvt_checkout_path, "src/mvt/ios/data/ios_versions.json")
     with open(version_path, "r") as version_file:
         current_versions = json.load(version_file)
 
