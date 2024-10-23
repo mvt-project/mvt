@@ -144,7 +144,8 @@ ADD https://github.com/nelenkov/android-backup-extractor/releases/download/maste
 RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
 # Generate adb key folder
-RUN mkdir /root/.android && adb keygen /root/.android/adbkey
+RUN echo 'if [ ! -f /root/.android/adbkey ]; then adb keygen /root/.android/adbkey 2&>1 > /dev/null; fi' >> ~/.bashrc
+RUN mkdir /root/.android
 
 # Setup investigations environment
 RUN mkdir /home/cases
