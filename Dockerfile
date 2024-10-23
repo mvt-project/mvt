@@ -142,7 +142,8 @@ RUN apt-get update \
    && rm -rf mvt
 
 # Installing ABE
-ADD https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
+ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2e11632 \
+  https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
 # Create alias for abe
 RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
