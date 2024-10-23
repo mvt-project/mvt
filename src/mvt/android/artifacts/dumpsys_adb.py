@@ -120,7 +120,7 @@ class DumpsysADBArtifact(AndroidArtifact):
 
         # Calculate key fingerprints for better readability
         key_info = []
-        for user_key in parsed.get("user_keys"):
+        for user_key in parsed.get("user_keys", []):
             user_info = self.calculate_key_info(user_key)
             key_info.append(user_info)
 
