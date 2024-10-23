@@ -130,8 +130,8 @@ COPY --from=build-usbmuxd /build /
 
 # Install mvt using the locally checked out source
 COPY ./ mvt
-RUN apk add --no-cache git \
+RUN apk add --no-cache --virtual .build-deps git gcc musl-dev \
   && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
-  && apk del git && rm -rf ./mvt
+  && apk del .build-deps git gcc musl-dev && rm -rf ./mvt
 
 ENTRYPOINT [ "/usr/local/bin/mvt-ios" ]

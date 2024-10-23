@@ -19,9 +19,9 @@ RUN apk add --no-cache \
 
 # Install mvt
 COPY ./ mvt
-RUN apk add --no-cache git \
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev \
   && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
-  && apk del git && rm -rf ./mvt
+  && apk del .build-deps gcc musl-dev && rm -rf ./mvt
 
 # Installing ABE
 ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2e11632 \
