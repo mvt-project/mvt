@@ -110,6 +110,7 @@ LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
 LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
 LABEL org.opencontainers.image.title="Mobile Verification Toolkit"
 LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
+LABEL org.opencontainers.image.licenses="MVT License 1.1"
 LABEL org.opencontainers.image.base.name=docker.io/library/ubuntu:22.04
 
 # Install runtime dependencies
