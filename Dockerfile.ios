@@ -128,9 +128,10 @@ COPY --from=build-libusbmuxd /build /
 COPY --from=build-libimobiledevice /build /
 COPY --from=build-usbmuxd /build /
 
-# Install mvt
+# Install mvt using the locally checked out source
+COPY ./ mvt
 RUN apk add --no-cache git \
-  && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
-  && apk del git
+  && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+  && apk del git && rm -rf ./mvt
 
 ENTRYPOINT [ "/usr/local/bin/mvt-ios" ]

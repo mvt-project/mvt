@@ -131,13 +131,15 @@ COPY --from=build-libusbmuxd /build /
 COPY --from=build-libimobiledevice /build /
 COPY --from=build-usbmuxd /build /
 
-# Install mvt
+# Install mvt using the locally checked out source
+COPY . mvt/
 RUN apt-get update \
-  && apt-get install -y git python3-pip \
-  && PIP_NO_CACHE_DIR=1 pip3 install --upgrade pip \
-  && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
-  && apt-get remove -y python3-pip git && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/*
+   && apt-get install -y git python3-pip \
+   && PIP_NO_CACHE_DIR=1 pip3 install --upgrade pip \
+   && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+   && apt-get remove -y python3-pip git && apt-get autoremove -y \
+   && rm -rf /var/lib/apt/lists/* \
+   && rm -rf mvt
 
 # Installing ABE
 ADD https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar

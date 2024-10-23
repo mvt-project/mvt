@@ -18,9 +18,10 @@ RUN apk add --no-cache \
   sqlite
 
 # Install mvt
+COPY ./ mvt
 RUN apk add --no-cache git \
-  && PIP_NO_CACHE_DIR=1 pip3 install git+https://github.com/mvt-project/mvt.git@main \
-  && apk del git
+  && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+  && apk del git && rm -rf ./mvt
 
 # Installing ABE
 ADD https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
