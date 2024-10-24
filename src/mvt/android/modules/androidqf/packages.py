@@ -12,6 +12,8 @@ from mvt.android.utils import (
     PLAY_STORE_INSTALLERS,
     ROOT_PACKAGES,
     THIRD_PARTY_STORE_INSTALLERS,
+    SECURITY_PACKAGES,
+    SYSTEM_UPDATE_PACKAGES,
 )
 
 from .base import AndroidQFModule
@@ -69,6 +71,19 @@ class Packages(AndroidQFModule):
                 )
             elif result["installer"] in PLAY_STORE_INSTALLERS:
                 pass
+
+            # Check for disabled security or software update packages
+            package_disabled = result.get("disabled", None)
+            if result["name"] in SECURITY_PACKAGES and package_disabled:
+                self.log.warning(
+                    'Security package "%s" disabled on the phone', result["name"]
+                )
+
+            if result["name"] in SYSTEM_UPDATE_PACKAGES and package_disabled:
+                self.log.warning(
+                    'System OTA update package "%s" disabled on the phone',
+                    result["name"],
+                )
 
             if not self.indicators:
                 continue
