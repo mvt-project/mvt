@@ -12,6 +12,8 @@ from mvt.android.utils import (
     PLAY_STORE_INSTALLERS,
     ROOT_PACKAGES,
     THIRD_PARTY_STORE_INSTALLERS,
+    SECURITY_PACKAGES,
+    SYSTEM_UPDATE_PACKAGES,
 )
 
 from .base import AndroidQFModule
@@ -62,13 +64,28 @@ class Packages(AndroidQFModule):
                     result["installer"],
                     result["name"],
                 )
+                self.detected.append(result)
             elif result["installer"] == "null" and result["system"] is False:
                 self.log.warning(
                     'Found a non-system package installed via adb or another method: "%s"',
                     result["name"],
                 )
+                self.detected.append(result)
             elif result["installer"] in PLAY_STORE_INSTALLERS:
                 pass
+
+            # Check for disabled security or software update packages
+            package_disabled = result.get("disabled", None)
+            if result["name"] in SECURITY_PACKAGES and package_disabled:
+                self.log.warning(
+                    'Security package "%s" disabled on the phone', result["name"]
+                )
+
+            if result["name"] in SYSTEM_UPDATE_PACKAGES and package_disabled:
+                self.log.warning(
+                    'System OTA update package "%s" disabled on the phone',
+                    result["name"],
+                )
 
             if not self.indicators:
                 continue
@@ -95,6 +112,10 @@ class Packages(AndroidQFModule):
                         result["matched_indicator"] = ioc
                         self.detected.append(result)
                         break
+
+        # Deduplicate the detected packages
+        dedupe_detected_dict = {str(item): item for item in self.detected}
+        self.detected = list(dedupe_detected_dict.values())
 
     def run(self) -> None:
         packages = self._get_files_by_pattern("*/packages.json")
