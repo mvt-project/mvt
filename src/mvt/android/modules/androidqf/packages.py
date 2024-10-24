@@ -64,11 +64,13 @@ class Packages(AndroidQFModule):
                     result["installer"],
                     result["name"],
                 )
+                self.detected.append(result)
             elif result["installer"] == "null" and result["system"] is False:
                 self.log.warning(
                     'Found a non-system package installed via adb or another method: "%s"',
                     result["name"],
                 )
+                self.detected.append(result)
             elif result["installer"] in PLAY_STORE_INSTALLERS:
                 pass
 
@@ -110,6 +112,10 @@ class Packages(AndroidQFModule):
                         result["matched_indicator"] = ioc
                         self.detected.append(result)
                         break
+
+        # Deduplicate the detected packages
+        dedupe_detected_dict = {str(item): item for item in self.detected}
+        self.detected = list(dedupe_detected_dict.values())
 
     def run(self) -> None:
         packages = self._get_files_by_pattern("*/packages.json")
