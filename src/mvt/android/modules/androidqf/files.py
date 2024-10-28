@@ -107,7 +107,11 @@ class Files(AndroidQFModule):
             # TODO: adds SHA1 and MD5 when available in MVT
 
     def run(self) -> None:
-        device_timezone = ZoneInfo(self._get_device_timezone())
+        if timezone := self._get_device_timezone():
+            device_timezone = ZoneInfo(timezone)
+        else:
+            self.log.warning("Unable to determine device timezone, using UTC")
+            device_timezone = ZoneInfo("UTC")
 
         for file in self._get_files_by_pattern("*/files.json"):
             rawdata = self._get_file_content(file).decode("utf-8", errors="ignore")
