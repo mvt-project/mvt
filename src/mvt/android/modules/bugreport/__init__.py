@@ -13,6 +13,7 @@ from .getprop import Getprop
 from .packages import Packages
 from .receivers import Receivers
 from .adb_state import DumpsysADBState
+from .fs_timestamps import BugReportTimestamps
 
 BUGREPORT_MODULES = [
     Accessibility,
@@ -25,4 +26,5 @@ BUGREPORT_MODULES = [
     Packages,
     Receivers,
     DumpsysADBState,
+    BugReportTimestamps,
 ]
