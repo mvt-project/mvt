@@ -32,7 +32,7 @@ dependencies = [
     "cryptography >=42.0.5",
     "pyyaml >=6.0",
     "pyahocorasick >= 2.0.0",
-    "betterproto[compiler] >=1.2.0",
+    "betterproto >=1.2.0",
 ]
 requires-python = ">= 3.8"
 
