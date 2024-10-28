@@ -96,6 +96,7 @@ class CmdAndroidCheckAndroidQF(Command):
             if not bugreport_archive:
                 return
             module.from_zip(bugreport_archive, bugreport_archive.namelist())
+            return
 
         if self.format == "zip":
             module.from_zip_file(self.archive, self.files)
