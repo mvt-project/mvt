@@ -56,11 +56,16 @@ class AndroidQFModule(MVTModule):
         Android log files to UTC/timezone-aware timestamps.
         """
         get_prop_files = self._get_files_by_pattern("*/getprop.txt")
-        prop_data = self._get_file_content(get_prop_files[0]).decode("utf-8")
+        if not get_prop_files:
+            self.log.warning(
+                "Could not find getprop.txt file. "
+                "Some timestamps and timeline data may be incorrect."
+            )
+            return None
 
         from mvt.android.artifacts.getprop import GetProp
-
         properties_artifact = GetProp()
+        prop_data = self._get_file_content(get_prop_files[0]).decode("utf-8")
         properties_artifact.parse(prop_data)
         timezone = properties_artifact.get_device_timezone()
         if timezone:
