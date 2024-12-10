@@ -38,44 +38,70 @@ class NetBase(IOSExtraction):
 
     def _extract_net_data(self):
         conn = sqlite3.connect(self.file_path)
+        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute(
+        try:
+            cur.execute(
+                """
+                SELECT
+                    ZPROCESS.ZFIRSTTIMESTAMP,
+                    ZPROCESS.ZTIMESTAMP,
+                    ZPROCESS.ZPROCNAME,
+                    ZPROCESS.ZBUNDLENAME,
+                    ZPROCESS.Z_PK AS ZPROCESS_PK,
+                    ZLIVEUSAGE.ZWIFIIN,
+                    ZLIVEUSAGE.ZWIFIOUT,
+                    ZLIVEUSAGE.ZWWANIN,
+                    ZLIVEUSAGE.ZWWANOUT,
+                    ZLIVEUSAGE.Z_PK AS ZLIVEUSAGE_PK,
+                    ZLIVEUSAGE.ZHASPROCESS,
+                    ZLIVEUSAGE.ZTIMESTAMP AS ZL_TIMESTAMP
+                FROM ZLIVEUSAGE
+                LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK
+                UNION
+                SELECT ZFIRSTTIMESTAMP, ZTIMESTAMP, ZPROCNAME, ZBUNDLENAME, Z_PK,
+                    NULL, NULL, NULL, NULL, NULL, NULL, NULL
+                FROM ZPROCESS WHERE Z_PK NOT IN
+                    (SELECT ZHASPROCESS FROM ZLIVEUSAGE);
             """
-            SELECT
-                ZPROCESS.ZFIRSTTIMESTAMP,
-                ZPROCESS.ZTIMESTAMP,
-                ZPROCESS.ZPROCNAME,
-                ZPROCESS.ZBUNDLENAME,
-                ZPROCESS.Z_PK,
-                ZLIVEUSAGE.ZWIFIIN,
-                ZLIVEUSAGE.ZWIFIOUT,
-                ZLIVEUSAGE.ZWWANIN,
-                ZLIVEUSAGE.ZWWANOUT,
-                ZLIVEUSAGE.Z_PK,
-                ZLIVEUSAGE.ZHASPROCESS,
-                ZLIVEUSAGE.ZTIMESTAMP
-            FROM ZLIVEUSAGE
-            LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK
-            UNION
-            SELECT ZFIRSTTIMESTAMP, ZTIMESTAMP, ZPROCNAME, ZBUNDLENAME, Z_PK,
-                   NULL, NULL, NULL, NULL, NULL, NULL, NULL
-            FROM ZPROCESS WHERE Z_PK NOT IN
-                (SELECT ZHASPROCESS FROM ZLIVEUSAGE);
-        """
-        )
+            )
+        except sqlite3.OperationalError:
+            # Recent phones don't have ZWIFIIN and ZWIFIOUT columns
+            cur.execute(
+                """
+                SELECT
+                    ZPROCESS.ZFIRSTTIMESTAMP,
+                    ZPROCESS.ZTIMESTAMP,
+                    ZPROCESS.ZPROCNAME,
+                    ZPROCESS.ZBUNDLENAME,
+                    ZPROCESS.Z_PK AS ZPROCESS_PK,
+                    ZLIVEUSAGE.ZWWANIN,
+                    ZLIVEUSAGE.ZWWANOUT,
+                    ZLIVEUSAGE.Z_PK AS ZLIVEUSAGE_PK,
+                    ZLIVEUSAGE.ZHASPROCESS,
+                    ZLIVEUSAGE.ZTIMESTAMP AS ZL_TIMESTAMP
+                FROM ZLIVEUSAGE
+                LEFT JOIN ZPROCESS ON ZLIVEUSAGE.ZHASPROCESS = ZPROCESS.Z_PK
+                UNION
+                SELECT ZFIRSTTIMESTAMP, ZTIMESTAMP, ZPROCNAME, ZBUNDLENAME, Z_PK,
+                    NULL, NULL, NULL, NULL, NULL
+                FROM ZPROCESS WHERE Z_PK NOT IN
+                    (SELECT ZHASPROCESS FROM ZLIVEUSAGE);
+            """
+            )
 
         for row in cur:
             # ZPROCESS records can be missing after the JOIN.
             # Handle NULL timestamps.
-            if row[0] and row[1]:
-                first_isodate = convert_mactime_to_iso(row[0])
-                isodate = convert_mactime_to_iso(row[1])
+            if row["ZFIRSTTIMESTAMP"] and row["ZTIMESTAMP"]:
+                first_isodate = convert_mactime_to_iso(row["ZFIRSTTIMESTAMP"])
+                isodate = convert_mactime_to_iso(row["ZTIMESTAMP"])
             else:
-                first_isodate = row[0]
-                isodate = row[1]
+                first_isodate = row["ZFIRSTTIMESTAMP"]
+                isodate = row["ZTIMESTAMP"]
 
-            if row[11]:
-                live_timestamp = convert_mactime_to_iso(row[11])
+            if row["ZL_TIMESTAMP"]:
+                live_timestamp = convert_mactime_to_iso(row["ZL_TIMESTAMP"])
             else:
                 live_timestamp = ""
 
@@ -83,16 +109,18 @@ class NetBase(IOSExtraction):
                 {
                     "first_isodate": first_isodate,
                     "isodate": isodate,
-                    "proc_name": row[2],
-                    "bundle_id": row[3],
-                    "proc_id": row[4],
-                    "wifi_in": row[5],
-                    "wifi_out": row[6],
-                    "wwan_in": row[7],
-                    "wwan_out": row[8],
-                    "live_id": row[9],
-                    "live_proc_id": row[10],
-                    "live_isodate": live_timestamp if row[11] else first_isodate,
+                    "proc_name": row["ZPROCNAME"],
+                    "bundle_id": row["ZBUNDLENAME"],
+                    "proc_id": row["ZPROCESS_PK"],
+                    "wifi_in": row["ZWIFIIN"] if "ZWIFIIN" in row.keys() else None,
+                    "wifi_out": row["ZWIFIOUT"] if "ZWIFIOUT" in row.keys() else None,
+                    "wwan_in": row["ZWWANIN"],
+                    "wwan_out": row["ZWWANOUT"],
+                    "live_id": row["ZLIVEUSAGE_PK"],
+                    "live_proc_id": row["ZHASPROCESS"],
+                    "live_isodate": live_timestamp
+                    if row["ZL_TIMESTAMP"]
+                    else first_isodate,
                 }
             )
 
@@ -108,8 +136,6 @@ class NetBase(IOSExtraction):
         )
         record_data_usage = (
             record_data + " "
-            f"WIFI IN: {record['wifi_in']}, "
-            f"WIFI OUT: {record['wifi_out']} - "
             f"WWAN IN: {record['wwan_in']}, "
             f"WWAN OUT: {record['wwan_out']}"
         )
