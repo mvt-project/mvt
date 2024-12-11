@@ -324,6 +324,7 @@ class Indicators:
 
     def get_iocs(self, ioc_type: str) -> Iterator[Dict[str, Any]]:
         for ioc_collection in self.ioc_collections:
+
             for ioc in ioc_collection.get(ioc_type, []):
                 yield {
                     "value": ioc,
