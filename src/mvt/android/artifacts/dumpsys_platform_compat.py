@@ -29,7 +29,7 @@ class DumpsysPlatformCompatArtifact(AndroidArtifact):
 
             if line.strip() == "":
                 break
-            
+
             # Look for rawOverrides field
             if "rawOverrides={" in line:
                 # Extract the content inside the braces for rawOverrides
@@ -39,6 +39,4 @@ class DumpsysPlatformCompatArtifact(AndroidArtifact):
                     # Extract app name
                     uninstall_app = entry.split("=")[0].strip()
 
-                    self.results.append(
-                        {"package_name": uninstall_app}
-                    )
+                    self.results.append({"package_name": uninstall_app})
