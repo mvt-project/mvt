@@ -6,3 +6,4 @@ pytest-mock>=3.14.0
 stix2>=3.0.1
 ruff>=0.1.6
 mypy>=1.7.1
+betterproto[compiler]

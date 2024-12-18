@@ -1,0 +1,195 @@
+// tombstone.proto file from Android source
+// Src: https://android.googlesource.com/platform/system/core/+/refs/heads/main/debuggerd/proto/tombstone.proto
+//
+// Protobuf definition for Android tombstones.
+//
+// An app can get hold of these for any `REASON_CRASH_NATIVE` instance of
+// `android.app.ApplicationExitInfo`.
+//
+// https://developer.android.com/reference/android/app/ApplicationExitInfo#getTraceInputStream()
+//
+syntax = "proto3";
+option java_package = "com.android.server.os";
+option java_outer_classname = "TombstoneProtos";
+// NOTE TO OEMS:
+// If you add custom fields to this proto, do not use numbers in the reserved range.
+message CrashDetail {
+  bytes name = 1;
+  bytes data = 2;
+  reserved 3 to 999;
+}
+message StackHistoryBufferEntry {
+  BacktraceFrame addr = 1;
+  uint64 fp = 2;
+  uint64 tag = 3;
+  reserved 4 to 999;
+}
+message StackHistoryBuffer {
+  uint64 tid = 1;
+  repeated StackHistoryBufferEntry entries = 2;
+  reserved 3 to 999;
+}
+message Tombstone {
+  Architecture arch = 1;
+  Architecture guest_arch = 24;
+  string build_fingerprint = 2;
+  string revision = 3;
+  string timestamp = 4;
+  uint32 pid = 5;
+  uint32 tid = 6;
+  uint32 uid = 7;
+  string selinux_label = 8;
+  repeated string command_line = 9;
+  // Process uptime in seconds.
+  uint32 process_uptime = 20;
+  Signal signal_info = 10;
+  string abort_message = 14;
+  repeated CrashDetail crash_details = 21;
+  repeated Cause causes = 15;
+  map<uint32, Thread> threads = 16;
+  map<uint32, Thread> guest_threads = 25;
+  repeated MemoryMapping memory_mappings = 17;
+  repeated LogBuffer log_buffers = 18;
+  repeated FD open_fds = 19;
+  uint32 page_size = 22;
+  bool has_been_16kb_mode = 23;
+  StackHistoryBuffer stack_history_buffer = 26;
+  reserved 27 to 999;
+}
+enum Architecture {
+  ARM32 = 0;
+  ARM64 = 1;
+  X86 = 2;
+  X86_64 = 3;
+  RISCV64 = 4;
+  NONE = 5;
+  reserved 6 to 999;
+}
+message Signal {
+  int32 number = 1;
+  string name = 2;
+  int32 code = 3;
+  string code_name = 4;
+  bool has_sender = 5;
+  int32 sender_uid = 6;
+  int32 sender_pid = 7;
+  bool has_fault_address = 8;
+  uint64 fault_address = 9;
+  // Note, may or may not contain the dump of the actual memory contents. Currently, on arm64, we
+  // only include metadata, and not the contents.
+  MemoryDump fault_adjacent_metadata = 10;
+  reserved 11 to 999;
+}
+message HeapObject {
+  uint64 address = 1;
+  uint64 size = 2;
+  uint64 allocation_tid = 3;
+  repeated BacktraceFrame allocation_backtrace = 4;
+  uint64 deallocation_tid = 5;
+  repeated BacktraceFrame deallocation_backtrace = 6;
+}
+message MemoryError {
+  enum Tool {
+    GWP_ASAN = 0;
+    SCUDO = 1;
+    reserved 2 to 999;
+  }
+  Tool tool = 1;
+  enum Type {
+    UNKNOWN = 0;
+    USE_AFTER_FREE = 1;
+    DOUBLE_FREE = 2;
+    INVALID_FREE = 3;
+    BUFFER_OVERFLOW = 4;
+    BUFFER_UNDERFLOW = 5;
+    reserved 6 to 999;
+  }
+  Type type = 2;
+  oneof location {
+    HeapObject heap = 3;
+  }
+  reserved 4 to 999;
+}
+message Cause {
+  string human_readable = 1;
+  oneof details {
+    MemoryError memory_error = 2;
+  }
+  reserved 3 to 999;
+}
+message Register {
+  string name = 1;
+  uint64 u64 = 2;
+  reserved 3 to 999;
+}
+message Thread {
+  int32 id = 1;
+  string name = 2;
+  repeated Register registers = 3;
+  repeated string backtrace_note = 7;
+  repeated string unreadable_elf_files = 9;
+  repeated BacktraceFrame current_backtrace = 4;
+  repeated MemoryDump memory_dump = 5;
+  int64 tagged_addr_ctrl = 6;
+  int64 pac_enabled_keys = 8;
+  reserved 10 to 999;
+}
+message BacktraceFrame {
+  uint64 rel_pc = 1;
+  uint64 pc = 2;
+  uint64 sp = 3;
+  string function_name = 4;
+  uint64 function_offset = 5;
+  string file_name = 6;
+  uint64 file_map_offset = 7;
+  string build_id = 8;
+  reserved 9 to 999;
+}
+message ArmMTEMetadata {
+  // One memory tag per granule (e.g. every 16 bytes) of regular memory.
+  bytes memory_tags = 1;
+  reserved 2 to 999;
+}
+message MemoryDump {
+  string register_name = 1;
+  string mapping_name = 2;
+  uint64 begin_address = 3;
+  bytes memory = 4;
+  oneof metadata {
+    ArmMTEMetadata arm_mte_metadata = 6;
+  }
+  reserved 5, 7 to 999;
+}
+message MemoryMapping {
+  uint64 begin_address = 1;
+  uint64 end_address = 2;
+  uint64 offset = 3;
+  bool read = 4;
+  bool write = 5;
+  bool execute = 6;
+  string mapping_name = 7;
+  string build_id = 8;
+  uint64 load_bias = 9;
+  reserved 10 to 999;
+}
+message FD {
+  int32 fd = 1;
+  string path = 2;
+  string owner = 3;
+  uint64 tag = 4;
+  reserved 5 to 999;
+}
+message LogBuffer {
+  string name = 1;
+  repeated LogMessage logs = 2;
+  reserved 3 to 999;
+}
+message LogMessage {
+  string timestamp = 1;
+  uint32 pid = 2;
+  uint32 tid = 3;
+  uint32 priority = 4;
+  string tag = 5;
+  string message = 6;
+  reserved 7 to 999;
+}
