@@ -19,7 +19,10 @@ MVT_CONFIG_PATH = os.path.join(MVT_CONFIG_FOLDER, "config.yaml")
 
 class MVTSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="MVT_", env_nested_delimiter="_", extra="ignore"
+        env_prefix="MVT_",
+        env_nested_delimiter="_",
+        extra="ignore",
+        nested_model_default_partial_updates=True,
     )
     # Allow to decided if want to load environment variables
     load_env: bool = Field(True, exclude=True)
@@ -29,12 +32,24 @@ class MVTSettings(BaseSettings):
         "https://pypi.org/pypi/mvt/json",
         validate_default=False,
     )
-    INDICATORS_UPDATE_URL: AnyHttpUrl = Field(
-        default="https://raw.githubusercontent.com/mvt-project/mvt-indicators/main/indicators.yaml",
-        validate_default=False,
-    )
     NETWORK_ACCESS_ALLOWED: bool = True
     NETWORK_TIMEOUT: int = 15
+
+    # Command default settings, all can be specified by MVT_ prefixed environment variables too.
+    IOS_BACKUP_PASSWORD: str | None = Field(
+        None, description="Default password to use to decrypt iOS backups"
+    )
+    ANDROID_BACKUP_PASSWORD: str | None = Field(
+        None, description="Default password to use to decrypt Android backups"
+    )
+    STIX2: str | None = Field(
+        None, description="List of directories where STIX2 files are stored"
+    )
+    VT_API_KEY: str | None = Field(
+        None, description="API key to use for VirusTotal lookups"
+    )
+    PROFILE: bool = Field(False, description="Profile the execution of MVT modules")
+    HASH_FILES: bool = Field(False, description="Should MVT hash output files")
 
     @classmethod
     def settings_customise_sources(
