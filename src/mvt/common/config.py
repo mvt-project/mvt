@@ -2,7 +2,7 @@ import os
 import yaml
 import json
 
-from typing import Tuple, Type
+from typing import Tuple, Type, Optional
 from appdirs import user_config_dir
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import (
@@ -36,16 +36,16 @@ class MVTSettings(BaseSettings):
     NETWORK_TIMEOUT: int = 15
 
     # Command default settings, all can be specified by MVT_ prefixed environment variables too.
-    IOS_BACKUP_PASSWORD: str | None = Field(
+    IOS_BACKUP_PASSWORD: Optional[str] = Field(
         None, description="Default password to use to decrypt iOS backups"
     )
-    ANDROID_BACKUP_PASSWORD: str | None = Field(
+    ANDROID_BACKUP_PASSWORD: Optional[str] = Field(
         None, description="Default password to use to decrypt Android backups"
     )
-    STIX2: str | None = Field(
+    STIX2: Optional[str] = Field(
         None, description="List of directories where STIX2 files are stored"
     )
-    VT_API_KEY: str | None = Field(
+    VT_API_KEY: Optional[str] = Field(
         None, description="API key to use for VirusTotal lookups"
     )
     PROFILE: bool = Field(False, description="Profile the execution of MVT modules")
