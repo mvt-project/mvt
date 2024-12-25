@@ -13,6 +13,7 @@ import re
 from typing import Any, Iterator, Union
 
 from rich.logging import RichHandler
+from mvt.common.config import settings
 
 
 class CustomJSONEncoder(json.JSONEncoder):
