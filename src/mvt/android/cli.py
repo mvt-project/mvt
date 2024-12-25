@@ -36,7 +36,7 @@ from mvt.common.help import (
 )
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
-from mvt.common.utils import init_logging, set_verbose_logging
+from mvt.common.utils import init_logging, set_verbose_logging, CommandWrapperGroup
 
 from .cmd_check_adb import CmdAndroidCheckADB
 from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
@@ -68,7 +68,7 @@ def _get_disable_flags(ctx):
 # ==============================================================================
 # Main
 # ==============================================================================
-@click.group(invoke_without_command=False)
+@click.group(invoke_without_command=False, cls=CommandWrapperGroup)
 @click.option(
     "--disable-update-check", is_flag=True, help=HELP_MSG_DISABLE_UPDATE_CHECK
 )

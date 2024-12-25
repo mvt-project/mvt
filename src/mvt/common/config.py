@@ -1,10 +1,11 @@
 import os
 import yaml
 import json
+import uuid
 
 from typing import Tuple, Type, Optional
 from appdirs import user_config_dir
-from pydantic import AnyHttpUrl, Field
+from pydantic import AnyHttpUrl, BaseModel, Field
 from pydantic_settings import (
     BaseSettings,
     InitSettingsSource,
@@ -17,6 +18,22 @@ MVT_CONFIG_FOLDER = user_config_dir("mvt")
 MVT_CONFIG_PATH = os.path.join(MVT_CONFIG_FOLDER, "config.yaml")
 
 
+class TelemetrySettings(BaseModel):
+    """
+    Settings used by the Telemetry module.
+    """
+
+    ENABLED: bool = Field(True, description="Flag for telemetry collection")
+    ENDPOINT: AnyHttpUrl = Field(
+        "https://t.mvt.re/events", description="Telemetry collection endpoint"
+    )
+    DEVICE_ID: str | None = Field(
+        default=None,
+        required=True,
+        description="Anonymous Unique ID for use in telemetry",
+    )
+
+
 class MVTSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="MVT_",
@@ -24,7 +41,7 @@ class MVTSettings(BaseSettings):
         extra="ignore",
         nested_model_default_partial_updates=True,
     )
-    # Allow to decided if want to load environment variables
+    # Flag to enable or disable loading of environment variables.
     load_env: bool = Field(True, exclude=True)
 
     # General settings
@@ -50,6 +67,9 @@ class MVTSettings(BaseSettings):
     )
     PROFILE: bool = Field(False, description="Profile the execution of MVT modules")
     HASH_FILES: bool = Field(False, description="Should MVT hash output files")
+
+    # Telemetry settings
+    TELEMETRY: TelemetrySettings = TelemetrySettings(include=True)
 
     @classmethod
     def settings_customise_sources(
@@ -95,6 +115,8 @@ class MVTSettings(BaseSettings):
         """
         # Set invalid env prefix to avoid loading env variables.
         settings = MVTSettings(load_env=False)
+        if not settings.TELEMETRY.DEVICE_ID:
+            settings.TELEMETRY.DEVICE_ID = str(uuid.uuid4())
         settings.save_settings()
 
         # Load the settings again with any ENV variables.

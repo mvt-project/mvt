@@ -18,6 +18,7 @@ from mvt.common.utils import (
     generate_hashes_from_path,
     init_logging,
     set_verbose_logging,
+    CommandWrapperGroup,
 )
 from mvt.common.help import (
     HELP_MSG_VERSION,
@@ -68,7 +69,7 @@ def _get_disable_flags(ctx):
 # ==============================================================================
 # Main
 # ==============================================================================
-@click.group(invoke_without_command=False)
+@click.group(invoke_without_command=False, cls=CommandWrapperGroup)
 @click.option(
     "--disable-update-check", is_flag=True, help=HELP_MSG_DISABLE_UPDATE_CHECK
 )

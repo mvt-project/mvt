@@ -10,10 +10,32 @@ import json
 import logging
 import os
 import re
+import click
 from typing import Any, Iterator, Union
 
 from rich.logging import RichHandler
+from mvt.common.telemetry import telemetry
 from mvt.common.config import settings
+
+
+class CommandWrapperGroup(click.Group):
+    """Allow hooks to run before and after MVT CLI commands"""
+
+    def add_command(self, cmd, name=None):
+        click.Group.add_command(self, cmd, name=name)
+        cmd.invoke = self.build_command_invoke(cmd.invoke)
+
+    def build_command_invoke(self, original_invoke):
+        def command_invoke(ctx):
+            """Invoke the Click command"""
+
+            # Run telemetry before the command
+            telemetry.send_cli_command_event(ctx.command.name)
+
+            # Run the original command
+            original_invoke(ctx)
+
+        return command_invoke
 
 
 class CustomJSONEncoder(json.JSONEncoder):
