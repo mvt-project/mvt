@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+import time
 from typing import Optional, Union
 
 from rich.console import Console
@@ -109,7 +110,7 @@ class Packages(AndroidExtraction):
                     self.detected.append(result)
 
     @staticmethod
-    def check_virustotal(packages: list) -> None:
+    def check_virustotal(packages: list, delay: int) -> None:
         hashes = []
         for package in packages:
             for file in package.get("files", []):
@@ -131,6 +132,8 @@ class Packages(AndroidExtraction):
 
             if not results:
                 continue
+
+            time.sleep(delay)
 
             positives = results["attributes"]["last_analysis_stats"]["malicious"]
             total = len(results["attributes"]["last_analysis_results"])
