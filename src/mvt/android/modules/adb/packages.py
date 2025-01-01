@@ -306,7 +306,10 @@ class Packages(AndroidExtraction):
             )
 
         if not self.module_options.get("fast_mode", None):
-            self.check_virustotal(packages_to_lookup)
+            if "delay" not in locals():
+                delay = 0
+
+            self.check_virustotal(packages_to_lookup, delay)
 
         self.log.info(
             "Extracted at total of %d installed package names", len(self.results)
