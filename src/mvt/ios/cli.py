@@ -8,7 +8,7 @@ import logging
 import os
 
 import click
-from rich.prompt import Prompt
+from prompt_toolkit import prompt
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.logo import logo
@@ -120,10 +120,11 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
 
         backup.decrypt_with_password(password)
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:
-        log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
+        log.info("Using password from %s environment variable",
+                 MVT_IOS_BACKUP_PASSWORD)
         backup.decrypt_with_password(os.environ[MVT_IOS_BACKUP_PASSWORD])
     else:
-        sekrit = Prompt.ask("Enter backup password", password=True)
+        sekrit = prompt("Enter backup password: ", is_password=True)
         backup.decrypt_with_password(sekrit)
 
     if not backup.can_process():
@@ -153,7 +154,8 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
     "--key-file",
     "-k",
     required=False,
-    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    type=click.Path(exists=False, file_okay=True,
+                    dir_okay=False, writable=True),
     help=HELP_MSG_BACKUP_KEYFILE,
 )
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
@@ -173,10 +175,11 @@ def extract_key(password, key_file, backup_path):
                 MVT_IOS_BACKUP_PASSWORD,
             )
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:
-        log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
+        log.info("Using password from %s environment variable",
+                 MVT_IOS_BACKUP_PASSWORD)
         password = os.environ[MVT_IOS_BACKUP_PASSWORD]
     else:
-        password = Prompt.ask("Enter backup password", password=True)
+        password = prompt("Enter backup password: ", is_password=True)
 
     backup.decrypt_with_password(password)
     backup.get_key()
