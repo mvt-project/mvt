@@ -14,6 +14,7 @@ from .dumpsys_receivers import DumpsysReceivers
 from .dumpsys_adb import DumpsysADBState
 from .getprop import Getprop
 from .packages import Packages
+from .dumpsys_platform_compat import DumpsysPlatformCompat
 from .processes import Processes
 from .settings import Settings
 from .sms import SMS
@@ -29,6 +30,7 @@ ANDROIDQF_MODULES = [
     DumpsysBatteryHistory,
     DumpsysADBState,
     Packages,
+    DumpsysPlatformCompat,
     Processes,
     Getprop,
     Settings,
