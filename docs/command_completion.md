@@ -8,7 +8,7 @@ To enable it, you need to manually register a special function with your shell, 
 
 The following describes how to generate the command completion scripts and add them to your shell configuration. 
 
-`You will need to start a new shell for the changes to take effect.`
+**You will need to start a new shell for the changes to take effect.**
 
 ### For Bash
 
