@@ -43,7 +43,7 @@ class SMS(IOSExtraction):
 
     def serialize(self, record: dict) -> Union[dict, list]:
         text = record["text"].replace("\n", "\\n")
-        sms_data = f"{record['service']}: {record['guid']} \"{text}\" from {record['phone_number']} ({record['account']})"
+        sms_data = f'{record["service"]}: {record["guid"]} "{text}" from {record["phone_number"]} ({record["account"]})'
         records = [
             {
                 "timestamp": record["isodate"],
