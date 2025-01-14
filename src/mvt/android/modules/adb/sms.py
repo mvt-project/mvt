@@ -70,7 +70,7 @@ class SMS(AndroidExtraction):
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
             "event": f"sms_{record['direction']}",
-            "data": f"{record.get('address', 'unknown source')}: \"{body}\"",
+            "data": f'{record.get("address", "unknown source")}: "{body}"',
         }
 
     def check_indicators(self) -> None:

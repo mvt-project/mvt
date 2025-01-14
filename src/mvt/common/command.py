@@ -81,7 +81,7 @@ class Command:
             os.path.join(self.results_path, "command.log")
         )
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - " "%(levelname)s - %(message)s"
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
