@@ -6,6 +6,8 @@
 import logging
 import os
 
+
+from mvt.common.config import settings
 from mvt.common.indicators import Indicators
 from ..utils import get_artifact_folder
 
@@ -100,6 +102,8 @@ class TestIndicators:
 
     def test_env_stix(self, indicator_file):
         os.environ["MVT_STIX2"] = indicator_file
+        settings.__init__()  # Reset settings
+
         ind = Indicators(log=logging)
         ind.load_indicators_files([], load_default=False)
         assert ind.total_ioc_count == 9

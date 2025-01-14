@@ -13,6 +13,7 @@ import re
 from typing import Any, Iterator, Union
 
 from rich.logging import RichHandler
+from mvt.common.config import settings
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -256,7 +257,7 @@ def set_verbose_logging(verbose: bool = False):
 
 def exec_or_profile(module, globals, locals):
     """Hook for profiling MVT modules"""
-    if int(os.environ.get("MVT_PROFILE", False)):
+    if settings.PROFILE:
         cProfile.runctx(module, globals, locals)
     else:
         exec(module, globals, locals)

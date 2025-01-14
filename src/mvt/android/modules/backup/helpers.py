@@ -3,9 +3,10 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
 
 from rich.prompt import Prompt
+
+from mvt.common.config import settings
 
 MVT_ANDROID_BACKUP_PASSWORD = "MVT_ANDROID_BACKUP_PASSWORD"
 
@@ -16,24 +17,24 @@ def cli_load_android_backup_password(log, backup_password):
 
     Used in MVT CLI command parsers.
     """
-    password_from_env = os.environ.get(MVT_ANDROID_BACKUP_PASSWORD, None)
+    password_from_env_or_config = settings.ANDROID_BACKUP_PASSWORD
     if backup_password:
         log.info(
             "Your password may be visible in the process table because it "
             "was supplied on the command line!"
         )
-        if password_from_env:
+        if password_from_env_or_config:
             log.info(
                 "Ignoring %s environment variable, using --backup-password argument instead",
-                MVT_ANDROID_BACKUP_PASSWORD,
+                "MVT_ANDROID_BACKUP_PASSWORD",
             )
         return backup_password
-    elif password_from_env:
+    elif password_from_env_or_config:
         log.info(
-            "Using backup password from %s environment variable",
-            MVT_ANDROID_BACKUP_PASSWORD,
+            "Using backup password from %s environment variable or config file",
+            "MVT_ANDROID_BACKUP_PASSWORD",
         )
-        return password_from_env
+        return password_from_env_or_config
 
 
 def prompt_or_load_android_backup_password(log, module_options):

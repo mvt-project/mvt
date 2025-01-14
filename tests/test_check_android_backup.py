@@ -9,6 +9,7 @@ import os
 from click.testing import CliRunner
 
 from mvt.android.cli import check_backup
+from mvt.common.config import settings
 
 from .utils import get_artifact_folder
 
@@ -63,6 +64,8 @@ class TestCheckAndroidBackupCommand:
         )
 
         os.environ["MVT_ANDROID_BACKUP_PASSWORD"] = TEST_BACKUP_PASSWORD
+        settings.__init__()  # Reset settings
+
         runner = CliRunner()
         path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
         result = runner.invoke(check_backup, [path])
@@ -70,3 +73,4 @@ class TestCheckAndroidBackupCommand:
         assert prompt_mock.call_count == 0
         assert result.exit_code == 0
         del os.environ["MVT_ANDROID_BACKUP_PASSWORD"]
+        settings.__init__()  # Reset settings
