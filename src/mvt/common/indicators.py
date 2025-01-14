@@ -384,8 +384,7 @@ class Indicators:
         for ioc in self.get_iocs("urls"):
             if ioc["value"] == url:
                 self.log.warning(
-                    "Found a known suspicious URL %s "
-                    'matching indicator "%s" from "%s"',
+                    'Found a known suspicious URL %s matching indicator "%s" from "%s"',
                     url,
                     ioc["value"],
                     ioc["name"],

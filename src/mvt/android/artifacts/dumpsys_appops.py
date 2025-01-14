@@ -51,7 +51,7 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                     and perm["access"] == "allow"
                 ):
                     self.log.info(
-                        "Package %s with REQUEST_INSTALL_PACKAGES " "permission",
+                        "Package %s with REQUEST_INSTALL_PACKAGES permission",
                         result["package_name"],
                     )
 
