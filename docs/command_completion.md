@@ -8,7 +8,7 @@ To enable it, you need to manually register a special function with your shell, 
 
 The following describes how to generate the command completion scripts and add them to your shell configuration. 
 
-**You will need to start a new shell for the changes to take effect.**
+> **Note: You will need to start a new shell for the changes to take effect.**
 
 ### For Bash
 
@@ -16,8 +16,11 @@ The following describes how to generate the command completion scripts and add t
 # Generates bash completion scripts
 echo "$(_MVT_IOS_COMPLETE=bash_source mvt-ios)" > ~/.mvt-ios-complete.bash &&
 echo "$(_MVT_ANDROID_COMPLETE=bash_source mvt-android)" > ~/.mvt-android-complete.bash
+```
 
-# Sources the scripts in ~/.bashrc.
+Add the following to `~/.bashrc`:
+```bash
+# source mvt completion scripts
 . ~/.mvt-ios-complete.bash && .  ~/.mvt-android-complete.bash
 ```
 
@@ -27,8 +30,11 @@ echo "$(_MVT_ANDROID_COMPLETE=bash_source mvt-android)" > ~/.mvt-android-complet
 # Generates zsh completion scripts
 echo "$(_MVT_IOS_COMPLETE=zsh_source mvt-ios)" >  ~/.mvt-ios-complete.zsh &&
 echo "$(_MVT_ANDROID_COMPLETE=zsh_source mvt-android)" > ~/.mvt-android-complete.zsh
+```
 
-# Sources the scripts in ~/.zshrc.
+Add the following to `~/.zshrc`:
+```bash
+# source mvt completion scripts
 .  ~/.mvt-ios-complete.zsh  && .  ~/.mvt-android-complete.zsh
 ```
 
