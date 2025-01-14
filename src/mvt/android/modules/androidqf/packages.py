@@ -44,8 +44,7 @@ class Packages(AndroidQFModule):
         for result in self.results:
             if result["name"] in ROOT_PACKAGES:
                 self.log.warning(
-                    "Found an installed package related to "
-                    'rooting/jailbreaking: "%s"',
+                    'Found an installed package related to rooting/jailbreaking: "%s"',
                     result["name"],
                 )
                 self.detected.append(result)
