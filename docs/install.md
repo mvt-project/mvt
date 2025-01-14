@@ -98,3 +98,7 @@ You now should have the `mvt-ios` and `mvt-android` utilities installed.
 **Notes:**
 1. The `--force` flag is necessary to force the reinstallation of the package.
 2. To revert to using a PyPI version, it will be necessary to `pipx uninstall mvt` first.
+
+## Setting up command completions
+
+See ["Command completions"](command_completion.md)
