@@ -8,6 +8,9 @@ import logging
 import os
 
 import click
+from quick_click_auto import enable_click_shell_completion
+from quick_click_auto.constants import ShellType
+
 from rich.prompt import Prompt
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
@@ -37,6 +40,7 @@ from mvt.common.help import (
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_STIX2,
     HELP_MSG_CHECK_IOS_BACKUP,
+    HELP_MSG_COMMAND_COMPLETION_IOS,
 )
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
@@ -70,8 +74,24 @@ def version():
 
 
 # ==============================================================================
+# Command: shell-completion
+# ==============================================================================
+
+
+@cli.command("shell-completion", help=HELP_MSG_COMMAND_COMPLETION_IOS)
+def shell_completion():
+    enable_click_shell_completion(
+        program_name="mvt-ios",
+        shells={ShellType.BASH},
+        verbose=True,
+    )
+
+
+# ==============================================================================
 # Command: decrypt-backup
 # ==============================================================================
+
+
 @cli.command(
     "decrypt-backup", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DECRYPT_BACKUP
 )
