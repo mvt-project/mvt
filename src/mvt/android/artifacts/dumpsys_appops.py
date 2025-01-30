@@ -55,6 +55,11 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                         result["package_name"],
                     )
 
+            if result["package_name"] == "com.android.shell":
+                self.log.warning(
+                    "Risky package com.android.shell requested a permission"
+                )
+
     def parse(self, output: str) -> None:
         self.results: List[Dict[str, Any]] = []
         perm = {}
