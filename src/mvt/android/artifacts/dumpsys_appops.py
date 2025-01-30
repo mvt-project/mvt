@@ -11,6 +11,10 @@ from mvt.common.utils import convert_datetime_to_iso
 from .artifact import AndroidArtifact
 
 
+RISKY_PERMISSIONS = ["REQUEST_INSTALL_PACKAGES"]
+RISKY_PACKAGES = ["com.android.shell"]
+
+
 class DumpsysAppopsArtifact(AndroidArtifact):
     """
     Parser for dumpsys app ops info
@@ -45,15 +49,39 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                     self.detected.append(result)
                     continue
 
+            detected_permissions = []
             for perm in result["permissions"]:
                 if (
-                    perm["name"] == "REQUEST_INSTALL_PACKAGES"
-                    and perm["access"] == "allow"
+                    perm["name"] in RISKY_PERMISSIONS
+                    # and perm["access"] == "allow"
                 ):
-                    self.log.info(
-                        "Package %s with REQUEST_INSTALL_PACKAGES permission",
-                        result["package_name"],
-                    )
+                    detected_permissions.append(perm)
+                    for entry in sorted(perm["entries"], key=lambda x: x["timestamp"]):
+                        self.log.warning(
+                            "Package '%s' had risky permission '%s' set to '%s' at %s",
+                            result["package_name"],
+                            perm["name"],
+                            entry["access"],
+                            entry["timestamp"],
+                        )
+
+                elif result["package_name"] in RISKY_PACKAGES:
+                    detected_permissions.append(perm)
+                    for entry in sorted(perm["entries"], key=lambda x: x["timestamp"]):
+                        self.log.warning(
+                            "Risky package '%s' had '%s' permission set to '%s' at %s",
+                            result["package_name"],
+                            perm["name"],
+                            entry["access"],
+                            entry["timestamp"],
+                        )
+
+            if detected_permissions:
+                # We clean the result to only include the risky permission, otherwise the timeline
+                # will be polluted with all the other irrelevant permissions
+                cleaned_result = result.copy()
+                cleaned_result["permissions"] = detected_permissions
+                self.detected.append(cleaned_result)
 
     def parse(self, output: str) -> None:
         self.results: List[Dict[str, Any]] = []
@@ -121,11 +149,16 @@ class DumpsysAppopsArtifact(AndroidArtifact):
             if line.startswith("          "):
                 # Permission entry like:
                 # Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
+                access_type = line.split(":")[0].strip()
+                if access_type not in ["Access", "Reject"]:
+                    # Skipping invalid access type. Some entries are not in the format we expect
+                    continue
+
                 if entry:
                     perm["entries"].append(entry)
                     entry = {}
 
-                entry["access"] = line.split(":")[0].strip()
+                entry["access"] = access_type
                 entry["type"] = line[line.find("[") + 1 : line.find("]")]
 
                 try:

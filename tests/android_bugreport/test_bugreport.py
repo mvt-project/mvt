@@ -33,7 +33,12 @@ class TestBugreportAnalysis:
         m = self.launch_bug_report_module(Appops)
         assert len(m.results) == 12
         assert len(m.timeline) == 16
-        assert len(m.detected) == 0
+
+        detected_by_ioc = [
+            detected for detected in m.detected if detected.get("matched_indicator")
+        ]
+        assert len(m.detected) == 1  # Hueristic detection for suspicious permissions
+        assert len(detected_by_ioc) == 0
 
     def test_packages_module(self):
         m = self.launch_bug_report_module(Packages)
