@@ -6,7 +6,10 @@
 import datetime
 import json
 import logging
-from zoneinfo import ZoneInfo
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 from typing import Optional, Union
 
 from mvt.android.modules.androidqf.base import AndroidQFModule
@@ -108,10 +111,10 @@ class Files(AndroidQFModule):
 
     def run(self) -> None:
         if timezone := self._get_device_timezone():
-            device_timezone = ZoneInfo(timezone)
+            device_timezone = zoneinfo.ZoneInfo(timezone)
         else:
             self.log.warning("Unable to determine device timezone, using UTC")
-            device_timezone = ZoneInfo("UTC")
+            device_timezone = zoneinfo.ZoneInfo("UTC")
 
         for file in self._get_files_by_pattern("*/files.json"):
             rawdata = self._get_file_content(file).decode("utf-8", errors="ignore")
