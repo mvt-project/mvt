@@ -27,9 +27,8 @@ test-requirements:
 
 generate-proto-parsers:
 	# Generate python parsers for protobuf files
-	PROTO_DIR="src/mvt/android/parsers/proto/"; \
-	PROTO_FILES=$$(find $(PROTO_DIR) -iname "*.proto"); \
-	protoc -I$(PROTO_DIR) --python_betterproto_out=$(PROTO_DIR) $$PROTO_FILES
+	PROTO_FILES=$$(find src/mvt/android/parsers/proto/ -iname "*.proto"); \
+	protoc -Isrc/mvt/android/parsers/proto/ --python_betterproto_out=src/mvt/android/parsers/proto/ $$PROTO_FILES
 
 clean:
 	rm -rf $(PWD)/build $(PWD)/dist $(PWD)/src/mvt.egg-info
