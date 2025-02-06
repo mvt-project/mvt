@@ -3,9 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
 import logging
-import datetime
 from typing import Optional
 
 from mvt.common.utils import convert_datetime_to_iso
@@ -35,14 +33,6 @@ class BugReportTimestamps(FileTimestampsArtifact, BugReportModule):
             log=log,
             results=results,
         )
-
-    def _get_file_modification_time(self, file_path: str) -> dict:
-        if self.zip_archive:
-            file_timetuple = self.zip_archive.getinfo(file_path).date_time
-            return datetime.datetime(*file_timetuple)
-        else:
-            file_stat = os.stat(os.path.join(self.extract_path, file_path))
-            return datetime.datetime.fromtimestamp(file_stat.st_mtime)
 
     def run(self) -> None:
         filesystem_files = self._get_files_by_pattern("FS/*")

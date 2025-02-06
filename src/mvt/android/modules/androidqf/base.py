@@ -64,6 +64,7 @@ class AndroidQFModule(MVTModule):
             return None
 
         from mvt.android.artifacts.getprop import GetProp
+
         properties_artifact = GetProp()
         prop_data = self._get_file_content(get_prop_files[0]).decode("utf-8")
         properties_artifact.parse(prop_data)
