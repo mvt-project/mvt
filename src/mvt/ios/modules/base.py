@@ -74,7 +74,7 @@ class IOSExtraction(MVTModule):
 
         if not shutil.which("sqlite3"):
             raise DatabaseCorruptedError(
-                "failed to recover without sqlite3 binary: please install " "sqlite3!"
+                "failed to recover without sqlite3 binary: please install sqlite3!"
             )
         if '"' in file_path:
             raise DatabaseCorruptedError(

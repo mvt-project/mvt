@@ -14,6 +14,7 @@ from packaging import version
 
 from .indicators import MVT_DATA_FOLDER, MVT_INDICATORS_FOLDER
 from .version import MVT_VERSION
+from .config import settings
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ INDICATORS_CHECK_FREQUENCY = 12
 
 class MVTUpdates:
     def check(self) -> str:
-        res = requests.get("https://pypi.org/pypi/mvt/json", timeout=15)
+        res = requests.get(settings.PYPI_UPDATE_URL, timeout=15)
         data = res.json()
         latest_version = data.get("info", {}).get("version", "")
 
