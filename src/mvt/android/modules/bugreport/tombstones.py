@@ -42,18 +42,23 @@ class Tombstones(TombstoneCrashArtifact, BugReportModule):
             )
             return
 
-        for tombstone_file in tombstone_files:
-            if tombstone_file.endswith("*.pb"):
-                self.log.info("Skipping protobuf tombstone file: %s", tombstone_file)
-                continue
-
-            print(tombstone_file)
+        for tombstone_file in sorted(tombstone_files):
+            tombstone_filename = tombstone_file.split("/")[-1]
+            modification_time = self._get_file_modification_time(tombstone_file)
             tombstone_data = self._get_file_content(tombstone_file)
-            tombstone = self.parse_tombstone(tombstone_data)
-            print(tombstone)
-            break
 
-        # self.log.info(
-        #     "Extracted a total of %d database connection pool records",
-        #     len(self.results),
-        # )
+            try:
+                if tombstone_file.endswith(".pb"):
+                    self.parse_protobuf(
+                        tombstone_filename, modification_time, tombstone_data
+                    )
+                else:
+                    self.parse(tombstone_filename, modification_time, tombstone_data)
+            except ValueError as e:
+                # Catch any exceptions raised during parsing or validation.
+                self.log.error(f"Error parsing tombstone file {tombstone_file}: {e}")
+
+        self.log.info(
+            "Extracted a total of %d tombstone files",
+            len(self.results),
+        )
