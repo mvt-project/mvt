@@ -11,6 +11,7 @@ from .battery_history import BatteryHistory
 from .dbinfo import DBInfo
 from .getprop import Getprop
 from .packages import Packages
+from .platform_compat import PlatformCompat
 from .receivers import Receivers
 from .adb_state import DumpsysADBState
 from .fs_timestamps import BugReportTimestamps
@@ -24,6 +25,7 @@ BUGREPORT_MODULES = [
     DBInfo,
     Getprop,
     Packages,
+    PlatformCompat,
     Receivers,
     DumpsysADBState,
     BugReportTimestamps,

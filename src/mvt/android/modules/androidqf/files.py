@@ -75,7 +75,7 @@ class Files(AndroidQFModule):
         for result in self.results:
             ioc = self.indicators.check_file_path(result["path"])
             if ioc:
-                result["matched_indicator"] == ioc
+                result["matched_indicator"] = ioc
                 self.detected.append(result)
                 continue
 

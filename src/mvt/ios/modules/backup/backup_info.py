@@ -41,7 +41,7 @@ class BackupInfo(IOSExtraction):
         info_path = os.path.join(self.target_path, "Info.plist")
         if not os.path.exists(info_path):
             raise DatabaseNotFoundError(
-                "No Info.plist at backup path, unable to extract device " "information"
+                "No Info.plist at backup path, unable to extract device information"
             )
 
         with open(info_path, "rb") as handle:

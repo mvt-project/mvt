@@ -75,7 +75,7 @@ class TestHashes:
         # This needs to be updated when we add or edit files in AndroidQF folder
         assert (
             hashes[1]["sha256"]
-            == "1bd255f656a7f9d5647a730f0f0cc47053115576f11532d41bf28c16635b193d"
+            == "9fb6396b64cfff30e2a459a64496d3c1386926d09edd68be2d878de45fa7b3a9"
         )
 
 

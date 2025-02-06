@@ -14,6 +14,7 @@ import ahocorasick
 from appdirs import user_data_dir
 
 from .url import URL
+from .config import settings
 
 MVT_DATA_FOLDER = user_data_dir("mvt")
 MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
@@ -41,12 +42,12 @@ class Indicators:
 
     def _check_stix2_env_variable(self) -> None:
         """
-        Checks if a variable MVT_STIX2 contains path to a STIX file. Also recursively searches through dirs in MVT_STIX2
+        Checks if MVT_STIX2 setting or environment variable contains path to a STIX file. Also recursively searches through dirs in MVT_STIX2
         """
-        if "MVT_STIX2" not in os.environ:
+        if not settings.STIX2:
             return
 
-        paths = os.environ["MVT_STIX2"].split(":")
+        paths = settings.STIX2.split(":")
         for path in paths:
             if os.path.isfile(path) and path.lower().endswith(".stix2"):
                 self.parse_stix2(path)
@@ -383,8 +384,7 @@ class Indicators:
         for ioc in self.get_iocs("urls"):
             if ioc["value"] == url:
                 self.log.warning(
-                    "Found a known suspicious URL %s "
-                    'matching indicator "%s" from "%s"',
+                    'Found a known suspicious URL %s matching indicator "%s" from "%s"',
                     url,
                     ioc["value"],
                     ioc["name"],

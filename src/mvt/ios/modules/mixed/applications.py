@@ -17,6 +17,12 @@ from mvt.ios.modules.base import IOSExtraction
 APPLICATIONS_DB_PATH = [
     "private/var/containers/Bundle/Application/*/iTunesMetadata.plist"
 ]
+KNOWN_APP_INSTALLERS = [
+    "com.apple.AppStore",
+    "com.apple.AppStore.ProductPageExtension",
+    "com.apple.dmd",
+    "dmd",
+]
 
 
 class Applications(IOSExtraction):
@@ -80,12 +86,10 @@ class Applications(IOSExtraction):
                     self.detected.append(result)
                     continue
             # Some apps installed from apple store with sourceApp "com.apple.AppStore.ProductPageExtension"
-            if result.get("sourceApp", "com.apple.AppStore") not in [
-                "com.apple.AppStore",
-                "com.apple.AppStore.ProductPageExtension",
-                "com.apple.dmd",
-                "dmd",
-            ]:
+            if (
+                result.get("sourceApp", "com.apple.AppStore")
+                not in KNOWN_APP_INSTALLERS
+            ):
                 self.log.warning(
                     "Suspicious app not installed from the App Store or MDM: %s",
                     result["softwareVersionBundleId"],

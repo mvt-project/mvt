@@ -110,8 +110,7 @@ class Manifest(IOSExtraction):
                 ioc = self.indicators.check_url(part)
                 if ioc:
                     self.log.warning(
-                        'Found mention of domain "%s" in a backup file with '
-                        "path: %s",
+                        'Found mention of domain "%s" in a backup file with path: %s',
                         ioc["value"],
                         rel_path,
                     )
