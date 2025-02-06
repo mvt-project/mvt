@@ -14,6 +14,7 @@ from .packages import Packages
 from .platform_compat import PlatformCompat
 from .receivers import Receivers
 from .adb_state import DumpsysADBState
+from .tombstones import Tombstones
 
 BUGREPORT_MODULES = [
     Accessibility,
@@ -27,4 +28,5 @@ BUGREPORT_MODULES = [
     PlatformCompat,
     Receivers,
     DumpsysADBState,
+    Tombstones,
 ]
