@@ -48,6 +48,37 @@ class AndroidQFModule(MVTModule):
     def _get_files_by_pattern(self, pattern: str):
         return fnmatch.filter(self.files, pattern)
 
+    def _get_device_timezone(self):
+        """
+        Get the device timezone from the getprop.txt file.
+
+        This is needed to map local timestamps stored in some
+        Android log files to UTC/timezone-aware timestamps.
+        """
+        get_prop_files = self._get_files_by_pattern("*/getprop.txt")
+        if not get_prop_files:
+            self.log.warning(
+                "Could not find getprop.txt file. "
+                "Some timestamps and timeline data may be incorrect."
+            )
+            return None
+
+        from mvt.android.artifacts.getprop import GetProp
+
+        properties_artifact = GetProp()
+        prop_data = self._get_file_content(get_prop_files[0]).decode("utf-8")
+        properties_artifact.parse(prop_data)
+        timezone = properties_artifact.get_device_timezone()
+        if timezone:
+            self.log.debug("Identified local phone timezone: %s", timezone)
+            return timezone
+
+        self.log.warning(
+            "Could not find or determine local device timezone. "
+            "Some timestamps and timeline data may be incorrect."
+        )
+        return None
+
     def _get_file_content(self, file_path):
         if self.archive:
             handle = self.archive.open(file_path)

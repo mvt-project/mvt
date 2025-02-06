@@ -81,8 +81,8 @@ class TombstoneCrashArtifact(AndroidArtifact):
             "module": self.__class__.__name__,
             "event": "Tombstone",
             "data": (
-                f"Crash in '{record['process_name']}' process running as UID '{record['uid']}' at "
-                f"{record['timestamp']}. Crash type '{record['signal_info']['name']}' with code '{record['signal_info']['code_name']}'"
+                f"Crash in '{record['process_name']}' process running as UID '{record['uid']}' in file '{record['file_name']}' "
+                f"Crash type '{record['signal_info']['name']}' with code '{record['signal_info']['code_name']}'"
             ),
         }
 
@@ -258,7 +258,10 @@ class TombstoneCrashArtifact(AndroidArtifact):
         timestamp_parsed = datetime.datetime.strptime(
             timestamp_without_micro, "%Y-%m-%d %H:%M:%S%z"
         )
-        return convert_datetime_to_iso(timestamp_parsed)
+
+        # HACK: Swap the local timestamp to UTC, so keep the original time and avoid timezone conversion.
+        local_timestamp = timestamp_parsed.replace(tzinfo=datetime.timezone.utc)
+        return convert_datetime_to_iso(local_timestamp)
 
     @staticmethod
     def _proccess_name_from_thread(tombstone_dict: dict) -> str:

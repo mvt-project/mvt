@@ -35,6 +35,7 @@ dependencies = [
     "betterproto >=1.2.0",
     "pydantic >= 2.10.0",
     "pydantic-settings >= 2.7.0",
+    'backports.zoneinfo; python_version < "3.9"',
 ]
 requires-python = ">= 3.8"
 
