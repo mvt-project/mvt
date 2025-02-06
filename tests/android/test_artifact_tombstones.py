@@ -60,6 +60,8 @@ class TestTombstoneCrashArtifact:
         assert tombstone_result.get("pid") == 25541
         assert tombstone_result.get("process_name") == "mtk.ape.decoder"
 
-        # Check if the timestamp is correctly parsed, and converted to UTC
-        # Original is in +0200: 2023-04-12 12:32:40.518290770+0200, result should be 2023-04-12 10:32:40.000000+0000
-        assert tombstone_result.get("timestamp") == "2023-04-12 10:32:40.000000"
+        # With Android logs we want to keep timestamps as device local time for consistency.
+        # We often don't know the time offset for a log entry and so can't convert everything to UTC.
+        # MVT should output the local time only:
+        # So original 2023-04-12 12:32:40.518290770+0200 -> 2023-04-12 12:32:40.000000
+        assert tombstone_result.get("timestamp") == "2023-04-12 12:32:40.000000"

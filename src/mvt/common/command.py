@@ -101,15 +101,25 @@ class Command:
         if not self.results_path:
             return
 
+        # We use local timestamps in the timeline on Android as many
+        # logs do not contain timezone information.
+        if type(self).__name__.startswith("CmdAndroid"):
+            is_utc = False
+        else:
+            is_utc = True
+
         if len(self.timeline) > 0:
             save_timeline(
-                self.timeline, os.path.join(self.results_path, "timeline.csv")
+                self.timeline,
+                os.path.join(self.results_path, "timeline.csv"),
+                is_utc=is_utc,
             )
 
         if len(self.timeline_detected) > 0:
             save_timeline(
                 self.timeline_detected,
                 os.path.join(self.results_path, "timeline_detected.csv"),
+                is_utc=is_utc,
             )
 
     def _store_info(self) -> None:
