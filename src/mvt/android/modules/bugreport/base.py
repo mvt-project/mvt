@@ -2,7 +2,7 @@
 # Copyright (c) 2021-2023 The MVT Authors.
 # See the file 'LICENSE' for usage and copying permissions, or find a copy at
 #   https://github.com/mvt-project/mvt/blob/main/LICENSE
-
+import datetime
 import fnmatch
 import logging
 import os
@@ -92,3 +92,11 @@ class BugReportModule(MVTModule):
                 return None
 
             return self._get_file_content(dumpstate_logs[0])
+
+    def _get_file_modification_time(self, file_path: str) -> dict:
+        if self.zip_archive:
+            file_timetuple = self.zip_archive.getinfo(file_path).date_time
+            return datetime.datetime(*file_timetuple)
+        else:
+            file_stat = os.stat(os.path.join(self.extract_path, file_path))
+            return datetime.datetime.fromtimestamp(file_stat.st_mtime)

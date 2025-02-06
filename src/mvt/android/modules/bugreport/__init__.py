@@ -15,6 +15,7 @@ from .platform_compat import PlatformCompat
 from .receivers import Receivers
 from .adb_state import DumpsysADBState
 from .fs_timestamps import BugReportTimestamps
+from .tombstones import Tombstones
 
 BUGREPORT_MODULES = [
     Accessibility,
@@ -29,4 +30,5 @@ BUGREPORT_MODULES = [
     Receivers,
     DumpsysADBState,
     BugReportTimestamps,
+    Tombstones,
 ]
