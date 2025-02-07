@@ -32,7 +32,7 @@ def file_list(data_path):
 @pytest.fixture()
 def module(parent_data_path, file_list):
     m = Packages(target_path=parent_data_path, log=logging)
-    m.from_folder(parent_data_path, file_list)
+    m.from_dir(parent_data_path, file_list)
     return m
 
 

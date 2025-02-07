@@ -25,7 +25,7 @@ class TestBugreportAnalysis:
                 folder_files.append(
                     os.path.relpath(os.path.join(root, file_name), parent_path)
                 )
-        m.from_folder(fpath, folder_files)
+        m.from_dir(fpath, folder_files)
         run_module(m)
         return m
 

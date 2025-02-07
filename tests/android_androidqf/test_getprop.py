@@ -20,7 +20,7 @@ class TestAndroidqfGetpropAnalysis:
         m = Getprop(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert len(m.results) == 10
         assert m.results[0]["name"] == "dalvik.vm.appimageformat"
@@ -32,7 +32,7 @@ class TestAndroidqfGetpropAnalysis:
         fpath = get_artifact("androidqf.zip")
         m = Getprop(target_path=fpath, log=logging)
         archive = zipfile.ZipFile(fpath)
-        m.from_zip_file(archive, archive.namelist())
+        m.from_zip(archive, archive.namelist())
         run_module(m)
         assert len(m.results) == 10
         assert m.results[0]["name"] == "dalvik.vm.appimageformat"
@@ -45,7 +45,7 @@ class TestAndroidqfGetpropAnalysis:
         m = Getprop(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["android_property_names"].append("dalvik.vm.heapmaxfree")

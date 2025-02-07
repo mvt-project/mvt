@@ -18,7 +18,7 @@ class TestAndroidqfFilesAnalysis:
         m = Files(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert len(m.results) == 3
         assert len(m.timeline) == 6

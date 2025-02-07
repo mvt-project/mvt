@@ -37,10 +37,7 @@ class BackupExtraction(MVTModule):
         self.tar = None
         self.files = []
 
-    def from_folder(self, backup_path: Optional[str], files: List[str]) -> None:
-        """
-        Get all the files and list them
-        """
+    def from_dir(self, backup_path: Optional[str], files: List[str]) -> None:
         self.backup_path = backup_path
         self.files = files
 
@@ -58,14 +55,16 @@ class BackupExtraction(MVTModule):
         return fnmatch.filter(self.files, pattern)
 
     def _get_file_content(self, file_path: str) -> bytes:
-        if self.ab:
+        if self.tar:
             try:
                 member = self.tar.getmember(file_path)
             except KeyError:
                 return None
             handle = self.tar.extractfile(member)
-        else:
+        elif self.backup_path:
             handle = open(os.path.join(self.backup_path, file_path), "rb")
+        else:
+            raise ValueError("No backup path or tar file provided")
 
         data = handle.read()
         handle.close()
