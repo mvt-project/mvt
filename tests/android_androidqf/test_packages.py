@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from mvt.android.modules.androidqf.packages import Packages
+from mvt.android.modules.androidqf.aqf_packages import AQFPackages
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf, list_files
@@ -31,7 +31,7 @@ def file_list(data_path):
 
 @pytest.fixture()
 def module(parent_data_path, file_list):
-    m = Packages(target_path=parent_data_path, log=logging)
+    m = AQFPackages(target_path=parent_data_path, log=logging)
     m.from_dir(parent_data_path, file_list)
     return m
 

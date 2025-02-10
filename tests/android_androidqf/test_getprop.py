@@ -7,7 +7,7 @@ import logging
 import zipfile
 from pathlib import Path
 
-from mvt.android.modules.androidqf.getprop import Getprop
+from mvt.android.modules.androidqf.aqf_getprop import AQFGetProp
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
 
@@ -17,7 +17,7 @@ from ..utils import get_android_androidqf, get_artifact, list_files
 class TestAndroidqfGetpropAnalysis:
     def test_androidqf_getprop(self):
         data_path = get_android_androidqf()
-        m = Getprop(target_path=data_path, log=logging)
+        m = AQFGetProp(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
         m.from_dir(parent_path, files)
@@ -30,7 +30,7 @@ class TestAndroidqfGetpropAnalysis:
 
     def test_getprop_parsing_zip(self):
         fpath = get_artifact("androidqf.zip")
-        m = Getprop(target_path=fpath, log=logging)
+        m = AQFGetProp(target_path=fpath, log=logging)
         archive = zipfile.ZipFile(fpath)
         m.from_zip(archive, archive.namelist())
         run_module(m)
@@ -42,7 +42,7 @@ class TestAndroidqfGetpropAnalysis:
 
     def test_androidqf_getprop_detection(self, indicator_file):
         data_path = get_android_androidqf()
-        m = Getprop(target_path=data_path, log=logging)
+        m = AQFGetProp(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
         m.from_dir(parent_path, files)
