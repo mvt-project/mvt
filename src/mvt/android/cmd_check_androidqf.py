@@ -161,7 +161,7 @@ class CmdAndroidCheckAndroidQF(Command):
     def run_backup_cmd(self) -> bool:
         try:
             backup = self.load_backup()
-        except NoAndroidQFBugReport:
+        except NoAndroidQFBackup:
             self.log.warning(
                 "Skipping backup modules as no backup.ab found in AndroidQF data."
             )
