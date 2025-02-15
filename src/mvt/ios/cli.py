@@ -228,11 +228,8 @@ def check_backup(
     log.info("Checking iTunes backup located at: %s", backup_path)
 
     cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the backup produced %d detections!", cmd.detected_count
-        )
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -275,12 +272,8 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
     log.info("Checking iOS filesystem located at: %s", dump_path)
 
     cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the iOS filesystem produced %d detections!",
-            cmd.detected_count,
-        )
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -308,6 +301,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
         return
 
     cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================

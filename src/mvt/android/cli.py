@@ -37,6 +37,7 @@ from .cmd_check_bugreport import CmdAndroidCheckBugreport
 from .modules.backup import BACKUP_MODULES
 from .modules.backup.helpers import cli_load_android_backup_password
 from .modules.bugreport import BUGREPORT_MODULES
+from .modules.androidqf import ANDROIDQF_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")
@@ -109,12 +110,8 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
     log.info("Checking Android bug report at path: %s", bugreport_path)
 
     cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the Android bug report produced %d detections!",
-            cmd.detected_count,
-        )
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -171,12 +168,8 @@ def check_backup(
     log.info("Checking Android backup at path: %s", backup_path)
 
     cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the Android backup produced %d detections!",
-            cmd.detected_count,
-        )
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -235,12 +228,9 @@ def check_androidqf(
     log.info("Checking AndroidQF acquisition at path: %s", androidqf_path)
 
     cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the AndroidQF acquisition produced %d detections!",
-            cmd.detected_count,
-        )
+    cmd.show_alerts_brief()
+    cmd.show_disable_adb_warning()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -261,13 +251,15 @@ def check_androidqf(
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
     cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
-    cmd.modules = BACKUP_MODULES + BUGREPORT_MODULES
+    cmd.modules = BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES
 
     if list_modules:
         cmd.list_modules()
         return
 
     cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
