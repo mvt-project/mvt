@@ -4,12 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
-
-from rich.console import Console
-from rich.progress import track
-from rich.table import Table
-from rich.text import Text
+from typing import Optional
 
 from mvt.android.artifacts.dumpsys_packages import DumpsysPackagesArtifact
 from mvt.android.utils import (
@@ -19,7 +14,11 @@ from mvt.android.utils import (
     SECURITY_PACKAGES,
     SYSTEM_UPDATE_PACKAGES,
 )
-from mvt.common.virustotal import VTNoKey, VTQuotaExceeded, virustotal_lookup
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 
 from .base import AndroidExtraction
 
@@ -34,7 +33,7 @@ class Packages(AndroidExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -46,7 +45,7 @@ class Packages(AndroidExtraction):
         )
         self._user_needed = False
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
 
         timestamps = [
@@ -95,70 +94,71 @@ class Packages(AndroidExtraction):
             if not self.indicators:
                 continue
 
-            ioc = self.indicators.check_app_id(result.get("package_name"))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
+            ioc_match = self.indicators.check_app_id(result.get("package_name"))
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
 
             for package_file in result.get("files", []):
-                ioc = self.indicators.check_file_hash(package_file["sha256"])
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_file_hash(package_file["sha256"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        self.get_slug(), ioc_match.message, "", result
+                    )
 
-    @staticmethod
-    def check_virustotal(packages: list) -> None:
-        hashes = []
-        for package in packages:
-            for file in package.get("files", []):
-                if file["sha256"] not in hashes:
-                    hashes.append(file["sha256"])
+    # @staticmethod
+    # def check_virustotal(packages: list) -> None:
+    #     hashes = []
+    #     for package in packages:
+    #         for file in package.get("files", []):
+    #             if file["sha256"] not in hashes:
+    #                 hashes.append(file["sha256"])
 
-        total_hashes = len(hashes)
-        detections = {}
+    #     total_hashes = len(hashes)
+    #     detections = {}
 
-        progress_desc = f"Looking up {total_hashes} files..."
-        for i in track(range(total_hashes), description=progress_desc):
-            try:
-                results = virustotal_lookup(hashes[i])
-            except VTNoKey:
-                return
-            except VTQuotaExceeded as exc:
-                print("Unable to continue: %s", exc)
-                break
+    #     progress_desc = f"Looking up {total_hashes} files..."
+    #     for i in track(range(total_hashes), description=progress_desc):
+    #         try:
+    #             results = virustotal_lookup(hashes[i])
+    #         except VTNoKey:
+    #             return
+    #         except VTQuotaExceeded as exc:
+    #             print("Unable to continue: %s", exc)
+    #             break
 
-            if not results:
-                continue
+    #         if not results:
+    #             continue
 
-            positives = results["attributes"]["last_analysis_stats"]["malicious"]
-            total = len(results["attributes"]["last_analysis_results"])
+    #         positives = results["attributes"]["last_analysis_stats"]["malicious"]
+    #         total = len(results["attributes"]["last_analysis_results"])
 
-            detections[hashes[i]] = f"{positives}/{total}"
+    #         detections[hashes[i]] = f"{positives}/{total}"
 
-        table = Table(title="VirusTotal Packages Detections")
-        table.add_column("Package name")
-        table.add_column("File path")
-        table.add_column("Detections")
+    #     table = Table(title="VirusTotal Packages Detections")
+    #     table.add_column("Package name")
+    #     table.add_column("File path")
+    #     table.add_column("Detections")
 
-        for package in packages:
-            for file in package.get("files", []):
-                row = [package["package_name"], file["path"]]
+    #     for package in packages:
+    #         for file in package.get("files", []):
+    #             row = [package["package_name"], file["path"]]
 
-                if file["sha256"] in detections:
-                    detection = detections[file["sha256"]]
-                    positives = detection.split("/")[0]
-                    if int(positives) > 0:
-                        row.append(Text(detection, "red bold"))
-                    else:
-                        row.append(detection)
-                else:
-                    row.append("not found")
+    #             if file["sha256"] in detections:
+    #                 detection = detections[file["sha256"]]
+    #                 positives = detection.split("/")[0]
+    #                 if int(positives) > 0:
+    #                     row.append(Text(detection, "red bold"))
+    #                 else:
+    #                     row.append(detection)
+    #             else:
+    #                 row.append("not found")
 
-                table.add_row(*row)
+    #             table.add_row(*row)
 
-        console = Console()
-        console.print(table)
+    #     console = Console()
+    #     console.print(table)
 
     @staticmethod
     def parse_package_for_details(output: str) -> dict:

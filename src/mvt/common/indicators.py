@@ -590,9 +590,9 @@ class Indicators:
         if not file_path:
             return None
 
-        ioc = self.check_file_name(os.path.basename(file_path))
-        if ioc:
-            return ioc
+        ioc_match = self.check_file_name(os.path.basename(file_path))
+        if ioc_match:
+            return ioc_match
 
         for ioc in self.get_iocs("file_paths"):
             # Strip any trailing slash from indicator paths to match

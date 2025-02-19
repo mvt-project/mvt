@@ -11,7 +11,7 @@ import tarfile
 from pathlib import Path
 from typing import List, Optional
 
-from mvt.android.modules.backup.base import BackupExtraction
+from mvt.android.modules.backup.base import BackupModule
 from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.android.parsers.backup import (
     AndroidBackupParsingError,
@@ -113,7 +113,7 @@ class CmdAndroidCheckBackup(Command):
             )
             sys.exit(1)
 
-    def module_init(self, module: BackupExtraction) -> None:  # type: ignore[override]
+    def module_init(self, module: BackupModule) -> None:  # type: ignore[override]
         if self.backup_type == "folder":
             module.from_dir(self.target_path, self.backup_files)
         else:

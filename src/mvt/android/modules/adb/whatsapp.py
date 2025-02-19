@@ -7,11 +7,16 @@ import base64
 import logging
 import os
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import check_for_links, convert_unix_to_iso
 
 from .base import AndroidExtraction
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleSerializedResult,
+    ModuleResults,
+)
 
 WHATSAPP_PATH = "data/data/com.whatsapp/databases/msgstore.db"
 
@@ -26,7 +31,7 @@ class Whatsapp(AndroidExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -37,7 +42,7 @@ class Whatsapp(AndroidExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         text = record["data"].replace("\n", "\\n")
         return {
             "timestamp": record["isodate"],

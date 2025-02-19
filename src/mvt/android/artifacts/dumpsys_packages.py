@@ -4,35 +4,39 @@
 #   https://license.mvt.re/1.1/
 
 import re
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from mvt.android.utils import ROOT_PACKAGES
 
 from .artifact import AndroidArtifact
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 
 class DumpsysPackagesArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         for result in self.results:
+            # XXX: De-duplication Package detections
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning(
-                    'Found an installed package related to rooting/jailbreaking: "%s"',
-                    result["package_name"],
+                self.alertstore.medium(
+                    self.get_slug(),
+                    f'Found an installed package related to rooting/jailbreaking: "{result["package_name"]}"',
+                    "",
+                    result,
                 )
-                self.detected.append(result)
+                self.alertstore.log_latest()
                 continue
 
             if not self.indicators:
                 continue
 
-            ioc = self.indicators.check_app_id(result.get("package_name", ""))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(result.get("package_name", ""))
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.log_latest()
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
-
         timestamps = [
             {"event": "package_install", "timestamp": record["timestamp"]},
             {

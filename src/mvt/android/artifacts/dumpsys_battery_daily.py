@@ -3,9 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from typing import Union
 
 from .artifact import AndroidArtifact
+from mvt.common.module_types import ModuleSerializedResult, ModuleAtomicResult
 
 
 class DumpsysBatteryDailyArtifact(AndroidArtifact):
@@ -13,7 +13,7 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
     Parser for dumpsys dattery daily updates.
     """
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["from"],
             "module": self.__class__.__name__,
@@ -27,10 +27,10 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(result["package_name"])
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
                 continue
 
     def parse(self, output: str) -> None:

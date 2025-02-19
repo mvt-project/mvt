@@ -9,6 +9,7 @@ from typing import Optional
 from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
 
 from .base import AndroidQFModule
+from mvt.common.module_types import ModuleResults
 
 
 class AQFGetProp(GetPropArtifact, AndroidQFModule):
@@ -21,7 +22,7 @@ class AQFGetProp(GetPropArtifact, AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,

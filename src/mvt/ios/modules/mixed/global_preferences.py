@@ -7,6 +7,7 @@ import logging
 import plistlib
 from typing import Optional
 
+from mvt.common.module_types import ModuleResults
 from ..base import IOSExtraction
 
 GLOBAL_PREFERENCES_BACKUP_IDS = ["0dc926a1810f7aee4e8f38793ed788701f93bf9d"]
@@ -25,7 +26,7 @@ class GlobalPreferences(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -40,9 +41,15 @@ class GlobalPreferences(IOSExtraction):
         for entry in self.results:
             if entry["entry"] == "LDMGlobalEnabled":
                 if entry["value"]:
-                    self.log.warning("Lockdown mode enabled")
+                    self.alertstore.info(
+                        self.get_slug(), "Lockdown mode enabled", "", None
+                    )
                 else:
-                    self.log.warning("Lockdown mode disabled")
+                    self.alertstore.low(
+                        self.get_slug(), "Lockdown mode disabled", "", None
+                    )
+                    self.alertstore.log_latest()
+                    continue
 
     def process_file(self, file_path: str) -> None:
         with open(file_path, "rb") as handle:

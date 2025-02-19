@@ -58,11 +58,9 @@ class Command:
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
         self.executed = []
-        self.detected_count = 0
         self.hashes = hashes
         self.hash_values = []
         self.timeline = []
-        self.timeline_detected = []
 
         # Load IOCs
         self._create_storage()

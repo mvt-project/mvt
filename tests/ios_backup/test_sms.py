@@ -18,7 +18,7 @@ class TestSMSModule:
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 2
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
 
     def test_detection(self, indicator_file):
         m = SMS(target_path=get_ios_backup_folder())
@@ -28,4 +28,4 @@ class TestSMSModule:
         ind.ioc_collections[0]["domains"].append("badbadbad.example.org")
         m.indicators = ind
         run_module(m)
-        assert len(m.detected) == 1
+        assert len(m.alertstore.alerts) == 1

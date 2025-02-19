@@ -8,9 +8,14 @@ import itertools
 import logging
 import plistlib
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 
 from ..base import IOSExtraction
 
@@ -32,7 +37,7 @@ class Shortcuts(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -43,7 +48,7 @@ class Shortcuts(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         found_urls = ""
         if record["action_urls"]:
             found_urls = f"- URLs in actions: {', '.join(record['action_urls'])}"
@@ -72,10 +77,10 @@ class Shortcuts(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_urls(result["action_urls"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_urls(result["action_urls"])
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
 
     def run(self) -> None:
         self._find_ios_database(

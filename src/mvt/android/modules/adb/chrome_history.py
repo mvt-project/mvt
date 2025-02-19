@@ -6,9 +6,14 @@
 import logging
 import os
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleSerializedResult,
+    ModuleResults,
+)
 
 from .base import AndroidExtraction
 
@@ -25,7 +30,7 @@ class ChromeHistory(AndroidExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -37,7 +42,7 @@ class ChromeHistory(AndroidExtraction):
         )
         self.results = []
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -51,9 +56,10 @@ class ChromeHistory(AndroidExtraction):
             return
 
         for result in self.results:
-            if self.indicators.check_url(result["url"]):
-                self.detected.append(result)
-                continue
+            ioc_match = self.indicators.check_url(result["url"])
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
 
     def _parse_db(self, db_path: str) -> None:
         """Parse a Chrome History database file.

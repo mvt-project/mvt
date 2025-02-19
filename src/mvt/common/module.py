@@ -76,7 +76,6 @@ class MVTModule:
         self.alertstore: AlertStore = AlertStore(log=log)
 
         self.results: ModuleResults = results if results else []
-        self.detected: ModuleResults = []
         self.timeline: ModuleTimeline = []
         self.timeline_detected: ModuleTimeline = []
 
@@ -126,11 +125,13 @@ class MVTModule:
                         exc,
                     )
 
-        if self.detected:
+        if self.alertstore.alerts:
             detected_file_name = f"{name}_detected.json"
             detected_json_path = os.path.join(self.results_path, detected_file_name)
             with open(detected_json_path, "w", encoding="utf-8") as handle:
-                json.dump(self.detected, handle, indent=4, cls=CustomJSONEncoder)
+                json.dump(
+                    self.alertstore.alerts, handle, indent=4, cls=CustomJSONEncoder
+                )
 
     def serialize(self, result: ModuleAtomicResult) -> ModuleSerializedResult:
         raise NotImplementedError
@@ -165,17 +166,17 @@ class MVTModule:
                 else:
                     self.timeline.append(record)
 
-        for detected in self.detected:
-            record = self.serialize(detected)
-            if record:
-                if isinstance(record, list):
-                    self.timeline_detected.extend(record)
-                else:
-                    self.timeline_detected.append(record)
+        # for detected in self.alertstore.alerts:
+        #     record = self.serialize(detected)
+        #     if record:
+        #         if isinstance(record, list):
+        #             self.timeline_detected.extend(record)
+        #         else:
+        #             self.timeline_detected.append(record)
 
         # De-duplicate timeline entries.
         self.timeline = self._deduplicate_timeline(self.timeline)
-        self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
+        # self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self) -> None:
         """Run the main module procedure."""
@@ -230,7 +231,7 @@ def run_module(module: MVTModule) -> None:
             )
 
         else:
-            if module.indicators and not module.detected:
+            if module.indicators and not module.alertstore.alerts:
                 module.log.info(
                     "The %s module produced no detections!", module.__class__.__name__
                 )

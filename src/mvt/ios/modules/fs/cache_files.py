@@ -6,8 +6,13 @@
 import logging
 import os
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleSerializedResult,
+    ModuleResults,
+)
 from ..base import IOSExtraction
 
 
@@ -19,7 +24,7 @@ class CacheFiles(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -30,7 +35,7 @@ class CacheFiles(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
         for item in self.results[record]:
             records.append(
@@ -48,18 +53,19 @@ class CacheFiles(IOSExtraction):
         if not self.indicators:
             return
 
-        self.detected = {}
+        self.alertstore.alerts = {}
         for key, values in self.results.items():
             for value in values:
-                ioc = self.indicators.check_url(value["url"])
-                if ioc:
-                    value["matched_indicator"] = ioc
-                    if key not in self.detected:
-                        self.detected[key] = [
+                ioc_match = self.indicators.check_url(value["url"])
+                if ioc_match:
+                    value["matched_indicator"] = ioc_match.ioc
+                    # XXX: Finish converting this method
+                    if key not in self.alertstore.alerts:
+                        self.alertstore.alerts[key] = [
                             value,
                         ]
                     else:
-                        self.detected[key].append(value)
+                        self.alertstore.alerts[key].append(value)
 
     def _process_cache_file(self, file_path):
         self.log.info("Processing cache file at path: %s", file_path)
