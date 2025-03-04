@@ -29,7 +29,7 @@ def check_updates() -> None:
         if latest_version:
             rich_print(
                 f"\t\t[bold]Version {latest_version} is available! "
-                "Upgrade mvt with `pip3 install -U mvt`[/bold]"
+                "Upgrade mvt with `pip3 install -U mvt` or with `pipx upgrade mvt`[/bold]"
             )
 
     # Then we check for indicators files updates.
