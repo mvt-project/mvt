@@ -62,7 +62,7 @@ class TombstoneCrashResult(pydantic.BaseModel):
     process_name: Optional[str] = None
     binary_path: Optional[str] = None
     selinux_label: Optional[str] = None
-    uid: Optional[int] = None
+    uid: int
     signal_info: SignalInfo
     cause: Optional[str] = None
     extra: Optional[str] = None
@@ -124,7 +124,9 @@ class TombstoneCrashArtifact(AndroidArtifact):
         Parse Android tombstone crash files from a protobuf object.
         """
         tombstone_pb = Tombstone().parse(data)
-        tombstone_dict = tombstone_pb.to_dict(betterproto.Casing.SNAKE)
+        tombstone_dict = tombstone_pb.to_dict(
+            betterproto.Casing.SNAKE, include_default_values=True
+        )
 
         # Add some extra metadata
         tombstone_dict["timestamp"] = self._parse_timestamp_string(
