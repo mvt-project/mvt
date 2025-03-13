@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.common.command import Command
+from mvt.common.indicators import Indicators
 
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
@@ -20,19 +21,23 @@ class CmdIOSCheckFS(Command):
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
         ioc_files: Optional[list] = None,
+        iocs: Optional[Indicators] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         module_options: Optional[dict] = None,
         hashes: bool = False,
+        sub_command: bool = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
             results_path=results_path,
             ioc_files=ioc_files,
+            iocs=iocs,
             module_name=module_name,
             serial=serial,
             module_options=module_options,
             hashes=hashes,
+            sub_command=sub_command,
             log=log,
         )
 

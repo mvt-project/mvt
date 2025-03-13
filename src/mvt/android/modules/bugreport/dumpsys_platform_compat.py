@@ -6,12 +6,14 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_battery_history import DumpsysBatteryHistoryArtifact
+from mvt.android.artifacts.dumpsys_platform_compat import DumpsysPlatformCompatArtifact
 
-from .base import AndroidQFModule
+from mvt.android.modules.bugreport.base import BugReportModule
 
 
-class DumpsysBatteryHistory(DumpsysBatteryHistoryArtifact, AndroidQFModule):
+class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
+    """This module extracts details on uninstalled apps."""
+
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -31,16 +33,16 @@ class DumpsysBatteryHistory(DumpsysBatteryHistoryArtifact, AndroidQFModule):
         )
 
     def run(self) -> None:
-        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
-        if not dumpsys_file:
+        data = self._get_dumpstate_file()
+        if not data:
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
-        # Extract section
-        data = self._get_file_content(dumpsys_file[0])
-        section = self.extract_dumpsys_section(
-            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
-        )
+        data = data.decode("utf-8", errors="replace")
+        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE platform_compat:")
+        self.parse(content)
 
-        # Parse it
-        self.parse(section)
-        self.log.info("Extracted a total of %d battery daily stats", len(self.results))
+        self.log.info("Found %d uninstalled apps", len(self.results))
