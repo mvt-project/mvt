@@ -40,6 +40,7 @@ HELP_MSG_DOWNLOAD_ALL_APKS = (
     "Extract all packages installed on the phone, including system packages"
 )
 HELP_MSG_VIRUS_TOTAL = "Check packages on VirusTotal"
+HELP_MSG_DELAY_CHECKS = "Throttle virustotal checks to not exhaust the queries limit"
 HELP_MSG_APK_OUTPUT = "Specify a path to a folder where you want to store the APKs"
 HELP_MSG_APKS_FROM_FILE = (
     "Instead of acquiring APKs from a phone, load an existing packages.json file for "
