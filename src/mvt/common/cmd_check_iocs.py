@@ -78,7 +78,6 @@ class CmdCheckIOCS(Command):
                 except NotImplementedError:
                     continue
                 else:
-                    print(m.detected)
                     total_detections += len(m.detected)
 
         if total_detections > 0:
