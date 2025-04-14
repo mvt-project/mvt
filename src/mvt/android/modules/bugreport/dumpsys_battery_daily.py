@@ -6,12 +6,14 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
+from mvt.android.artifacts.dumpsys_battery_daily import DumpsysBatteryDailyArtifact
 
-from .base import AndroidQFModule
+from .base import BugReportModule
 
 
-class DumpsysAppops(DumpsysAppopsArtifact, AndroidQFModule):
+class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, BugReportModule):
+    """This module extracts records from battery daily updates."""
+
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -31,16 +33,17 @@ class DumpsysAppops(DumpsysAppopsArtifact, AndroidQFModule):
         )
 
     def run(self) -> None:
-        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
-        if not dumpsys_file:
+        content = self._get_dumpstate_file()
+        if not content:
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
-        # Extract section
-        data = self._get_file_content(dumpsys_file[0])
-        section = self.extract_dumpsys_section(
-            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE appops:"
+        dumpsys_section = self.extract_dumpsys_section(
+            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
         )
+        self.parse(dumpsys_section)
 
-        # Parse it
-        self.parse(section)
-        self.log.info("Identified %d applications in AppOps Manager", len(self.results))
+        self.log.info("Extracted a total of %d battery daily stats", len(self.results))

@@ -6,12 +6,14 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfoArtifact
+from mvt.android.artifacts.processes import Processes as ProcessesArtifact
 
 from .base import AndroidQFModule
 
 
-class DumpsysDBInfo(DumpsysDBInfoArtifact, AndroidQFModule):
+class AQFProcesses(ProcessesArtifact, AndroidQFModule):
+    """This module analyse running processes"""
+
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -31,16 +33,9 @@ class DumpsysDBInfo(DumpsysDBInfoArtifact, AndroidQFModule):
         )
 
     def run(self) -> None:
-        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
-        if not dumpsys_file:
+        ps_files = self._get_files_by_pattern("*/ps.txt")
+        if not ps_files:
             return
 
-        # Extract dumpsys DBInfo section
-        data = self._get_file_content(dumpsys_file[0])
-        section = self.extract_dumpsys_section(
-            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE dbinfo:"
-        )
-
-        # Parse it
-        self.parse(section)
-        self.log.info("Identified %d DB Info entries", len(self.results))
+        self.parse(self._get_file_content(ps_files[0]).decode("utf-8"))
+        self.log.info("Identified %d running processes", len(self.results))
