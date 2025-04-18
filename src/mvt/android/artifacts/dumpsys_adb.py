@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import base64
+import binascii
 import hashlib
 
 from .artifact import AndroidArtifact
@@ -89,11 +90,16 @@ class DumpsysADBArtifact(AndroidArtifact):
         else:
             key_base64, user = user_key, b""
 
-        key_raw = base64.b64decode(key_base64)
-        key_fingerprint = hashlib.md5(key_raw).hexdigest().upper()
-        key_fingerprint_colon = ":".join(
-            [key_fingerprint[i : i + 2] for i in range(0, len(key_fingerprint), 2)]
-        )
+        try:
+            key_raw = base64.b64decode(key_base64)
+            key_fingerprint = hashlib.md5(key_raw).hexdigest().upper()
+            key_fingerprint_colon = ":".join(
+                [key_fingerprint[i : i + 2] for i in range(0, len(key_fingerprint), 2)]
+            )
+        except binascii.Error:
+            # Impossible to parse base64
+            key_fingerprint_colon = ""
+
         return {
             "user": user.decode("utf-8"),
             "fingerprint": key_fingerprint_colon,
