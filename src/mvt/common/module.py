@@ -75,9 +75,7 @@ class MVTModule:
                     log.info('Loaded %d results from "%s"', len(results), json_path)
                 return cls(results=results, log=log)
             except json.decoder.JSONDecodeError as err:
-                log.error(
-                    'Error to decode the json "%s" file: "%s"', json_path, err
-                )
+                log.error('Error to decode the json "%s" file: "%s"', json_path, err)
                 return None
 
     @classmethod

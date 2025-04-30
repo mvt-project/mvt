@@ -66,7 +66,7 @@ class CmdCheckIOCS(Command):
                     file_path, log=logging.getLogger(iocs_module.__module__)
                 )
                 if not m:
-                    log.warning('No result from this module, skipping it')
+                    log.warning("No result from this module, skipping it")
                     continue
 
                 if self.iocs.total_ioc_count > 0:
