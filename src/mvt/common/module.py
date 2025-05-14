@@ -69,10 +69,14 @@ class MVTModule:
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
         with open(json_path, "r", encoding="utf-8") as handle:
-            results = json.load(handle)
-            if log:
-                log.info('Loaded %d results from "%s"', len(results), json_path)
-            return cls(results=results, log=log)
+            try:
+                results = json.load(handle)
+                if log:
+                    log.info('Loaded %d results from "%s"', len(results), json_path)
+                return cls(results=results, log=log)
+            except json.decoder.JSONDecodeError as err:
+                log.error('Error to decode the json "%s" file: "%s"', json_path, err)
+                return None
 
     @classmethod
     def get_slug(cls) -> str:
