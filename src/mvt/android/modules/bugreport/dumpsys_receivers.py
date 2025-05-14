@@ -6,13 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_adb import DumpsysADBArtifact
+from mvt.android.artifacts.dumpsys_receivers import DumpsysReceiversArtifact
 
-from .base import AndroidExtraction
+from .base import BugReportModule
 
 
-class DumpsysADBState(DumpsysADBArtifact, AndroidExtraction):
-    """This module extracts ADB keystore state."""
+class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
+    """This module extracts details on receivers for risky activities."""
 
     def __init__(
         self,
@@ -32,14 +32,20 @@ class DumpsysADBState(DumpsysADBArtifact, AndroidExtraction):
             results=results,
         )
 
-    def run(self) -> None:
-        self._adb_connect()
-        output = self._adb_command("dumpsys adb", decode=False)
-        self._adb_disconnect()
+        self.results = results if results else {}
 
-        self.parse(output)
-        if self.results:
-            self.log.info(
-                "Identified a total of %d trusted ADB keys",
-                len(self.results[0].get("user_keys", [])),
+    def run(self) -> None:
+        content = self._get_dumpstate_file()
+        if not content:
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
             )
+            return
+
+        dumpsys_section = self.extract_dumpsys_section(
+            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE package:"
+        )
+
+        self.parse(dumpsys_section)
+        self.log.info("Extracted receivers for %d intents", len(self.results))
