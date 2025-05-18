@@ -4,6 +4,8 @@ name: Create and publish a Docker image
 # Configures this workflow to run every time a release is published.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   release:
     types: [published]
 
@@ -23,6 +25,15 @@ jobs:
       attestations: write
       id-token: write
       #
+    strategy:
+      matrix:
+        platform:
+          - dockerfile: "Dockerfile"
+            tag-suffix: ""
+          - dockerfile: "Dockerfile.ios"
+            tag-suffix: "-ios"
+          - dockerfile: "Dockerfile.android"
+            tag-suffix: "-android"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,6 +50,15 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=latest,enable={{ is_default_branch }},suffix=${{ matrix.platform.tag-suffix }}
+            type=raw,enable=${{ github.event_name == 'release' || github.ref_type == 'tag' }},value=stable,suffix=${{ matrix.platform.tag-suffix }}
+            type=raw,enable=${{ github.event_name == 'release' }},value=${{ github.event.release.tag_name }},suffix=${{ matrix.platform.tag-suffix }}
+            type=raw,enable=${{ github.ref_type == 'tag' }},value=${{ github.ref_name }},suffix=${{ matrix.platform.tag-suffix }}
+            type=sha,suffix=${{ matrix.platform.tag-suffix }}
+            type=sha,format=long,suffix=${{ matrix.platform.tag-suffix }}
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
       # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
       # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
@@ -46,6 +66,7 @@ jobs:
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
+          file: ${{ matrix.platform.dockerfile }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
