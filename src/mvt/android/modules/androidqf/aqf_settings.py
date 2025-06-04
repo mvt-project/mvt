@@ -11,7 +11,7 @@ from mvt.android.artifacts.settings import Settings as SettingsArtifact
 from .base import AndroidQFModule
 
 
-class Settings(SettingsArtifact, AndroidQFModule):
+class AQFSettings(SettingsArtifact, AndroidQFModule):
     """This module analyse setting files"""
 
     def __init__(

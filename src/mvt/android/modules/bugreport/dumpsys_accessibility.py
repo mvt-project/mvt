@@ -6,13 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_battery_daily import DumpsysBatteryDailyArtifact
+from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
 
 from .base import BugReportModule
 
 
-class BatteryDaily(DumpsysBatteryDailyArtifact, BugReportModule):
-    """This module extracts records from battery daily updates."""
+class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
+    """This module extracts stats on accessibility."""
 
     def __init__(
         self,
@@ -33,17 +33,25 @@ class BatteryDaily(DumpsysBatteryDailyArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        full_dumpsys = self._get_dumpstate_file()
+        if not full_dumpsys:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        dumpsys_section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
+        content = self.extract_dumpsys_section(
+            full_dumpsys.decode("utf-8", errors="ignore"),
+            "DUMP OF SERVICE accessibility:",
         )
-        self.parse(dumpsys_section)
+        self.parse(content)
 
-        self.log.info("Extracted a total of %d battery daily stats", len(self.results))
+        for result in self.results:
+            self.log.info(
+                'Found installed accessibility service "%s"', result.get("service")
+            )
+
+        self.log.info(
+            "Identified a total of %d accessibility services", len(self.results)
+        )
