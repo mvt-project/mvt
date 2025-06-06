@@ -6,6 +6,11 @@
 import datetime
 import json
 import logging
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 from typing import Optional, Union
 
 from mvt.android.modules.androidqf.base import AndroidQFModule
@@ -106,6 +111,12 @@ class Files(AndroidQFModule):
             # TODO: adds SHA1 and MD5 when available in MVT
 
     def run(self) -> None:
+        if timezone := self._get_device_timezone():
+            device_timezone = zoneinfo.ZoneInfo(timezone)
+        else:
+            self.log.warning("Unable to determine device timezone, using UTC")
+            device_timezone = zoneinfo.ZoneInfo("UTC")
+
         for file in self._get_files_by_pattern("*/files.json"):
             rawdata = self._get_file_content(file).decode("utf-8", errors="ignore")
             try:
@@ -120,11 +131,18 @@ class Files(AndroidQFModule):
             for file_data in data:
                 for ts in ["access_time", "changed_time", "modified_time"]:
                     if ts in file_data:
-                        file_data[ts] = convert_datetime_to_iso(
-                            datetime.datetime.fromtimestamp(
-                                file_data[ts], tz=datetime.timezone.utc
-                            )
+                        utc_timestamp = datetime.datetime.fromtimestamp(
+                            file_data[ts], tz=datetime.timezone.utc
                         )
+                        # Convert the UTC timestamp to local tiem on Android device's local timezone
+                        local_timestamp = utc_timestamp.astimezone(device_timezone)
+
+                        # HACK: We only output the UTC timestamp in convert_datetime_to_iso, we
+                        # set the timestamp timezone to UTC, to avoid the timezone conversion again.
+                        local_timestamp = local_timestamp.replace(
+                            tzinfo=datetime.timezone.utc
+                        )
+                        file_data[ts] = convert_datetime_to_iso(local_timestamp)
 
                 self.results.append(file_data)
 

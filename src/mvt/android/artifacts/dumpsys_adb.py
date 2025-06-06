@@ -4,13 +4,14 @@
 #   https://license.mvt.re/1.1/
 
 import base64
+import binascii
 import hashlib
 
 from .artifact import AndroidArtifact
 
 
 class DumpsysADBArtifact(AndroidArtifact):
-    multiline_fields = ["user_keys"]
+    multiline_fields = ["user_keys", "keystore"]
 
     def indented_dump_parser(self, dump_data):
         """
@@ -67,14 +68,38 @@ class DumpsysADBArtifact(AndroidArtifact):
 
         return res
 
+    def parse_xml(self, xml_data):
+        """
+        Parse XML data from dumpsys ADB output
+        """
+        import xml.etree.ElementTree as ET
+
+        keystore = []
+        keystore_root = ET.fromstring(xml_data)
+        for adb_key in keystore_root.findall("adbKey"):
+            key_info = self.calculate_key_info(adb_key.get("key").encode("utf-8"))
+            key_info["last_connected"] = adb_key.get("lastConnection")
+            keystore.append(key_info)
+
+        return keystore
+
     @staticmethod
     def calculate_key_info(user_key: bytes) -> str:
-        key_base64, user = user_key.split(b" ", 1)
-        key_raw = base64.b64decode(key_base64)
-        key_fingerprint = hashlib.md5(key_raw).hexdigest().upper()
-        key_fingerprint_colon = ":".join(
-            [key_fingerprint[i : i + 2] for i in range(0, len(key_fingerprint), 2)]
-        )
+        if b" " in user_key:
+            key_base64, user = user_key.split(b" ", 1)
+        else:
+            key_base64, user = user_key, b""
+
+        try:
+            key_raw = base64.b64decode(key_base64)
+            key_fingerprint = hashlib.md5(key_raw).hexdigest().upper()
+            key_fingerprint_colon = ":".join(
+                [key_fingerprint[i : i + 2] for i in range(0, len(key_fingerprint), 2)]
+            )
+        except binascii.Error:
+            # Impossible to parse base64
+            key_fingerprint_colon = ""
+
         return {
             "user": user.decode("utf-8"),
             "fingerprint": key_fingerprint_colon,
@@ -115,8 +140,24 @@ class DumpsysADBArtifact(AndroidArtifact):
         if parsed.get("debugging_manager") is None:
             self.log.error("Unable to find expected ADB entries in dumpsys output")  # noqa
             return
+
+        # Keystore can be in different levels, as the basic parser
+        # is not always consistent due to different dumpsys formats.
+        if parsed.get("keystore"):
+            keystore_data = b"\n".join(parsed["keystore"])
+        elif parsed["debugging_manager"].get("keystore"):
+            keystore_data = b"\n".join(parsed["debugging_manager"]["keystore"])
         else:
-            parsed = parsed["debugging_manager"]
+            keystore_data = None
+
+        # Keystore is in XML format on some devices and we need to parse it
+        if keystore_data and keystore_data.startswith(b"<?xml"):
+            parsed["debugging_manager"]["keystore"] = self.parse_xml(keystore_data)
+        else:
+            # Keystore is not XML format
+            parsed["debugging_manager"]["keystore"] = keystore_data
+
+        parsed = parsed["debugging_manager"]
 
         # Calculate key fingerprints for better readability
         key_info = []

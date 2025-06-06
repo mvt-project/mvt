@@ -100,7 +100,7 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
     if key_file:
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
             log.info(
-                "Ignoring %s environment variable, using --key-file" "'%s' instead",
+                "Ignoring %s environment variable, using --key-file'%s' instead",
                 MVT_IOS_BACKUP_PASSWORD,
                 key_file,
             )
@@ -114,7 +114,7 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
 
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
             log.info(
-                "Ignoring %s environment variable, using --password" "argument instead",
+                "Ignoring %s environment variable, using --passwordargument instead",
                 MVT_IOS_BACKUP_PASSWORD,
             )
 
@@ -170,8 +170,7 @@ def extract_key(password, key_file, backup_path):
 
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
             log.info(
-                "Ignoring %s environment variable, using --password "
-                "argument instead",
+                "Ignoring %s environment variable, using --password argument instead",
                 MVT_IOS_BACKUP_PASSWORD,
             )
     elif MVT_IOS_BACKUP_PASSWORD in os.environ:

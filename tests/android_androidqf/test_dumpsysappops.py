@@ -21,4 +21,9 @@ class TestDumpsysAppOpsModule:
         run_module(m)
         assert len(m.results) == 12
         assert len(m.timeline) == 16
-        assert len(m.detected) == 0
+
+        detected_by_ioc = [
+            detected for detected in m.detected if detected.get("matched_indicator")
+        ]
+        assert len(m.detected) == 1
+        assert len(detected_by_ioc) == 0

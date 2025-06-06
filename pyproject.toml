@@ -32,6 +32,11 @@ dependencies = [
     "cryptography >=42.0.5",
     "pyyaml >=6.0",
     "pyahocorasick >= 2.0.0",
+    "betterproto >=1.2.0",
+    "pydantic >= 2.10.0",
+    "pydantic-settings >= 2.7.0",
+    'backports.zoneinfo; python_version < "3.9"',
+    "NSKeyedUnArchiver==1.5",
 ]
 requires-python = ">= 3.8"
 

@@ -17,6 +17,7 @@ from mvt.common.utils import (
     generate_hashes_from_path,
     get_sha256_from_file_path,
 )
+from mvt.common.config import settings
 from mvt.common.version import MVT_VERSION
 
 
@@ -81,7 +82,7 @@ class Command:
             os.path.join(self.results_path, "command.log")
         )
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - " "%(levelname)s - %(message)s"
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
@@ -100,15 +101,25 @@ class Command:
         if not self.results_path:
             return
 
+        # We use local timestamps in the timeline on Android as many
+        # logs do not contain timezone information.
+        if type(self).__name__.startswith("CmdAndroid"):
+            is_utc = False
+        else:
+            is_utc = True
+
         if len(self.timeline) > 0:
             save_timeline(
-                self.timeline, os.path.join(self.results_path, "timeline.csv")
+                self.timeline,
+                os.path.join(self.results_path, "timeline.csv"),
+                is_utc=is_utc,
             )
 
         if len(self.timeline_detected) > 0:
             save_timeline(
                 self.timeline_detected,
                 os.path.join(self.results_path, "timeline_detected.csv"),
+                is_utc=is_utc,
             )
 
     def _store_info(self) -> None:
@@ -132,7 +143,7 @@ class Command:
             if ioc_file_path and ioc_file_path not in info["ioc_files"]:
                 info["ioc_files"].append(ioc_file_path)
 
-        if self.target_path and (os.environ.get("MVT_HASH_FILES") or self.hashes):
+        if self.target_path and (settings.HASH_FILES or self.hashes):
             self.generate_hashes()
 
         info["hashes"] = self.hash_values
@@ -141,7 +152,7 @@ class Command:
         with open(info_path, "w+", encoding="utf-8") as handle:
             json.dump(info, handle, indent=4)
 
-        if self.target_path and (os.environ.get("MVT_HASH_FILES") or self.hashes):
+        if self.target_path and (settings.HASH_FILES or self.hashes):
             info_hash = get_sha256_from_file_path(info_path)
             self.log.info('Reference hash of the info.json file: "%s"', info_hash)
 
