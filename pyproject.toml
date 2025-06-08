@@ -35,10 +35,9 @@ dependencies = [
     "betterproto==1.2.5",
     "pydantic==2.11.5",
     "pydantic-settings==2.9.1",
-    'backports.zoneinfo; python_version < "3.9"',
     "NSKeyedUnArchiver==1.5",
 ]
-requires-python = ">= 3.8"
+requires-python = ">= 3.10"
 
 [project.urls]
 homepage = "https://docs.mvt.re/en/latest/"
