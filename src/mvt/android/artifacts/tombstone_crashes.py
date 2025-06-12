@@ -8,6 +8,7 @@ from typing import List, Optional, Union
 
 import pydantic
 import betterproto
+from dateutil import parser
 
 from mvt.common.utils import convert_datetime_to_iso
 from mvt.android.parsers.proto.tombstone import Tombstone
@@ -254,12 +255,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
 
     @staticmethod
     def _parse_timestamp_string(timestamp: str) -> str:
-        timestamp_date, timezone = timestamp.split("+")
-        # Truncate microseconds before parsing
-        timestamp_without_micro = timestamp_date.split(".")[0] + "+" + timezone
-        timestamp_parsed = datetime.datetime.strptime(
-            timestamp_without_micro, "%Y-%m-%d %H:%M:%S%z"
-        )
+        timestamp_parsed = parser.parse(timestamp)
 
         # HACK: Swap the local timestamp to UTC, so keep the original time and avoid timezone conversion.
         local_timestamp = timestamp_parsed.replace(tzinfo=datetime.timezone.utc)
