@@ -35,7 +35,7 @@ dependencies = [
     "betterproto==1.2.5",
     "pydantic==2.11.5",
     "pydantic-settings==2.9.1",
-    "NSKeyedUnArchiver==1.5",
+    "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
 ]
 requires-python = ">= 3.10"
