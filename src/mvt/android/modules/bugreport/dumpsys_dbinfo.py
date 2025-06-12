@@ -6,13 +6,15 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_adb import DumpsysADBArtifact
+from mvt.android.artifacts.dumpsys_dbinfo import DumpsysDBInfoArtifact
 
-from .base import AndroidQFModule
+from .base import BugReportModule
 
 
-class DumpsysADBState(DumpsysADBArtifact, AndroidQFModule):
-    """This module extracts ADB keystore state."""
+class DumpsysDBInfo(DumpsysDBInfoArtifact, BugReportModule):
+    """This module extracts records from battery daily updates."""
+
+    slug = "dbinfo"
 
     def __init__(
         self,
@@ -33,19 +35,20 @@ class DumpsysADBState(DumpsysADBArtifact, AndroidQFModule):
         )
 
     def run(self) -> None:
-        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
-        if not dumpsys_file:
+        data = self._get_dumpstate_file()
+        if not data:
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
-        full_dumpsys = self._get_file_content(dumpsys_file[0])
-        content = self.extract_dumpsys_section(
-            full_dumpsys,
-            b"DUMP OF SERVICE adb:",
-            binary=True,
+        section = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="ignore"), "DUMP OF SERVICE dbinfo:"
         )
-        self.parse(content)
-        if self.results:
-            self.log.info(
-                "Identified a total of %d trusted ADB keys",
-                len(self.results[0].get("user_keys", [])),
-            )
+
+        self.parse(section)
+        self.log.info(
+            "Extracted a total of %d database connection pool records",
+            len(self.results),
+        )

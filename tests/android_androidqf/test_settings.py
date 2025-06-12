@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from mvt.android.modules.androidqf.settings import Settings
+from mvt.android.modules.androidqf.aqf_settings import AQFSettings
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf, list_files
@@ -14,10 +14,10 @@ from ..utils import get_android_androidqf, list_files
 class TestSettingsModule:
     def test_parsing(self):
         data_path = get_android_androidqf()
-        m = Settings(target_path=data_path)
+        m = AQFSettings(target_path=data_path)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert len(m.results) == 1
         assert "random" in m.results.keys()

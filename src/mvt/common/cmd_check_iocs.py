@@ -22,6 +22,8 @@ class CmdCheckIOCS(Command):
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         module_options: Optional[dict] = None,
+        hashes: Optional[bool] = False,
+        sub_command: Optional[bool] = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -30,6 +32,8 @@ class CmdCheckIOCS(Command):
             module_name=module_name,
             serial=serial,
             module_options=module_options,
+            hashes=hashes,
+            sub_command=sub_command,
             log=log,
         )
 

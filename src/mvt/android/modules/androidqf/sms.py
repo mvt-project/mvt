@@ -19,7 +19,13 @@ from .base import AndroidQFModule
 
 
 class SMS(AndroidQFModule):
-    """This module analyse SMS file in backup"""
+    """
+    This module analyse SMS file in backup
+
+    XXX: We should also de-duplicate this AQF module, but first we
+    need to add tests for loading encrypted SMS backups through the backup
+    sub-module.
+    """
 
     def __init__(
         self,
