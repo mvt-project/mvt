@@ -43,6 +43,9 @@ class GlobalPreferences(IOSExtraction):
                     self.log.warning("Lockdown mode enabled")
                 else:
                     self.log.warning("Lockdown mode disabled")
+            else: # If the property is not present, it is disabled by default
+                self.log.warning("Lockdown mode disabled")
+
 
     def process_file(self, file_path: str) -> None:
         with open(file_path, "rb") as handle:
