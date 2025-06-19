@@ -22,7 +22,7 @@ dependencies = [
     "click==8.2.1",
     "rich==14.0.0",
     "tld==0.13.1",
-    "requests==2.32.2",
+    "requests==2.32.4",
     "simplejson==3.20.1",
     "packaging==25.0",
     "appdirs==1.4.4",
