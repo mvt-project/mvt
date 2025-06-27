@@ -42,7 +42,7 @@ class IOSExtraction(MVTModule):
     def _recover_sqlite_db_if_needed(
         self, file_path: str, forced: bool = False
     ) -> None:
-        """Tries to recover a malformed database by running a .clone command.
+        """Tries to recover a malformed database by running a .recover command.
 
         :param file_path: Path to the malformed database file.
 
