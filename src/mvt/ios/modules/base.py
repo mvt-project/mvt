@@ -42,7 +42,7 @@ class IOSExtraction(MVTModule):
     def _recover_sqlite_db_if_needed(
         self, file_path: str, forced: bool = False
     ) -> None:
-        """Tries to recover a malformed database by running a .recover command.
+        """Tries to recover a malformed database by running a .clone command.
 
         :param file_path: Path to the malformed database file.
 
@@ -97,12 +97,12 @@ class IOSExtraction(MVTModule):
 
         if p1.returncode != 0:
             raise DatabaseCorruptedError("failed to recover database")
-        
+
         if b"sql error: no such table: sqlite_dbpage" in out:
             raise DatabaseCorruptedError(
                 ".recover not supported in this sqlite3 installation"
             )
-        
+
         p2 = subprocess.Popen(
             ["sqlite3", file_path],
             stdin=subprocess.PIPE,
@@ -114,7 +114,7 @@ class IOSExtraction(MVTModule):
 
         if p2.returncode != 0:
             raise DatabaseCorruptedError("failed to recover database")
-            
+
         self.log.info("Database at path %s recovered successfully!", file_path)
 
     def _open_sqlite_db(self, file_path: str) -> sqlite3.Connection:
