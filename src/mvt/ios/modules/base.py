@@ -99,7 +99,9 @@ class IOSExtraction(MVTModule):
             raise DatabaseCorruptedError("failed to recover database")
         
         if b"sql error: no such table: sqlite_dbpage" in out:
-            raise DatabaseCorruptedError(".recover not supported in this sqlite3 installation")
+            raise DatabaseCorruptedError(
+                ".recover not supported in this sqlite3 installation"
+            )
         
         p2 = subprocess.Popen(
             ["sqlite3", file_path],
