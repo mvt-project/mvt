@@ -42,7 +42,7 @@ class IOSExtraction(MVTModule):
     def _recover_sqlite_db_if_needed(
         self, file_path: str, forced: bool = False
     ) -> None:
-        """Tries to recover a malformed database by running a .clone command.
+        """Tries to recover a malformed database by running a .recover command.
 
         :param file_path: Path to the malformed database file.
 
@@ -85,12 +85,34 @@ class IOSExtraction(MVTModule):
         bak_path = f"{file_path}.bak"
         shutil.move(file_path, bak_path)
 
-        ret = subprocess.call(
-            ["sqlite3", bak_path, f'.clone "{file_path}"'],
+        # First we've try to recover the database. Note that this feature needs the DBPAGER feature in sqlite3, that it is not installed in precompiled binaries from APT.
+        # Official webpage allows us to recover successfully https://sqlite.org/2025/sqlite-tools-linux-x64-3500100.zip
+        p1 = subprocess.Popen(
+            ["sqlite3", bak_path, ".recover"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        if ret != 0:
+
+        out, err = p1.communicate()
+
+        if p1.returncode != 0:
+            raise DatabaseCorruptedError("failed to recover database")
+
+        if b"sql error: no such table: sqlite_dbpage" in out:
+            raise DatabaseCorruptedError(
+                ".recover not supported in this sqlite3 installation"
+            )
+
+        p2 = subprocess.Popen(
+            ["sqlite3", file_path],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        out2, err2 = p2.communicate(input=out)
+
+        if p2.returncode != 0:
             raise DatabaseCorruptedError("failed to recover database")
 
         self.log.info("Database at path %s recovered successfully!", file_path)
