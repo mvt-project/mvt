@@ -95,14 +95,17 @@ class SafariBrowserState(IOSExtraction):
             )
         except sqlite3.OperationalError:
             # Old version iOS <12 likely
-            cur.execute(
+            try:
+                cur.execute(
+                    """
+                    SELECT
+                        title, url, user_visible_url, last_viewed_time, session_data
+                    FROM tabs
+                    ORDER BY last_viewed_time;
                 """
-                SELECT
-                    title, url, user_visible_url, last_viewed_time, session_data
-                FROM tabs
-                ORDER BY last_viewed_time;
-            """
-            )
+                )
+            except sqlite3.OperationalError as e:
+                self.log.error(f"Error executing query: {e}")
 
         for row in cur:
             session_entries = []
