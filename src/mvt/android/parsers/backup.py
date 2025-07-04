@@ -231,6 +231,7 @@ def parse_sms_file(data):
             entry.pop("mms_body")
 
         body = entry.get("body", None)
+        message_links = None
         if body:
             message_links = check_for_links(entry["body"])
 
