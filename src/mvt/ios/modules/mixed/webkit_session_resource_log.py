@@ -100,7 +100,7 @@ class WebkitSessionResourceLog(IOSExtraction):
                         redirect_path += ", ".join(source_domains)
                         redirect_path += " -> "
 
-                    redirect_path += f"ORIGIN: \"{entry['origin']}\""
+                    redirect_path += f'ORIGIN: "{entry["origin"]}"'
 
                     if len(destination_domains) > 0:
                         redirect_path += " -> "

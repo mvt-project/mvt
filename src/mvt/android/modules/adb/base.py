@@ -326,8 +326,7 @@ class AndroidExtraction(MVTModule):
 
         if not header["backup"]:
             self.log.error(
-                "Extracting SMS via Android backup failed. "
-                "No valid backup data found."
+                "Extracting SMS via Android backup failed. No valid backup data found."
             )
             return None
 

@@ -43,5 +43,21 @@ class TestDumpsysAppopsArtifact:
         ind.ioc_collections[0]["app_ids"].append("com.facebook.katana")
         da.indicators = ind
         assert len(da.detected) == 0
+
         da.check_indicators()
-        assert len(da.detected) == 1
+        detected_by_ioc = [
+            detected for detected in da.detected if detected.get("matched_indicator")
+        ]
+        detected_by_permission_heuristic = [
+            detected
+            for detected in da.detected
+            if all(
+                [
+                    perm["name"] == "REQUEST_INSTALL_PACKAGES"
+                    for perm in detected["permissions"]
+                ]
+            )
+        ]
+        assert len(da.detected) == 3
+        assert len(detected_by_ioc) == 1
+        assert len(detected_by_permission_heuristic) == 2

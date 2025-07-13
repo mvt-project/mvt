@@ -1,0 +1,16 @@
+-------------------------------------------------------------------------------
+DUMP OF SERVICE adb:
+ADB MANAGER STATE (dumpsys adb):
+{
+  debugging_manager={
+    connected_to_adb=true
+    user_keys=QAAAAAcgbytJst31DsaSP7hn8QcBXKR9NPVPK9MZssFVSNIP user@laptop
+
+    keystore=<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+    <keyStore version="1">
+    <adbKey key="QAAAAAcgbytJst31DsaSP7hn8QcBXKR9NPVPK9MZssFVSNIP user@laptop" lastConnection="1628501829898" />
+    </keyStore>
+
+  }
+}
+--------- 0.012s was the duration of dumpsys adb, ending at: 2025-02-04 20:25:58

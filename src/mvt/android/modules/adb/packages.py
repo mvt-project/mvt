@@ -76,8 +76,7 @@ class Packages(AndroidExtraction):
         for result in self.results:
             if result["package_name"] in ROOT_PACKAGES:
                 self.log.warning(
-                    "Found an installed package related to "
-                    'rooting/jailbreaking: "%s"',
+                    'Found an installed package related to rooting/jailbreaking: "%s"',
                     result["package_name"],
                 )
                 self.detected.append(result)
