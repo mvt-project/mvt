@@ -9,6 +9,7 @@ from pathlib import Path
 from mvt.android.modules.bugreport.appops import Appops
 from mvt.android.modules.bugreport.getprop import Getprop
 from mvt.android.modules.bugreport.packages import Packages
+from mvt.android.modules.bugreport.tombstones import Tombstones
 from mvt.common.module import run_module
 
 from ..utils import get_artifact_folder
@@ -33,7 +34,12 @@ class TestBugreportAnalysis:
         m = self.launch_bug_report_module(Appops)
         assert len(m.results) == 12
         assert len(m.timeline) == 16
-        assert len(m.detected) == 0
+
+        detected_by_ioc = [
+            detected for detected in m.detected if detected.get("matched_indicator")
+        ]
+        assert len(m.detected) == 1  # Hueristic detection for suspicious permissions
+        assert len(detected_by_ioc) == 0
 
     def test_packages_module(self):
         m = self.launch_bug_report_module(Packages)
@@ -49,3 +55,8 @@ class TestBugreportAnalysis:
     def test_getprop_module(self):
         m = self.launch_bug_report_module(Getprop)
         assert len(m.results) == 0
+
+    def test_tombstones_modules(self):
+        m = self.launch_bug_report_module(Tombstones)
+        assert len(m.results) == 2
+        assert m.results[1]["pid"] == 3559

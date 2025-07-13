@@ -42,6 +42,17 @@ class GetProp(AndroidArtifact):
             entry = {"name": matches[0][0], "value": matches[0][1]}
             self.results.append(entry)
 
+    def get_device_timezone(self) -> str:
+        """
+        Get the device timezone from the getprop results
+
+        Used in other moduels to calculate the timezone offset
+        """
+        for entry in self.results:
+            if entry["name"] == "persist.sys.timezone":
+                return entry["value"]
+        return None
+
     def check_indicators(self) -> None:
         for entry in self.results:
             if entry["name"] in INTERESTING_PROPERTIES:

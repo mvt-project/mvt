@@ -103,7 +103,7 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
 
 
 # Create main image
-FROM ubuntu:22.04 as main
+FROM ubuntu:24.04 as main
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
@@ -135,8 +135,7 @@ COPY --from=build-usbmuxd /build /
 COPY . mvt/
 RUN apt-get update \
    && apt-get install -y git python3-pip \
-   && PIP_NO_CACHE_DIR=1 pip3 install --upgrade pip \
-   && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+   && PIP_NO_CACHE_DIR=1 pip3 install --break-system-packages ./mvt \
    && apt-get remove -y python3-pip git && apt-get autoremove -y \
    && rm -rf /var/lib/apt/lists/* \
    && rm -rf mvt

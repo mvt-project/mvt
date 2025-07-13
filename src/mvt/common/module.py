@@ -69,10 +69,14 @@ class MVTModule:
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
         with open(json_path, "r", encoding="utf-8") as handle:
-            results = json.load(handle)
-            if log:
-                log.info('Loaded %d results from "%s"', len(results), json_path)
-            return cls(results=results, log=log)
+            try:
+                results = json.load(handle)
+                if log:
+                    log.info('Loaded %d results from "%s"', len(results), json_path)
+                return cls(results=results, log=log)
+            except json.decoder.JSONDecodeError as err:
+                log.error('Error to decode the json "%s" file: "%s"', json_path, err)
+                return None
 
     @classmethod
     def get_slug(cls) -> str:
@@ -227,7 +231,7 @@ def run_module(module: MVTModule) -> None:
         module.save_to_json()
 
 
-def save_timeline(timeline: list, timeline_path: str) -> None:
+def save_timeline(timeline: list, timeline_path: str, is_utc: bool = True) -> None:
     """Save the timeline in a csv file.
 
     :param timeline: List of records to order and store
@@ -238,7 +242,12 @@ def save_timeline(timeline: list, timeline_path: str) -> None:
         csvoutput = csv.writer(
             handle, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL, escapechar="\\"
         )
-        csvoutput.writerow(["UTC Timestamp", "Plugin", "Event", "Description"])
+
+        if is_utc:
+            timestamp_header = "UTC Timestamp"
+        else:
+            timestamp_header = "Device Local Timestamp"
+        csvoutput.writerow([timestamp_header, "Plugin", "Event", "Description"])
 
         for event in sorted(
             timeline, key=lambda x: x["timestamp"] if x["timestamp"] is not None else ""

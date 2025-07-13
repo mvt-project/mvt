@@ -17,6 +17,11 @@ ANDROID_DANGEROUS_SETTINGS = [
         "safe_value": "1",
     },
     {
+        "description": "disabled APK package verification",
+        "key": "package_verifier_state",
+        "safe_value": "1",
+    },
+    {
         "description": "disabled Google Play Protect",
         "key": "package_verifier_user_consent",
         "safe_value": "1",

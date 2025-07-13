@@ -25,6 +25,11 @@ install:
 test-requirements:
 	python3 -m pip install --upgrade -r test-requirements.txt
 
+generate-proto-parsers:
+	# Generate python parsers for protobuf files
+	PROTO_FILES=$$(find src/mvt/android/parsers/proto/ -iname "*.proto"); \
+	protoc -Isrc/mvt/android/parsers/proto/ --python_betterproto_out=src/mvt/android/parsers/proto/ $$PROTO_FILES
+
 clean:
 	rm -rf $(PWD)/build $(PWD)/dist $(PWD)/src/mvt.egg-info
 
