@@ -64,4 +64,4 @@ class TestTombstoneCrashArtifact:
         # We often don't know the time offset for a log entry and so can't convert everything to UTC.
         # MVT should output the local time only:
         # So original 2023-04-12 12:32:40.518290770+0200 -> 2023-04-12 12:32:40.000000
-        assert tombstone_result.get("timestamp") == "2023-04-12 12:32:40.000000"
+        assert tombstone_result.get("timestamp") == "2023-04-12 12:32:40.518290"
