@@ -116,53 +116,53 @@ class WebkitSessionResourceLog(IOSExtraction):
                     )
 
     def _extract_browsing_stats(self, log_path):
-            items = []
+        items = []
 
-            with open(log_path, "rb") as handle:
-                file_plist = plistlib.load(handle)
+        with open(log_path, "rb") as handle:
+            file_plist = plistlib.load(handle)
 
-            if "browsingStatistics" not in file_plist:
-                return items
-
-            browsing_stats = file_plist["browsingStatistics"]
-
-            for item in browsing_stats:
-                most_recent_interaction, last_seen = None, None
-                if "mostRecentUserInteraction" in item:
-                    try:
-                        most_recent_interaction = convert_datetime_to_iso(
-                            item["mostRecentUserInteraction"]
-                        )
-                    except Exception:
-                        self.log.error(
-                            f'Error converting date of Safari resource"most recent interaction": {item["mostRecentUserInteraction"]}'
-                        )
-                if "lastSeen" in item:
-                    try:
-                        last_seen = convert_datetime_to_iso(item["lastSeen"])
-                    except Exception:
-                        self.log.error(
-                            f'Error converting date of Safari resource"last seen": {item["lastSeen"]}'
-                        )
-
-                items.append(
-                    {
-                        "origin": item.get("PrevalentResourceOrigin", ""),
-                        "redirect_source": item.get("topFrameUniqueRedirectsFrom", ""),
-                        "redirect_destination": item.get("topFrameUniqueRedirectsTo", ""),
-                        "subframe_under_origin": item.get(
-                            "subframeUnderTopFrameOrigins", ""
-                        ),
-                        "subresource_under_origin": item.get(
-                            "subresourceUnderTopFrameOrigins", ""
-                        ),
-                        "user_interaction": item.get("hadUserInteraction"),
-                        "most_recent_interaction": most_recent_interaction,
-                        "last_seen": last_seen,
-                    }
-                )
-
+        if "browsingStatistics" not in file_plist:
             return items
+
+        browsing_stats = file_plist["browsingStatistics"]
+
+        for item in browsing_stats:
+            most_recent_interaction, last_seen = None, None
+            if "mostRecentUserInteraction" in item:
+                try:
+                    most_recent_interaction = convert_datetime_to_iso(
+                        item["mostRecentUserInteraction"]
+                    )
+                except Exception:
+                    self.log.error(
+                        f'Error converting date of Safari resource"most recent interaction": {item["mostRecentUserInteraction"]}'
+                    )
+            if "lastSeen" in item:
+                try:
+                    last_seen = convert_datetime_to_iso(item["lastSeen"])
+                except Exception:
+                    self.log.error(
+                        f'Error converting date of Safari resource"last seen": {item["lastSeen"]}'
+                    )
+
+            items.append(
+                {
+                    "origin": item.get("PrevalentResourceOrigin", ""),
+                    "redirect_source": item.get("topFrameUniqueRedirectsFrom", ""),
+                    "redirect_destination": item.get("topFrameUniqueRedirectsTo", ""),
+                    "subframe_under_origin": item.get(
+                        "subframeUnderTopFrameOrigins", ""
+                    ),
+                    "subresource_under_origin": item.get(
+                        "subresourceUnderTopFrameOrigins", ""
+                    ),
+                    "user_interaction": item.get("hadUserInteraction"),
+                    "most_recent_interaction": most_recent_interaction,
+                    "last_seen": last_seen,
+                }
+            )
+
+        return items
 
     def run(self) -> None:
         if self.is_backup:
