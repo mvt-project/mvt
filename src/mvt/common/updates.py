@@ -24,7 +24,7 @@ INDICATORS_CHECK_FREQUENCY = 12
 
 class MVTUpdates:
     def check(self) -> str:
-        res = requests.get(settings.PYPI_UPDATE_URL, timeout=15)
+        res = requests.get(settings.PYPI_UPDATE_URL, timeout=5)
         data = res.json()
         latest_version = data.get("info", {}).get("version", "")
 
@@ -93,7 +93,7 @@ class IndicatorsUpdates:
         url = self.github_raw_url.format(
             self.index_owner, self.index_repo, self.index_branch, self.index_path
         )
-        res = requests.get(url, timeout=15)
+        res = requests.get(url, timeout=5)
         if res.status_code != 200:
             log.error(
                 "Failed to retrieve indicators index located at %s (error %d)",
@@ -171,7 +171,7 @@ class IndicatorsUpdates:
         file_commit_url = (
             f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}"
         )
-        res = requests.get(file_commit_url, timeout=15)
+        res = requests.get(file_commit_url, timeout=5)
         if res.status_code != 200:
             log.error(
                 "Failed to get details about file %s (error %d)",
