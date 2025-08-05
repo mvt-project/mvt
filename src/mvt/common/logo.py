@@ -12,7 +12,9 @@ from .updates import IndicatorsUpdates, MVTUpdates
 from .version import MVT_VERSION
 
 
-def check_updates(disable_version_check: bool = False, disable_indicator_check: bool = False) -> None:
+def check_updates(
+    disable_version_check: bool = False, disable_indicator_check: bool = False
+) -> None:
     log = logging.getLogger("mvt")
 
     # First we check for MVT version updates.
@@ -26,7 +28,9 @@ def check_updates(disable_version_check: bool = False, disable_indicator_check: 
                 "You may be working offline. Please update MVT regularly."
             )
         except Exception as e:
-            log.error("Error encountered when trying to check latest MVT version: %s", e)
+            log.error(
+                "Error encountered when trying to check latest MVT version: %s", e
+            )
         else:
             if latest_version:
                 rich_print(
@@ -66,7 +70,9 @@ def check_updates(disable_version_check: bool = False, disable_indicator_check: 
                 "You may be working offline. Please update MVT indicators regularly."
             )
         except Exception as e:
-            log.error("Error encountered when trying to check latest MVT indicators: %s", e)
+            log.error(
+                "Error encountered when trying to check latest MVT indicators: %s", e
+            )
         else:
             if ioc_to_update:
                 rich_print(
@@ -77,7 +83,9 @@ def check_updates(disable_version_check: bool = False, disable_indicator_check: 
                 rich_print("\t\tYour indicators files seem to be up to date.")
 
 
-def logo(disable_version_check: bool = False, disable_indicator_check: bool = False) -> None:
+def logo(
+    disable_version_check: bool = False, disable_indicator_check: bool = False
+) -> None:
     rich_print("\n")
     rich_print("\t[bold]MVT[/bold] - Mobile Verification Toolkit")
     rich_print("\t\thttps://mvt.re")
