@@ -55,6 +55,16 @@ log = logging.getLogger("mvt")
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
+def _get_disable_flags(ctx):
+    """Helper function to safely get disable flags from context."""
+    if ctx.obj is None:
+        return False, False
+    return (
+        ctx.obj.get("disable_version_check", False),
+        ctx.obj.get("disable_indicator_check", False),
+    )
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
@@ -183,8 +193,8 @@ def check_adb(
         module_name=module,
         serial=serial,
         module_options=module_options,
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -231,8 +241,8 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
         ioc_files=iocs,
         module_name=module,
         hashes=True,
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -295,8 +305,8 @@ def check_backup(
             "interactive": not non_interactive,
             "backup_password": cli_load_android_backup_password(log, backup_password),
         },
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -361,8 +371,8 @@ def check_androidqf(
             "interactive": not non_interactive,
             "backup_password": cli_load_android_backup_password(log, backup_password),
         },
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -401,8 +411,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
         target_path=folder,
         ioc_files=iocs,
         module_name=module,
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
     cmd.modules = BACKUP_MODULES + ADB_MODULES + BUGREPORT_MODULES
 

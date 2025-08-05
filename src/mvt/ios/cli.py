@@ -55,6 +55,16 @@ MVT_IOS_BACKUP_PASSWORD = "MVT_IOS_BACKUP_PASSWORD"
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
+def _get_disable_flags(ctx):
+    """Helper function to safely get disable flags from context."""
+    if ctx.obj is None:
+        return False, False
+    return (
+        ctx.obj.get("disable_version_check", False),
+        ctx.obj.get("disable_indicator_check", False),
+    )
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
@@ -236,8 +246,8 @@ def check_backup(
         module_name=module,
         module_options=module_options,
         hashes=hashes,
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -285,8 +295,8 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
         module_name=module,
         module_options=module_options,
         hashes=hashes,
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -325,8 +335,8 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
         target_path=folder,
         ioc_files=iocs,
         module_name=module,
-        disable_version_check=ctx.obj.get("disable_version_check", False),
-        disable_indicator_check=ctx.obj.get("disable_indicator_check", False),
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
     cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES
 
