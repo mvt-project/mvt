@@ -22,6 +22,8 @@ class CmdAndroidCheckADB(Command):
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         module_options: Optional[dict] = None,
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -31,6 +33,8 @@ class CmdAndroidCheckADB(Command):
             serial=serial,
             module_options=module_options,
             log=log,
+            disable_version_check=disable_version_check,
+            disable_indicator_check=disable_indicator_check,
         )
 
         self.name = "check-adb"
