@@ -31,6 +31,8 @@ HELP_MSG_BACKUP_KEYFILE = (
 HELP_MSG_EXTRACT_KEY = "Extract decryption key from an iTunes backup"
 HELP_MSG_CHECK_IOS_BACKUP = "Extract artifacts from an iTunes backup"
 HELP_MSG_CHECK_FS = "Extract artifacts from a full filesystem dump"
+HELP_MSG_COMMAND_COMPLETION_IOS = "Activate tab autocompletion for mvt-ios."
+
 
 # Android Specific
 HELP_MSG_SERIAL = "Specify a device serial number or HOST:PORT connection string"
@@ -49,3 +51,4 @@ HELP_MSG_CHECK_ADB = "Check an Android device over ADB"
 HELP_MSG_CHECK_BUGREPORT = "Check an Android Bug Report"
 HELP_MSG_CHECK_ANDROID_BACKUP = "Check an Android Backup"
 HELP_MSG_CHECK_ANDROIDQF = "Check data collected with AndroidQF"
+HELP_MSG_COMMAND_COMPLETION_ANDROID = "Activate tab autocompletion for mvt-android."
