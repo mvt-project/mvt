@@ -116,13 +116,16 @@ class TCC(IOSExtraction):
                 )
                 db_version = "v2"
             except sqlite3.OperationalError:
-                cur.execute(
-                    """SELECT
-                    service, client, client_type, allowed,
-                    prompt_count
-                    FROM access;"""
-                )
-                db_version = "v1"
+                try:
+                    cur.execute(
+                        """SELECT
+                        service, client, client_type, allowed,
+                        prompt_count
+                        FROM access;"""
+                    )
+                    db_version = "v1"
+                except sqlite3.OperationalError as e:
+                    self.log.error(f"Error parsing TCC database: {e}")
 
         for row in cur:
             service = row[0]

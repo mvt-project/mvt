@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "click==8.2.1",
-    "rich==14.0.0",
+    "rich==14.1.0",
     "tld==0.13.1",
     "requests==2.32.4",
     "simplejson==3.20.1",
@@ -29,12 +29,12 @@ dependencies = [
     "iOSbackup==0.9.925",
     "adb-shell[usb]==0.4.4",
     "libusb1==3.3.1",
-    "cryptography==45.0.4",
+    "cryptography==45.0.6",
     "PyYAML>=6.0.2",
     "pyahocorasick==2.2.0",
     "betterproto==1.2.5",
-    "pydantic==2.11.5",
-    "pydantic-settings==2.9.1",
+    "pydantic==2.11.7",
+    "pydantic-settings==2.10.1",
     "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
 ]
