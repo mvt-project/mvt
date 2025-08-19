@@ -23,7 +23,7 @@ install:
 	python3 -m pip install --upgrade -e .
 
 test-requirements:
-	python3 -m pip install --upgrade -r test-requirements.txt
+	python3 -m pip install --upgrade --group dev
 
 generate-proto-parsers:
 	# Generate python parsers for protobuf files
