@@ -59,15 +59,21 @@ class TestAndroidqfRootBinaries:
         assert su_result is not None
         assert "SuperUser binary" in su_result["description"]
 
-        busybox_result = next((r for r in module.results if "busybox" in r["binary_name"]), None)
+        busybox_result = next(
+            (r for r in module.results if "busybox" in r["binary_name"]), None
+        )
         assert busybox_result is not None
         assert "BusyBox utilities" in busybox_result["description"]
 
-        magisk_result = next((r for r in module.results if r["binary_name"] == "magisk"), None)
+        magisk_result = next(
+            (r for r in module.results if r["binary_name"] == "magisk"), None
+        )
         assert magisk_result is not None
         assert "Magisk root framework" in magisk_result["description"]
 
-        magiskhide_result = next((r for r in module.results if "magiskhide" in r["binary_name"]), None)
+        magiskhide_result = next(
+            (r for r in module.results if "magiskhide" in r["binary_name"]), None
+        )
         assert magiskhide_result is not None
         assert "Magisk hide utility" in magiskhide_result["description"]
 
@@ -76,9 +82,16 @@ class TestAndroidqfRootBinaries:
 
         # Check that warnings are logged for each root binary found
         assert 'Found root binary "su" at path "/system/bin/su"' in caplog.text
-        assert 'Found root binary "busybox" at path "/system/xbin/busybox"' in caplog.text
-        assert 'Found root binary "magisk" at path "/data/local/tmp/magisk"' in caplog.text
-        assert 'Found root binary "magiskhide" at path "/system/bin/magiskhide"' in caplog.text
+        assert (
+            'Found root binary "busybox" at path "/system/xbin/busybox"' in caplog.text
+        )
+        assert (
+            'Found root binary "magisk" at path "/data/local/tmp/magisk"' in caplog.text
+        )
+        assert (
+            'Found root binary "magiskhide" at path "/system/bin/magiskhide"'
+            in caplog.text
+        )
         assert "Device shows signs of rooting with 4 root binaries found" in caplog.text
 
     def test_serialize_method(self, module):

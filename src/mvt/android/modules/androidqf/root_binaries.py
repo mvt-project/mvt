@@ -36,7 +36,7 @@ class RootBinaries(AndroidQFModule):
             "timestamp": record.get("timestamp"),
             "module": self.__class__.__name__,
             "event": "root_binary_found",
-            "data": f"Root binary found: {record['path']} (binary: {record['binary_name']})"
+            "data": f"Root binary found: {record['path']} (binary: {record['binary_name']})",
         }
 
     def check_indicators(self) -> None:
@@ -49,14 +49,14 @@ class RootBinaries(AndroidQFModule):
             self.log.warning(
                 'Found root binary "%s" at path "%s"',
                 result["binary_name"],
-                result["path"]
+                result["path"],
             )
             self.detected.append(result)
 
         if self.detected:
             self.log.warning(
                 "Device shows signs of rooting with %d root binaries found",
-                len(self.detected)
+                len(self.detected),
             )
 
     def run(self) -> None:
@@ -67,7 +67,9 @@ class RootBinaries(AndroidQFModule):
             self.log.info("No root_binaries.json file found")
             return
 
-        rawdata = self._get_file_content(root_binaries_files[0]).decode("utf-8", errors="ignore")
+        rawdata = self._get_file_content(root_binaries_files[0]).decode(
+            "utf-8", errors="ignore"
+        )
 
         try:
             root_binary_paths = json.loads(rawdata)
@@ -91,7 +93,7 @@ class RootBinaries(AndroidQFModule):
             "magisk": "Magisk root framework",
             "magiskhide": "Magisk hide utility",
             "magiskinit": "Magisk init binary",
-            "magiskpolicy": "Magisk policy binary"
+            "magiskpolicy": "Magisk policy binary",
         }
 
         for path in root_binary_paths:
