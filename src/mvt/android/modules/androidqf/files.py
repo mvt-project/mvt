@@ -112,10 +112,18 @@ class Files(AndroidQFModule):
 
     def run(self) -> None:
         if timezone := self._get_device_timezone():
-            device_timezone = zoneinfo.ZoneInfo(timezone)
+            try:
+                device_timezone = zoneinfo.ZoneInfo(timezone)
+            except zoneinfo.ZoneInfoNotFoundError:
+                self.log.warning("Device timezone '%s' not found, using UTC", timezone)
+                device_timezone = datetime.timezone.utc
         else:
             self.log.warning("Unable to determine device timezone, using UTC")
-            device_timezone = zoneinfo.ZoneInfo("UTC")
+            try:
+                device_timezone = zoneinfo.ZoneInfo("UTC")
+            except zoneinfo.ZoneInfoNotFoundError:
+                # Fallback for Windows systems where zoneinfo might not have UTC
+                device_timezone = datetime.timezone.utc
 
         for file in self._get_files_by_pattern("*/files.json"):
             rawdata = self._get_file_content(file).decode("utf-8", errors="ignore")

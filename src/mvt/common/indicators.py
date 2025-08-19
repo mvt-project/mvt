@@ -654,7 +654,8 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("processes"):
-            parts = file_path.split("/")
+            # Use os-agnostic path splitting to handle both Windows (\) and Unix (/) separators
+            parts = file_path.replace("\\", "/").split("/")
             if ioc["value"] in parts:
                 self.log.warning(
                     "Found known suspicious process name mentioned in file at "

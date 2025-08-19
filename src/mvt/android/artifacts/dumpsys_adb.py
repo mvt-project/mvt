@@ -21,12 +21,22 @@ class DumpsysADBArtifact(AndroidArtifact):
         stack = [res]
         cur_indent = 0
         in_multiline = False
-        for line in dump_data.strip(b"\n").split(b"\n"):
+        # Normalize line endings to handle both Unix (\n) and Windows (\r\n)
+        normalized_data = dump_data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        for line in normalized_data.strip(b"\n").split(b"\n"):
+            # Skip completely empty lines
+            if not line.strip():
+                continue
+
             # Track the level of indentation
             indent = len(line) - len(line.lstrip())
             if indent < cur_indent:
                 # If the current line is less indented than the previous one, back out
-                stack.pop()
+                while len(stack) > 1 and indent < cur_indent:
+                    stack.pop()
+                    # Check if we were in multiline mode and need to exit it
+                    if in_multiline and not isinstance(stack[-1], list):
+                        in_multiline = False
                 cur_indent = indent
             else:
                 cur_indent = indent
@@ -38,12 +48,30 @@ class DumpsysADBArtifact(AndroidArtifact):
 
             # Annoyingly, some values are multiline and don't have a key on each line
             if in_multiline:
-                if key == "":
+                if key == "" and len(vals) < 2:
                     # If the line is empty, it's the terminator for the multiline value
                     in_multiline = False
                     stack.pop()
+                    current_dict = stack[-1]
+                elif len(vals) >= 2 and (key in self.multiline_fields or key == "}" or vals[1] == b"{"):
+                    # If we encounter a new field while in multiline mode, exit multiline mode
+                    # and process this line as a new field
+                    in_multiline = False
+                    stack.pop()
+                    current_dict = stack[-1]
+                    # Don't continue here - let the line be processed as a new field
                 else:
-                    current_dict.append(line.lstrip())
+                    # When in multiline mode, the top of stack should be a list
+                    if isinstance(stack[-1], list):
+                        stack[-1].append(line.lstrip())
+                    else:
+                        # Something went wrong with the stack, exit multiline mode
+                        in_multiline = False
+                        current_dict = stack[-1]
+                    continue
+
+            # Skip lines that don't have a value after '='
+            if len(vals) < 2:
                 continue
 
             if key == "}":
@@ -133,7 +161,16 @@ class DumpsysADBArtifact(AndroidArtifact):
 
         # TODO: Parse AdbDebuggingManager line in output.
         start_of_json = content.find(b"\n{") + 2
-        end_of_json = content.rfind(b"}\n") - 2
+
+        # Handle both Unix (\n) and Windows (\r\n) line endings
+        end_of_json = content.rfind(b"}\n")
+        if end_of_json == -1:
+            end_of_json = content.rfind(b"}\r\n")
+            if end_of_json == -1:
+                self.log.error("Unable to find end of JSON block in dumpsys output")
+                return
+
+        end_of_json -= 2
         json_content = content[start_of_json:end_of_json].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
