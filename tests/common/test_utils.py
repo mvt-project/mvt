@@ -62,7 +62,7 @@ class TestHashes:
     def test_hash_from_folder(self):
         path = os.path.join(get_artifact_folder(), "androidqf")
         hashes = list(generate_hashes_from_path(path, logging))
-        assert len(hashes) == 7
+        assert len(hashes) == 8
         # Sort the files to have reliable order for tests.
         hashes = sorted(hashes, key=lambda x: x["file_path"])
         assert hashes[0]["file_path"] == os.path.join(path, "backup.ab")
