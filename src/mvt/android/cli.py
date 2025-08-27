@@ -6,6 +6,8 @@
 import logging
 
 import click
+from quick_click_auto import enable_click_shell_completion
+from quick_click_auto.constants import ShellType
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (
@@ -31,6 +33,7 @@ from mvt.common.help import (
     HELP_MSG_HASHES,
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_STIX2,
+    HELP_MSG_COMMAND_COMPLETION_ANDROID,
 )
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
@@ -67,6 +70,20 @@ def cli():
 @cli.command("version", help=HELP_MSG_VERSION)
 def version():
     return
+
+
+# ==============================================================================
+# Command: shell-completion
+# ==============================================================================
+
+
+@cli.command("shell-completion", help=HELP_MSG_COMMAND_COMPLETION_ANDROID)
+def shell_completion():
+    enable_click_shell_completion(
+        program_name="mvt-android",
+        shells={ShellType.BASH, ShellType.ZSH},
+        verbose=True,
+    )
 
 
 # ==============================================================================
