@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""
+Final Termux Self-Use Data Aggregator
+- Local, GitHub, Dropbox, Google Drive
+- Extracts and encrypts personal/financial info
+- Auto audio logs + sync
+- Continuous 24/7
+- Admin-controlled
+"""
+
+import os,re,pandas as pd,requests,time
+from datetime import datetime
+from cryptography.fernet import Fernet
+import pyttsx3,dropbox
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+# ---------------- Configuration ----------------
+HOME=os.path.expanduser("~")
+LOG_FILE=os.path.join(HOME,"secure_final_log.csv")
+AUDIO_FOLDER=os.path.join(HOME,"audio_logs");os.makedirs(AUDIO_FOLDER,exist_ok=True)
+INTERVAL=600  # 10 mins
+LOCAL_DIRS=[HOME]
+
+GITHUB_USER=input("GitHub username: ").strip()
+GITHUB_TOKEN=input("GitHub PAT: ").strip()
+HEADERS={"Authorization":f"token {GITHUB_TOKEN}"}
+
+DROPBOX_TOKEN=input("Dropbox API Token: ").strip()
+DROPBOX_PATH="/secure_final_log.csv"
+
+gauth=GoogleAuth(); gauth.LocalWebserverAuth(); gdrive=GoogleDrive(gauth)
+
+while True:
+    try: KEY=input("32-byte base64 key: ").strip();F=Fernet(KEY);F.decrypt(F.encrypt(b"test"));break
+    except: print("Invalid key")
+
+ENGINE=pyttsx3.init()
+PATTERNS=[r"0x[a-fA-F0-9]{40}",r"[A-Za-z0-9]{32,}",r"\d{4}-\d{4}-\d{4}-\d{4}",r"\b\d{4}-\d{2}-\d{2}\b",r"[A-Z][a-z]+\s[A-Z][a-z]+"]
+
+# ---------------- Helper Functions ----------------
+enc=lambda v:F.encrypt(str(v).encode()).decode()
+dec=lambda v:F.decrypt(v.encode()).decode() if v else v
+
+def scan_file(f):r=[]; 
+try:t=open(f,"r",errors="ignore").read(); r+=[{"src":"local","file":f,"secret":enc(m)} for p in PATTERNS for m in re.findall(p,t)]
+except:pass; return r
+
+def scan_dirs(dirs):r=[];[r.extend(scan_file(os.path.join(root,f))) for d in dirs for root,_,fs in os.walk(d) for f in fs]; return r
+
+def list_github():repos,url=[],f"https://api.github.com/users/{GITHUB_USER}/repos"
+while url:
+    try:r=requests.get(url,headers=HEADERS);r.raise_for_status();data=r.json();repos+=[x['name'] for x in data];url=r.links.get('next',{}).get('url')
+    except:url=None
+return repos
+
+def scan_github(repo):r=[];stack=[f"https://api.github.com/repos/{GITHUB_USER}/{repo}/contents"]
+while stack:
+    try:url=stack.pop();r=requests.get
