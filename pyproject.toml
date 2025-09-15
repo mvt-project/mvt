@@ -31,7 +31,7 @@ dependencies = [
     "PyYAML>=6.0.2",
     "pyahocorasick==2.2.0",
     "betterproto==1.2.5",
-    "pydantic==2.11.7",
+    "pydantic==2.11.9",
     "pydantic-settings==2.10.1",
     "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
