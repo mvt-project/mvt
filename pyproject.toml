@@ -27,7 +27,7 @@ dependencies = [
     "iOSbackup==0.9.925",
     "adb-shell[usb]==0.4.4",
     "libusb1==3.3.1",
-    "cryptography==45.0.6",
+    "cryptography==45.0.7",
     "PyYAML>=6.0.2",
     "pyahocorasick==2.2.0",
     "betterproto==1.2.5",
