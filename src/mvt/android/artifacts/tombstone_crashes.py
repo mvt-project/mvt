@@ -8,6 +8,7 @@ from typing import List, Optional, Union
 
 import pydantic
 import betterproto
+from dateutil import parser
 
 from mvt.common.utils import convert_datetime_to_iso
 from mvt.android.parsers.proto.tombstone import Tombstone
@@ -62,7 +63,7 @@ class TombstoneCrashResult(pydantic.BaseModel):
     process_name: Optional[str] = None
     binary_path: Optional[str] = None
     selinux_label: Optional[str] = None
-    uid: Optional[int] = None
+    uid: int
     signal_info: SignalInfo
     cause: Optional[str] = None
     extra: Optional[str] = None
@@ -124,7 +125,9 @@ class TombstoneCrashArtifact(AndroidArtifact):
         Parse Android tombstone crash files from a protobuf object.
         """
         tombstone_pb = Tombstone().parse(data)
-        tombstone_dict = tombstone_pb.to_dict(betterproto.Casing.SNAKE)
+        tombstone_dict = tombstone_pb.to_dict(
+            betterproto.Casing.SNAKE, include_default_values=True
+        )
 
         # Add some extra metadata
         tombstone_dict["timestamp"] = self._parse_timestamp_string(
@@ -252,12 +255,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
 
     @staticmethod
     def _parse_timestamp_string(timestamp: str) -> str:
-        timestamp_date, timezone = timestamp.split("+")
-        # Truncate microseconds before parsing
-        timestamp_without_micro = timestamp_date.split(".")[0] + "+" + timezone
-        timestamp_parsed = datetime.datetime.strptime(
-            timestamp_without_micro, "%Y-%m-%d %H:%M:%S%z"
-        )
+        timestamp_parsed = parser.parse(timestamp)
 
         # HACK: Swap the local timestamp to UTC, so keep the original time and avoid timezone conversion.
         local_timestamp = timestamp_parsed.replace(tzinfo=datetime.timezone.utc)

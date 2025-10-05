@@ -1,0 +1,27 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'samsung/a10eea/a10:10/.190711.020/A105:user/release-keys'
+Revision: '5'
+ABI: 'arm'
+Timestamp: 2021-09-29 17:43:49+0200
+pid: 9850, tid: 9893, name: UsbFfs-worker  >>> /system/bin/adbd <<<
+uid: 2000
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'Check failed: payload.size() <= bytes_left (payload.size()=99, bytes_left=51) '
+    r0  00000000  r1  000026a5  r2  00000006  r3  f11fad98
+    r4  f11fadac  r5  f11fad90  r6  0000267a  r7  0000016b
+    r8  f11fada8  r9  f11fad98  r10 f11fadc8  r11 f11fadb8
+    ip  000026a5  sp  f11fad68  lr  f20c23b7  pc  f20c23ca
+
+backtrace:
+      #00 pc 000603ca  /apex/com.android.runtime/lib/bionic/libc.so (abort+166) (BuildId: 320fbdc2a1289fadd7dacae7f2eb77a3)
+      #01 pc 00007e23  /system/lib/libbase.so (android::base::DefaultAborter(char const*)+6) (BuildId: a28585ee446ea17e3e6fcf9c907fff2a)
+      #02 pc 0000855f  /system/lib/libbase.so (android::base::LogMessage::~LogMessage()+406) (BuildId: a28585ee446ea17e3e6fcf9c907fff2a)
+      #03 pc 000309cf  /system/lib/libadbd.so (UsbFfsConnection::ProcessRead(IoBlock*)+814) (BuildId: 3645b175977ae210c156a57b25dfa599)
+      #04 pc 00030459  /system/lib/libadbd.so (UsbFfsConnection::HandleRead(TransferId, long long)+84) (BuildId: 3645b175977ae210c156a57b25dfa599)
+      #05 pc 00030349  /system/lib/libadbd.so (UsbFfsConnection::ReadEvents()+92) (BuildId: 3645b175977ae210c156a57b25dfa599)
+      #06 pc 00030169  /system/lib/libadbd.so (_ZZN16UsbFfsConnection11StartWorkerEvENKUlvE_clEv+504) (BuildId: 3645b175977ae210c156a57b25dfa599)
+      #07 pc 0002ff53  /system/lib/libadbd.so (_ZNSt3__114__thread_proxyINS_5tupleIJNS_10unique_ptrINS_15__thread_structENS_14default_deleteIS3_EEEEZN16UsbFfsConnection11StartWorkerEvEUlvE_EEEEEPvSA_+26) (BuildId: 3645b175977ae210c156a57b25dfa599)
+      #08 pc 000a75b3  /apex/com.android.runtime/lib/bionic/libc.so (__pthread_start(void*)+20) (BuildId: 320fbdc2a1289fadd7dacae7f2eb77a3)
+      #09 pc 00061b33  /apex/com.android.runtime/lib/bionic/libc.so (__start_thread+30) (BuildId: 320fbdc2a1289fadd7dacae7f2eb77a3)
+
+

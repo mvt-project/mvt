@@ -54,3 +54,8 @@ class TestBugreportAnalysis:
     def test_getprop_module(self):
         m = self.launch_bug_report_module(DumpsysGetProp)
         assert len(m.results) == 0
+
+    def test_tombstones_modules(self):
+        m = self.launch_bug_report_module(Tombstones)
+        assert len(m.results) == 2
+        assert m.results[1]["pid"] == 3559
