@@ -73,7 +73,7 @@ class Indicators:
                     self.parse_stix2(file)
             else:
                 self.log.error(
-                    "Path specified with env MVT_STIX2 is not a valid path: %s", path
+                    "Path specified with env MVT_STIX2 is not a valid path: '%s'", path
                 )
 
     def _new_collection(
@@ -212,7 +212,7 @@ class Indicators:
         :type file_path: str
 
         """
-        self.log.info("Parsing STIX2 indicators file at path %s", file_path)
+        self.log.info("Parsing STIX2 indicators file at path '%s'", file_path)
 
         with open(file_path, "r", encoding="utf-8") as handle:
             try:
