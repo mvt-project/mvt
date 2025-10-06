@@ -57,7 +57,7 @@ class ProfileEvents(IOSExtraction):
 
     def check_indicators(self) -> None:
         for result in self.results:
-            message = f'On {result.get("timestamp")} process "{result.get("timestamp")}" started operation "{result.get("operation")}" of profile "{result.get("profile_id")}"'
+            message = f'On {result.get("timestamp")} process "{result.get("process")}" started operation "{result.get("operation")}" of profile "{result.get("profile_id")}"'
             self.alertstore.low(
                 self.get_slug(), message, result.get("timestamp"), result
             )
