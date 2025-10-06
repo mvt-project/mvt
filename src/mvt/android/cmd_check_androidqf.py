@@ -159,6 +159,9 @@ class CmdAndroidCheckAndroidQF(Command):
 
             self.timeline.extend(cmd.timeline)
             self.alertstore.extend(cmd.alertstore.alerts)
+        finally:
+            if bugreport:
+                bugreport.close()
 
     def run_backup_cmd(self) -> bool:
         try:
@@ -183,6 +186,10 @@ class CmdAndroidCheckAndroidQF(Command):
 
             self.timeline.extend(cmd.timeline)
             self.alertstore.extend(cmd.alertstore.alerts)
+        finally:
+            if backup:
+                backup.close()
+
 
     def finish(self) -> None:
         """
