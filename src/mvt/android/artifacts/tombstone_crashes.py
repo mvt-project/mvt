@@ -53,7 +53,7 @@ class TombstoneCrashResult(pydantic.BaseModel):
     file_name: str
     file_timestamp: str  # We store the timestamp as a string to avoid timezone issues
     build_fingerprint: str
-    revision: int
+    revision: str
     arch: Optional[str] = None
     timestamp: str  # We store the timestamp as a string to avoid timezone issues
     process_uptime: Optional[int] = None
@@ -187,7 +187,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
             raise ValueError(f"Expected key {key}, got {line_key}")
 
         value_clean = value.strip().strip("'")
-        if destination_key in ["uid", "revision"]:
+        if destination_key == "uid":
             tombstone[destination_key] = int(value_clean)
         elif destination_key == "process_uptime":
             # eg. "Process uptime: 40s"
