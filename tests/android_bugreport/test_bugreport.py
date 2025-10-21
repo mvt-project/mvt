@@ -6,9 +6,9 @@
 import os
 from pathlib import Path
 
-from mvt.android.modules.bugreport.appops import Appops
-from mvt.android.modules.bugreport.getprop import Getprop
-from mvt.android.modules.bugreport.packages import Packages
+from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
+from mvt.android.modules.bugreport.dumpsys_getprop import DumpsysGetProp
+from mvt.android.modules.bugreport.dumpsys_packages import DumpsysPackages
 from mvt.android.modules.bugreport.tombstones import Tombstones
 from mvt.common.module import run_module
 
@@ -26,12 +26,12 @@ class TestBugreportAnalysis:
                 folder_files.append(
                     os.path.relpath(os.path.join(root, file_name), parent_path)
                 )
-        m.from_folder(fpath, folder_files)
+        m.from_dir(fpath, folder_files)
         run_module(m)
         return m
 
     def test_appops_module(self):
-        m = self.launch_bug_report_module(Appops)
+        m = self.launch_bug_report_module(DumpsysAppops)
         assert len(m.results) == 12
         assert len(m.timeline) == 16
 
@@ -42,7 +42,7 @@ class TestBugreportAnalysis:
         assert len(detected_by_ioc) == 0
 
     def test_packages_module(self):
-        m = self.launch_bug_report_module(Packages)
+        m = self.launch_bug_report_module(DumpsysPackages)
         assert len(m.results) == 2
         assert (
             m.results[0]["package_name"]
@@ -53,7 +53,7 @@ class TestBugreportAnalysis:
         assert len(m.results[1]["permissions"]) == 32
 
     def test_getprop_module(self):
-        m = self.launch_bug_report_module(Getprop)
+        m = self.launch_bug_report_module(DumpsysGetProp)
         assert len(m.results) == 0
 
     def test_tombstones_modules(self):

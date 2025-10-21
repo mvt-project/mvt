@@ -37,11 +37,11 @@ class AndroidQFModule(MVTModule):
         self.files: List[str] = []
         self.archive: Optional[zipfile.ZipFile] = None
 
-    def from_folder(self, parent_path: str, files: List[str]):
+    def from_dir(self, parent_path: str, files: List[str]) -> None:
         self.parent_path = parent_path
         self.files = files
 
-    def from_zip_file(self, archive: zipfile.ZipFile, files: List[str]):
+    def from_zip(self, archive: zipfile.ZipFile, files: List[str]) -> None:
         self.archive = archive
         self.files = files
 
