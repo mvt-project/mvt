@@ -107,8 +107,7 @@ class Packages(AndroidExtraction):
                     result["matched_indicator"] = ioc
                     self.detected.append(result)
 
-    @staticmethod
-    def check_virustotal(packages: list) -> None:
+    def check_virustotal(self, packages: list) -> None:
         hashes = []
         for package in packages:
             for file in package.get("files", []):
@@ -143,8 +142,15 @@ class Packages(AndroidExtraction):
 
         for package in packages:
             for file in package.get("files", []):
-                row = [package["package_name"], file["path"]]
-
+                if "package_name" in package:
+                    row = [package["package_name"], file["path"]]
+                elif "name" in package:
+                    row = [package["name"], file["path"]]
+                else:
+                    self.log.error(
+                        f"Package {package} has no name or package_name. packages.json or apks.json is malformed"
+                    )
+                    continue
                 if file["sha256"] in detections:
                     detection = detections[file["sha256"]]
                     positives = detection.split("/")[0]
