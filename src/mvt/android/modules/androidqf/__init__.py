@@ -19,6 +19,8 @@ from .processes import Processes
 from .settings import Settings
 from .sms import SMS
 from .files import Files
+from .root_binaries import RootBinaries
+from .mounts import Mounts
 
 ANDROIDQF_MODULES = [
     DumpsysActivities,
@@ -37,4 +39,6 @@ ANDROIDQF_MODULES = [
     SMS,
     DumpsysPackages,
     Files,
+    RootBinaries,
+    Mounts,
 ]
