@@ -6,13 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
+from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
 
 from .base import BugReportModule
 
 
-class Appops(DumpsysAppopsArtifact, BugReportModule):
-    """This module extracts information on package from App-Ops Manager."""
+class DumpsysGetProp(GetPropArtifact, BugReportModule):
+    """This module extracts device properties from getprop command."""
 
     def __init__(
         self,
@@ -32,6 +32,8 @@ class Appops(DumpsysAppopsArtifact, BugReportModule):
             results=results,
         )
 
+        self.results = [] if not results else results
+
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
@@ -41,11 +43,21 @@ class Appops(DumpsysAppopsArtifact, BugReportModule):
             )
             return
 
-        section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE appops:"
-        )
-        self.parse(section)
+        lines = []
+        in_getprop = False
 
-        self.log.info(
-            "Identified a total of %d packages in App-Ops Manager", len(self.results)
-        )
+        for line in content.decode(errors="ignore").splitlines():
+            if line.strip().startswith("------ SYSTEM PROPERTIES"):
+                in_getprop = True
+                continue
+
+            if not in_getprop:
+                continue
+
+            if line.strip() == "------":
+                break
+
+            lines.append(line)
+
+        self.parse("\n".join(lines))
+        self.log.info("Extracted %d Android system properties", len(self.results))

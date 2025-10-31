@@ -6,13 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
+from mvt.android.artifacts.dumpsys_battery_history import DumpsysBatteryHistoryArtifact
 
 from .base import BugReportModule
 
 
-class Getprop(GetPropArtifact, BugReportModule):
-    """This module extracts device properties from getprop command."""
+class DumpsysBatteryHistory(DumpsysBatteryHistoryArtifact, BugReportModule):
+    """This module extracts records from battery daily updates."""
 
     def __init__(
         self,
@@ -32,8 +32,6 @@ class Getprop(GetPropArtifact, BugReportModule):
             results=results,
         )
 
-        self.results = [] if not results else results
-
     def run(self) -> None:
         content = self._get_dumpstate_file()
         if not content:
@@ -43,21 +41,11 @@ class Getprop(GetPropArtifact, BugReportModule):
             )
             return
 
-        lines = []
-        in_getprop = False
+        dumpsys_section = self.extract_dumpsys_section(
+            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
+        )
+        self.parse(dumpsys_section)
 
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip().startswith("------ SYSTEM PROPERTIES"):
-                in_getprop = True
-                continue
-
-            if not in_getprop:
-                continue
-
-            if line.strip() == "------":
-                break
-
-            lines.append(line)
-
-        self.parse("\n".join(lines))
-        self.log.info("Extracted %d Android system properties", len(self.results))
+        self.log.info(
+            "Extracted a total of %d battery history records", len(self.results)
+        )

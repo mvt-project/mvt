@@ -19,7 +19,7 @@ from mvt.android.utils import (
 from .base import AndroidQFModule
 
 
-class Packages(AndroidQFModule):
+class AQFPackages(AndroidQFModule):
     """This module examines the installed packages in packages.json"""
 
     def __init__(
