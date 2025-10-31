@@ -9,11 +9,10 @@ import zipfile
 from pathlib import Path
 from typing import List, Optional
 
+from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
+from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
-
-from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
-from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
 
 from .modules.androidqf import ANDROIDQF_MODULES
 from .modules.androidqf.base import AndroidQFModule
@@ -45,7 +44,6 @@ class CmdAndroidCheckAndroidQF(Command):
         module_options: Optional[dict] = None,
         hashes: Optional[bool] = False,
         sub_command: Optional[bool] = False,
-        hashes: bool = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
     ) -> None:
