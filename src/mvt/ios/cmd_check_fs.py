@@ -27,6 +27,8 @@ class CmdIOSCheckFS(Command):
         module_options: Optional[dict] = None,
         hashes: bool = False,
         sub_command: bool = False,
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -34,11 +36,12 @@ class CmdIOSCheckFS(Command):
             ioc_files=ioc_files,
             iocs=iocs,
             module_name=module_name,
-            serial=serial,
             module_options=module_options,
             hashes=hashes,
             sub_command=sub_command,
             log=log,
+            disable_version_check=disable_version_check,
+            disable_indicator_check=disable_indicator_check,
         )
 
         self.name = "check-fs"

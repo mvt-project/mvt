@@ -34,6 +34,8 @@ class Command:
         hashes: Optional[bool] = False,
         sub_command: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         self.name = ""
         self.modules = []
@@ -45,6 +47,8 @@ class Command:
         self.serial = serial
         self.log = log
         self.sub_command = sub_command
+        self.disable_version_check = disable_version_check
+        self.disable_indicator_check = disable_indicator_check
 
         # This dictionary can contain options that will be passed down from
         # the Command to all modules. This can for example be used to pass

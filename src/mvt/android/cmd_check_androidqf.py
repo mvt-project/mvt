@@ -45,6 +45,9 @@ class CmdAndroidCheckAndroidQF(Command):
         module_options: Optional[dict] = None,
         hashes: Optional[bool] = False,
         sub_command: Optional[bool] = False,
+        hashes: bool = False,
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -57,6 +60,8 @@ class CmdAndroidCheckAndroidQF(Command):
             hashes=hashes,
             sub_command=sub_command,
             log=log,
+            disable_version_check=disable_version_check,
+            disable_indicator_check=disable_indicator_check,
         )
 
         self.name = "check-androidqf"

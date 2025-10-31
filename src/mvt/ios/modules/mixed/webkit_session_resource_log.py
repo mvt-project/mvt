@@ -127,6 +127,24 @@ class WebkitSessionResourceLog(IOSExtraction):
         browsing_stats = file_plist["browsingStatistics"]
 
         for item in browsing_stats:
+            most_recent_interaction, last_seen = None, None
+            if "mostRecentUserInteraction" in item:
+                try:
+                    most_recent_interaction = convert_datetime_to_iso(
+                        item["mostRecentUserInteraction"]
+                    )
+                except Exception:
+                    self.log.error(
+                        f'Error converting date of Safari resource"most recent interaction": {item["mostRecentUserInteraction"]}'
+                    )
+            if "lastSeen" in item:
+                try:
+                    last_seen = convert_datetime_to_iso(item["lastSeen"])
+                except Exception:
+                    self.log.error(
+                        f'Error converting date of Safari resource"last seen": {item["lastSeen"]}'
+                    )
+
             items.append(
                 {
                     "origin": item.get("PrevalentResourceOrigin", ""),
@@ -139,10 +157,8 @@ class WebkitSessionResourceLog(IOSExtraction):
                         "subresourceUnderTopFrameOrigins", ""
                     ),
                     "user_interaction": item.get("hadUserInteraction"),
-                    "most_recent_interaction": convert_datetime_to_iso(
-                        item["mostRecentUserInteraction"]
-                    ),
-                    "last_seen": convert_datetime_to_iso(item["lastSeen"]),
+                    "most_recent_interaction": most_recent_interaction,
+                    "last_seen": last_seen,
                 }
             )
 
