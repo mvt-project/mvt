@@ -6,15 +6,15 @@
 import datetime
 from typing import List, Optional
 
-import pydantic
 import betterproto
+import pydantic
 from dateutil import parser
 
-from mvt.common.utils import convert_datetime_to_iso
-from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.android.parsers.proto.tombstone import Tombstone
-from .artifact import AndroidArtifact
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
+from mvt.common.utils import convert_datetime_to_iso
 
+from .artifact import AndroidArtifact
 
 TOMBSTONE_DELIMITER = "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
 
@@ -96,7 +96,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
             ioc_match = self.indicators.check_process(result["process_name"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(ioc_match.message, "", result)
                 continue
 
             if result.get("command_line", []):
@@ -104,9 +104,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
                 ioc_match = self.indicators.check_process(command_name)
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", result
-                    )
+                    self.alertstore.critical(ioc_match.message, "", result)
                     continue
 
             SUSPICIOUS_UIDS = [
@@ -116,7 +114,6 @@ class TombstoneCrashArtifact(AndroidArtifact):
             ]
             if result["uid"] in SUSPICIOUS_UIDS:
                 self.alertstore.medium(
-                    self.get_slug(),
                     (
                         f"Potentially suspicious crash in process '{result['process_name']}' "
                         f"running as UID '{result['uid']}' in tombstone '{result['file_name']}' at {result['timestamp']}"

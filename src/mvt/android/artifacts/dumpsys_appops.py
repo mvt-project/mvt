@@ -5,11 +5,10 @@
 
 from datetime import datetime
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
+from mvt.common.utils import convert_datetime_to_iso
 
 from .artifact import AndroidArtifact
-
 
 RISKY_PERMISSIONS = ["REQUEST_INSTALL_PACKAGES"]
 RISKY_PACKAGES = ["com.android.shell"]
@@ -46,9 +45,7 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                 ioc_match = self.indicators.check_app_id(result.get("package_name"))
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", result
-                    )
+                    self.alertstore.critical(ioc_match.message, "", result)
                     continue
 
             # We use a placeholder entry to create a basic alert even without permission entries.
@@ -66,7 +63,6 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                         cleaned_result = result.copy()
                         cleaned_result["permissions"] = [perm]
                         self.alertstore.medium(
-                            self.get_slug(),
                             f"Package '{result['package_name']}' had risky permission '{perm['name']}' set to '{entry['access']}' at {entry['timestamp']}",
                             entry["timestamp"],
                             cleaned_result,
@@ -80,7 +76,6 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                         cleaned_result = result.copy()
                         cleaned_result["permissions"] = [perm]
                         self.alertstore.medium(
-                            self.get_slug(),
                             f"Risky package '{result['package_name']}' had '{perm['name']}' permission set to '{entry['access']}' at {entry['timestamp']}",
                             entry["timestamp"],
                             cleaned_result,

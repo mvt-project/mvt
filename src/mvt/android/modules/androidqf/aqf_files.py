@@ -15,8 +15,8 @@ from typing import Optional
 
 from mvt.android.modules.androidqf.base import AndroidQFModule
 from mvt.common.module_types import (
-    ModuleResults,
     ModuleAtomicResult,
+    ModuleResults,
     ModuleSerializedResult,
 )
 from mvt.common.utils import convert_datetime_to_iso
@@ -90,7 +90,7 @@ class AQFFiles(AndroidQFModule):
             ioc_match = self.indicators.check_file_path(result["path"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(ioc_match.message, "", result)
                 self.alertstore.log_latest()
                 continue
 
@@ -105,16 +105,16 @@ class AQFFiles(AndroidQFModule):
                         file_type = "executable "
 
                     msg = f'Found {file_type}file at suspicious path "{result["path"]}"'
-                    self.alertstore.high(self.get_slug(), msg, "", result)
+                    self.alertstore.high(msg, "", result)
                     self.alertstore.log_latest()
 
             if result.get("sha256", "") == "":
                 continue
 
-            ioc_match = self.indicators.check_file_hash(result["sha256"])
+            ioc_match = self.indicators.check_file_hash(result.get("sha256"))
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(ioc_match.message, "", result)
 
             # TODO: adds SHA1 and MD5 when available in MVT
 

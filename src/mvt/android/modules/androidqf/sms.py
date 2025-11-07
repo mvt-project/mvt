@@ -56,9 +56,7 @@ class SMS(AndroidQFModule):
             ioc_match = self.indicators.check_domains(message.get("links", []))
             if ioc_match:
                 message["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(
-                    self.get_slug(), ioc_match.message, "", message
-                )
+                self.alertstore.critical(ioc_match.message, "", message)
 
     def parse_backup(self, data):
         header = parse_ab_header(data)

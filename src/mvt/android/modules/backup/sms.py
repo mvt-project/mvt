@@ -8,8 +8,8 @@ from typing import Optional
 
 from mvt.android.modules.backup.base import BackupModule
 from mvt.android.parsers.backup import parse_sms_file
-from mvt.common.utils import check_for_links
 from mvt.common.module_types import ModuleResults
+from mvt.common.utils import check_for_links
 
 
 class SMS(BackupModule):
@@ -47,9 +47,7 @@ class SMS(BackupModule):
             ioc_match = self.indicators.check_urls(message_links)
             if ioc_match:
                 message["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(
-                    self.get_slug(), ioc_match.message, "", message
-                )
+                self.alertstore.critical(ioc_match.message, "", message)
                 continue
 
     def run(self) -> None:

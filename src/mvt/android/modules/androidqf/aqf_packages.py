@@ -11,13 +11,13 @@ from mvt.android.utils import (
     BROWSER_INSTALLERS,
     PLAY_STORE_INSTALLERS,
     ROOT_PACKAGES,
-    THIRD_PARTY_STORE_INSTALLERS,
     SECURITY_PACKAGES,
     SYSTEM_UPDATE_PACKAGES,
+    THIRD_PARTY_STORE_INSTALLERS,
 )
+from mvt.common.module_types import ModuleResults
 
 from .base import AndroidQFModule
-from mvt.common.module_types import ModuleResults
 
 
 class AQFPackages(AndroidQFModule):
@@ -45,7 +45,6 @@ class AQFPackages(AndroidQFModule):
         for result in self.results:
             if result["name"] in ROOT_PACKAGES:
                 self.alertstore.medium(
-                    self.get_slug(),
                     f'Found an installed package related to rooting/jailbreaking: "{result["name"]}"',
                     "",
                     result,
@@ -56,7 +55,6 @@ class AQFPackages(AndroidQFModule):
             # Detections for apps installed via unusual methods.
             if result["installer"] in THIRD_PARTY_STORE_INSTALLERS:
                 self.alertstore.info(
-                    self.get_slug(),
                     f'Found a package installed via a third party store (installer="{result["installer"]}"): "{result["name"]}"',
                     "",
                     result,
@@ -64,7 +62,6 @@ class AQFPackages(AndroidQFModule):
                 self.alertstore.log_latest()
             elif result["installer"] in BROWSER_INSTALLERS:
                 self.alertstore.medium(
-                    self.get_slug(),
                     f'Found a package installed via a browser (installer="{result["installer"]}"): "{result["name"]}"',
                     "",
                     result,
@@ -72,7 +69,6 @@ class AQFPackages(AndroidQFModule):
                 self.alertstore.log_latest()
             elif result["installer"] == "null" and result["system"] is False:
                 self.alertstore.high(
-                    self.get_slug(),
                     f'Found a non-system package installed via adb or another method: "{result["name"]}"',
                     "",
                     result,
@@ -85,7 +81,6 @@ class AQFPackages(AndroidQFModule):
             package_disabled = result.get("disabled", None)
             if result["name"] in SECURITY_PACKAGES and package_disabled:
                 self.alertstore.high(
-                    self.get_slug(),
                     f'Security package "{result["name"]}" disabled on the phone',
                     "",
                     result,
@@ -94,7 +89,6 @@ class AQFPackages(AndroidQFModule):
 
             if result["name"] in SYSTEM_UPDATE_PACKAGES and package_disabled:
                 self.alertstore.high(
-                    self.get_slug(),
                     f'System OTA update package "{result["name"]}" disabled on the phone',
                     "",
                     result,
@@ -107,16 +101,14 @@ class AQFPackages(AndroidQFModule):
             ioc_match = self.indicators.check_app_id(result.get("name"))
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(ioc_match.message, "", result)
                 self.alertstore.log_latest()
 
             for package_file in result.get("files", []):
                 ioc_match = self.indicators.check_file_hash(package_file["sha256"])
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", result
-                    )
+                    self.alertstore.critical(ioc_match.message, "", result)
                     self.alertstore.log_latest()
 
                 if "certificate" not in package_file:
@@ -130,9 +122,7 @@ class AQFPackages(AndroidQFModule):
                     )
                     if ioc_match:
                         result["matched_indicator"] = ioc_match.ioc
-                        self.alertstore.critical(
-                            self.get_slug(), ioc_match.message, "", result
-                        )
+                        self.alertstore.critical(ioc_match.message, "", result)
                         self.alertstore.log_latest()
                         break
 

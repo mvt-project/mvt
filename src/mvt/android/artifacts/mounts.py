@@ -134,14 +134,12 @@ class Mounts(AndroidArtifact):
                 system_rw_mounts.append(mount)
                 if mount_point == "/system":
                     self.alertstore.high(
-                        self.get_slug(),
                         "Root detected /system partition is mounted as read-write (rw)",
                         "",
                         mount,
                     )
                 else:
                     self.alertstore.high(
-                        self.get_slug(),
                         f"System partition {mount_point} is mounted as read-write (rw). This may indicate system modifications.",
                         "",
                         mount,
@@ -157,7 +155,6 @@ class Mounts(AndroidArtifact):
                     continue
                 suspicious_mounts.append(mount)
                 self.alertstore.high(
-                    self.get_slug(),
                     f"Suspicious mount options found for {mount_point}: {', '.join(suspicious_opts)}",
                     "",
                     mount,
@@ -184,7 +181,6 @@ class Mounts(AndroidArtifact):
             if ioc:
                 mount["matched_indicator"] = ioc
                 self.alertstore.critical(
-                    self.get_slug(),
                     f"Mount point matches indicator: {mount.get('mount_point', '')}",
                     "",
                     mount,
@@ -195,7 +191,6 @@ class Mounts(AndroidArtifact):
             if ioc:
                 mount["matched_indicator"] = ioc
                 self.alertstore.critical(
-                    self.get_slug(),
                     f"Device path matches indicator: {mount.get('device', '')}",
                     "",
                     mount,

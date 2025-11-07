@@ -23,9 +23,7 @@ class DumpsysDBInfoArtifact(AndroidArtifact):
                 ioc_match = self.indicators.check_app_id(part)
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", result
-                    )
+                    self.alertstore.critical(ioc_match.message, "", result)
                     continue
 
     def parse(self, output: str) -> None:

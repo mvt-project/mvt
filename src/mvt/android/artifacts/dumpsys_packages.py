@@ -7,9 +7,9 @@ import re
 from typing import Any, Dict, List
 
 from mvt.android.utils import ROOT_PACKAGES
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 from .artifact import AndroidArtifact
-from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 
 class DumpsysPackagesArtifact(AndroidArtifact):
@@ -18,7 +18,6 @@ class DumpsysPackagesArtifact(AndroidArtifact):
             # XXX: De-duplication Package detections
             if result["package_name"] in ROOT_PACKAGES:
                 self.alertstore.medium(
-                    self.get_slug(),
                     f'Found an installed package related to rooting/jailbreaking: "{result["package_name"]}"',
                     "",
                     result,
@@ -32,7 +31,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
             ioc_match = self.indicators.check_app_id(result.get("package_name", ""))
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(ioc_match.message, "", result)
                 self.alertstore.log_latest()
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
