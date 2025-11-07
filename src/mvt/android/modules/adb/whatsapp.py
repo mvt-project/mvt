@@ -9,14 +9,14 @@ import os
 import sqlite3
 from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import check_for_links, convert_unix_to_iso
 
 from .base import AndroidExtraction
-from mvt.common.module_types import (
-    ModuleAtomicResult,
-    ModuleSerializedResult,
-    ModuleResults,
-)
 
 WHATSAPP_PATH = "data/data/com.whatsapp/databases/msgstore.db"
 
@@ -60,8 +60,11 @@ class Whatsapp(AndroidExtraction):
                 continue
 
             message_links = check_for_links(message["data"])
-            if self.indicators.check_urls(message_links):
-                self.detected.append(message)
+            ioc_match = self.indicators.check_urls(message_links)
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", message, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def _parse_db(self, db_path: str) -> None:

@@ -6,8 +6,9 @@
 import logging
 from typing import Optional
 
-from .base import AndroidExtraction
 from mvt.common.module_types import ModuleResults
+
+from .base import AndroidExtraction
 
 
 class RootBinaries(AndroidExtraction):
@@ -33,8 +34,11 @@ class RootBinaries(AndroidExtraction):
 
     def check_indicators(self) -> None:
         for root_binary in self.results:
-            self.detected.append(root_binary)
-            self.log.warning('Found root binary "%s"', root_binary)
+            self.alertstore.high(
+                f'Found root binary "{root_binary}"',
+                "",
+                root_binary,
+            )
 
     def run(self) -> None:
         root_binaries = [

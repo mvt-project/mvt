@@ -77,7 +77,6 @@ class MVTModule:
 
         self.results: ModuleResults = results if results else []
         self.timeline: ModuleTimeline = []
-        self.timeline_detected: ModuleTimeline = []
 
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
@@ -166,17 +165,8 @@ class MVTModule:
                 else:
                     self.timeline.append(record)
 
-        # for detected in self.alertstore.alerts:
-        #     record = self.serialize(detected)
-        #     if record:
-        #         if isinstance(record, list):
-        #             self.timeline_detected.extend(record)
-        #         else:
-        #             self.timeline_detected.append(record)
-
         # De-duplicate timeline entries.
         self.timeline = self._deduplicate_timeline(self.timeline)
-        # self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self) -> None:
         """Run the main module procedure."""

@@ -8,8 +8,8 @@ import os
 import stat
 from typing import Optional, Union
 
-from mvt.common.utils import convert_unix_to_iso
 from mvt.common.module_types import ModuleResults
+from mvt.common.utils import convert_unix_to_iso
 
 from .base import AndroidExtraction
 
@@ -64,11 +64,15 @@ class Files(AndroidExtraction):
                     result["path"],
                 )
 
-            if self.indicators and self.indicators.check_file_path(result["path"]):
-                self.log.warning(
-                    'Found a known suspicous file at path: "%s"', result["path"]
-                )
-                self.detected.append(result)
+            if self.indicators:
+                ioc_match = self.indicators.check_file_path(result["path"])
+                if ioc_match:
+                    self.alertstore.critical(
+                        f'Found a known suspicious file at path: "{result["path"]}"',
+                        "",
+                        result,
+                        matched_indicator=ioc_match,
+                    )
 
     def backup_file(self, file_path: str) -> None:
         if not self.results_path:
