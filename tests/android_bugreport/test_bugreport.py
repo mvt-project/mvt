@@ -9,6 +9,7 @@ from pathlib import Path
 from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
 from mvt.android.modules.bugreport.dumpsys_getprop import DumpsysGetProp
 from mvt.android.modules.bugreport.dumpsys_packages import DumpsysPackages
+from mvt.android.modules.bugreport.tombstones import Tombstones
 from mvt.common.module import run_module
 
 from ..utils import get_artifact_folder
