@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from rich.console import Console
 from rich.panel import Panel
@@ -43,7 +43,7 @@ class Command:
         disable_indicator_check: bool = False,
     ) -> None:
         self.name = ""
-        self.modules = []
+        self.modules: list[Any] = []
 
         self.target_path = target_path
         self.results_path = results_path
@@ -62,10 +62,10 @@ class Command:
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
-        self.executed = []
+        self.executed: list[Any] = []
         self.hashes = hashes
-        self.hash_values = []
-        self.timeline = []
+        self.hash_values: list[dict[str, Any]] = []
+        self.timeline: list[dict[str, Any]] = []
 
         # Load IOCs
         self._create_storage()
@@ -158,7 +158,7 @@ class Command:
         if self.target_path:
             target_path = os.path.abspath(self.target_path)
 
-        info = {
+        info: dict[str, Any] = {
             "target_path": target_path,
             "mvt_version": MVT_VERSION,
             "date": convert_datetime_to_iso(datetime.now()),

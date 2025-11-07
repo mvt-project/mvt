@@ -89,10 +89,7 @@ class TestAndroidqfPackages:
         ]
         assert len(possible_detected_app) == 1
         assert possible_detected_app[0].event["name"] == "com.malware.blah"
-        assert (
-            possible_detected_app[0].event["matched_indicator"].value
-            == "com.malware.blah"
-        )
+        assert possible_detected_app[0].matched_indicator.value == "com.malware.blah"
 
     def test_packages_ioc_sha256(self, module, indicators_factory):
         module.indicators = indicators_factory(
@@ -111,7 +108,7 @@ class TestAndroidqfPackages:
         assert len(possible_detected_app) == 1
         assert possible_detected_app[0].event["name"] == "com.malware.muahaha"
         assert (
-            possible_detected_app[0].event["matched_indicator"].value
+            possible_detected_app[0].matched_indicator.value
             == "31037a27af59d4914906c01ad14a318eee2f3e31d48da8954dca62a99174e3fa"
         )
 
@@ -132,6 +129,6 @@ class TestAndroidqfPackages:
         assert len(possible_detected_app) == 1
         assert possible_detected_app[0].event["name"] == "com.malware.muahaha"
         assert (
-            possible_detected_app[0].event["matched_indicator"].value
+            possible_detected_app[0].matched_indicator.value
             == "c7e56178748be1441370416d4c10e34817ea0c961eb636c8e9d98e0fd79bf730"
         )

@@ -7,12 +7,12 @@ import logging
 import sqlite3
 from typing import Optional
 
-from mvt.common.utils import convert_unix_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
-    ModuleSerializedResult,
     ModuleResults,
+    ModuleSerializedResult,
 )
+from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -96,8 +96,9 @@ class TCC(IOSExtraction):
         for result in self.results:
             ioc_match = self.indicators.check_process(result["client"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def process_db(self, file_path):
         conn = self._open_sqlite_db(file_path)

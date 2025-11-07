@@ -6,14 +6,13 @@ from datetime import datetime, timedelta
 from typing import List
 
 
-def warn_android_patch_level(patch_level: str, log) -> str:
+def warn_android_patch_level(patch_level: str, log) -> str | bool:
     """Alert if Android patch level out-of-date"""
     patch_date = datetime.strptime(patch_level, "%Y-%m-%d")
     if (datetime.now() - patch_date) > timedelta(days=6 * 31):
         warning_message = (
             f"This phone has not received security updates "
-            f"for more than six months (last update: {patch_level}).",
-            patch_level,
+            f"for more than six months (last update: {patch_level})."
         )
         return warning_message
 

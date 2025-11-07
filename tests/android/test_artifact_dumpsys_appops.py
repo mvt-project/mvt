@@ -48,7 +48,7 @@ class TestDumpsysAppopsArtifact:
         detected_by_ioc = [
             alert
             for alert in da.alertstore.alerts
-            if "matched_indicator" in alert.event
+            if alert.matched_indicator is not None
         ]
         detected_by_permission_heuristic = [
             alert
@@ -62,4 +62,5 @@ class TestDumpsysAppopsArtifact:
         ]
         assert len(da.alertstore.alerts) == 3
         assert len(detected_by_ioc) == 1
+        assert detected_by_ioc[0].matched_indicator is not None
         assert len(detected_by_permission_heuristic) == 2
