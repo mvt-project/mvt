@@ -61,7 +61,7 @@ class AlertStore:
                     if hasattr(obj, "get_slug") and callable(obj.get_slug):
                         try:
                             return obj.get_slug()
-                        except:
+                        except Exception:
                             pass
 
             # Fallback: return "unknown" if we can't find the module
