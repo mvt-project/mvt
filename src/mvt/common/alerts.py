@@ -5,11 +5,11 @@
 
 import csv
 import logging
+from dataclasses import asdict, dataclass
 from enum import Enum
-from dataclasses import dataclass, asdict
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from .log import INFO_ALERT, LOW_ALERT, HIGH_ALERT, CRITICAL_ALERT, MEDIUM_ALERT
+from .log import CRITICAL_ALERT, HIGH_ALERT, INFO_ALERT, LOW_ALERT, MEDIUM_ALERT
 from .module_types import ModuleAtomicResult
 
 
@@ -41,9 +41,11 @@ class AlertStore:
 
     def add(self, alert: Alert) -> None:
         self.__alerts.append(alert)
+        self.log(alert)
 
     def extend(self, alerts: List[Alert]) -> None:
-        self.__alerts.extend(alerts)
+        for alert in alerts:
+            self.add(alert)
 
     def info(
         self, module: str, message: str, event_time: str, event: ModuleAtomicResult
