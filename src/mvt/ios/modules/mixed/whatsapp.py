@@ -4,9 +4,14 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 
 from ..base import IOSExtraction
 
@@ -28,7 +33,7 @@ class Whatsapp(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -39,7 +44,7 @@ class Whatsapp(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         text = record.get("ZTEXT", "").replace("\n", "\\n")
         links_text = ""
         if record.get("links"):
@@ -57,10 +62,10 @@ class Whatsapp(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_urls(result.get("links", []))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_urls(result.get("links", []))
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
 
     def run(self) -> None:
         self._find_ios_database(

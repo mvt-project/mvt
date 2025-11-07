@@ -133,13 +133,16 @@ class Mounts(AndroidArtifact):
             if mount["is_system_partition"] and mount["is_read_write"]:
                 system_rw_mounts.append(mount)
                 if mount_point == "/system":
-                    self.log.warning(
-                        "Root detected /system partition is mounted as read-write (rw). "
+                    self.alertstore.high(
+                        "Root detected /system partition is mounted as read-write (rw)",
+                        "",
+                        mount,
                     )
                 else:
-                    self.log.warning(
-                        "System partition %s is mounted as read-write (rw). This may indicate system modifications.",
-                        mount_point,
+                    self.alertstore.high(
+                        f"System partition {mount_point} is mounted as read-write (rw). This may indicate system modifications.",
+                        "",
+                        mount,
                     )
 
             # Check for other suspicious mount options
@@ -151,10 +154,10 @@ class Mounts(AndroidArtifact):
                 ):
                     continue
                 suspicious_mounts.append(mount)
-                self.log.warning(
-                    "Suspicious mount options found for %s: %s",
-                    mount_point,
-                    ", ".join(suspicious_opts),
+                self.alertstore.high(
+                    f"Suspicious mount options found for {mount_point}: {', '.join(suspicious_opts)}",
+                    "",
+                    mount,
                 )
 
             # Log interesting mount information
@@ -176,11 +179,19 @@ class Mounts(AndroidArtifact):
             # Check if any mount points match indicators
             ioc = self.indicators.check_file_path(mount.get("mount_point", ""))
             if ioc:
-                mount["matched_indicator"] = ioc
-                self.detected.append(mount)
+                self.alertstore.critical(
+                    f"Mount point matches indicator: {mount.get('mount_point', '')}",
+                    "",
+                    mount,
+                    matched_indicator=ioc,
+                )
 
             # Check device paths for indicators
             ioc = self.indicators.check_file_path(mount.get("device", ""))
             if ioc:
-                mount["matched_indicator"] = ioc
-                self.detected.append(mount)
+                self.alertstore.critical(
+                    f"Device path matches indicator: {mount.get('device', '')}",
+                    "",
+                    mount,
+                    matched_indicator=ioc,
+                )

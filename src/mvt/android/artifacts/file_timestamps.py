@@ -2,13 +2,13 @@
 # Copyright (c) 2021-2023 The MVT Authors.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
-from typing import Union
 
 from .artifact import AndroidArtifact
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 
 class FileTimestampsArtifact(AndroidArtifact):
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
 
         for ts in set(

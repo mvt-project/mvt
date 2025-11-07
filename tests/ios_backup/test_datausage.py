@@ -7,6 +7,7 @@ import logging
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
+from mvt.common.alerts import AlertLevel
 from mvt.ios.modules.mixed.net_datausage import Datausage
 
 from ..utils import get_ios_backup_folder
@@ -19,7 +20,9 @@ class TestDatausageModule:
         assert m.results[0]["isodate"][0:19] == "2019-08-27 15:08:09"
         assert len(m.results) == 42
         assert len(m.timeline) == 60
-        assert len(m.detected) == 0
+        assert (
+            len(m.alertstore.alerts) == 1
+        )  # We now have a detection for missing processes.
 
     def test_detection(self, indicator_file):
         m = Datausage(target_path=get_ios_backup_folder())
@@ -29,4 +32,7 @@ class TestDatausageModule:
         ind.ioc_collections[0]["processes"].append("CumulativeUsageTracker")
         m.indicators = ind
         run_module(m)
-        assert len(m.detected) == 2
+        critical_alerts = [
+            alert for alert in m.alertstore.alerts if alert.level == AlertLevel.CRITICAL
+        ]
+        assert len(critical_alerts) == 2

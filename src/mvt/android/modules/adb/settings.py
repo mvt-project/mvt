@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.settings import Settings as SettingsArtifact
+from mvt.common.module_types import ModuleResults
 
 from .base import AndroidExtraction
 
@@ -21,7 +22,7 @@ class Settings(SettingsArtifact, AndroidExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,

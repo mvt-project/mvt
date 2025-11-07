@@ -5,10 +5,15 @@
 
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.url import URL
 from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
+from mvt.common.module_types import (
+    ModuleResults,
+    ModuleAtomicResult,
+    ModuleSerializedResult,
+)
 
 from ..base import IOSExtraction
 
@@ -33,7 +38,7 @@ class SafariHistory(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -44,7 +49,7 @@ class SafariHistory(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -95,9 +100,11 @@ class SafariHistory(IOSExtraction):
                 elapsed_ms = elapsed_time.microseconds / 1000
 
                 if elapsed_time.seconds == 0:
-                    self.log.warning(
-                        "Redirect took less than a second! (%d milliseconds)",
-                        elapsed_ms,
+                    self.alertstore.medium(
+                        self.get_slug(),
+                        f"Redirect took less than a second! ({elapsed_ms} milliseconds)",
+                        result["timestamp"],
+                        result,
                     )
 
     def check_indicators(self) -> None:
@@ -107,10 +114,10 @@ class SafariHistory(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_url(result["url"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_url(result["url"])
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
 
     def _process_history_db(self, history_path):
         self._recover_sqlite_db_if_needed(history_path)

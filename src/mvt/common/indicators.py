@@ -8,7 +8,8 @@ import json
 import logging
 import os
 from functools import lru_cache
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional
+from dataclasses import dataclass
 
 import ahocorasick
 from appdirs import user_data_dir
@@ -20,6 +21,20 @@ MVT_DATA_FOLDER = user_data_dir("mvt")
 MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Indicator:
+    value: str
+    type: str
+    name: str
+    stix2_file_name: str
+
+
+@dataclass
+class IndicatorMatch:
+    ioc: Indicator
+    message: str
 
 
 class Indicators:
@@ -58,7 +73,7 @@ class Indicators:
                     self.parse_stix2(file)
             else:
                 self.log.error(
-                    "Path specified with env MVT_STIX2 is not a valid path: %s", path
+                    "Path specified with env MVT_STIX2 is not a valid path: '%s'", path
                 )
 
     def _new_collection(
@@ -197,13 +212,13 @@ class Indicators:
         :type file_path: str
 
         """
-        self.log.info("Parsing STIX2 indicators file at path %s", file_path)
+        self.log.info("Parsing STIX2 indicators file at path '%s'", file_path)
 
         with open(file_path, "r", encoding="utf-8") as handle:
             try:
                 data = json.load(handle)
             except json.decoder.JSONDecodeError:
-                self.log.critical(
+                self.log.warning(
                     "Unable to parse STIX2 indicator file. "
                     "The file is corrupted or in the wrong format!"
                 )
@@ -314,7 +329,7 @@ class Indicators:
             if os.path.isfile(file_path):
                 self.parse_stix2(file_path)
             else:
-                self.log.warning("No indicators file exists at path %s", file_path)
+                self.log.error("No indicators file exists at path %s", file_path)
 
         # Load downloaded indicators and any indicators from env variable.
         if load_default:
@@ -323,15 +338,15 @@ class Indicators:
         self._check_stix2_env_variable()
         self.log.info("Loaded a total of %d unique indicators", self.total_ioc_count)
 
-    def get_iocs(self, ioc_type: str) -> Iterator[Dict[str, Any]]:
+    def get_iocs(self, ioc_type: str) -> Iterator[Indicator]:
         for ioc_collection in self.ioc_collections:
             for ioc in ioc_collection.get(ioc_type, []):
-                yield {
-                    "value": ioc,
-                    "type": ioc_type,
-                    "name": ioc_collection["name"],
-                    "stix2_file_name": ioc_collection["stix2_file_name"],
-                }
+                yield Indicator(
+                    value=ioc,
+                    type=ioc_type,
+                    name=ioc_collection["name"],
+                    stix2_file_name=ioc_collection["stix2_file_name"],
+                )
 
     @lru_cache()
     def get_ioc_matcher(
@@ -362,12 +377,12 @@ class Indicators:
             raise ValueError("Must provide either ioc_type or ioc_list")
 
         for ioc in iocs:
-            automaton.add_word(ioc["value"], ioc)
+            automaton.add_word(ioc.value, ioc)
         automaton.make_automaton()
         return automaton
 
     @lru_cache()
-    def check_url(self, url: str) -> Union[dict, None]:
+    def check_url(self, url: str) -> Optional[IndicatorMatch]:
         """Check if a given URL matches any of the provided domain indicators.
 
         :param url: URL to match against domain indicators
@@ -375,21 +390,16 @@ class Indicators:
         :returns: Indicator details if matched, otherwise None
 
         """
-        if not url:
-            return None
-        if not isinstance(url, str):
+        if not url or not isinstance(url, str):
             return None
 
         # Check the URL first
         for ioc in self.get_iocs("urls"):
-            if ioc["value"] == url:
-                self.log.warning(
-                    'Found a known suspicious URL %s matching indicator "%s" from "%s"',
-                    url,
-                    ioc["value"],
-                    ioc["name"],
+            if ioc.value == url:
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious URL {url} matching indicator "{ioc.value}" from "{ioc.name}"',
                 )
-                return ioc
 
         # Then check the domain
         # Create an Aho-Corasick automaton from the list of urls
@@ -426,71 +436,41 @@ class Indicators:
         except Exception:
             # If URL parsing failed, we just try to do a simple substring
             # match.
-            for idx, ioc in domain_matcher.iter(url):
-                if ioc["value"].lower() in url:
-                    self.log.warning(
-                        "Maybe found a known suspicious domain %s "
-                        'matching indicator "%s" from "%s"',
-                        url,
-                        ioc["value"],
-                        ioc["name"],
+            for _, ioc in domain_matcher.iter(url):
+                if ioc.value.lower() in url:
+                    return IndicatorMatch(
+                        ioc=ioc,
+                        message=f'Maybe found a known suspicious domain {url} matching indicator "{ioc.value}" from "{ioc.name}"',
                     )
-                    return ioc
 
             # If nothing matched, we can quit here.
             return None
 
         # If all parsing worked, we start walking through available domain
         # indicators.
-        for idx, ioc in domain_matcher.iter(final_url.domain.lower()):
+        for _, ioc in domain_matcher.iter(final_url.domain.lower()):
             # First we check the full domain.
-            if final_url.domain.lower() == ioc["value"]:
+            if final_url.domain.lower() == ioc.value:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning(
-                        "Found a known suspicious domain %s "
-                        'shortened as %s matching indicator "%s" from "%s"',
-                        final_url.url,
-                        orig_url.url,
-                        ioc["value"],
-                        ioc["name"],
-                    )
+                    message = f'Found a known suspicious domain {final_url.url} shortened as {orig_url.url} matching indicator "{ioc.value}" from "{ioc.name}"'
                 else:
-                    self.log.warning(
-                        "Found a known suspicious domain %s "
-                        'matching indicator "%s" from "%s"',
-                        final_url.url,
-                        ioc["value"],
-                        ioc["name"],
-                    )
-                return ioc
+                    message = f'Found a known suspicious domain {final_url.url} matching indicator "{ioc.value}" from "{ioc.name}"'
+
+                return IndicatorMatch(ioc=ioc, message=message)
 
         # Then we just check the top level domain.
-        for idx, ioc in domain_matcher.iter(final_url.top_level.lower()):
-            if final_url.top_level.lower() == ioc["value"]:
+        for _, ioc in domain_matcher.iter(final_url.top_level.lower()):
+            if final_url.top_level.lower() == ioc.value:
                 if orig_url.is_shortened and orig_url.url != final_url.url:
-                    self.log.warning(
-                        "Found a sub-domain with suspicious top "
-                        "level %s shortened as %s matching "
-                        'indicator "%s" from "%s"',
-                        final_url.url,
-                        orig_url.url,
-                        ioc["value"],
-                        ioc["name"],
-                    )
+                    message = f'Found a sub-domain with suspicious top level {final_url.url} shortened as {orig_url.url} matching indicator "{ioc.value}" from "{ioc.name}"'
                 else:
-                    self.log.warning(
-                        "Found a sub-domain with a suspicious top "
-                        'level %s matching indicator "%s" from "%s"',
-                        final_url.url,
-                        ioc["value"],
-                        ioc["name"],
-                    )
+                    message = f'Found a sub-domain with a suspicious top level {final_url.url} matching indicator "{ioc.value}" from "{ioc.name}"'
 
-                return ioc
+                return IndicatorMatch(ioc=ioc, message=message)
 
         return None
 
-    def check_urls(self, urls: list) -> Union[dict, None]:
+    def check_urls(self, urls: list) -> Optional[IndicatorMatch]:
         """Check a list of URLs against the provided list of domain indicators.
 
         :param urls: List of URLs to check against domain indicators
@@ -508,7 +488,7 @@ class Indicators:
 
         return None
 
-    def check_process(self, process: str) -> Union[dict, None]:
+    def check_process(self, process: str) -> Optional[IndicatorMatch]:
         """Check the provided process name against the list of process
         indicators.
 
@@ -522,28 +502,22 @@ class Indicators:
 
         proc_name = os.path.basename(process)
         for ioc in self.get_iocs("processes"):
-            if proc_name == ioc["value"]:
-                self.log.warning(
-                    'Found a known suspicious process name "%s" '
-                    'matching indicators from "%s"',
-                    process,
-                    ioc["name"],
+            if proc_name == ioc.value:
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious process name "{process}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
             if len(proc_name) == 16:
-                if ioc["value"].startswith(proc_name):
-                    self.log.warning(
-                        "Found a truncated known suspicious "
-                        'process name "%s" matching indicators from "%s"',
-                        process,
-                        ioc["name"],
+                if ioc.value.startswith(proc_name):
+                    return IndicatorMatch(
+                        ioc=ioc,
+                        message=f'Found a truncated known suspicious process name "{process}" matching indicators from "{ioc.name}"',
                     )
-                    return ioc
 
         return None
 
-    def check_processes(self, processes: list) -> Union[dict, None]:
+    def check_processes(self, processes: list) -> Optional[IndicatorMatch]:
         """Check the provided list of processes against the list of
         process indicators.
 
@@ -562,7 +536,7 @@ class Indicators:
 
         return None
 
-    def check_email(self, email: str) -> Union[dict, None]:
+    def check_email(self, email: str) -> Optional[IndicatorMatch]:
         """Check the provided email against the list of email indicators.
 
         :param email: Email address to check against email indicators
@@ -574,18 +548,15 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("emails"):
-            if email.lower() == ioc["value"].lower():
-                self.log.warning(
-                    'Found a known suspicious email address "%s" '
-                    'matching indicators from "%s"',
-                    email,
-                    ioc["name"],
+            if email.lower() == ioc.value.lower():
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious email address "{email}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_file_name(self, file_name: str) -> Union[dict, None]:
+    def check_file_name(self, file_name: str) -> Optional[IndicatorMatch]:
         """Check the provided file name against the list of file indicators.
 
         :param file_name: File name to check against file
@@ -598,18 +569,15 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("file_names"):
-            if ioc["value"] == file_name:
-                self.log.warning(
-                    'Found a known suspicious file name "%s" '
-                    'matching indicators from "%s"',
-                    file_name,
-                    ioc["name"],
+            if ioc.value == file_name:
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious file name "{file_name}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_file_path(self, file_path: str) -> Union[dict, None]:
+    def check_file_path(self, file_path: str) -> Optional[IndicatorMatch]:
         """Check the provided file path against the list of file indicators
         (both path and name).
 
@@ -622,25 +590,22 @@ class Indicators:
         if not file_path:
             return None
 
-        ioc = self.check_file_name(os.path.basename(file_path))
-        if ioc:
-            return ioc
+        ioc_match = self.check_file_name(os.path.basename(file_path))
+        if ioc_match:
+            return ioc_match
 
         for ioc in self.get_iocs("file_paths"):
             # Strip any trailing slash from indicator paths to match
             # directories.
-            if file_path.startswith(ioc["value"].rstrip("/")):
-                self.log.warning(
-                    'Found a known suspicious file path "%s" '
-                    'matching indicators form "%s"',
-                    file_path,
-                    ioc["name"],
+            if file_path.startswith(ioc.value.rstrip("/")):
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious file path "{file_path}" matching indicators form "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_file_path_process(self, file_path: str) -> Optional[Dict[str, Any]]:
+    def check_file_path_process(self, file_path: str) -> Optional[IndicatorMatch]:
         """Check the provided file path contains a process name from the
         list of indicators
 
@@ -655,18 +620,15 @@ class Indicators:
 
         for ioc in self.get_iocs("processes"):
             parts = file_path.split("/")
-            if ioc["value"] in parts:
-                self.log.warning(
-                    "Found known suspicious process name mentioned in file at "
-                    'path "%s" matching indicators from "%s"',
-                    file_path,
-                    ioc["name"],
+            if ioc.value in parts:
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found known suspicious process name mentioned in file at path "{file_path}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_profile(self, profile_uuid: str) -> Union[dict, None]:
+    def check_profile(self, profile_uuid: str) -> Optional[IndicatorMatch]:
         """Check the provided configuration profile UUID against the list of
         indicators.
 
@@ -680,18 +642,15 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("ios_profile_ids"):
-            if profile_uuid in ioc["value"]:
-                self.log.warning(
-                    'Found a known suspicious profile ID "%s" '
-                    'matching indicators from "%s"',
-                    profile_uuid,
-                    ioc["name"],
+            if profile_uuid in ioc.value:
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious profile ID "{profile_uuid}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_file_hash(self, file_hash: str) -> Union[dict, None]:
+    def check_file_hash(self, file_hash: str) -> Optional[IndicatorMatch]:
         """Check the provided file hash against the list of indicators.
 
         :param file_hash: hash to check
@@ -710,18 +669,15 @@ class Indicators:
             hash_type = "sha256"
 
         for ioc in self.get_iocs("files_" + hash_type):
-            if file_hash.lower() == ioc["value"].lower():
-                self.log.warning(
-                    'Found a known suspicious file with hash "%s" '
-                    'matching indicators from "%s"',
-                    file_hash,
-                    ioc["name"],
+            if file_hash.lower() == ioc.value.lower():
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious file with hash "{file_hash}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_app_certificate_hash(self, cert_hash: str) -> Union[dict, None]:
+    def check_app_certificate_hash(self, cert_hash: str) -> Optional[IndicatorMatch]:
         """Check the provided cert hash against the list of indicators.
 
         :param cert_hash: hash to check
@@ -733,18 +689,15 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("app_cert_hashes"):
-            if cert_hash.lower() == ioc["value"].lower():
-                self.log.warning(
-                    'Found a known suspicious app certfificate with hash "%s" '
-                    'matching indicators from "%s"',
-                    cert_hash,
-                    ioc["name"],
+            if cert_hash.lower() == ioc.value.lower():
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious app certfificate with hash "{cert_hash}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_app_id(self, app_id: str) -> Union[dict, None]:
+    def check_app_id(self, app_id: str) -> Optional[IndicatorMatch]:
         """Check the provided app identifier (typically an Android package name)
         against the list of indicators.
 
@@ -757,18 +710,17 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("app_ids"):
-            if app_id.lower() == ioc["value"].lower():
-                self.log.warning(
-                    'Found a known suspicious app with ID "%s" '
-                    'matching indicators from "%s"',
-                    app_id,
-                    ioc["name"],
+            if app_id.lower() == ioc.value.lower():
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious app with ID "{app_id}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_android_property_name(self, property_name: str) -> Optional[dict]:
+    def check_android_property_name(
+        self, property_name: str
+    ) -> Optional[IndicatorMatch]:
         """Check the android property name against the list of indicators.
 
         :param property_name: Name of the Android property
@@ -780,24 +732,21 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("android_property_names"):
-            if property_name.lower() == ioc["value"].lower():
-                self.log.warning(
-                    'Found a known suspicious Android property "%s" '
-                    'matching indicators from "%s"',
-                    property_name,
-                    ioc["name"],
+            if property_name.lower() == ioc.value.lower():
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious Android property "{property_name}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_domain(self, url: str) -> Union[dict, None]:
+    def check_domain(self, url: str) -> Optional[IndicatorMatch]:
         """
         Renamed check_url now, kept for compatibility
         """
         return self.check_url(url)
 
-    def check_domains(self, urls: list) -> Union[dict, None]:
+    def check_domains(self, urls: list) -> Optional[IndicatorMatch]:
         """
         Renamed check_domains, kept for compatibility
         """

@@ -7,11 +7,16 @@ import logging
 import operator
 import sqlite3
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import convert_mactime_to_iso
 
 from .base import IOSExtraction
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleSerializedResult,
+    ModuleResults,
+)
 
 
 class NetBase(IOSExtraction):
@@ -25,7 +30,7 @@ class NetBase(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -129,7 +134,7 @@ class NetBase(IOSExtraction):
 
         self.log.info("Extracted information on %d processes", len(self.results))
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         record_data = (
             f"{record['proc_name']} (Bundle ID: {record['bundle_id']},"
             f" ID: {record['proc_id']})"
@@ -232,7 +237,10 @@ class NetBase(IOSExtraction):
                             "been truncated in the database)"
                         )
 
-                    self.log.warning(msg)
+                    self.alertstore.medium(
+                        self.get_slug(), msg, proc["live_isodate"], proc
+                    )
+
             if not proc["live_proc_id"]:
                 self.log.info(
                     "Found process entry in ZPROCESS but not in ZLIVEUSAGE: %s at %s",
@@ -251,16 +259,23 @@ class NetBase(IOSExtraction):
             # Avoid duplicate warnings for same process.
             if result["live_proc_id"] not in missing_process_cache:
                 missing_process_cache.add(result["live_proc_id"])
-                self.log.warning(
-                    "Found manipulated process entry %s. Entry on %s",
-                    result["live_proc_id"],
+                self.alertstore.high(
+                    self.get_slug(),
+                    f"Found manipulated process entry {result['live_proc_id']}. Entry on {result['live_isodate']}",
                     result["live_isodate"],
+                    result,
                 )
+                self.alertstore.log_latest()
 
             # Set manipulated proc timestamp so it appears in timeline.
             result["first_isodate"] = result["isodate"] = result["live_isodate"]
             result["proc_name"] = "MANIPULATED [process record deleted]"
-            self.detected.append(result)
+            self.alertstore.high(
+                self.get_slug(),
+                f"Found manipulated process entry {result['live_proc_id']}/",
+                result["first_isodate"],
+                result,
+            )
 
     def find_deleted(self):
         """Identify process which may have been deleted from the DataUsage
@@ -278,12 +293,13 @@ class NetBase(IOSExtraction):
         for proc_id in range(min(all_proc_id), max(all_proc_id)):
             if proc_id not in all_proc_id:
                 previous_proc = results_by_proc[last_proc_id]
-                self.log.info(
-                    'Missing process %d. Previous process at "%s" (%s)',
-                    proc_id,
+                self.alertstore.low(
+                    self.get_slug(),
+                    f'Missing process {proc_id}. Previous process at "{previous_proc["first_isodate"]}" ({previous_proc["proc_name"]})',
                     previous_proc["first_isodate"],
-                    previous_proc["proc_name"],
+                    previous_proc,
                 )
+                self.alertstore.log_latest()
 
                 missing_procs[proc_id] = {
                     "proc_id": proc_id,
@@ -333,7 +349,9 @@ class NetBase(IOSExtraction):
             if not result["proc_id"]:
                 continue
 
-            ioc = self.indicators.check_process(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_process(proc_name)
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(
+                    self.get_slug(), ioc_match.message, result["first_isodate"], result
+                )
