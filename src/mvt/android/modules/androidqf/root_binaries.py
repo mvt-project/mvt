@@ -52,6 +52,7 @@ class RootBinaries(AndroidQFModule):
                 "",
                 result,
             )
+            self.alertstore.log_latest()
 
         if self.results:
             self.log.warning(

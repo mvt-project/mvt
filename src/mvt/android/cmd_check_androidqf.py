@@ -140,6 +140,7 @@ class CmdAndroidCheckAndroidQF(Command):
         raise NoAndroidQFBackup
 
     def run_bugreport_cmd(self) -> bool:
+        bugreport = None
         try:
             bugreport = self.load_bugreport()
         except NoAndroidQFBugReport:
@@ -174,24 +175,22 @@ class CmdAndroidCheckAndroidQF(Command):
                 "Skipping backup modules as no backup.ab found in AndroidQF data."
             )
             return False
-        else:
-            cmd = CmdAndroidCheckBackup(
-                target_path=None,
-                results_path=self.results_path,
-                ioc_files=self.ioc_files,
-                iocs=self.iocs,
-                module_options=self.module_options,
-                hashes=self.hashes,
-                sub_command=True,
-            )
-            cmd.from_ab(backup)
-            cmd.run()
 
-            self.timeline.extend(cmd.timeline)
-            self.alertstore.extend(cmd.alertstore.alerts)
-        finally:
-            if backup:
-                backup.close()
+        cmd = CmdAndroidCheckBackup(
+            target_path=None,
+            results_path=self.results_path,
+            ioc_files=self.ioc_files,
+            iocs=self.iocs,
+            module_options=self.module_options,
+            hashes=self.hashes,
+            sub_command=True,
+        )
+        cmd.from_ab(backup)
+        cmd.run()
+
+        self.timeline.extend(cmd.timeline)
+        self.alertstore.extend(cmd.alertstore.alerts)
+        return True
 
     def finish(self) -> None:
         """

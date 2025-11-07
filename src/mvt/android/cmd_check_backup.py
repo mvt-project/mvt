@@ -92,34 +92,6 @@ class CmdAndroidCheckBackup(Command):
         for member in self.__tar:
             self.__files.append(member.name)
 
-    def from_ab(self, ab_file_bytes: bytes) -> None:
-        self.backup_type = "ab"
-        header = parse_ab_header(ab_file_bytes)
-        if not header["backup"]:
-            log.critical("Invalid backup format, file should be in .ab format")
-            sys.exit(1)
-
-        password = None
-        if header["encryption"] != "none":
-            password = prompt_or_load_android_backup_password(log, self.module_options)
-            if not password:
-                log.critical("No backup password provided.")
-                sys.exit(1)
-        try:
-            tardata = parse_backup_file(ab_file_bytes, password=password)
-        except InvalidBackupPassword:
-            log.critical("Invalid backup password")
-            sys.exit(1)
-        except AndroidBackupParsingError as exc:
-            log.critical("Impossible to parse this backup file: %s", exc)
-            log.critical("Please use Android Backup Extractor (ABE) instead")
-            sys.exit(1)
-
-        dbytes = io.BytesIO(tardata)
-        self.backup_archive = tarfile.open(fileobj=dbytes)
-        for member in self.backup_archive:
-            self.backup_files.append(member.name)
-
     def init(self) -> None:
         if not self.target_path:
             return
