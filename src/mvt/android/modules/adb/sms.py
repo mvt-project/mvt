@@ -92,8 +92,9 @@ class SMS(AndroidExtraction):
 
             ioc_match = self.indicators.check_urls(message_links)
             if ioc_match:
-                message["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", message)
+                self.alertstore.critical(
+                    ioc_match.message, "", message, matched_indicator=ioc_match.ioc
+                )
 
     def _parse_db(self, db_path: str) -> None:
         """Parse an Android bugle_db SMS database file.

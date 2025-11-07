@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from mvt.android.modules.backup.base import BackupModule
 from mvt.android.parsers.backup import parse_sms_file
@@ -30,7 +30,7 @@ class SMS(BackupModule):
             log=log,
             results=results,
         )
-        self.results = []
+        self.results: list[dict[str, Any]] = []
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -46,8 +46,9 @@ class SMS(BackupModule):
 
             ioc_match = self.indicators.check_urls(message_links)
             if ioc_match:
-                message["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", message)
+                self.alertstore.critical(
+                    ioc_match.message, "", message, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def run(self) -> None:

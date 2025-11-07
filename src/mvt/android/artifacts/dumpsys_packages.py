@@ -30,8 +30,9 @@ class DumpsysPackagesArtifact(AndroidArtifact):
 
             ioc_match = self.indicators.check_app_id(result.get("package_name", ""))
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 self.alertstore.log_latest()
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
@@ -62,15 +63,15 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         """
         Parse one entry of a dumpsys package information
         """
-        details = {
+        details: Dict[str, Any] = {
             "uid": "",
             "version_name": "",
             "version_code": "",
             "timestamp": "",
             "first_install_time": "",
             "last_update_time": "",
-            "permissions": [],
-            "requested_permissions": [],
+            "permissions": list(),
+            "requested_permissions": list(),
         }
         in_install_permissions = False
         in_runtime_permissions = False
@@ -148,7 +149,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         results = []
         package_name = None
         package = {}
-        lines = []
+        lines: list[str] = []
         for line in output.splitlines():
             if line.startswith("  Package ["):
                 if len(lines) > 0:

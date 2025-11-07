@@ -95,16 +95,19 @@ class TombstoneCrashArtifact(AndroidArtifact):
         for result in self.results:
             ioc_match = self.indicators.check_process(result["process_name"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
             if result.get("command_line", []):
                 command_name = result.get("command_line")[0].split("/")[-1]
+                command_name = result["command_line"][0]
                 ioc_match = self.indicators.check_process(command_name)
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(ioc_match.message, "", result)
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
             SUSPICIOUS_UIDS = [

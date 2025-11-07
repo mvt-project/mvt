@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from typing import Any
 
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
@@ -30,13 +31,14 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
         for result in self.results:
             ioc_match = self.indicators.check_app_id(result["package_name"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def parse(self, output: str) -> None:
         daily = None
-        daily_updates = []
+        daily_updates: list[dict[str, Any]] = []
         for line in output.splitlines():
             if line.startswith("  Daily from "):
                 if len(daily_updates) > 0:

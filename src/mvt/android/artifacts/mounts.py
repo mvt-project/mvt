@@ -179,19 +179,19 @@ class Mounts(AndroidArtifact):
             # Check if any mount points match indicators
             ioc = self.indicators.check_file_path(mount.get("mount_point", ""))
             if ioc:
-                mount["matched_indicator"] = ioc
                 self.alertstore.critical(
                     f"Mount point matches indicator: {mount.get('mount_point', '')}",
                     "",
                     mount,
+                    matched_indicator=ioc,
                 )
 
             # Check device paths for indicators
             ioc = self.indicators.check_file_path(mount.get("device", ""))
             if ioc:
-                mount["matched_indicator"] = ioc
                 self.alertstore.critical(
                     f"Device path matches indicator: {mount.get('device', '')}",
                     "",
                     mount,
+                    matched_indicator=ioc,
                 )

@@ -96,14 +96,16 @@ class Packages(AndroidExtraction):
 
             ioc_match = self.indicators.check_app_id(result["package_name"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
             for package_file in result.get("files", []):
                 ioc_match = self.indicators.check_file_hash(package_file["sha256"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(ioc_match.message, "", result)
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
 
     # @staticmethod
     # def check_virustotal(packages: list) -> None:

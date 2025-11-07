@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from datetime import datetime
+from typing import Any
 
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_datetime_to_iso
@@ -44,8 +45,9 @@ class DumpsysAppopsArtifact(AndroidArtifact):
             if self.indicators:
                 ioc_match = self.indicators.check_app_id(result.get("package_name"))
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.critical(ioc_match.message, "", result)
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
             # We use a placeholder entry to create a basic alert even without permission entries.
@@ -83,9 +85,9 @@ class DumpsysAppopsArtifact(AndroidArtifact):
 
     def parse(self, output: str) -> None:
         # self.results: List[Dict[str, Any]] = []
-        perm = {}
-        package = {}
-        entry = {}
+        perm: dict[str, Any] = {}
+        package: dict[str, Any] = {}
+        entry: dict[str, Any] = {}
         uid = None
         in_packages = False
 

@@ -39,10 +39,10 @@ class GetProp(AndroidArtifact):
             if not matches or len(matches[0]) != 2:
                 continue
 
-            entry = {"name": matches[0][0], "value": matches[0][1]}
-            self.results.append(entry)
+            prop_entry = {"name": matches[0][0], "value": matches[0][1]}
+            self.results.append(prop_entry)
 
-    def get_device_timezone(self) -> str:
+    def get_device_timezone(self) -> str | None:
         """
         Get the device timezone from the getprop results
 
@@ -70,5 +70,6 @@ class GetProp(AndroidArtifact):
                 result.get("name", "")
             )
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )

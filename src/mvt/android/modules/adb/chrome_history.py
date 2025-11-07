@@ -58,8 +58,9 @@ class ChromeHistory(AndroidExtraction):
         for result in self.results:
             ioc_match = self.indicators.check_url(result["url"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def _parse_db(self, db_path: str) -> None:
         """Parse a Chrome History database file.

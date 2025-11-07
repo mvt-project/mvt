@@ -89,8 +89,9 @@ class AQFFiles(AndroidQFModule):
         for result in self.results:
             ioc_match = self.indicators.check_file_path(result["path"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 self.alertstore.log_latest()
                 continue
 
@@ -113,8 +114,9 @@ class AQFFiles(AndroidQFModule):
 
             ioc_match = self.indicators.check_file_hash(result.get("sha256"))
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
             # TODO: adds SHA1 and MD5 when available in MVT
 

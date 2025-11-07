@@ -29,6 +29,7 @@ class Alert:
     message: str
     event_time: str
     event: ModuleAtomicResult
+    matched_indicator: Optional[Any] = None
 
 
 class AlertStore:
@@ -60,7 +61,7 @@ class AlertStore:
                     # Check if it has a get_slug method (MVT modules have this)
                     if hasattr(obj, "get_slug") and callable(obj.get_slug):
                         try:
-                            return obj.get_slug()
+                            return str(obj.get_slug())
                         except Exception:
                             pass
 
@@ -81,7 +82,13 @@ class AlertStore:
         for alert in alerts:
             self.add(alert)
 
-    def info(self, message: str, event_time: str, event: ModuleAtomicResult):
+    def info(
+        self,
+        message: str,
+        event_time: str,
+        event: ModuleAtomicResult,
+        matched_indicator: Optional[Any] = None,
+    ):
         self.add(
             Alert(
                 level=AlertLevel.INFORMATIONAL,
@@ -89,10 +96,17 @@ class AlertStore:
                 message=message,
                 event_time=event_time,
                 event=event,
+                matched_indicator=matched_indicator,
             )
         )
 
-    def low(self, message: str, event_time: str, event: ModuleAtomicResult):
+    def low(
+        self,
+        message: str,
+        event_time: str,
+        event: ModuleAtomicResult,
+        matched_indicator: Optional[Any] = None,
+    ):
         self.add(
             Alert(
                 level=AlertLevel.LOW,
@@ -100,10 +114,17 @@ class AlertStore:
                 message=message,
                 event_time=event_time,
                 event=event,
+                matched_indicator=matched_indicator,
             )
         )
 
-    def medium(self, message: str, event_time: str, event: ModuleAtomicResult):
+    def medium(
+        self,
+        message: str,
+        event_time: str,
+        event: ModuleAtomicResult,
+        matched_indicator: Optional[Any] = None,
+    ):
         self.add(
             Alert(
                 level=AlertLevel.MEDIUM,
@@ -111,10 +132,17 @@ class AlertStore:
                 message=message,
                 event_time=event_time,
                 event=event,
+                matched_indicator=matched_indicator,
             )
         )
 
-    def high(self, message: str, event_time: str, event: ModuleAtomicResult):
+    def high(
+        self,
+        message: str,
+        event_time: str,
+        event: ModuleAtomicResult,
+        matched_indicator: Optional[Any] = None,
+    ):
         self.add(
             Alert(
                 level=AlertLevel.HIGH,
@@ -122,10 +150,17 @@ class AlertStore:
                 message=message,
                 event_time=event_time,
                 event=event,
+                matched_indicator=matched_indicator,
             )
         )
 
-    def critical(self, message: str, event_time: str, event: ModuleAtomicResult):
+    def critical(
+        self,
+        message: str,
+        event_time: str,
+        event: ModuleAtomicResult,
+        matched_indicator: Optional[Any] = None,
+    ):
         self.add(
             Alert(
                 level=AlertLevel.CRITICAL,
@@ -133,6 +168,7 @@ class AlertStore:
                 message=message,
                 event_time=event_time,
                 event=event,
+                matched_indicator=matched_indicator,
             )
         )
 
