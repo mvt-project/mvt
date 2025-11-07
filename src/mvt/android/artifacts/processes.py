@@ -58,13 +58,13 @@ class Processes(AndroidArtifact):
             if result["proc_name"] == "gatekeeperd":
                 continue
 
-            ioc = self.indicators.check_app_id(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(proc_name)
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
                 continue
 
-            ioc = self.indicators.check_process(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_process(proc_name)
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)

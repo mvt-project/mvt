@@ -70,6 +70,9 @@ class CmdAndroidCheckAndroidQF(Command):
         self.__files: List[str] = []
 
     def init(self):
+        if not self.target_path:
+            raise NoAndroidQFTargetPath
+
         if os.path.isdir(self.target_path):
             self.__format = "dir"
             parent_path = Path(self.target_path).absolute().parent.as_posix()
@@ -157,9 +160,11 @@ class CmdAndroidCheckAndroidQF(Command):
             cmd.from_zip(bugreport)
             cmd.run()
 
-            self.detected_count += cmd.detected_count
             self.timeline.extend(cmd.timeline)
-            self.timeline_detected.extend(cmd.timeline_detected)
+            self.alertstore.extend(cmd.alertstore.alerts)
+        finally:
+            if bugreport:
+                bugreport.close()
 
     def run_backup_cmd(self) -> bool:
         try:
@@ -182,9 +187,11 @@ class CmdAndroidCheckAndroidQF(Command):
             cmd.from_ab(backup)
             cmd.run()
 
-            self.detected_count += cmd.detected_count
             self.timeline.extend(cmd.timeline)
-            self.timeline_detected.extend(cmd.timeline_detected)
+            self.alertstore.extend(cmd.alertstore.alerts)
+        finally:
+            if backup:
+                backup.close()
 
     def finish(self) -> None:
         """

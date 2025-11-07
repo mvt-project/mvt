@@ -50,10 +50,12 @@ class DumpsysReceiversArtifact(AndroidArtifact):
                 if not self.indicators:
                     continue
 
-                ioc = self.indicators.check_app_id(receiver["package_name"])
-                if ioc:
-                    receiver["matched_indicator"] = ioc
-                    self.detected.append({intent: receiver})
+                ioc_match = self.indicators.check_app_id(receiver["package_name"])
+                if ioc_match:
+                    receiver["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        self.get_slug(), ioc_match.message, "", {intent: receiver}
+                    )
                     continue
 
     def parse(self, output: str) -> None:

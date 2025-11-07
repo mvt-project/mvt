@@ -11,7 +11,8 @@ import sqlite3
 import subprocess
 from typing import Iterator, Optional, Union
 
-from mvt.common.module import DatabaseCorruptedError, DatabaseNotFoundError, MVTModule
+from mvt.common.module import DatabaseCorruptedError, DatabaseNotFoundError
+from mvt.common.module import MVTModule, ModuleResults
 
 
 class IOSExtraction(MVTModule):
@@ -25,7 +26,7 @@ class IOSExtraction(MVTModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,

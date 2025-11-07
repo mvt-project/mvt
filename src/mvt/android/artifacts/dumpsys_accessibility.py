@@ -14,10 +14,10 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(result["package_name"])
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
                 continue
 
     def parse(self, content: str) -> None:

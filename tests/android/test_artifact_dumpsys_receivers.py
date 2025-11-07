@@ -42,6 +42,6 @@ class TestDumpsysReceiversArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.android.storagemanager")
         dr.indicators = ind
-        assert len(dr.detected) == 0
+        assert len(dr.alertstore.alerts) == 0
         dr.check_indicators()
-        assert len(dr.detected) == 1
+        assert len(dr.alertstore.alerts) == 1

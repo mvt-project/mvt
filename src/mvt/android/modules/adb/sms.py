@@ -6,11 +6,16 @@
 import logging
 import os
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.android.parsers.backup import AndroidBackupParsingError, parse_tar_for_sms
 from mvt.common.module import InsufficientPrivileges
 from mvt.common.utils import check_for_links, convert_unix_to_iso
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 
 from .base import AndroidExtraction
 
@@ -51,7 +56,7 @@ class SMS(AndroidExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -64,7 +69,7 @@ class SMS(AndroidExtraction):
 
         self.sms_db_type = 0
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         body = record["body"].replace("\n", "\\n")
         return {
             "timestamp": record["isodate"],
@@ -85,9 +90,12 @@ class SMS(AndroidExtraction):
             if message_links == []:
                 message_links = check_for_links(message["body"])
 
-            if self.indicators.check_urls(message_links):
-                self.detected.append(message)
-                continue
+            ioc_match = self.indicators.check_urls(message_links)
+            if ioc_match:
+                message["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(
+                    self.get_slug(), ioc_match.message, "", message
+                )
 
     def _parse_db(self, db_path: str) -> None:
         """Parse an Android bugle_db SMS database file.

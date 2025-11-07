@@ -12,10 +12,12 @@ class DumpsysPackageActivitiesArtifact(AndroidArtifact):
             return
 
         for activity in self.results:
-            ioc = self.indicators.check_app_id(activity["package_name"])
-            if ioc:
-                activity["matched_indicator"] = ioc
-                self.detected.append(activity)
+            ioc_match = self.indicators.check_app_id(activity["package_name"])
+            if ioc_match:
+                activity["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(
+                    self.get_slug(), ioc_match.message, "", activity
+                )
                 continue
 
     def parse(self, content: str):

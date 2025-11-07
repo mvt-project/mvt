@@ -18,7 +18,7 @@ class TestManifestModule:
         run_module(m)
         assert len(m.results) == 3721
         assert len(m.timeline) == 5881
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
 
     def test_detection(self, indicator_file):
         m = Manifest(target_path=get_ios_backup_folder())
@@ -27,4 +27,4 @@ class TestManifestModule:
         ind.ioc_collections[0]["file_names"].append("com.apple.CoreBrightness.plist")
         m.indicators = ind
         run_module(m)
-        assert len(m.detected) == 1
+        assert len(m.alertstore.alerts) == 1

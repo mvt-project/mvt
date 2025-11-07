@@ -22,4 +22,4 @@ class TestAndroidqfFilesAnalysis:
         run_module(m)
         assert len(m.results) == 3
         assert len(m.timeline) == 6
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0

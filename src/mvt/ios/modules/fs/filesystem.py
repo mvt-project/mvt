@@ -5,9 +5,14 @@
 
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import convert_unix_to_iso
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleSerializedResult,
+    ModuleResults,
+)
 
 from ..base import IOSExtraction
 
@@ -24,7 +29,7 @@ class Filesystem(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -35,7 +40,7 @@ class Filesystem(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["modified"],
             "module": self.__class__.__name__,
@@ -51,19 +56,19 @@ class Filesystem(IOSExtraction):
             if "path" not in result:
                 continue
 
-            ioc = self.indicators.check_file_path(result["path"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_file_path(result["path"])
+            if ioc_match:
+                self.alertstore.high(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.log_latest()
 
             # If we are instructed to run fast, we skip the rest.
             if self.module_options.get("fast_mode", None):
                 continue
 
-            ioc = self.indicators.check_file_path_process(result["path"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_file_path_process(result["path"])
+            if ioc_match:
+                self.alertstore.high(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.log_latest()
 
     def run(self) -> None:
         for root, dirs, files in os.walk(self.target_path):

@@ -25,7 +25,7 @@ class TestAndroidqfSMSAnalysis:
         run_module(m)
         assert len(m.results) == 2
         assert len(m.timeline) == 0
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
 
     def test_androidqf_sms_encrypted_password_valid(self):
         data_path = os.path.join(get_artifact_folder(), "androidqf_encrypted")

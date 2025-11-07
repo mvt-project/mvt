@@ -59,13 +59,16 @@ class GetProp(AndroidArtifact):
                 self.log.info("%s: %s", entry["name"], entry["value"])
 
             if entry["name"] == "ro.build.version.security_patch":
-                warn_android_patch_level(entry["value"], self.log)
+                warning_message = warn_android_patch_level(entry["value"], self.log)
+                self.alertstore.medium(self.get_slug(), warning_message, "", entry)
 
         if not self.indicators:
             return
 
         for result in self.results:
-            ioc = self.indicators.check_android_property_name(result.get("name", ""))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_android_property_name(
+                result.get("name", "")
+            )
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)

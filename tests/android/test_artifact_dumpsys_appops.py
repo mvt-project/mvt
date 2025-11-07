@@ -42,22 +42,24 @@ class TestDumpsysAppopsArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.facebook.katana")
         da.indicators = ind
-        assert len(da.detected) == 0
+        assert len(da.alertstore.alerts) == 0
 
         da.check_indicators()
         detected_by_ioc = [
-            detected for detected in da.detected if detected.get("matched_indicator")
+            alert
+            for alert in da.alertstore.alerts
+            if "matched_indicator" in alert.event
         ]
         detected_by_permission_heuristic = [
-            detected
-            for detected in da.detected
+            alert
+            for alert in da.alertstore.alerts
             if all(
                 [
                     perm["name"] == "REQUEST_INSTALL_PACKAGES"
-                    for perm in detected["permissions"]
+                    for perm in alert.event["permissions"]
                 ]
             )
         ]
-        assert len(da.detected) == 3
+        assert len(da.alertstore.alerts) == 3
         assert len(detected_by_ioc) == 1
         assert len(detected_by_permission_heuristic) == 2

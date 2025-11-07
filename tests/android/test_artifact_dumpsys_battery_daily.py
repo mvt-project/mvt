@@ -32,6 +32,6 @@ class TestDumpsysBatteryDailyArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.facebook.system")
         dba.indicators = ind
-        assert len(dba.detected) == 0
+        assert len(dba.alertstore.alerts) == 0
         dba.check_indicators()
-        assert len(dba.detected) == 1
+        assert len(dba.alertstore.alerts) == 1

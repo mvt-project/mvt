@@ -9,7 +9,6 @@ from pathlib import Path
 from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
 from mvt.android.modules.bugreport.dumpsys_getprop import DumpsysGetProp
 from mvt.android.modules.bugreport.dumpsys_packages import DumpsysPackages
-from mvt.android.modules.bugreport.tombstones import Tombstones
 from mvt.common.module import run_module
 
 from ..utils import get_artifact_folder
@@ -36,9 +35,13 @@ class TestBugreportAnalysis:
         assert len(m.timeline) == 16
 
         detected_by_ioc = [
-            detected for detected in m.detected if detected.get("matched_indicator")
+            detected
+            for detected in m.alertstore.alerts
+            if detected.event.get("matched_indicator")
         ]
-        assert len(m.detected) == 1  # Hueristic detection for suspicious permissions
+        assert (
+            len(m.alertstore.alerts) == 1
+        )  # Hueristic detection for suspicious permissions
         assert len(detected_by_ioc) == 0
 
     def test_packages_module(self):
