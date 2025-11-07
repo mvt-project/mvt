@@ -133,14 +133,14 @@ class Mounts(AndroidArtifact):
             if mount["is_system_partition"] and mount["is_read_write"]:
                 system_rw_mounts.append(mount)
                 if mount_point == "/system":
-                    self.alertstore.warning(
+                    self.alertstore.high(
                         self.get_slug(),
                         "Root detected /system partition is mounted as read-write (rw)",
                         "",
                         mount,
                     )
                 else:
-                    self.alertstore.warning(
+                    self.alertstore.high(
                         self.get_slug(),
                         f"System partition {mount_point} is mounted as read-write (rw). This may indicate system modifications.",
                         "",
@@ -156,7 +156,7 @@ class Mounts(AndroidArtifact):
                 ):
                     continue
                 suspicious_mounts.append(mount)
-                self.alertstore.warning(
+                self.alertstore.high(
                     self.get_slug(),
                     f"Suspicious mount options found for {mount_point}: {', '.join(suspicious_opts)}",
                     "",

@@ -46,7 +46,7 @@ class RootBinaries(AndroidQFModule):
 
         # All found root binaries are considered indicators of rooting
         for result in self.results:
-            self.alertstore.warning(
+            self.alertstore.high(
                 self.get_slug(),
                 f'Found root binary "{result["binary_name"]}" at path "{result["path"]}"',
                 "",
