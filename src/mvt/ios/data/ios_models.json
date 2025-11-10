@@ -194,5 +194,41 @@
     {
         "identifier": "iPhone16,2",
         "description": "iPhone 15 Pro Max"
+    },
+    {
+        "identifier": "iPhone17,1",
+        "description": "iPhone 16 Pro"
+    },
+    {
+        "identifier": "iPhone17,2",
+        "description": "iPhone 16 Pro Max"
+    },
+    {
+        "identifier": "iPhone17,3",
+        "description": "iPhone 16"
+    },
+    {
+        "identifier": "iPhone17,4",
+        "description": "iPhone 16 Plus"
+    },
+    {
+        "identifier": "iPhone17,5",
+        "description": "iPhone 16e"
+    },
+    {
+        "identifier": "iPhone18,1",
+        "description": "iPhone 17 Pro"
+    },
+    {
+        "identifier": "iPhone18,2",
+        "description": "iPhone 17 Pro Max"
+    },
+    {
+        "identifier": "iPhone18,3",
+        "description": "iPhone 17"
+    },
+    {
+        "identifier": "iPhone18,4",
+        "description": "iPhone Air"
     }
 ]
