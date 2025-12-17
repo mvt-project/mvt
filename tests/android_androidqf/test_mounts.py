@@ -94,4 +94,6 @@ class TestAndroidqfMountsModule:
         assert len(m.results) == 0, (
             f"Expected no results when mounts.json is absent, got: {m.results}"
         )
-        assert len(m.detected) == 0, f"Expected no detections, got: {m.detected}"
+        assert len(m.alertstore.alerts) == 0, (
+            f"Expected no detections, got: {m.alertstore.alerts}"
+        )

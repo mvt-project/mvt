@@ -39,6 +39,6 @@ class TestDumpsysPackageActivitiesArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.google.android.gms")
         dpa.indicators = ind
-        assert len(dpa.detected) == 0
+        assert len(dpa.alertstore.alerts) == 0
         dpa.check_indicators()
-        assert len(dpa.detected) == 1
+        assert len(dpa.alertstore.alerts) == 1

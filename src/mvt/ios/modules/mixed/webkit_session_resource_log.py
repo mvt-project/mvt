@@ -9,6 +9,7 @@ import plistlib
 from typing import Optional
 
 from mvt.common.utils import convert_datetime_to_iso
+from mvt.common.module_types import ModuleResults
 
 from ..base import IOSExtraction
 
@@ -38,7 +39,7 @@ class WebkitSessionResourceLog(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -86,10 +87,12 @@ class WebkitSessionResourceLog(IOSExtraction):
                     [entry["origin"]] + source_domains + destination_domains
                 )
 
-                ioc = self.indicators.check_urls(all_origins)
-                if ioc:
-                    entry["matched_indicator"] = ioc
-                    self.detected.append(entry)
+                ioc_match = self.indicators.check_urls(all_origins)
+                if ioc_match:
+                    entry["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        self.get_slug(), ioc_match.message, "", entry
+                    )
 
                     redirect_path = ""
                     if len(source_domains) > 0:
@@ -110,9 +113,11 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                         redirect_path += ", ".join(destination_domains)
 
-                    self.log.warning(
-                        "Found HTTP redirect between suspicious domains: %s",
-                        redirect_path,
+                    self.alertstore.high(
+                        self.get_slug(),
+                        f"Found HTTP redirect between suspicious domains: {redirect_path}",
+                        "",
+                        entry,
                     )
 
     def _extract_browsing_stats(self, log_path):

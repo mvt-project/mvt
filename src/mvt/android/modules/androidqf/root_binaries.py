@@ -46,17 +46,17 @@ class RootBinaries(AndroidQFModule):
 
         # All found root binaries are considered indicators of rooting
         for result in self.results:
-            self.log.warning(
-                'Found root binary "%s" at path "%s"',
-                result["binary_name"],
-                result["path"],
+            self.alertstore.high(
+                f'Found root binary "{result["binary_name"]}" at path "{result["path"]}"',
+                "",
+                result,
             )
-            self.detected.append(result)
+            self.alertstore.log_latest()
 
-        if self.detected:
+        if self.results:
             self.log.warning(
                 "Device shows signs of rooting with %d root binaries found",
-                len(self.detected),
+                len(self.results),
             )
 
     def run(self) -> None:

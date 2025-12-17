@@ -4,9 +4,10 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import convert_mactime_to_iso
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 from ..base import IOSExtraction
 
@@ -37,7 +38,7 @@ class Calls(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,

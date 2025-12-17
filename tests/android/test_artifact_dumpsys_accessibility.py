@@ -49,6 +49,6 @@ class TestDumpsysAccessibilityArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.sec.android.app.camera")
         da.indicators = ind
-        assert len(da.detected) == 0
+        assert len(da.alertstore.alerts) == 0
         da.check_indicators()
-        assert len(da.detected) == 1
+        assert len(da.alertstore.alerts) == 1

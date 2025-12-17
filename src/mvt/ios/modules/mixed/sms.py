@@ -6,9 +6,14 @@
 import logging
 import sqlite3
 from base64 import b64encode
-from typing import Optional, Union
+from typing import Optional
 
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 
 from ..base import IOSExtraction
 
@@ -30,7 +35,7 @@ class SMS(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -41,7 +46,7 @@ class SMS(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         text = record["text"].replace("\n", "\\n")
         sms_data = f'{record["service"]}: {record["guid"]} "{text}" from {record["phone_number"]} ({record["account"]})'
         records = [
@@ -71,10 +76,13 @@ class SMS(IOSExtraction):
             if message.get("text", "").startswith(alert_old) or message.get(
                 "text", ""
             ).startswith(alert_new):
-                self.log.warning(
-                    "Apple warning about state-sponsored attack received on the %s",
+                self.alertstore.high(
+                    self.get_slug(),
+                    f"Apple warning about state-sponsored attack received on the {message['isodate']}",
                     message["isodate"],
+                    message,
                 )
+                self.alertstore.log_latest()
 
         if not self.indicators:
             return
@@ -84,10 +92,10 @@ class SMS(IOSExtraction):
             # Making sure not link was ignored
             if message_links == []:
                 message_links = check_for_links(result.get("text", ""))
-            ioc = self.indicators.check_urls(message_links)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_urls(message_links)
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
 
     def run(self) -> None:
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)

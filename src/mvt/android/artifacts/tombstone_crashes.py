@@ -4,16 +4,17 @@
 #   https://license.mvt.re/1.1/
 
 import datetime
-from typing import List, Optional, Union
+from typing import List, Optional
 
-import pydantic
 import betterproto
+import pydantic
 from dateutil import parser
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.android.parsers.proto.tombstone import Tombstone
-from .artifact import AndroidArtifact
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
+from mvt.common.utils import convert_datetime_to_iso
 
+from .artifact import AndroidArtifact
 
 TOMBSTONE_DELIMITER = "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
 
@@ -76,7 +77,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
     This parser can parse both text and protobuf tombstone crash files.
     """
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["timestamp"],
             "module": self.__class__.__name__,
@@ -92,18 +93,21 @@ class TombstoneCrashArtifact(AndroidArtifact):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_process(result["process_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_process(result["process_name"])
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
             if result.get("command_line", []):
                 command_name = result.get("command_line")[0].split("/")[-1]
-                ioc = self.indicators.check_process(command_name)
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                command_name = result["command_line"][0]
+                ioc_match = self.indicators.check_process(command_name)
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
             SUSPICIOUS_UIDS = [
@@ -112,11 +116,14 @@ class TombstoneCrashArtifact(AndroidArtifact):
                 2000,  # shell
             ]
             if result["uid"] in SUSPICIOUS_UIDS:
-                self.log.warning(
-                    f"Potentially suspicious crash in process '{result['process_name']}' "
-                    f"running as UID '{result['uid']}' in tombstone '{result['file_name']}' at {result['timestamp']}"
+                self.alertstore.medium(
+                    (
+                        f"Potentially suspicious crash in process '{result['process_name']}' "
+                        f"running as UID '{result['uid']}' in tombstone '{result['file_name']}' at {result['timestamp']}"
+                    ),
+                    "",
+                    result,
                 )
-                self.detected.append(result)
 
     def parse_protobuf(
         self, file_name: str, file_timestamp: datetime.datetime, data: bytes
