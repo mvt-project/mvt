@@ -1,14 +1,9 @@
 PWD = $(shell pwd)
 
-autofix:
-	ruff format .
-	ruff check --fix .
-
 check: ruff mypy
 
 ruff:
-	ruff format --check .
-	ruff check -q .
+	ruff check .
 
 mypy:
 	mypy
