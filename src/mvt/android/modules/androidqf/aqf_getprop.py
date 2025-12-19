@@ -6,13 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
+from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
 
 from .base import AndroidQFModule
 
 
-class DumpsysAccessibility(DumpsysAccessibilityArtifact, AndroidQFModule):
-    """This module analyses dumpsys accessibility"""
+class AQFGetProp(GetPropArtifact, AndroidQFModule):
+    """This module extracts data from get properties."""
 
     def __init__(
         self,
@@ -31,21 +31,15 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, AndroidQFModule):
             log=log,
             results=results,
         )
+        self.results = []
 
     def run(self) -> None:
-        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
-        if not dumpsys_file:
+        getprop_files = self._get_files_by_pattern("*/getprop.txt")
+        if not getprop_files:
+            self.log.info("getprop.txt file not found")
             return
 
-        data = self._get_file_content(dumpsys_file[0]).decode("utf-8", errors="replace")
-        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE accessibility:")
-        self.parse(content)
+        data = self._get_file_content(getprop_files[0]).decode("utf-8")
 
-        for result in self.results:
-            self.log.info(
-                'Found installed accessibility service "%s"', result.get("service")
-            )
-
-        self.log.info(
-            "Identified a total of %d accessibility services", len(self.results)
-        )
+        self.parse(data)
+        self.log.info("Extracted a total of %d properties", len(self.results))

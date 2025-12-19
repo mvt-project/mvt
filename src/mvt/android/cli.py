@@ -9,28 +9,30 @@ import click
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (
-    HELP_MSG_VERSION,
-    HELP_MSG_OUTPUT,
-    HELP_MSG_SERIAL,
-    HELP_MSG_DOWNLOAD_APKS,
-    HELP_MSG_DOWNLOAD_ALL_APKS,
-    HELP_MSG_VIRUS_TOTAL,
+    HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_APK_OUTPUT,
     HELP_MSG_APKS_FROM_FILE,
-    HELP_MSG_VERBOSE,
     HELP_MSG_CHECK_ADB,
-    HELP_MSG_IOC,
+    HELP_MSG_CHECK_ANDROID_BACKUP,
+    HELP_MSG_CHECK_ANDROIDQF,
+    HELP_MSG_CHECK_BUGREPORT,
+    HELP_MSG_CHECK_IOCS,
+    HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
+    HELP_MSG_DISABLE_UPDATE_CHECK,
+    HELP_MSG_DOWNLOAD_ALL_APKS,
+    HELP_MSG_DOWNLOAD_APKS,
     HELP_MSG_FAST,
+    HELP_MSG_HASHES,
+    HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
     HELP_MSG_MODULE,
     HELP_MSG_NONINTERACTIVE,
-    HELP_MSG_ANDROID_BACKUP_PASSWORD,
-    HELP_MSG_CHECK_BUGREPORT,
-    HELP_MSG_CHECK_ANDROID_BACKUP,
-    HELP_MSG_CHECK_ANDROIDQF,
-    HELP_MSG_HASHES,
-    HELP_MSG_CHECK_IOCS,
+    HELP_MSG_OUTPUT,
+    HELP_MSG_SERIAL,
     HELP_MSG_STIX2,
+    HELP_MSG_VERBOSE,
+    HELP_MSG_VERSION,
+    HELP_MSG_VIRUS_TOTAL,
 )
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
@@ -53,12 +55,37 @@ log = logging.getLogger("mvt")
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
+def _get_disable_flags(ctx):
+    """Helper function to safely get disable flags from context."""
+    if ctx.obj is None:
+        return False, False
+    return (
+        ctx.obj.get("disable_version_check", False),
+        ctx.obj.get("disable_indicator_check", False),
+    )
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
 @click.group(invoke_without_command=False)
-def cli():
-    logo()
+@click.option(
+    "--disable-update-check", is_flag=True, help=HELP_MSG_DISABLE_UPDATE_CHECK
+)
+@click.option(
+    "--disable-indicator-update-check",
+    is_flag=True,
+    help=HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
+)
+@click.pass_context
+def cli(ctx, disable_update_check, disable_indicator_update_check):
+    ctx.ensure_object(dict)
+    ctx.obj["disable_version_check"] = disable_update_check
+    ctx.obj["disable_indicator_check"] = disable_indicator_update_check
+    logo(
+        disable_version_check=disable_update_check,
+        disable_indicator_check=disable_indicator_update_check,
+    )
 
 
 # ==============================================================================
@@ -166,11 +193,18 @@ def check_adb(
         module_name=module,
         serial=serial,
         module_options=module_options,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
         cmd.list_modules()
         return
+
+    log.warning(
+        "DEPRECATION: The 'check-adb' command is deprecated and may be removed in a future release. "
+        "Prefer acquiring device data using the AndroidQF project (https://github.com/mvt-project/androidqf/) and analyzing that acquisition with MVT."
+    )
 
     log.info("Checking Android device over debug bridge")
 
@@ -212,6 +246,8 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
         ioc_files=iocs,
         module_name=module,
         hashes=True,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -274,6 +310,8 @@ def check_backup(
             "interactive": not non_interactive,
             "backup_password": cli_load_android_backup_password(log, backup_password),
         },
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -338,6 +376,8 @@ def check_androidqf(
             "interactive": not non_interactive,
             "backup_password": cli_load_android_backup_password(log, backup_password),
         },
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -372,7 +412,13 @@ def check_androidqf(
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
-    cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
+    cmd = CmdCheckIOCS(
+        target_path=folder,
+        ioc_files=iocs,
+        module_name=module,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
+    )
     cmd.modules = BACKUP_MODULES + ADB_MODULES + BUGREPORT_MODULES
 
     if list_modules:

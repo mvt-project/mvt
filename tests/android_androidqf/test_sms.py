@@ -21,7 +21,7 @@ class TestAndroidqfSMSAnalysis:
         m = SMS(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert len(m.results) == 2
         assert len(m.timeline) == 0
@@ -36,7 +36,7 @@ class TestAndroidqfSMSAnalysis:
         )
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert len(m.results) == 1
 
@@ -52,7 +52,7 @@ class TestAndroidqfSMSAnalysis:
         )
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert prompt_mock.call_count == 1
         assert len(m.results) == 1
@@ -67,7 +67,7 @@ class TestAndroidqfSMSAnalysis:
             )
             files = list_files(data_path)
             parent_path = Path(data_path).absolute().parent.as_posix()
-            m.from_folder(parent_path, files)
+            m.from_dir(parent_path, files)
             run_module(m)
         assert len(m.results) == 0
         assert "Invalid backup password" in caplog.text
@@ -82,7 +82,7 @@ class TestAndroidqfSMSAnalysis:
             )
             files = list_files(data_path)
             parent_path = Path(data_path).absolute().parent.as_posix()
-            m.from_folder(parent_path, files)
+            m.from_dir(parent_path, files)
             run_module(m)
         assert len(m.results) == 0
         assert (

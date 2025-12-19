@@ -11,6 +11,7 @@ from zipfile import ZipFile
 
 from mvt.android.modules.bugreport.base import BugReportModule
 from mvt.common.command import Command
+from mvt.common.indicators import Indicators
 
 from .modules.bugreport import BUGREPORT_MODULES
 
@@ -23,54 +24,80 @@ class CmdAndroidCheckBugreport(Command):
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
         ioc_files: Optional[list] = None,
+        iocs: Optional[Indicators] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         module_options: Optional[dict] = None,
-        hashes: bool = False,
+        hashes: Optional[bool] = False,
+        sub_command: Optional[bool] = False,
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
             results_path=results_path,
             ioc_files=ioc_files,
+            iocs=iocs,
             module_name=module_name,
             serial=serial,
             module_options=module_options,
             hashes=hashes,
+            sub_command=sub_command,
             log=log,
+            disable_version_check=disable_version_check,
+            disable_indicator_check=disable_indicator_check,
         )
 
         self.name = "check-bugreport"
         self.modules = BUGREPORT_MODULES
 
-        self.bugreport_format: str = ""
-        self.bugreport_archive: Optional[ZipFile] = None
-        self.bugreport_files: List[str] = []
+        self.__format: str = ""
+        self.__zip: Optional[ZipFile] = None
+        self.__files: List[str] = []
+
+    def from_dir(self, dir_path: str) -> None:
+        """This method is used to initialize the bug report analysis from an
+        uncompressed directory.
+        """
+        self.__format = "dir"
+        self.target_path = dir_path
+        parent_path = Path(dir_path).absolute().as_posix()
+        for root, _, subfiles in os.walk(os.path.abspath(dir_path)):
+            for file_name in subfiles:
+                file_path = os.path.relpath(os.path.join(root, file_name), parent_path)
+                self.__files.append(file_path)
+
+    def from_zip(self, bugreport_zip: ZipFile) -> None:
+        """This method is used to initialize the bug report analysis from a
+        compressed archive.
+        """
+        # NOTE: This will be invoked either by the CLI directly,or by the
+        # check-androidqf command. We need this because we want to support
+        # check-androidqf to analyse compressed archives itself too.
+        # So, we'll need to extract bugreport.zip from a 'androidqf.zip', and
+        # since nothing is written on disk, we need to be able to pass this
+        # command a ZipFile instance in memory.
+
+        self.__format = "zip"
+        self.__zip = bugreport_zip
+        for file_name in self.__zip.namelist():
+            self.__files.append(file_name)
 
     def init(self) -> None:
         if not self.target_path:
             return
 
         if os.path.isfile(self.target_path):
-            self.bugreport_format = "zip"
-            self.bugreport_archive = ZipFile(self.target_path)
-            for file_name in self.bugreport_archive.namelist():
-                self.bugreport_files.append(file_name)
+            self.from_zip(ZipFile(self.target_path))
         elif os.path.isdir(self.target_path):
-            self.bugreport_format = "dir"
-            parent_path = Path(self.target_path).absolute().as_posix()
-            for root, _, subfiles in os.walk(os.path.abspath(self.target_path)):
-                for file_name in subfiles:
-                    file_path = os.path.relpath(
-                        os.path.join(root, file_name), parent_path
-                    )
-                    self.bugreport_files.append(file_path)
+            self.from_dir(self.target_path)
 
     def module_init(self, module: BugReportModule) -> None:  # type: ignore[override]
-        if self.bugreport_format == "zip":
-            module.from_zip(self.bugreport_archive, self.bugreport_files)
+        if self.__format == "zip":
+            module.from_zip(self.__zip, self.__files)
         else:
-            module.from_folder(self.target_path, self.bugreport_files)
+            module.from_dir(self.target_path, self.__files)
 
     def finish(self) -> None:
-        if self.bugreport_archive:
-            self.bugreport_archive.close()
+        if self.__zip:
+            self.__zip.close()

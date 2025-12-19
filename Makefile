@@ -1,14 +1,9 @@
 PWD = $(shell pwd)
 
-autofix:
-	ruff format .
-	ruff check --fix .
-
 check: ruff mypy
 
 ruff:
-	ruff format --check .
-	ruff check -q .
+	ruff check .
 
 mypy:
 	mypy
@@ -23,7 +18,7 @@ install:
 	python3 -m pip install --upgrade -e .
 
 test-requirements:
-	python3 -m pip install --upgrade -r test-requirements.txt
+	python3 -m pip install --upgrade --group dev
 
 generate-proto-parsers:
 	# Generate python parsers for protobuf files

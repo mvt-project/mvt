@@ -6,12 +6,16 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_battery_daily import DumpsysBatteryDailyArtifact
+from mvt.android.artifacts.dumpsys_package_activities import (
+    DumpsysPackageActivitiesArtifact,
+)
 
-from .base import AndroidQFModule
+from .base import BugReportModule
 
 
-class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, AndroidQFModule):
+class DumpsysActivities(DumpsysPackageActivitiesArtifact, BugReportModule):
+    """This module extracts details on receivers for risky activities."""
+
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -30,17 +34,23 @@ class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, AndroidQFModule):
             results=results,
         )
 
+        self.results = results if results else []
+
     def run(self) -> None:
-        dumpsys_file = self._get_files_by_pattern("*/dumpsys.txt")
-        if not dumpsys_file:
+        content = self._get_dumpstate_file()
+        if not content:
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
             return
 
-        # Extract section
-        data = self._get_file_content(dumpsys_file[0])
+        # Extract package section
         section = self.extract_dumpsys_section(
-            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
+            content.decode("utf-8", errors="ignore"), "DUMP OF SERVICE package:"
         )
 
-        # Parse it
+        # Parse
         self.parse(section)
-        self.log.info("Extracted a total of %d battery daily stats", len(self.results))
+
+        self.log.info("Extracted %d package activities", len(self.results))

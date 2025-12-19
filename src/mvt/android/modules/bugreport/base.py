@@ -39,9 +39,7 @@ class BugReportModule(MVTModule):
         self.extract_files: List[str] = []
         self.zip_files: List[str] = []
 
-    def from_folder(
-        self, extract_path: Optional[str], extract_files: List[str]
-    ) -> None:
+    def from_dir(self, extract_path: str, extract_files: List[str]) -> None:
         self.extract_path = extract_path
         self.extract_files = extract_files
 
