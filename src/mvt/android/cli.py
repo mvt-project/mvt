@@ -9,30 +9,30 @@ import click
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.help import (
-    HELP_MSG_VERSION,
-    HELP_MSG_OUTPUT,
-    HELP_MSG_SERIAL,
-    HELP_MSG_DOWNLOAD_APKS,
-    HELP_MSG_DOWNLOAD_ALL_APKS,
-    HELP_MSG_VIRUS_TOTAL,
+    HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_APK_OUTPUT,
     HELP_MSG_APKS_FROM_FILE,
-    HELP_MSG_VERBOSE,
     HELP_MSG_CHECK_ADB,
-    HELP_MSG_IOC,
+    HELP_MSG_CHECK_ANDROID_BACKUP,
+    HELP_MSG_CHECK_ANDROIDQF,
+    HELP_MSG_CHECK_BUGREPORT,
+    HELP_MSG_CHECK_IOCS,
+    HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
+    HELP_MSG_DISABLE_UPDATE_CHECK,
+    HELP_MSG_DOWNLOAD_ALL_APKS,
+    HELP_MSG_DOWNLOAD_APKS,
     HELP_MSG_FAST,
+    HELP_MSG_HASHES,
+    HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
     HELP_MSG_MODULE,
     HELP_MSG_NONINTERACTIVE,
-    HELP_MSG_ANDROID_BACKUP_PASSWORD,
-    HELP_MSG_CHECK_BUGREPORT,
-    HELP_MSG_CHECK_ANDROID_BACKUP,
-    HELP_MSG_CHECK_ANDROIDQF,
-    HELP_MSG_HASHES,
-    HELP_MSG_CHECK_IOCS,
+    HELP_MSG_OUTPUT,
+    HELP_MSG_SERIAL,
     HELP_MSG_STIX2,
-    HELP_MSG_DISABLE_UPDATE_CHECK,
-    HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
+    HELP_MSG_VERBOSE,
+    HELP_MSG_VERSION,
+    HELP_MSG_VIRUS_TOTAL,
 )
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
@@ -200,6 +200,11 @@ def check_adb(
     if list_modules:
         cmd.list_modules()
         return
+
+    log.warning(
+        "DEPRECATION: The 'check-adb' command is deprecated and may be removed in a future release. "
+        "Prefer acquiring device data using the AndroidQF project (https://github.com/mvt-project/androidqf/) and analyzing that acquisition with MVT."
+    )
 
     log.info("Checking Android device over debug bridge")
 
