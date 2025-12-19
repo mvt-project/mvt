@@ -16,6 +16,12 @@ Now you can try launching MVT with:
 mvt-android check-adb --output /path/to/results
 ```
 
+!!! warning
+    The `check-adb` command is deprecated and will be removed in a future release.
+    Whenever possible, prefer acquiring device data using the AndroidQF project (https://github.com/mvt-project/androidqf/) and then analyze those acquisitions with MVT.
+
+    Running `mvt-android check-adb` will also emit a runtime deprecation warning advising you to migrate to AndroidQF.
+
 If you have previously started an adb daemon MVT will alert you and require you to kill it with `adb kill-server` and relaunch the command.
 
 !!! warning
@@ -37,6 +43,14 @@ mvt-android check-adb --serial 192.168.1.20:5555 --output /path/to/results
 
 Where `192.168.1.20` is the correct IP address of your device.
 
+!!! warning
+    The `check-adb` workflow shown above is deprecated. If you can acquire an AndroidQF acquisition from the device (recommended), use the AndroidQF project to create that acquisition: https://github.com/mvt-project/androidqf/
+    
+    AndroidQF acquisitions provide a more stable, reproducible analysis surface and are the preferred workflow going forward.
+
 ## MVT modules requiring root privileges
+
+!!! warning
+    Deprecated: many `mvt-android check-adb` workflows are deprecated and will be removed in a future release. Whenever possible, prefer acquiring an AndroidQF acquisition using the AndroidQF project (https://github.com/mvt-project/androidqf/). 
 
 Of the currently available `mvt-android check-adb` modules a handful require root privileges to function correctly. This is because certain files, such as browser history and SMS messages databases are not accessible with user privileges through adb. These modules are to be considered OPTIONALLY available in case the device was already jailbroken. **Do NOT jailbreak your own device unless you are sure of what you are doing!** Jailbreaking your phone exposes it to considerable security risks!
