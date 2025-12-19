@@ -4,15 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from .chrome_history import ChromeHistory
-from .dumpsys_accessibility import DumpsysAccessibility
-from .dumpsys_activities import DumpsysActivities
-from .dumpsys_appops import DumpsysAppOps
-from .dumpsys_battery_daily import DumpsysBatteryDaily
-from .dumpsys_battery_history import DumpsysBatteryHistory
-from .dumpsys_dbinfo import DumpsysDBInfo
-from .dumpsys_adbstate import DumpsysADBState
 from .dumpsys_full import DumpsysFull
-from .dumpsys_receivers import DumpsysReceivers
 from .files import Files
 from .getprop import Getprop
 from .logcat import Logcat
@@ -32,15 +24,7 @@ ADB_MODULES = [
     Getprop,
     Settings,
     SELinuxStatus,
-    DumpsysBatteryHistory,
-    DumpsysBatteryDaily,
-    DumpsysReceivers,
-    DumpsysActivities,
-    DumpsysAccessibility,
-    DumpsysDBInfo,
-    DumpsysADBState,
     DumpsysFull,
-    DumpsysAppOps,
     Packages,
     Logcat,
     RootBinaries,

@@ -27,11 +27,15 @@ class Command:
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
         ioc_files: Optional[list] = None,
+        iocs: Optional[Indicators] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         module_options: Optional[dict] = None,
-        hashes: bool = False,
+        hashes: Optional[bool] = False,
+        sub_command: Optional[bool] = False,
         log: logging.Logger = logging.getLogger(__name__),
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         self.name = ""
         self.modules = []
@@ -42,6 +46,9 @@ class Command:
         self.module_name = module_name
         self.serial = serial
         self.log = log
+        self.sub_command = sub_command
+        self.disable_version_check = disable_version_check
+        self.disable_indicator_check = disable_indicator_check
 
         # This dictionary can contain options that will be passed down from
         # the Command to all modules. This can for example be used to pass
@@ -60,8 +67,12 @@ class Command:
         # Load IOCs
         self._create_storage()
         self._setup_logging()
-        self.iocs = Indicators(log=log)
-        self.iocs.load_indicators_files(self.ioc_files)
+
+        if iocs is not None:
+            self.iocs = iocs
+        else:
+            self.iocs = Indicators(self.log)
+            self.iocs.load_indicators_files(self.ioc_files)
 
     def _create_storage(self) -> None:
         if self.results_path and not os.path.exists(self.results_path):
@@ -246,6 +257,10 @@ class Command:
             self.finish()
         except NotImplementedError:
             pass
+
+        # We only store the timeline from the parent/main command
+        if self.sub_command:
+            return
 
         self._store_timeline()
         self._store_info()

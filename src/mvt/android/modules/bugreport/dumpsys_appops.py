@@ -6,13 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_battery_daily import DumpsysBatteryDailyArtifact
+from mvt.android.artifacts.dumpsys_appops import DumpsysAppopsArtifact
 
-from .base import AndroidExtraction
+from .base import BugReportModule
 
 
-class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, AndroidExtraction):
-    """This module extracts records from battery daily updates."""
+class DumpsysAppops(DumpsysAppopsArtifact, BugReportModule):
+    """This module extracts information on package from App-Ops Manager."""
 
     def __init__(
         self,
@@ -33,12 +33,19 @@ class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, AndroidExtraction):
         )
 
     def run(self) -> None:
-        self._adb_connect()
-        output = self._adb_command("dumpsys batterystats --daily")
-        self._adb_disconnect()
+        content = self._get_dumpstate_file()
+        if not content:
+            self.log.error(
+                "Unable to find dumpstate file. "
+                "Did you provide a valid bug report archive?"
+            )
+            return
 
-        self.parse(output)
+        section = self.extract_dumpsys_section(
+            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE appops:"
+        )
+        self.parse(section)
 
         self.log.info(
-            "Extracted %d records from battery daily stats", len(self.results)
+            "Identified a total of %d packages in App-Ops Manager", len(self.results)
         )

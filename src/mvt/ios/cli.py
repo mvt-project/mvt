@@ -37,6 +37,8 @@ from mvt.common.help import (
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_STIX2,
     HELP_MSG_CHECK_IOS_BACKUP,
+    HELP_MSG_DISABLE_UPDATE_CHECK,
+    HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
 )
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
@@ -53,12 +55,37 @@ MVT_IOS_BACKUP_PASSWORD = "MVT_IOS_BACKUP_PASSWORD"
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
+def _get_disable_flags(ctx):
+    """Helper function to safely get disable flags from context."""
+    if ctx.obj is None:
+        return False, False
+    return (
+        ctx.obj.get("disable_version_check", False),
+        ctx.obj.get("disable_indicator_check", False),
+    )
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
 @click.group(invoke_without_command=False)
-def cli():
-    logo()
+@click.option(
+    "--disable-update-check", is_flag=True, help=HELP_MSG_DISABLE_UPDATE_CHECK
+)
+@click.option(
+    "--disable-indicator-update-check",
+    is_flag=True,
+    help=HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
+)
+@click.pass_context
+def cli(ctx, disable_update_check, disable_indicator_update_check):
+    ctx.ensure_object(dict)
+    ctx.obj["disable_version_check"] = disable_update_check
+    ctx.obj["disable_indicator_check"] = disable_indicator_update_check
+    logo(
+        disable_version_check=disable_update_check,
+        disable_indicator_check=disable_indicator_update_check,
+    )
 
 
 # ==============================================================================
@@ -219,6 +246,8 @@ def check_backup(
         module_name=module,
         module_options=module_options,
         hashes=hashes,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -266,6 +295,8 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
         module_name=module,
         module_options=module_options,
         hashes=hashes,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
     )
 
     if list_modules:
@@ -300,7 +331,13 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
-    cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
+    cmd = CmdCheckIOCS(
+        target_path=folder,
+        ioc_files=iocs,
+        module_name=module,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
+    )
     cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES
 
     if list_modules:
