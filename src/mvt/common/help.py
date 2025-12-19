@@ -15,6 +15,8 @@ HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"
 HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
+HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
+HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
 
 # IOS Specific
 HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"
@@ -45,7 +47,7 @@ HELP_MSG_APKS_FROM_FILE = (
     "Instead of acquiring APKs from a phone, load an existing packages.json file for "
     "lookups (mainly for debug purposes)"
 )
-HELP_MSG_CHECK_ADB = "Check an Android device over ADB"
+HELP_MSG_CHECK_ADB = "Deprecated: Check an Android device over ADB. Prefer using the external AndroidQF project (https://github.com/mvt-project/androidqf) to acquire AndroidQF images for analysis."
 HELP_MSG_CHECK_BUGREPORT = "Check an Android Bug Report"
 HELP_MSG_CHECK_ANDROID_BACKUP = "Check an Android Backup"
 HELP_MSG_CHECK_ANDROIDQF = "Check data collected with AndroidQF"

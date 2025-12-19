@@ -6,7 +6,7 @@
 import logging
 from pathlib import Path
 
-from mvt.android.modules.androidqf.files import Files
+from mvt.android.modules.androidqf.aqf_files import AQFFiles
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf, list_files
@@ -15,10 +15,10 @@ from ..utils import get_android_androidqf, list_files
 class TestAndroidqfFilesAnalysis:
     def test_androidqf_files(self):
         data_path = get_android_androidqf()
-        m = Files(target_path=data_path, log=logging)
+        m = AQFFiles(target_path=data_path, log=logging)
         files = list_files(data_path)
         parent_path = Path(data_path).absolute().parent.as_posix()
-        m.from_folder(parent_path, files)
+        m.from_dir(parent_path, files)
         run_module(m)
         assert len(m.results) == 3
         assert len(m.timeline) == 6

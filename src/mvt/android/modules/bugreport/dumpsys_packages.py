@@ -6,12 +6,13 @@
 import logging
 from typing import Optional
 
-from mvt.android.artifacts.dumpsys_receivers import DumpsysReceiversArtifact
+from mvt.android.artifacts.dumpsys_packages import DumpsysPackagesArtifact
+from mvt.android.utils import DANGEROUS_PERMISSIONS, DANGEROUS_PERMISSIONS_THRESHOLD
 
 from .base import BugReportModule
 
 
-class Receivers(DumpsysReceiversArtifact, BugReportModule):
+class DumpsysPackages(DumpsysPackagesArtifact, BugReportModule):
     """This module extracts details on receivers for risky activities."""
 
     def __init__(
@@ -32,20 +33,30 @@ class Receivers(DumpsysReceiversArtifact, BugReportModule):
             results=results,
         )
 
-        self.results = results if results else {}
-
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        data = self._get_dumpstate_file()
+        if not data:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        dumpsys_section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE package:"
-        )
+        data = data.decode("utf-8", errors="replace")
+        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE package:")
+        self.parse(content)
 
-        self.parse(dumpsys_section)
-        self.log.info("Extracted receivers for %d intents", len(self.results))
+        for result in self.results:
+            dangerous_permissions_count = 0
+            for perm in result["permissions"]:
+                if perm["name"] in DANGEROUS_PERMISSIONS:
+                    dangerous_permissions_count += 1
+
+            if dangerous_permissions_count >= DANGEROUS_PERMISSIONS_THRESHOLD:
+                self.log.info(
+                    'Found package "%s" requested %d potentially dangerous permissions',
+                    result["package_name"],
+                    dangerous_permissions_count,
+                )
+
+        self.log.info("Extracted details on %d packages", len(self.results))

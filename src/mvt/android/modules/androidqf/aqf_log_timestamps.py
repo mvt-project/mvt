@@ -13,10 +13,10 @@ from .base import AndroidQFModule
 from mvt.android.artifacts.file_timestamps import FileTimestampsArtifact
 
 
-class LogsFileTimestamps(FileTimestampsArtifact, AndroidQFModule):
-    """This module extracts records from battery daily updates."""
+class AQFLogTimestamps(FileTimestampsArtifact, AndroidQFModule):
+    """This module creates timeline for log files extracted by AQF."""
 
-    slug = "logfile_timestamps"
+    slug = "aqf_log_timestamps"
 
     def __init__(
         self,
