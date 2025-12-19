@@ -768,6 +768,30 @@ class Indicators:
 
         return None
 
+
+    def check_receiver_prefix(self, receiver_name: str) -> Union[dict, None]:
+        """Check the provided receiver name against the list of indicators.
+        An IoC match is detected when a substring of the receiver matches the indicator
+        :param app_id: App ID to check against the list of indicators
+        :type app_id: str
+        :returns: Indicator details if matched, otherwise None
+
+        """
+        if not receiver_name:
+            return None
+
+        for ioc in self.get_iocs("app_ids"):
+            if ioc["value"].lower() in receiver_name.lower():  
+                self.log.warning(
+                    'Found a known suspicious receiver with name "%s" '
+                    'matching indicators from "%s"',
+                    receiver_name,
+                    ioc["name"],
+                )
+                return ioc
+
+        return None
+
     def check_android_property_name(self, property_name: str) -> Optional[dict]:
         """Check the android property name against the list of indicators.
 
