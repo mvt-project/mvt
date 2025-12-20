@@ -3,15 +3,18 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from .indicators import Indicator
 from dataclasses import dataclass
-from typing import List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
+from .indicators import Indicator
 
-@dataclass
-class ModuleAtomicResult:
-    timestamp: Optional[str]
-    matched_indicator: Optional[Indicator]
+# ModuleAtomicResult is a flexible dictionary that can contain any data.
+# Common fields include:
+# - timestamp: Optional[str] - timestamp string
+# - isodate: Optional[str] - ISO formatted date string
+# - matched_indicator: Optional[Indicator] - indicator that matched this result
+# - Any other module-specific fields
+ModuleAtomicResult = Dict[str, Any]
 
 
 ModuleResults = List[ModuleAtomicResult]
@@ -26,4 +29,7 @@ class ModuleAtomicTimeline:
 
 
 ModuleTimeline = List[ModuleAtomicTimeline]
-ModuleSerializedResult = Union[ModuleAtomicTimeline, ModuleTimeline]
+# ModuleSerializedResult can be a proper timeline object or a plain dict for compatibility
+ModuleSerializedResult = Union[
+    ModuleAtomicTimeline, ModuleTimeline, Dict[str, Any], List[Dict[str, Any]]
+]

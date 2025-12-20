@@ -11,8 +11,12 @@ import sqlite3
 import subprocess
 from typing import Iterator, Optional, Union
 
-from mvt.common.module import DatabaseCorruptedError, DatabaseNotFoundError
-from mvt.common.module import MVTModule, ModuleResults
+from mvt.common.module import (
+    DatabaseCorruptedError,
+    DatabaseNotFoundError,
+    ModuleResults,
+    MVTModule,
+)
 
 
 class IOSExtraction(MVTModule):
@@ -110,6 +114,8 @@ class IOSExtraction(MVTModule):
                        (Default value = None)
 
         """
+        if not self.target_path:
+            raise DatabaseNotFoundError("target_path is not set")
         manifest_db_path = os.path.join(self.target_path, "Manifest.db")
         if not os.path.exists(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")
@@ -146,6 +152,8 @@ class IOSExtraction(MVTModule):
             }
 
     def _get_backup_file_from_id(self, file_id: str) -> Union[str, None]:
+        if not self.target_path:
+            return None
         file_path = os.path.join(self.target_path, file_id[0:2], file_id)
         if os.path.exists(file_path):
             return file_path
@@ -153,6 +161,8 @@ class IOSExtraction(MVTModule):
         return None
 
     def _get_fs_files_from_patterns(self, root_paths: list) -> Iterator[str]:
+        if not self.target_path:
+            return
         for root_path in root_paths:
             for found_path in glob.glob(os.path.join(self.target_path, root_path)):
                 if not os.path.exists(found_path):
@@ -174,9 +184,10 @@ class IOSExtraction(MVTModule):
         :param backup_ids: Default value = None)
 
         """
-        file_path = None
+        file_path: Optional[str] = None
         # First we check if the was an explicit file path specified.
         if not self.file_path:
+            # Type narrowing: we know self.file_path is None here, work with local file_path
             # If not, we first try with backups.
             # We construct the path to the file according to the iTunes backup
             # folder structure, if we have a valid ID.
@@ -198,8 +209,9 @@ class IOSExtraction(MVTModule):
 
         # If we do not find any, we fail.
         if file_path:
-            self.file_path = file_path
+            self.file_path = file_path  # type: str
         else:
             raise DatabaseNotFoundError("unable to find the module's database file")
 
+        assert self.file_path is not None
         self._recover_sqlite_db_if_needed(self.file_path)

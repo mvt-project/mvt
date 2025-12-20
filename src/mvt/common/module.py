@@ -146,7 +146,10 @@ class MVTModule:
         for record in timeline:
             timeline_set.add(
                 json.dumps(
-                    asdict(record) if is_dataclass(record) else record, sort_keys=True
+                    asdict(record)
+                    if is_dataclass(record) and not isinstance(record, type)
+                    else record,
+                    sort_keys=True,
                 )
             )
 
@@ -161,9 +164,9 @@ class MVTModule:
             record: ModuleSerializedResult = self.serialize(result)
             if record:
                 if isinstance(record, list):
-                    self.timeline.extend(record)
+                    self.timeline.extend(record)  # type: ignore[arg-type]
                 else:
-                    self.timeline.append(record)
+                    self.timeline.append(record)  # type: ignore[arg-type]
 
         # De-duplicate timeline entries.
         self.timeline = self._deduplicate_timeline(self.timeline)

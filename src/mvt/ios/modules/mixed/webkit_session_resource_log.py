@@ -8,8 +8,8 @@ import os
 import plistlib
 from typing import Optional
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module_types import ModuleResults
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -50,7 +50,7 @@ class WebkitSessionResourceLog(IOSExtraction):
             results=results,
         )
 
-        self.results = {} if not results else results
+        self.results: dict = {}
 
     @staticmethod
     def _extract_domains(entries):
@@ -83,15 +83,15 @@ class WebkitSessionResourceLog(IOSExtraction):
                 # subresource_domains = self._extract_domains(
                 #    entry["subresource_under_origin"])
 
-                all_origins = set(
-                    [entry["origin"]] + source_domains + destination_domains
+                all_origins = list(
+                    set([entry["origin"]] + source_domains + destination_domains)
                 )
 
                 ioc_match = self.indicators.check_urls(all_origins)
                 if ioc_match:
                     entry["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", entry
+                        ioc_match.message, "", entry, matched_indicator=ioc_match.ioc
                     )
 
                     redirect_path = ""
@@ -114,7 +114,6 @@ class WebkitSessionResourceLog(IOSExtraction):
                         redirect_path += ", ".join(destination_domains)
 
                     self.alertstore.high(
-                        self.get_slug(),
                         f"Found HTTP redirect between suspicious domains: {redirect_path}",
                         "",
                         entry,
@@ -190,6 +189,8 @@ class WebkitSessionResourceLog(IOSExtraction):
                 self.log.info(
                     "Found Safari browsing session resource log at path: %s", log_path
                 )
+                if not self.target_path:
+                    continue
                 key = os.path.relpath(log_path, self.target_path)
                 self.results[key] = self._extract_browsing_stats(log_path)
 

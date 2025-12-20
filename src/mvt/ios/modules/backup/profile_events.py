@@ -7,12 +7,12 @@ import logging
 import plistlib
 from typing import Optional
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -58,29 +58,31 @@ class ProfileEvents(IOSExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             message = f'On {result.get("timestamp")} process "{result.get("process")}" started operation "{result.get("operation")}" of profile "{result.get("profile_id")}"'
-            self.alertstore.low(
-                self.get_slug(), message, result.get("timestamp"), result
-            )
+            self.alertstore.low(message, result.get("timestamp") or "", result)
             self.alertstore.log_latest()
 
         if not self.indicators:
             return
 
         for result in self.results:
-            ioc_match = self.indicators.check_process(result.get("process"))
+            ioc_match = self.indicators.check_process(result.get("process") or "")
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
-            ioc_match = self.indicators.check_profile(result.get("profile_id"))
+            ioc_match = self.indicators.check_profile(result.get("profile_id") or "")
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     @staticmethod
     def parse_profile_events(file_data: bytes) -> list:
-        results = []
+        results: list = []
 
         events_plist = plistlib.loads(file_data)
 

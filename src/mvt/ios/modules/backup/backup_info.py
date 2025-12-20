@@ -36,9 +36,11 @@ class BackupInfo(IOSExtraction):
             results=results,
         )
 
-        self.results = {}
+        self.results: dict = {}
 
     def run(self) -> None:
+        if not self.target_path:
+            raise DatabaseNotFoundError("target_path is not set")
         info_path = os.path.join(self.target_path, "Info.plist")
         if not os.path.exists(info_path):
             raise DatabaseNotFoundError(

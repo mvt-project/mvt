@@ -112,7 +112,7 @@ class AQFFiles(AndroidQFModule):
             if result.get("sha256", "") == "":
                 continue
 
-            ioc_match = self.indicators.check_file_hash(result.get("sha256"))
+            ioc_match = self.indicators.check_file_hash(result.get("sha256") or "")
             if ioc_match:
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc

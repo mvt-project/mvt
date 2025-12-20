@@ -7,13 +7,13 @@ import logging
 import os
 from typing import Optional
 
-from mvt.common.url import URL
-from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
 from mvt.common.module_types import (
-    ModuleResults,
     ModuleAtomicResult,
+    ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.url import URL
+from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -117,7 +117,9 @@ class SafariHistory(IOSExtraction):
             ioc_match = self.indicators.check_url(result["url"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def _process_history_db(self, history_path):
         self._recover_sqlite_db_if_needed(history_path)

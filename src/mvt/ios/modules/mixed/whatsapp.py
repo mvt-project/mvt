@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.common.utils import check_for_links, convert_mactime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -65,7 +65,9 @@ class Whatsapp(IOSExtraction):
             ioc_match = self.indicators.check_urls(result.get("links", []))
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def run(self) -> None:
         self._find_ios_database(
@@ -73,6 +75,8 @@ class Whatsapp(IOSExtraction):
         )
         self.log.info("Found WhatsApp database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
 
@@ -102,7 +106,9 @@ class Whatsapp(IOSExtraction):
             for index, value in enumerate(message_row):
                 message[names[index]] = value
 
-            message["isodate"] = convert_mactime_to_iso(message.get("ZMESSAGEDATE"))
+            message["isodate"] = convert_mactime_to_iso(
+                message.get("ZMESSAGEDATE") or 0
+            )
             message["ZTEXT"] = message["ZTEXT"] if message["ZTEXT"] else ""
 
             # Extract links from the WhatsApp message. URLs can be stored in

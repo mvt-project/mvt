@@ -10,12 +10,12 @@ import plistlib
 import sqlite3
 from typing import Optional
 
-from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
 from mvt.common.module_types import (
+    ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
-    ModuleAtomicResult,
 )
+from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
 
 from ..base import IOSExtraction
 
@@ -67,7 +67,7 @@ class SafariBrowserState(IOSExtraction):
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", result
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                     )
                     continue
 
@@ -80,7 +80,10 @@ class SafariBrowserState(IOSExtraction):
                     if ioc_match:
                         result["matched_indicator"] = ioc_match.ioc
                         self.alertstore.critical(
-                            self.get_slug(), ioc_match.message, "", result
+                            ioc_match.message,
+                            "",
+                            result,
+                            matched_indicator=ioc_match.ioc,
                         )
 
     def _process_browser_state_db(self, db_path):

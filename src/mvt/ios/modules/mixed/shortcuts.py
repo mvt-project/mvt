@@ -10,12 +10,12 @@ import plistlib
 import sqlite3
 from typing import Optional
 
-from mvt.common.utils import check_for_links, convert_mactime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -80,7 +80,9 @@ class Shortcuts(IOSExtraction):
             ioc_match = self.indicators.check_urls(result["action_urls"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def run(self) -> None:
         self._find_ios_database(
@@ -88,6 +90,8 @@ class Shortcuts(IOSExtraction):
         )
         self.log.info("Found Shortcuts database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         conn.text_factory = bytes
         cur = conn.cursor()

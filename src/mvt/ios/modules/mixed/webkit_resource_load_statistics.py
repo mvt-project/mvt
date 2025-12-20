@@ -8,12 +8,12 @@ import os
 import sqlite3
 from typing import Optional
 
-from mvt.common.utils import convert_unix_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
-    ModuleSerializedResult,
     ModuleResults,
+    ModuleSerializedResult,
 )
+from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -69,7 +69,9 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             ioc_match = self.indicators.check_url(result["registrable_domain"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 self.alertstore.log_latest()
 
     def _process_observations_db(self, db_path: str, domain: str, path: str) -> None:

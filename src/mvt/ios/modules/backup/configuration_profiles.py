@@ -9,12 +9,12 @@ import plistlib
 from base64 import b64encode
 from typing import Optional
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
-    ModuleSerializedResult,
     ModuleResults,
+    ModuleSerializedResult,
 )
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -72,12 +72,10 @@ class ConfigurationProfiles(IOSExtraction):
                     result["plist"]["PayloadUUID"]
                 )
                 if ioc_match:
-                    warning_message = (
-                        f'Found a known malicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with UUID "{result["plist"]["PayloadUUID"]}"',
-                    )
+                    warning_message = f'Found a known malicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with UUID "{result["plist"]["PayloadUUID"]}"'
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(), warning_message, "", result
+                        warning_message, "", result, matched_indicator=ioc_match.ioc
                     )
                     self.alertstore.log_latest()
                     continue
@@ -85,10 +83,8 @@ class ConfigurationProfiles(IOSExtraction):
                 # Highlight suspicious configuration profiles which may be used
                 # to hide notifications.
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
-                    warning_message = (
-                        f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}',
-                    )
-                    self.alertstore.medum(self.get_slug(), warning_message, "", result)
+                    warning_message = f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}'
+                    self.alertstore.medium(warning_message, "", result)
                     self.alertstore.log_latest()
                     continue
 

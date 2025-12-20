@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.common.utils import convert_mactime_to_iso
 from mvt.common.module_types import (
+    ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
-    ModuleAtomicResult,
 )
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -41,6 +41,7 @@ class SafariFavicon(IOSExtraction):
             log=log,
             results=results,
         )
+        self.results: list = []
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
@@ -61,7 +62,9 @@ class SafariFavicon(IOSExtraction):
                 ioc_match = self.indicators.check_url(result["icon_url"])
 
             if ioc_match:
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 self.alertstore.log_latest()
 
     def _process_favicon_db(self, file_path):

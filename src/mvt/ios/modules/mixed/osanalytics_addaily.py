@@ -7,12 +7,12 @@ import logging
 import plistlib
 from typing import Optional
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module_types import (
-    ModuleResults,
     ModuleAtomicResult,
+    ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -65,7 +65,9 @@ class OSAnalyticsADDaily(IOSExtraction):
             ioc_match = self.indicators.check_process(result["package"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def run(self) -> None:
         self._find_ios_database(
@@ -76,6 +78,8 @@ class OSAnalyticsADDaily(IOSExtraction):
             "Found com.apple.osanalytics.addaily plist at path: %s", self.file_path
         )
 
+        if not self.file_path:
+            return
         with open(self.file_path, "rb") as handle:
             file_plist = plistlib.load(handle)
 

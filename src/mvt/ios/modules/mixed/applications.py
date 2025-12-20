@@ -11,10 +11,14 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from mvt.common.module import DatabaseNotFoundError
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_datetime_to_iso
-from mvt.ios.modules.base import IOSExtraction
-from mvt.common.module import ModuleResults, ModuleAtomicResult, ModuleSerializedResult
 
+from ..base import IOSExtraction
 
 APPLICATIONS_DB_PATH = [
     "private/var/containers/Bundle/Application/*/iTunesMetadata.plist"
@@ -63,7 +67,6 @@ class Applications(IOSExtraction):
             if self.indicators:
                 if "softwareVersionBundleId" not in result:
                     self.alertstore.high(
-                        self.get_slug(),
                         "Suspicious application identified without softwareVersionBundleId",
                         "",
                         result,
@@ -76,10 +79,10 @@ class Applications(IOSExtraction):
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(),
                         f"Malicious application {result['softwareVersionBundleId']} identified",
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
@@ -89,10 +92,10 @@ class Applications(IOSExtraction):
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(),
                         f"Malicious application {result['softwareVersionBundleId']} identified",
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
@@ -102,7 +105,6 @@ class Applications(IOSExtraction):
                 not in KNOWN_APP_INSTALLERS
             ):
                 self.alertstore.medium(
-                    self.get_slug(),
                     f"Suspicious app not installed from the App Store or MDM: {result['softwareVersionBundleId']}",
                     "",
                     result,
@@ -157,6 +159,8 @@ class Applications(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
+            if not self.target_path:
+                return
             plist_path = os.path.join(self.target_path, "Info.plist")
             if not os.path.isfile(plist_path):
                 raise DatabaseNotFoundError("Impossible to find Info.plist file")

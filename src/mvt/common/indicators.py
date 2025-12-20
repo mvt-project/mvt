@@ -7,15 +7,15 @@ import glob
 import json
 import logging
 import os
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Dict, Iterator, List, Optional
-from dataclasses import dataclass
 
 import ahocorasick
 from appdirs import user_data_dir
 
-from .url import URL
 from .config import settings
+from .url import URL
 
 MVT_DATA_FOLDER = user_data_dir("mvt")
 MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
@@ -68,7 +68,7 @@ class Indicators:
                 self.parse_stix2(path)
             elif os.path.isdir(path):
                 for file in glob.glob(
-                    os.path.join(path, "**", "*.stix2", recursive=True)
+                    os.path.join(path, "**", "*.stix2"), recursive=True
                 ):
                     self.parse_stix2(file)
             else:
@@ -350,7 +350,7 @@ class Indicators:
 
     @lru_cache()
     def get_ioc_matcher(
-        self, ioc_type: Optional[str] = None, ioc_list: Optional[list] = None
+        self, ioc_type: Optional[str] = None, ioc_list: Optional[List[Indicator]] = None
     ) -> ahocorasick.Automaton:
         """
         Build an Aho-Corasick automaton from a list of iocs (i.e indicators)
@@ -370,9 +370,9 @@ class Indicators:
         """
         automaton = ahocorasick.Automaton()
         if ioc_type:
-            iocs = self.get_iocs(ioc_type)
+            iocs: Iterator[Indicator] = self.get_iocs(ioc_type)
         elif ioc_list:
-            iocs = ioc_list
+            iocs = iter(ioc_list)
         else:
             raise ValueError("Must provide either ioc_type or ioc_list")
 

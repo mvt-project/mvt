@@ -8,12 +8,12 @@ import json
 import logging
 from typing import Optional
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -42,6 +42,7 @@ class IOSVersionHistory(IOSExtraction):
             log=log,
             results=results,
         )
+        self.results: list = []
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {

@@ -84,7 +84,7 @@ class DumpsysADBArtifact(AndroidArtifact):
         return keystore
 
     @staticmethod
-    def calculate_key_info(user_key: bytes) -> str:
+    def calculate_key_info(user_key: bytes) -> dict:
         if b" " in user_key:
             key_base64, user = user_key.split(b" ", 1)
         else:

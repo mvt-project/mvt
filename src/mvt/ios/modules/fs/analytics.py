@@ -9,12 +9,12 @@ import plistlib
 import sqlite3
 from typing import Optional
 
-from mvt.common.utils import convert_mactime_to_iso
 from mvt.common.module_types import (
+    ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
-    ModuleAtomicResult,
 )
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -44,6 +44,7 @@ class Analytics(IOSExtraction):
             log=log,
             results=results,
         )
+        self.results: list = []
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
@@ -64,13 +65,11 @@ class Analytics(IOSExtraction):
 
                 ioc_match = self.indicators.check_process(value)
                 if ioc_match:
-                    warning_message = (
-                        f'Found mention of a malicious process "{value}" in {result["artifact"]} file at {result["isodate"]}',
-                    )
+                    warning_message = f'Found mention of a malicious process "{value}" in {result["artifact"]} file at {result["isodate"]}'
                     new_result = copy.copy(result)
                     new_result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(), warning_message, "", new_result
+                        warning_message, "", new_result, matched_indicator=ioc_match.ioc
                     )
                     self.alertstore.log_latest()
                     continue
@@ -80,7 +79,10 @@ class Analytics(IOSExtraction):
                     new_result = copy.copy(result)
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", new_result
+                        ioc_match.message,
+                        "",
+                        new_result,
+                        matched_indicator=ioc_match.ioc,
                     )
 
     def _extract_analytics_data(self):

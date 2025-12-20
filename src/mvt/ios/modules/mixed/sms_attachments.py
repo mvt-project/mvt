@@ -7,12 +7,12 @@ import logging
 from base64 import b64encode
 from typing import Optional
 
-from mvt.common.utils import convert_mactime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
-    ModuleSerializedResult,
     ModuleResults,
+    ModuleSerializedResult,
 )
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -65,9 +65,7 @@ class SMSAttachments(IOSExtraction):
                 ioc_match = self.indicators.check_file_path(attachment["filename"])
                 if ioc_match:
                     attachment["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.high(
-                        self.get_slug(), ioc_match.message, "", attachment
-                    )
+                    self.alertstore.high(ioc_match.message, "", attachment)
 
             if (
                 attachment["filename"].startswith("/var/tmp/")
@@ -85,6 +83,8 @@ class SMSAttachments(IOSExtraction):
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         cur.execute(

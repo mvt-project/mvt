@@ -60,7 +60,8 @@ class GetProp(AndroidArtifact):
 
             if entry["name"] == "ro.build.version.security_patch":
                 warning_message = warn_android_patch_level(entry["value"], self.log)
-                self.alertstore.medium(warning_message, "", entry)
+                if isinstance(warning_message, str):
+                    self.alertstore.medium(warning_message, "", entry)
 
         if not self.indicators:
             return

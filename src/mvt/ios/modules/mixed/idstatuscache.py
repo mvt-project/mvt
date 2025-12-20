@@ -8,12 +8,12 @@ import logging
 import plistlib
 from typing import Optional
 
-from mvt.common.utils import convert_mactime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -67,13 +67,12 @@ class IDStatusCache(IOSExtraction):
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
-                        self.get_slug(), ioc_match.message, "", result
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                     )
                     continue
 
             if "\\x00\\x00" in result.get("user", ""):
                 self.alertstore.high(
-                    self.get_slug(),
                     f"Found an ID Status Cache entry with suspicious patterns: {result.get('user')}",
                     "",
                     result,

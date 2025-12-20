@@ -7,9 +7,9 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.settings import Settings as SettingsArtifact
+from mvt.common.module_types import ModuleResults
 
 from .base import AndroidQFModule
-from mvt.common.module_types import ModuleResults
 
 
 class AQFSettings(SettingsArtifact, AndroidQFModule):
@@ -32,7 +32,7 @@ class AQFSettings(SettingsArtifact, AndroidQFModule):
             log=log,
             results=results,
         )
-        self.results = {}
+        self.results: dict = {}
 
     def run(self) -> None:
         for setting_file in self._get_files_by_pattern("*/settings_*.txt"):

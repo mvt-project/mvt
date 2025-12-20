@@ -6,9 +6,9 @@
 import logging
 from typing import Optional
 
-from mvt.common.module_types import ModuleResults
 from mvt.android.artifacts.dumpsys_packages import DumpsysPackagesArtifact
 from mvt.android.utils import DANGEROUS_PERMISSIONS, DANGEROUS_PERMISSIONS_THRESHOLD
+from mvt.common.module_types import ModuleResults
 
 from .base import BugReportModule
 
@@ -43,8 +43,9 @@ class DumpsysPackages(DumpsysPackagesArtifact, BugReportModule):
             )
             return
 
-        data = data.decode("utf-8", errors="replace")
-        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE package:")
+        content = self.extract_dumpsys_section(
+            data.decode("utf-8", errors="replace"), "DUMP OF SERVICE package:"
+        )
         self.parse(content)
 
         for result in self.results:

@@ -167,6 +167,8 @@ class CmdAndroidCheckAndroidQF(Command):
             if bugreport:
                 bugreport.close()
 
+        return True
+
     def run_backup_cmd(self) -> bool:
         try:
             backup = self.load_backup()

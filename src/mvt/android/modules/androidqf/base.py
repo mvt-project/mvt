@@ -33,8 +33,8 @@ class AndroidQFModule(MVTModule):
             log=log,
             results=results,
         )
-        self.parent_path = None
-        self._path: str = target_path
+        self.parent_path: Optional[str] = None
+        self._path: Optional[str] = target_path
         self.files: List[str] = []
         self.archive: Optional[zipfile.ZipFile] = None
 

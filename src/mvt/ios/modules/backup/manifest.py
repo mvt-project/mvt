@@ -11,13 +11,13 @@ import plistlib
 from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
-from mvt.common.url import URL
-from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 from mvt.common.module_types import (
-    ModuleResults,
     ModuleAtomicResult,
+    ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.url import URL
+from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 
 from ..base import IOSExtraction
 
@@ -66,7 +66,7 @@ class Manifest(IOSExtraction):
         return convert_unix_to_iso(timestamp_or_unix_time_int)
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
-        records = []
+        records: list = []
         if "modified" not in record or "status_changed" not in record:
             return records
 
@@ -103,7 +103,9 @@ class Manifest(IOSExtraction):
             ioc_match = self.indicators.check_file_path("/" + result["relative_path"])
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.high(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.high(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
             rel_path = result["relative_path"].lower()
@@ -118,13 +120,15 @@ class Manifest(IOSExtraction):
                 if ioc_match:
                     result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.high(
-                        self.get_slug(),
                         f'Found mention of domain "{ioc_match.ioc.value}" in a backup file with path: {rel_path}',
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
 
     def run(self) -> None:
+        if not self.target_path:
+            raise DatabaseNotFoundError("target_path is not set")
         manifest_db_path = os.path.join(self.target_path, "Manifest.db")
         if not os.path.isfile(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")

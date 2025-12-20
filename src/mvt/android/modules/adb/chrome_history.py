@@ -40,7 +40,7 @@ class ChromeHistory(AndroidExtraction):
             log=log,
             results=results,
         )
-        self.results = []
+        self.results: list = []
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {

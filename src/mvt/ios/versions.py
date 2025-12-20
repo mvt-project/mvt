@@ -9,8 +9,10 @@ from typing import Dict, Optional
 
 import packaging
 
-IPHONE_MODELS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_models.json"))
-IPHONE_IOS_VERSIONS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_versions.json"))
+IPHONE_MODELS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_models.json") or b"[]")
+IPHONE_IOS_VERSIONS = json.loads(
+    pkgutil.get_data("mvt", "ios/data/ios_versions.json") or b"[]"
+)
 
 
 def get_device_desc_from_id(identifier: str, devices_list: list = IPHONE_MODELS) -> str:

@@ -6,8 +6,9 @@
 import logging
 from typing import Optional
 
-from .base import AndroidExtraction
 from mvt.common.module_types import ModuleResults
+
+from .base import AndroidExtraction
 
 
 class SELinuxStatus(AndroidExtraction):
@@ -33,7 +34,7 @@ class SELinuxStatus(AndroidExtraction):
             results=results,
         )
 
-        self.results = {} if not results else results
+        self.results: dict = {}
 
     def run(self) -> None:
         self._adb_connect()

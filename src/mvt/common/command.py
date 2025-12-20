@@ -154,7 +154,7 @@ class Command:
         if not self.results_path:
             return
 
-        target_path = None
+        target_path: Optional[str] = None
         if self.target_path:
             target_path = os.path.abspath(self.target_path)
 

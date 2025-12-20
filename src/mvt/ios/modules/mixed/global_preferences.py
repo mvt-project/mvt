@@ -42,9 +42,9 @@ class GlobalPreferences(IOSExtraction):
         for entry in self.results:
             if entry["entry"] == "LDMGlobalEnabled":
                 if entry["value"]:
-                    self.alertstore.info("Lockdown mode enabled", "", None)
+                    self.alertstore.info("Lockdown mode enabled", "", entry)
                 else:
-                    self.alertstore.low("Lockdown mode disabled", "", None)
+                    self.alertstore.low("Lockdown mode disabled", "", entry)
                     continue
 
     def process_file(self, file_path: str) -> None:
@@ -61,6 +61,8 @@ class GlobalPreferences(IOSExtraction):
         )
         self.log.info("Found Global Preference database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         self.process_file(self.file_path)
 
         self.log.info("Extracted a total of %d Global Preferences", len(self.results))

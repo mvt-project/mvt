@@ -58,6 +58,7 @@ class DecryptBackup:
     def _process_file(
         self, relative_path: str, domain: str, item, file_id: str, item_folder: str
     ) -> None:
+        assert self._backup is not None
         self._backup.getFileDecryptedCopy(
             manifestEntry=item, targetName=file_id, targetFolder=item_folder
         )
@@ -70,6 +71,9 @@ class DecryptBackup:
         )
 
     def process_backup(self) -> None:
+        assert self._backup is not None
+        assert self.dest_path is not None
+
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
 
@@ -97,7 +101,7 @@ class DecryptBackup:
                     )
                     continue
 
-                item_folder = os.path.join(self.dest_path, file_id[0:2])
+                item_folder = os.path.join(self.dest_path, file_id[0:2])  # type: ignore[arg-type]
                 if not os.path.exists(item_folder):
                     os.makedirs(item_folder)
 

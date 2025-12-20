@@ -98,7 +98,7 @@ class AQFPackages(AndroidQFModule):
             if not self.indicators:
                 continue
 
-            ioc_match = self.indicators.check_app_id(result.get("name"))
+            ioc_match = self.indicators.check_app_id(result.get("name") or "")
             if ioc_match:
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
@@ -106,7 +106,9 @@ class AQFPackages(AndroidQFModule):
                 self.alertstore.log_latest()
 
             for package_file in result.get("files", []):
-                ioc_match = self.indicators.check_file_hash(package_file["sha256"])
+                ioc_match = self.indicators.check_file_hash(
+                    package_file.get("sha256") or ""
+                )
                 if ioc_match:
                     self.alertstore.critical(
                         ioc_match.message, "", result, matched_indicator=ioc_match.ioc

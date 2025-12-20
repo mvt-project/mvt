@@ -9,7 +9,7 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from mvt.android.modules.backup.base import BackupModule
 from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
@@ -93,22 +93,28 @@ class CmdAndroidCheckBackup(Command):
             self.__files.append(member.name)
 
     def init(self) -> None:
-        if not self.target_path:
+        if not self.target_path:  # type: ignore[has-type]
             return
 
-        if os.path.isfile(self.target_path):
+        # Type guard: we know it's not None here after the check above
+        assert self.target_path is not None  # type: ignore[has-type]
+        # Use a different local variable name to avoid any scoping issues
+        backup_path: str = self.target_path  # type: ignore[has-type]
+
+        if os.path.isfile(backup_path):
             self.__type = "ab"
-            with open(self.target_path, "rb") as handle:
+            with open(backup_path, "rb") as handle:
                 ab_file_bytes = handle.read()
             self.from_ab(ab_file_bytes)
 
-        elif os.path.isdir(self.target_path):
+        elif os.path.isdir(backup_path):
             self.__type = "folder"
-            self.target_path = Path(self.target_path).absolute().as_posix()
-            for root, subdirs, subfiles in os.walk(os.path.abspath(self.target_path)):
+            backup_path = Path(backup_path).absolute().as_posix()
+            self.target_path = backup_path
+            for root, subdirs, subfiles in os.walk(os.path.abspath(backup_path)):
                 for fname in subfiles:
                     self.__files.append(
-                        os.path.relpath(os.path.join(root, fname), self.target_path)
+                        os.path.relpath(os.path.join(root, fname), backup_path)
                     )
         else:
             log.critical(

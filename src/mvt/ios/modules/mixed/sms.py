@@ -8,12 +8,12 @@ import sqlite3
 from base64 import b64encode
 from typing import Optional
 
-from mvt.common.utils import check_for_links, convert_mactime_to_iso
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -95,11 +95,16 @@ class SMS(IOSExtraction):
             ioc_match = self.indicators.check_urls(message_links)
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def run(self) -> None:
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
+
+        if not self.file_path:
+            return
 
         try:
             conn = self._open_sqlite_db(self.file_path)
@@ -118,6 +123,7 @@ class SMS(IOSExtraction):
         except sqlite3.DatabaseError as exc:
             conn.close()
             if "database disk image is malformed" in str(exc):
+                assert self.file_path is not None
                 self._recover_sqlite_db_if_needed(self.file_path, forced=True)
                 conn = self._open_sqlite_db(self.file_path)
                 cur = conn.cursor()

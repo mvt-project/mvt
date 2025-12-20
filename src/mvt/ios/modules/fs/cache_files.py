@@ -10,9 +10,10 @@ from typing import Optional
 
 from mvt.common.module_types import (
     ModuleAtomicResult,
-    ModuleSerializedResult,
     ModuleResults,
+    ModuleSerializedResult,
 )
+
 from ..base import IOSExtraction
 
 
@@ -95,7 +96,7 @@ class CacheFiles(IOSExtraction):
             )
 
     def run(self) -> None:
-        self.results = {}
+        self.results: dict = {}
         for root, _, files in os.walk(self.target_path):
             for file_name in files:
                 if file_name != "Cache.db":

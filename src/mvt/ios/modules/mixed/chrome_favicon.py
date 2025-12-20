@@ -6,12 +6,12 @@
 import logging
 from typing import Optional
 
-from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
 from mvt.common.module_types import (
+    ModuleAtomicResult,
     ModuleResults,
     ModuleSerializedResult,
-    ModuleAtomicResult,
 )
+from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
 
 from ..base import IOSExtraction
 
@@ -62,7 +62,9 @@ class ChromeFavicon(IOSExtraction):
 
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
-                self.alertstore.critical(self.get_slug(), ioc_match.message, "", result)
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def run(self) -> None:
@@ -71,6 +73,8 @@ class ChromeFavicon(IOSExtraction):
         )
         self.log.info("Found Chrome favicon cache database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
 
         # Fetch icon cache
