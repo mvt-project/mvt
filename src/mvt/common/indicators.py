@@ -781,7 +781,7 @@ class Indicators:
             return None
 
         for ioc in self.get_iocs("app_ids"):
-            if ioc["value"].lower() in receiver_name.lower():  
+            if ioc["value"].lower() in receiver_name.lower():
                 self.log.warning(
                     'Found a known suspicious receiver with name "%s" '
                     'matching indicators from "%s"',

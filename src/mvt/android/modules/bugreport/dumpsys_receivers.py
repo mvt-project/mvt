@@ -33,12 +33,12 @@ class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
         )
 
         self.results = results if results else {}
-    
+
     def check_indicators(self) -> None:
         for result in self.results:
             if self.indicators:
                 receiver_name = self.results[result][0]["receiver"]
-                
+
                 # return IoC if the stix2 process name a substring of the receiver name
                 ioc = self.indicators.check_receiver_prefix(receiver_name)
                 if ioc:
