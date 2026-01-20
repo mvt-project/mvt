@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.tombstone_crashes import TombstoneCrashArtifact
+
 from .base import BugReportModule
 
 
@@ -46,6 +47,13 @@ class Tombstones(TombstoneCrashArtifact, BugReportModule):
             tombstone_filename = tombstone_file.split("/")[-1]
             modification_time = self._get_file_modification_time(tombstone_file)
             tombstone_data = self._get_file_content(tombstone_file)
+
+            # Check for empty tombstone files
+            if len(tombstone_data) == 0:
+                self.log.debug(
+                    f"Skipping empty tombstone file {tombstone_file} (0 bytes)"
+                )
+                continue
 
             try:
                 if tombstone_file.endswith(".pb"):
