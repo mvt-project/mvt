@@ -134,7 +134,6 @@ class TestTombstoneCrashArtifact:
 
     def test_tombstone_pb_empty_file(self):
         """Test that empty (0 bytes) tombstone files are handled gracefully."""
-        tombstone_artifact = TombstoneCrashArtifact()
         artifact_path = "android_data/bugreport_tombstones/tombstone_empty_file.pb"
         file = get_artifact(artifact_path)
         with open(file, "rb") as f:
@@ -143,11 +142,6 @@ class TestTombstoneCrashArtifact:
         # Verify the file is actually empty
         assert len(data) == 0, "Test file should be empty (0 bytes)"
 
-        file_name = os.path.basename(artifact_path)
-        file_timestamp = datetime.datetime(2024, 4, 1, 12, 0, 0, 0)
-
         # Empty files should be skipped in the module (not parsed)
-        # So we don't call parse_protobuf here, just verify the data is empty
         # The actual skipping happens in the Tombstones module's run() method
         # This test verifies that empty data is detectable
-        assert len(data) == 0
