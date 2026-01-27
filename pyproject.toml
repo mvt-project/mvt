@@ -17,21 +17,21 @@ classifiers = [
     "Programming Language :: Python",
 ]
 dependencies = [
-    "click==8.2.1",
+    "click==8.3.0",
     "rich==14.1.0",
     "tld==0.13.1",
-    "requests==2.32.4",
-    "simplejson==3.20.1",
+    "requests==2.32.5",
+    "simplejson==3.20.2",
     "packaging==25.0",
     "appdirs==1.4.4",
     "iOSbackup==0.9.925",
     "adb-shell[usb]==0.4.4",
     "libusb1==3.3.1",
-    "cryptography==45.0.6",
+    "cryptography==46.0.3",
     "PyYAML>=6.0.2",
     "pyahocorasick==2.2.0",
     "betterproto==1.2.5",
-    "pydantic==2.11.7",
+    "pydantic==2.12.3",
     "pydantic-settings==2.10.1",
     "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
@@ -80,7 +80,7 @@ packages = "src"
 addopts = "-ra -q --cov=mvt --cov-report html --junitxml=pytest.xml --cov-report=term-missing:skip-covered"
 testpaths = ["tests"]
 
-[tool.ruff.lint]
+[tool.ruff]
 select = ["C90", "E", "F", "W"] # flake8 default set
 ignore = [
     "E501", # don't enforce line length violations
@@ -95,10 +95,10 @@ ignore = [
     # "E203",  # whitespace-before-punctuation
 ]
 
-[tool.ruff.lint.per-file-ignores]
+[tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"] # unused-import
 
-[tool.ruff.lint.mccabe]
+[tool.ruff.mccabe]
 max-complexity = 10
 
 [tool.setuptools]
