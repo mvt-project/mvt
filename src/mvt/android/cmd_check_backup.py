@@ -9,7 +9,7 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import List, Optional
 
 from mvt.android.modules.backup.base import BackupModule
 from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password

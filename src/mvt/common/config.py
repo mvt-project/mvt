@@ -4,10 +4,9 @@ from typing import Optional, Tuple, Type
 
 import yaml
 from appdirs import user_config_dir
-from pydantic import AnyHttpUrl, Field
+from pydantic import Field
 from pydantic_settings import (
     BaseSettings,
-    InitSettingsSource,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
     YamlConfigSettingsSource,

@@ -9,7 +9,7 @@ import logging
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import ahocorasick
 from appdirs import user_data_dir
@@ -717,7 +717,6 @@ class Indicators:
                 )
 
         return None
-
 
     def check_receiver_prefix(self, receiver_name: str) -> Union[dict, None]:
         """Check the provided receiver name against the list of indicators.

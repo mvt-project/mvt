@@ -4,9 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
-from .indicators import Indicator
 
 # ModuleAtomicResult is a flexible dictionary that can contain any data.
 # Common fields include:
