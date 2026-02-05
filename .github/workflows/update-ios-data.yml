@@ -16,7 +16,7 @@ jobs:
       - name: Run script to fetch latest iOS releases from Apple RSS feed.
         run: python3 .github/workflows/scripts/update-ios-releases.py
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           title: '[auto] Update iOS releases and versions'
           commit-message: Add new iOS versions and build numbers
