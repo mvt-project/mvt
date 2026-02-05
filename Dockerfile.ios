@@ -1,6 +1,6 @@
 # Base image for building libraries
 # ---------------------------------
-FROM ubuntu:22.04 as build-base
+FROM ubuntu:22.04 AS build-base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -22,7 +22,7 @@ RUN apt-get update \
 
 # libplist
 # --------
-FROM build-base as build-libplist
+FROM build-base AS build-libplist
 
 # Build
 RUN git clone https://github.com/libimobiledevice/libplist && cd libplist \
@@ -32,7 +32,7 @@ RUN git clone https://github.com/libimobiledevice/libplist && cd libplist \
 
 # libimobiledevice-glue
 # ---------------------
-FROM build-base as build-libimobiledevice-glue
+FROM build-base AS build-libimobiledevice-glue
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -45,7 +45,7 @@ RUN git clone https://github.com/libimobiledevice/libimobiledevice-glue && cd li
 
 # libtatsu
 # --------
-FROM build-base as build-libtatsu
+FROM build-base AS build-libtatsu
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -58,7 +58,7 @@ RUN git clone https://github.com/libimobiledevice/libtatsu && cd libtatsu \
 
 # libusbmuxd
 # ----------
-FROM build-base as build-libusbmuxd
+FROM build-base AS build-libusbmuxd
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -72,7 +72,7 @@ RUN git clone https://github.com/libimobiledevice/libusbmuxd && cd libusbmuxd \
 
 # libimobiledevice
 # ----------------
-FROM build-base as build-libimobiledevice
+FROM build-base AS build-libimobiledevice
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -88,7 +88,7 @@ RUN git clone https://github.com/libimobiledevice/libimobiledevice && cd libimob
 
 # usbmuxd
 # -------
-FROM build-base as build-usbmuxd
+FROM build-base AS build-usbmuxd
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -104,7 +104,7 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
 
 # Main image
 # ----------
-FROM python:3.10.14-alpine3.20 as main
+FROM python:3.10.14-alpine3.20 AS main
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
