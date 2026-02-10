@@ -8,8 +8,13 @@ import logging
 import os
 import plistlib
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
 
 from ..base import IOSExtraction
@@ -31,7 +36,7 @@ class SafariBrowserState(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -44,7 +49,7 @@ class SafariBrowserState(IOSExtraction):
 
         self._session_history_count = 0
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["last_viewed_timestamp"],
             "module": self.__class__.__name__,
@@ -58,10 +63,12 @@ class SafariBrowserState(IOSExtraction):
 
         for result in self.results:
             if "tab_url" in result:
-                ioc = self.indicators.check_url(result["tab_url"])
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_url(result["tab_url"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
             if "session_data" not in result:
@@ -69,10 +76,15 @@ class SafariBrowserState(IOSExtraction):
 
             for session_entry in result["session_data"]:
                 if "entry_url" in session_entry:
-                    ioc = self.indicators.check_url(session_entry["entry_url"])
-                    if ioc:
-                        result["matched_indicator"] = ioc
-                        self.detected.append(result)
+                    ioc_match = self.indicators.check_url(session_entry["entry_url"])
+                    if ioc_match:
+                        result["matched_indicator"] = ioc_match.ioc
+                        self.alertstore.critical(
+                            ioc_match.message,
+                            "",
+                            result,
+                            matched_indicator=ioc_match.ioc,
+                        )
 
     def _process_browser_state_db(self, db_path):
         self._recover_sqlite_db_if_needed(db_path)

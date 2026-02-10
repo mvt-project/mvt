@@ -11,10 +11,11 @@ from mvt.android.utils import (
     BROWSER_INSTALLERS,
     PLAY_STORE_INSTALLERS,
     ROOT_PACKAGES,
-    THIRD_PARTY_STORE_INSTALLERS,
     SECURITY_PACKAGES,
     SYSTEM_UPDATE_PACKAGES,
+    THIRD_PARTY_STORE_INSTALLERS,
 )
+from mvt.common.module_types import ModuleResults
 
 from .base import AndroidQFModule
 
@@ -29,7 +30,7 @@ class AQFPackages(AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -43,78 +44,95 @@ class AQFPackages(AndroidQFModule):
     def check_indicators(self) -> None:
         for result in self.results:
             if result["name"] in ROOT_PACKAGES:
-                self.log.warning(
-                    'Found an installed package related to rooting/jailbreaking: "%s"',
-                    result["name"],
+                self.alertstore.medium(
+                    f'Found an installed package related to rooting/jailbreaking: "{result["name"]}"',
+                    "",
+                    result,
                 )
-                self.detected.append(result)
+                self.alertstore.log_latest()
                 continue
 
-            # Detections for apps installed via unusual methods
+            # Detections for apps installed via unusual methods.
             if result["installer"] in THIRD_PARTY_STORE_INSTALLERS:
-                self.log.warning(
-                    'Found a package installed via a third party store (installer="%s"): "%s"',
-                    result["installer"],
-                    result["name"],
+                self.alertstore.info(
+                    f'Found a package installed via a third party store (installer="{result["installer"]}"): "{result["name"]}"',
+                    "",
+                    result,
                 )
+                self.alertstore.log_latest()
             elif result["installer"] in BROWSER_INSTALLERS:
-                self.log.warning(
-                    'Found a package installed via a browser (installer="%s"): "%s"',
-                    result["installer"],
-                    result["name"],
+                self.alertstore.medium(
+                    f'Found a package installed via a browser (installer="{result["installer"]}"): "{result["name"]}"',
+                    "",
+                    result,
                 )
-                self.detected.append(result)
+                self.alertstore.log_latest()
             elif result["installer"] == "null" and result["system"] is False:
-                self.log.warning(
-                    'Found a non-system package installed via adb or another method: "%s"',
-                    result["name"],
+                self.alertstore.high(
+                    f'Found a non-system package installed via adb or another method: "{result["name"]}"',
+                    "",
+                    result,
                 )
-                self.detected.append(result)
+                self.alertstore.log_latest()
             elif result["installer"] in PLAY_STORE_INSTALLERS:
                 pass
 
-            # Check for disabled security or software update packages
+            # Check for disabled security or software update packages.
             package_disabled = result.get("disabled", None)
             if result["name"] in SECURITY_PACKAGES and package_disabled:
-                self.log.warning(
-                    'Security package "%s" disabled on the phone', result["name"]
+                self.alertstore.high(
+                    f'Security package "{result["name"]}" disabled on the phone',
+                    "",
+                    result,
                 )
+                self.alertstore.log_latest()
 
             if result["name"] in SYSTEM_UPDATE_PACKAGES and package_disabled:
-                self.log.warning(
-                    'System OTA update package "%s" disabled on the phone',
-                    result["name"],
+                self.alertstore.high(
+                    f'System OTA update package "{result["name"]}" disabled on the phone',
+                    "",
+                    result,
                 )
+                self.alertstore.log_latest()
 
             if not self.indicators:
                 continue
 
-            ioc = self.indicators.check_app_id(result.get("name"))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(result.get("name") or "")
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
+                self.alertstore.log_latest()
 
             for package_file in result.get("files", []):
-                ioc = self.indicators.check_file_hash(package_file["sha256"])
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_file_hash(
+                    package_file.get("sha256") or ""
+                )
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
+                    self.alertstore.log_latest()
 
                 if "certificate" not in package_file:
                     continue
 
-                # The keys generated by AndroidQF have a leading uppercase character
+                # The keys generated by AndroidQF have a leading uppercase character.
                 for hash_type in ["Md5", "Sha1", "Sha256"]:
                     certificate_hash = package_file["certificate"][hash_type]
-                    ioc = self.indicators.check_app_certificate_hash(certificate_hash)
-                    if ioc:
-                        result["matched_indicator"] = ioc
-                        self.detected.append(result)
+                    ioc_match = self.indicators.check_app_certificate_hash(
+                        certificate_hash
+                    )
+                    if ioc_match:
+                        self.alertstore.critical(
+                            ioc_match.message,
+                            "",
+                            result,
+                            matched_indicator=ioc_match.ioc,
+                        )
+                        self.alertstore.log_latest()
                         break
-
-        # Deduplicate the detected packages
-        dedupe_detected_dict = {str(item): item for item in self.detected}
-        self.detected = list(dedupe_detected_dict.values())
 
     def run(self) -> None:
         packages = self._get_files_by_pattern("*/packages.json")

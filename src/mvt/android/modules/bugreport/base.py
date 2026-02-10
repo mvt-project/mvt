@@ -6,11 +6,10 @@ import datetime
 import fnmatch
 import logging
 import os
-
 from typing import List, Optional
 from zipfile import ZipFile
 
-from mvt.common.module import MVTModule
+from mvt.common.module import ModuleResults, MVTModule
 
 
 class BugReportModule(MVTModule):
@@ -23,7 +22,7 @@ class BugReportModule(MVTModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -69,6 +68,8 @@ class BugReportModule(MVTModule):
         if self.zip_archive:
             handle = self.zip_archive.open(file_path)
         else:
+            if not self.extract_path:
+                raise ValueError("extract_path is not set")
             handle = open(os.path.join(self.extract_path, file_path), "rb")
 
         data = handle.read()
@@ -76,7 +77,7 @@ class BugReportModule(MVTModule):
 
         return data
 
-    def _get_dumpstate_file(self) -> bytes:
+    def _get_dumpstate_file(self) -> Optional[bytes]:
         main = self._get_files_by_pattern("main_entry.txt")
         if main:
             main_content = self._get_file_content(main[0])
@@ -91,10 +92,12 @@ class BugReportModule(MVTModule):
 
             return self._get_file_content(dumpstate_logs[0])
 
-    def _get_file_modification_time(self, file_path: str) -> dict:
+    def _get_file_modification_time(self, file_path: str) -> datetime.datetime:
         if self.zip_archive:
             file_timetuple = self.zip_archive.getinfo(file_path).date_time
             return datetime.datetime(*file_timetuple)
         else:
+            if not self.extract_path:
+                raise ValueError("extract_path is not set")
             file_stat = os.stat(os.path.join(self.extract_path, file_path))
             return datetime.datetime.fromtimestamp(file_stat.st_mtime)

@@ -9,6 +9,7 @@ import plistlib
 from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
+from mvt.common.module_types import ModuleResults
 from mvt.ios.versions import get_device_desc_from_id, is_ios_version_outdated
 
 from ..base import IOSExtraction
@@ -24,7 +25,7 @@ class BackupInfo(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -35,9 +36,11 @@ class BackupInfo(IOSExtraction):
             results=results,
         )
 
-        self.results = {}
+        self.results: dict = {}
 
     def run(self) -> None:
+        if not self.target_path:
+            raise DatabaseNotFoundError("target_path is not set")
         info_path = os.path.join(self.target_path, "Info.plist")
         if not os.path.exists(info_path):
             raise DatabaseNotFoundError(

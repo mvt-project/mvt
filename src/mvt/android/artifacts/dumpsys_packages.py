@@ -4,9 +4,10 @@
 #   https://license.mvt.re/1.1/
 
 import re
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from mvt.android.utils import ROOT_PACKAGES
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 from .artifact import AndroidArtifact
 
@@ -14,25 +15,28 @@ from .artifact import AndroidArtifact
 class DumpsysPackagesArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         for result in self.results:
+            # XXX: De-duplication Package detections
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning(
-                    'Found an installed package related to rooting/jailbreaking: "%s"',
-                    result["package_name"],
+                self.alertstore.medium(
+                    f'Found an installed package related to rooting/jailbreaking: "{result["package_name"]}"',
+                    "",
+                    result,
                 )
-                self.detected.append(result)
+                self.alertstore.log_latest()
                 continue
 
             if not self.indicators:
                 continue
 
-            ioc = self.indicators.check_app_id(result.get("package_name", ""))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(result.get("package_name", ""))
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
+                self.alertstore.log_latest()
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
-
         timestamps = [
             {"event": "package_install", "timestamp": record["timestamp"]},
             {
@@ -59,15 +63,15 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         """
         Parse one entry of a dumpsys package information
         """
-        details = {
+        details: Dict[str, Any] = {
             "uid": "",
             "version_name": "",
             "version_code": "",
             "timestamp": "",
             "first_install_time": "",
             "last_update_time": "",
-            "permissions": [],
-            "requested_permissions": [],
+            "permissions": list(),
+            "requested_permissions": list(),
         }
         in_install_permissions = False
         in_runtime_permissions = False
@@ -145,7 +149,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         results = []
         package_name = None
         package = {}
-        lines = []
+        lines: list[str] = []
         for line in output.splitlines():
             if line.startswith("  Package ["):
                 if len(lines) > 0:

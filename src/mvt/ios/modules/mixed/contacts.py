@@ -7,6 +7,8 @@ import logging
 import sqlite3
 from typing import Optional
 
+from mvt.common.module_types import ModuleResults
+
 from ..base import IOSExtraction
 
 CONTACTS_BACKUP_IDS = [
@@ -27,7 +29,7 @@ class Contacts(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -44,6 +46,8 @@ class Contacts(IOSExtraction):
         )
         self.log.info("Found Contacts database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         try:

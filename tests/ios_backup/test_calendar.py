@@ -18,7 +18,7 @@ class TestCalendarModule:
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 4
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
         assert m.results[0]["summary"] == "Super interesting meeting"
 
     def test_calendar_detection(self, indicator_file):
@@ -30,4 +30,4 @@ class TestCalendarModule:
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 4
-        assert len(m.detected) == 1
+        assert len(m.alertstore.alerts) == 1

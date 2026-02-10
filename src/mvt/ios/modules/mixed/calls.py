@@ -4,8 +4,9 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -21,9 +22,9 @@ class Calls(IOSExtraction):
 
     def __init__(
         self,
-        file_path: str = None,
-        target_path: str = None,
-        results_path: str = None,
+        file_path: Optional[str] = None,
+        target_path: Optional[str] = None,
+        results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
         results: list = [],
@@ -37,7 +38,7 @@ class Calls(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -52,6 +53,8 @@ class Calls(IOSExtraction):
         )
         self.log.info("Found Calls database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         cur.execute(

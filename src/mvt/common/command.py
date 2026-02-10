@@ -8,17 +8,22 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
-from mvt.common.indicators import Indicators
-from mvt.common.module import MVTModule, run_module, save_timeline
-from mvt.common.utils import (
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
+from .alerts import AlertLevel, AlertStore
+from .config import settings
+from .indicators import Indicators
+from .module import MVTModule, run_module, save_timeline
+from .utils import (
     convert_datetime_to_iso,
     generate_hashes_from_path,
     get_sha256_from_file_path,
 )
-from mvt.common.config import settings
-from mvt.common.version import MVT_VERSION
+from .version import MVT_VERSION
 
 
 class Command:
@@ -38,7 +43,7 @@ class Command:
         disable_indicator_check: bool = False,
     ) -> None:
         self.name = ""
-        self.modules = []
+        self.modules: list[Any] = []
 
         self.target_path = target_path
         self.results_path = results_path
@@ -57,12 +62,10 @@ class Command:
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
-        self.executed = []
-        self.detected_count = 0
+        self.executed: list[Any] = []
         self.hashes = hashes
-        self.hash_values = []
-        self.timeline = []
-        self.timeline_detected = []
+        self.hash_values: list[dict[str, Any]] = []
+        self.timeline: list[dict[str, Any]] = []
 
         # Load IOCs
         self._create_storage()
@@ -74,12 +77,14 @@ class Command:
             self.iocs = Indicators(self.log)
             self.iocs.load_indicators_files(self.ioc_files)
 
+        self.alertstore = AlertStore()
+
     def _create_storage(self) -> None:
         if self.results_path and not os.path.exists(self.results_path):
             try:
                 os.makedirs(self.results_path)
             except Exception as exc:
-                self.log.critical(
+                self.log.fatal(
                     "Unable to create output folder %s: %s", self.results_path, exc
                 )
                 sys.exit(1)
@@ -98,14 +103,14 @@ class Command:
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
 
-        # MVT can be run in a loop
-        # Old file handlers stick around in subsequent loops
-        # Remove any existing logging.FileHandler instances
+        # MVT can be run in a loop.
+        # Old file handlers stick around in subsequent loops.
+        # Remove any existing logging.FileHandler instances.
         for handler in logger.handlers:
             if isinstance(handler, logging.FileHandler):
                 logger.removeHandler(handler)
 
-        # And finally add the new one
+        # And finally add the new one.
         logger.addHandler(file_handler)
 
     def _store_timeline(self) -> None:
@@ -126,22 +131,34 @@ class Command:
                 is_utc=is_utc,
             )
 
-        if len(self.timeline_detected) > 0:
-            save_timeline(
-                self.timeline_detected,
-                os.path.join(self.results_path, "timeline_detected.csv"),
-                is_utc=is_utc,
-            )
+    def _store_alerts(self) -> None:
+        if not self.results_path:
+            return
+
+        alerts = self.alertstore.as_json()
+        if not alerts:
+            return
+
+        alerts_path = os.path.join(self.results_path, "alerts.json")
+        with open(alerts_path, "w+", encoding="utf-8") as handle:
+            json.dump(alerts, handle, indent=4)
+
+    def _store_alerts_timeline(self) -> None:
+        if not self.results_path:
+            return
+
+        alerts_timeline_path = os.path.join(self.results_path, "alerts_timeline.csv")
+        self.alertstore.save_timeline(alerts_timeline_path)
 
     def _store_info(self) -> None:
         if not self.results_path:
             return
 
-        target_path = None
+        target_path: Optional[str] = None
         if self.target_path:
             target_path = os.path.abspath(self.target_path)
 
-        info = {
+        info: dict[str, Any] = {
             "target_path": target_path,
             "mvt_version": MVT_VERSION,
             "date": convert_datetime_to_iso(datetime.now()),
@@ -191,26 +208,54 @@ class Command:
     def finish(self) -> None:
         raise NotImplementedError
 
-    def _show_disable_adb_warning(self) -> None:
-        """Warn if ADB is enabled"""
-        if type(self).__name__ in ["CmdAndroidCheckADB", "CmdAndroidCheckAndroidQF"]:
-            self.log.info(
-                "Please disable Developer Options and ADB (Android Debug Bridge) on the device once finished with the acquisition. "
-                "ADB is a powerful tool which can allow unauthorized access to the device."
-            )
+    def show_alerts_brief(self) -> None:
+        console = Console()
 
-    def _show_support_message(self) -> None:
+        message = Text()
+        for i, level in enumerate(AlertLevel):
+            message.append(
+                f"MVT produced {self.alertstore.count(level)} {level.name} alerts."
+            )
+            if i < len(AlertLevel) - 1:
+                message.append("\n")
+
+        panel = Panel(
+            message, title="ALERTS", style="sandy_brown", border_style="sandy_brown"
+        )
+        console.print("")
+        console.print(panel)
+
+    def show_disable_adb_warning(self) -> None:
+        console = Console()
+        message = Text(
+            "Please disable Developer Options and ADB (Android Debug Bridge) on the device once finished with the acquisition. "
+            "ADB is a powerful tool which can allow unauthorized access to the device."
+        )
+        panel = Panel(message, title="NOTE", style="yellow", border_style="yellow")
+        console.print("")
+        console.print(panel)
+
+    def show_support_message(self) -> None:
+        console = Console()
+        message = Text()
+
         support_message = "Please seek reputable expert help if you have serious concerns about a possible spyware attack. Such support is available to human rights defenders and civil society through Amnesty International's Security Lab at https://securitylab.amnesty.org/get-help/?c=mvt"
-        if self.detected_count == 0:
-            self.log.info(
-                f"[bold]NOTE:[/bold] Using MVT with public indicators of compromise (IOCs) [bold]WILL NOT[/bold] automatically detect advanced attacks.\n\n{support_message}",
-                extra={"markup": True},
+        if (
+            self.alertstore.count(AlertLevel.HIGH) > 0
+            or self.alertstore.count(AlertLevel.CRITICAL) > 0
+        ):
+            message.append(
+                f"MVT produced HIGH or CRITICAL alerts. Only expert review can confirm if the detected indicators are signs of an attack.\n\n{support_message}",
             )
+            panel = Panel(message, title="WARNING", style="red", border_style="red")
         else:
-            self.log.warning(
-                f"[bold]NOTE: Detected indicators of compromise[/bold]. Only expert review can confirm if the detected indicators are signs of an attack.\n\n{support_message}",
-                extra={"markup": True},
+            message.append(
+                f"The lack of severe alerts does not equate to a clean bill of health.\n\n{support_message}",
             )
+            panel = Panel(message, title="NOTE", style="yellow", border_style="yellow")
+
+        console.print("")
+        console.print(panel)
 
     def run(self) -> None:
         try:
@@ -220,6 +265,11 @@ class Command:
 
         for module in self.modules:
             if self.module_name and module.__name__ != self.module_name:
+                continue
+
+            if not module.enabled and not (
+                self.module_name and module.__name__ == self.module_name
+            ):
                 continue
 
             # FIXME: do we need the logger here
@@ -247,11 +297,8 @@ class Command:
             run_module(m)
 
             self.executed.append(m)
-
-            self.detected_count += len(m.detected)
-
             self.timeline.extend(m.timeline)
-            self.timeline_detected.extend(m.timeline_detected)
+            self.alertstore.extend(m.alertstore.alerts)
 
         try:
             self.finish()
@@ -263,7 +310,6 @@ class Command:
             return
 
         self._store_timeline()
+        self._store_alerts_timeline()
+        self._store_alerts()
         self._store_info()
-
-        self._show_disable_adb_warning()
-        self._show_support_message()

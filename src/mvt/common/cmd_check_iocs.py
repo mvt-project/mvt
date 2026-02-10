@@ -86,7 +86,7 @@ class CmdCheckIOCS(Command):
                 except NotImplementedError:
                     continue
                 else:
-                    total_detections += len(m.detected)
+                    total_detections += len(m.alertstore.alerts)
 
         if total_detections > 0:
             log.warning(

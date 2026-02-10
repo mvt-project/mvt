@@ -8,6 +8,7 @@ import os
 import plistlib
 from typing import Optional
 
+from mvt.common.module_types import ModuleResults
 from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
@@ -38,7 +39,7 @@ class WebkitSessionResourceLog(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -49,7 +50,7 @@ class WebkitSessionResourceLog(IOSExtraction):
             results=results,
         )
 
-        self.results = {} if not results else results
+        self.results: dict = {}
 
     @staticmethod
     def _extract_domains(entries):
@@ -82,14 +83,16 @@ class WebkitSessionResourceLog(IOSExtraction):
                 # subresource_domains = self._extract_domains(
                 #    entry["subresource_under_origin"])
 
-                all_origins = set(
-                    [entry["origin"]] + source_domains + destination_domains
+                all_origins = list(
+                    set([entry["origin"]] + source_domains + destination_domains)
                 )
 
-                ioc = self.indicators.check_urls(all_origins)
-                if ioc:
-                    entry["matched_indicator"] = ioc
-                    self.detected.append(entry)
+                ioc_match = self.indicators.check_urls(all_origins)
+                if ioc_match:
+                    entry["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        ioc_match.message, "", entry, matched_indicator=ioc_match.ioc
+                    )
 
                     redirect_path = ""
                     if len(source_domains) > 0:
@@ -110,9 +113,10 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                         redirect_path += ", ".join(destination_domains)
 
-                    self.log.warning(
-                        "Found HTTP redirect between suspicious domains: %s",
-                        redirect_path,
+                    self.alertstore.high(
+                        f"Found HTTP redirect between suspicious domains: {redirect_path}",
+                        "",
+                        entry,
                     )
 
     def _extract_browsing_stats(self, log_path):
@@ -185,6 +189,8 @@ class WebkitSessionResourceLog(IOSExtraction):
                 self.log.info(
                     "Found Safari browsing session resource log at path: %s", log_path
                 )
+                if not self.target_path:
+                    continue
                 key = os.path.relpath(log_path, self.target_path)
                 self.results[key] = self._extract_browsing_stats(log_path)
 

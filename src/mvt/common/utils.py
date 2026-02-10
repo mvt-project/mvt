@@ -12,7 +12,7 @@ import os
 import re
 from typing import Any, Iterator, Union
 
-from rich.logging import RichHandler
+from .log import MVTLogHandler
 from mvt.common.config import settings
 
 
@@ -234,11 +234,10 @@ def init_logging(verbose: bool = False):
     """
     Initialise logging for the MVT module
     """
-    # Setup logging using Rich.
     log = logging.getLogger("mvt")
-    log.setLevel(logging.DEBUG)
-    consoleHandler = RichHandler(show_path=False, log_time_format="%X")
-    consoleHandler.setFormatter(logging.Formatter("[%(name)s] %(message)s"))
+    log.setLevel(logging.INFO)
+    consoleHandler = MVTLogHandler()
+    consoleHandler.setFormatter(logging.Formatter("%(message)s"))
     if verbose:
         consoleHandler.setLevel(logging.DEBUG)
     else:

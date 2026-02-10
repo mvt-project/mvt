@@ -5,8 +5,13 @@
 
 import logging
 import plistlib
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
@@ -29,7 +34,7 @@ class ProfileEvents(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -40,7 +45,7 @@ class ProfileEvents(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record.get("timestamp"),
             "module": self.__class__.__name__,
@@ -51,24 +56,33 @@ class ProfileEvents(IOSExtraction):
         }
 
     def check_indicators(self) -> None:
+        for result in self.results:
+            message = f'On {result.get("timestamp")} process "{result.get("process")}" started operation "{result.get("operation")}" of profile "{result.get("profile_id")}"'
+            self.alertstore.low(message, result.get("timestamp") or "", result)
+            self.alertstore.log_latest()
+
         if not self.indicators:
             return
 
         for result in self.results:
-            ioc = self.indicators.check_process(result.get("process"))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_process(result.get("process") or "")
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
-            ioc = self.indicators.check_profile(result.get("profile_id"))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_profile(result.get("profile_id") or "")
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     @staticmethod
     def parse_profile_events(file_data: bytes) -> list:
-        results = []
+        results: list = []
 
         events_plist = plistlib.loads(file_data)
 
@@ -108,14 +122,5 @@ class ProfileEvents(IOSExtraction):
 
             with open(events_file_path, "rb") as handle:
                 self.results.extend(self.parse_profile_events(handle.read()))
-
-        for result in self.results:
-            self.log.info(
-                'On %s process "%s" started operation "%s" of profile "%s"',
-                result.get("timestamp"),
-                result.get("process"),
-                result.get("operation"),
-                result.get("profile_id"),
-            )
 
         self.log.info("Extracted %d profile events", len(self.results))

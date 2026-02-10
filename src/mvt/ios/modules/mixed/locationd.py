@@ -6,8 +6,13 @@
 import base64
 import logging
 import plistlib
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -31,7 +36,7 @@ class LocationdClients(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -54,7 +59,7 @@ class LocationdClients(IOSExtraction):
             "BeaconRegionTimeStopped",
         ]
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
         for timestamp in self.timestamps:
             if timestamp in record.keys():
@@ -77,59 +82,66 @@ class LocationdClients(IOSExtraction):
             parts = result["package"].split("/")
             proc_name = parts[len(parts) - 1]
 
-            ioc = self.indicators.check_process(proc_name)
-            if ioc:
-                self.log.warning(
-                    "Found a suspicious process name in LocationD entry %s",
-                    result["package"],
+            ioc_match = self.indicators.check_process(proc_name)
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.high(
+                    f"Found a suspicious process name in LocationD entry {result['package']}",
+                    "",
+                    result,
                 )
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+                self.alertstore.log_latest()
                 continue
 
             if "BundleId" in result:
-                ioc = self.indicators.check_process(result["BundleId"])
-                if ioc:
-                    self.log.warning(
-                        "Found a suspicious process name in LocationD entry %s",
-                        result["package"],
+                ioc_match = self.indicators.check_process(result["BundleId"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.high(
+                        f"Found a suspicious process name in LocationD entry {result['package']}",
+                        "",
+                        result,
                     )
-                    result["matched_indicator"] = ioc
+                    self.alertstore.log_latest()
 
             if "BundlePath" in result:
-                ioc = self.indicators.check_file_path(result["BundlePath"])
-                if ioc:
-                    self.log.warning(
-                        "Found a suspicious file path in Location D: %s",
-                        result["BundlePath"],
+                ioc_match = self.indicators.check_file_path(result["BundlePath"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.high(
+                        f"Found a known malicious domain in LocationD entry {result['package']}",
+                        "",
+                        result,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                    self.alertstore.log_latest()
                     continue
 
             if "Executable" in result:
-                ioc = self.indicators.check_file_path(result["Executable"])
-                if ioc:
-                    self.log.warning(
-                        "Found a suspicious file path in Location D: %s",
-                        result["Executable"],
+                ioc_match = self.indicators.check_file_path(result["Executable"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.high(
+                        f"Found a suspicious file path in LocationD entry {result['Executable']}",
+                        "",
+                        result,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                    self.alertstore.log_latest()
                     continue
 
             if "Registered" in result:
                 # Sometimes registered is a bool
                 if isinstance(result["Registered"], bool):
                     continue
-                ioc = self.indicators.check_file_path(result["Registered"])
-                if ioc:
-                    self.log.warning(
-                        "Found a suspicious file path in Location D: %s",
-                        result["Registered"],
+
+                ioc_match = self.indicators.check_file_path(result["Registered"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.high(
+                        f"Found a suspicious file path in LocationD entry {result['Registered']}",
+                        "",
+                        result,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                    self.alertstore.log_latest()
                     continue
 
     def _extract_locationd_entries(self, file_path):

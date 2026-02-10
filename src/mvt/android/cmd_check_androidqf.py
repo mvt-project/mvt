@@ -70,6 +70,9 @@ class CmdAndroidCheckAndroidQF(Command):
         self.__files: List[str] = []
 
     def init(self):
+        if not self.target_path:
+            raise NoAndroidQFTargetPath
+
         if os.path.isdir(self.target_path):
             self.__format = "dir"
             parent_path = Path(self.target_path).absolute().parent.as_posix()
@@ -137,6 +140,7 @@ class CmdAndroidCheckAndroidQF(Command):
         raise NoAndroidQFBackup
 
     def run_bugreport_cmd(self) -> bool:
+        bugreport = None
         try:
             bugreport = self.load_bugreport()
         except NoAndroidQFBugReport:
@@ -157,9 +161,13 @@ class CmdAndroidCheckAndroidQF(Command):
             cmd.from_zip(bugreport)
             cmd.run()
 
-            self.detected_count += cmd.detected_count
             self.timeline.extend(cmd.timeline)
-            self.timeline_detected.extend(cmd.timeline_detected)
+            self.alertstore.extend(cmd.alertstore.alerts)
+        finally:
+            if bugreport:
+                bugreport.close()
+
+        return True
 
     def run_backup_cmd(self) -> bool:
         try:
@@ -169,22 +177,22 @@ class CmdAndroidCheckAndroidQF(Command):
                 "Skipping backup modules as no backup.ab found in AndroidQF data."
             )
             return False
-        else:
-            cmd = CmdAndroidCheckBackup(
-                target_path=None,
-                results_path=self.results_path,
-                ioc_files=self.ioc_files,
-                iocs=self.iocs,
-                module_options=self.module_options,
-                hashes=self.hashes,
-                sub_command=True,
-            )
-            cmd.from_ab(backup)
-            cmd.run()
 
-            self.detected_count += cmd.detected_count
-            self.timeline.extend(cmd.timeline)
-            self.timeline_detected.extend(cmd.timeline_detected)
+        cmd = CmdAndroidCheckBackup(
+            target_path=None,
+            results_path=self.results_path,
+            ioc_files=self.ioc_files,
+            iocs=self.iocs,
+            module_options=self.module_options,
+            hashes=self.hashes,
+            sub_command=True,
+        )
+        cmd.from_ab(backup)
+        cmd.run()
+
+        self.timeline.extend(cmd.timeline)
+        self.alertstore.extend(cmd.alertstore.alerts)
+        return True
 
     def finish(self) -> None:
         """

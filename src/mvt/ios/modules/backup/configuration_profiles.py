@@ -7,8 +7,13 @@ import logging
 import os
 import plistlib
 from base64 import b64encode
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_datetime_to_iso
 
 from ..base import IOSExtraction
@@ -28,7 +33,7 @@ class ConfigurationProfiles(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -39,7 +44,7 @@ class ConfigurationProfiles(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         if not record["install_date"]:
             return {}
 
@@ -63,28 +68,24 @@ class ConfigurationProfiles(IOSExtraction):
 
                 # Alert on any known malicious configuration profiles in the
                 # indicator list.
-                ioc = self.indicators.check_profile(result["plist"]["PayloadUUID"])
-                if ioc:
-                    self.log.warning(
-                        "Found a known malicious configuration "
-                        'profile "%s" with UUID %s',
-                        result["plist"]["PayloadDisplayName"],
-                        result["plist"]["PayloadUUID"],
+                ioc_match = self.indicators.check_profile(
+                    result["plist"]["PayloadUUID"]
+                )
+                if ioc_match:
+                    warning_message = f'Found a known malicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with UUID "{result["plist"]["PayloadUUID"]}"'
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        warning_message, "", result, matched_indicator=ioc_match.ioc
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                    self.alertstore.log_latest()
                     continue
 
                 # Highlight suspicious configuration profiles which may be used
                 # to hide notifications.
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
-                    self.log.warning(
-                        "Found a potentially suspicious configuration profile "
-                        '"%s" with payload type %s',
-                        result["plist"]["PayloadDisplayName"],
-                        payload_content["PayloadType"],
-                    )
-                    self.detected.append(result)
+                    warning_message = f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}'
+                    self.alertstore.medium(warning_message, "", result)
+                    self.alertstore.log_latest()
                     continue
 
     def run(self) -> None:

@@ -8,8 +8,17 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Union
+from dataclasses import asdict, is_dataclass
+from typing import Any, Dict, Optional
 
+from .alerts import AlertStore
+from .indicators import Indicators
+from .module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+    ModuleTimeline,
+)
 from .utils import CustomJSONEncoder, exec_or_profile
 
 
@@ -28,7 +37,7 @@ class InsufficientPrivileges(Exception):
 class MVTModule:
     """This class provides a base for all extraction modules."""
 
-    enabled = True
+    enabled: bool = True
     slug: Optional[str] = None
 
     def __init__(
@@ -38,7 +47,7 @@ class MVTModule:
         results_path: Optional[str] = None,
         module_options: Optional[Dict[str, Any]] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
+        results: ModuleResults = [],
     ) -> None:
         """Initialize module.
 
@@ -46,7 +55,7 @@ class MVTModule:
         :type file_path: str
         :param target_path: Path to the target folder (backup or filesystem
                             dump)
-        :type file_path: str
+        :type target_path: str
         :param results_path: Folder where results will be stored
         :type results_path: str
         :param fast_mode: Flag to enable or disable slow modules
@@ -55,32 +64,31 @@ class MVTModule:
         :param results: Provided list of results entries
         :type results: list
         """
-        self.file_path = file_path
-        self.target_path = target_path
-        self.results_path = results_path
-        self.module_options = module_options if module_options else {}
+        self.file_path: Optional[str] = file_path
+        self.target_path: Optional[str] = target_path
+        self.results_path: Optional[str] = results_path
+        self.module_options: Optional[Dict[str, Any]] = (
+            module_options if module_options else {}
+        )
+
         self.log = log
-        self.indicators = None
-        self.results = results if results else []
-        self.detected: List[Dict[str, Any]] = []
-        self.timeline: List[Dict[str, str]] = []
-        self.timeline_detected: List[Dict[str, str]] = []
+        self.indicators: Optional[Indicators] = None
+        self.alertstore: AlertStore = AlertStore(log=log)
+
+        self.results: ModuleResults = results if results else []
+        self.timeline: ModuleTimeline = []
 
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
         with open(json_path, "r", encoding="utf-8") as handle:
-            try:
-                results = json.load(handle)
-                if log:
-                    log.info('Loaded %d results from "%s"', len(results), json_path)
-                return cls(results=results, log=log)
-            except json.decoder.JSONDecodeError as err:
-                log.error('Error to decode the json "%s" file: "%s"', json_path, err)
-                return None
+            results = json.load(handle)
+            if log:
+                log.info('Loaded %d results from "%s"', len(results), json_path)
+
+            return cls(results=results, log=log)
 
     @classmethod
     def get_slug(cls) -> str:
-        """Use the module's class name to retrieve a slug"""
         if cls.slug:
             return cls.slug
 
@@ -88,26 +96,26 @@ class MVTModule:
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", sub).lower()
 
     def check_indicators(self) -> None:
-        """Check the results of this module against a provided list of
-        indicators.
-
-
-        """
         raise NotImplementedError
 
     def save_to_json(self) -> None:
-        """Save the collected results to a json file."""
         if not self.results_path:
             return
 
         name = self.get_slug()
 
         if self.results:
+            converted_results = [
+                asdict(result) if is_dataclass(result) else result
+                for result in self.results
+            ]
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.results_path, results_file_name)
             with open(results_json_path, "w", encoding="utf-8") as handle:
                 try:
-                    json.dump(self.results, handle, indent=4, cls=CustomJSONEncoder)
+                    json.dump(
+                        converted_results, handle, indent=4, cls=CustomJSONEncoder
+                    )
                 except Exception as exc:
                     self.log.error(
                         "Unable to store results of module %s to file %s: %s",
@@ -116,13 +124,15 @@ class MVTModule:
                         exc,
                     )
 
-        if self.detected:
+        if self.alertstore.alerts:
             detected_file_name = f"{name}_detected.json"
             detected_json_path = os.path.join(self.results_path, detected_file_name)
             with open(detected_json_path, "w", encoding="utf-8") as handle:
-                json.dump(self.detected, handle, indent=4, cls=CustomJSONEncoder)
+                json.dump(
+                    self.alertstore.alerts, handle, indent=4, cls=CustomJSONEncoder
+                )
 
-    def serialize(self, record: dict) -> Union[dict, list, None]:
+    def serialize(self, result: ModuleAtomicResult) -> ModuleSerializedResult:
         raise NotImplementedError
 
     @staticmethod
@@ -134,30 +144,32 @@ class MVTModule:
         """
         timeline_set = set()
         for record in timeline:
-            timeline_set.add(json.dumps(record, sort_keys=True))
+            timeline_set.add(
+                json.dumps(
+                    asdict(record)
+                    if is_dataclass(record) and not isinstance(record, type)
+                    else record,
+                    sort_keys=True,
+                )
+            )
+
         return [json.loads(record) for record in timeline_set]
 
     def to_timeline(self) -> None:
         """Convert results into a timeline."""
-        for result in self.results:
-            record = self.serialize(result)
-            if record:
-                if isinstance(record, list):
-                    self.timeline.extend(record)
-                else:
-                    self.timeline.append(record)
+        if not self.results:
+            return
 
-        for detected in self.detected:
-            record = self.serialize(detected)
+        for result in self.results:
+            record: ModuleSerializedResult = self.serialize(result)
             if record:
                 if isinstance(record, list):
-                    self.timeline_detected.extend(record)
+                    self.timeline.extend(record)  # type: ignore[arg-type]
                 else:
-                    self.timeline_detected.append(record)
+                    self.timeline.append(record)  # type: ignore[arg-type]
 
         # De-duplicate timeline entries.
         self.timeline = self._deduplicate_timeline(self.timeline)
-        self.timeline_detected = self._deduplicate_timeline(self.timeline_detected)
 
     def run(self) -> None:
         """Run the main module procedure."""
@@ -212,7 +224,7 @@ def run_module(module: MVTModule) -> None:
             )
 
         else:
-            if module.indicators and not module.detected:
+            if module.indicators and not module.alertstore.alerts:
                 module.log.info(
                     "The %s module produced no detections!", module.__class__.__name__
                 )

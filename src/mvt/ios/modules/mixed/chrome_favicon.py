@@ -4,8 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to_iso
 
 from ..base import IOSExtraction
@@ -27,7 +32,7 @@ class ChromeFavicon(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -38,7 +43,7 @@ class ChromeFavicon(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -51,12 +56,15 @@ class ChromeFavicon(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_url(result["url"])
-            if not ioc:
-                ioc = self.indicators.check_url(result["icon_url"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_url(result["url"])
+            if not ioc_match:
+                ioc_match = self.indicators.check_url(result["icon_url"])
+
+            if ioc_match:
+                result["matched_indicator"] = ioc_match.ioc
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def run(self) -> None:
@@ -65,6 +73,8 @@ class ChromeFavicon(IOSExtraction):
         )
         self.log.info("Found Chrome favicon cache database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
 
         # Fetch icon cache

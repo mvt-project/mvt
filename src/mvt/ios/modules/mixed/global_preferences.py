@@ -7,6 +7,8 @@ import logging
 import plistlib
 from typing import Optional
 
+from mvt.common.module_types import ModuleResults
+
 from ..base import IOSExtraction
 
 GLOBAL_PREFERENCES_BACKUP_IDS = ["0dc926a1810f7aee4e8f38793ed788701f93bf9d"]
@@ -25,7 +27,7 @@ class GlobalPreferences(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -40,11 +42,10 @@ class GlobalPreferences(IOSExtraction):
         for entry in self.results:
             if entry["entry"] == "LDMGlobalEnabled":
                 if entry["value"]:
-                    self.log.warning("Lockdown mode enabled")
+                    self.alertstore.info("Lockdown mode enabled", "", entry)
                 else:
-                    self.log.warning("Lockdown mode disabled")
-                return
-        self.log.warning("Lockdown mode disabled")
+                    self.alertstore.low("Lockdown mode disabled", "", entry)
+                    continue
 
     def process_file(self, file_path: str) -> None:
         with open(file_path, "rb") as handle:
@@ -60,6 +61,8 @@ class GlobalPreferences(IOSExtraction):
         )
         self.log.info("Found Global Preference database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         self.process_file(self.file_path)
 
         self.log.info("Extracted a total of %d Global Preferences", len(self.results))

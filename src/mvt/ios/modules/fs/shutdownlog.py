@@ -4,8 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -25,7 +30,7 @@ class ShutdownLog(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -36,7 +41,7 @@ class ShutdownLog(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -50,22 +55,25 @@ class ShutdownLog(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_file_path(result["client"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_file_path(result["client"])
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
+                self.alertstore.log_latest()
                 continue
 
             for ioc in self.indicators.get_iocs("processes"):
                 parts = result["client"].split("/")
-                if ioc in parts:
-                    self.log.warning(
-                        'Found mention of a known malicious process "%s" in '
-                        "shutdown.log",
-                        ioc,
-                    )
+                if ioc.value in parts:
                     result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                    self.alertstore.critical(
+                        f'Found mention of a known malicious process "{ioc.value}" in shutdown.log',
+                        "",
+                        result,
+                        matched_indicator=ioc,
+                    )
+                    self.alertstore.log_latest()
                     continue
 
     def process_shutdownlog(self, content):
@@ -129,5 +137,8 @@ class ShutdownLog(IOSExtraction):
     def run(self) -> None:
         self._find_ios_database(root_paths=SHUTDOWN_LOG_PATH)
         self.log.info("Found shutdown log at path: %s", self.file_path)
+
+        if not self.file_path:
+            return
         with open(self.file_path, "r", encoding="utf-8") as handle:
             self.process_shutdownlog(handle.read())

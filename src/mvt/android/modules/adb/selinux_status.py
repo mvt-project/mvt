@@ -6,6 +6,8 @@
 import logging
 from typing import Optional
 
+from mvt.common.module_types import ModuleResults
+
 from .base import AndroidExtraction
 
 
@@ -21,7 +23,7 @@ class SELinuxStatus(AndroidExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -32,7 +34,7 @@ class SELinuxStatus(AndroidExtraction):
             results=results,
         )
 
-        self.results = {} if not results else results
+        self.results: dict = {}
 
     def run(self) -> None:
         self._adb_connect()

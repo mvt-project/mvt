@@ -7,8 +7,13 @@ import copy
 import logging
 import plistlib
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -29,7 +34,7 @@ class Analytics(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -39,8 +44,9 @@ class Analytics(IOSExtraction):
             log=log,
             results=results,
         )
+        self.results: list = []
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -57,24 +63,27 @@ class Analytics(IOSExtraction):
                 if not isinstance(value, str):
                     continue
 
-                ioc = self.indicators.check_process(value)
-                if ioc:
-                    self.log.warning(
-                        'Found mention of a malicious process "%s" in %s file at %s',
-                        value,
-                        result["artifact"],
-                        result["isodate"],
-                    )
+                ioc_match = self.indicators.check_process(value)
+                if ioc_match:
+                    warning_message = f'Found mention of a malicious process "{value}" in {result["artifact"]} file at {result["isodate"]}'
                     new_result = copy.copy(result)
-                    new_result["matched_indicator"] = ioc
-                    self.detected.append(new_result)
+                    new_result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        warning_message, "", new_result, matched_indicator=ioc_match.ioc
+                    )
+                    self.alertstore.log_latest()
                     continue
 
-                ioc = self.indicators.check_url(value)
-                if ioc:
+                ioc_match = self.indicators.check_url(value)
+                if ioc_match:
                     new_result = copy.copy(result)
-                    new_result["matched_indicator"] = ioc
-                    self.detected.append(new_result)
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        ioc_match.message,
+                        "",
+                        new_result,
+                        matched_indicator=ioc_match.ioc,
+                    )
 
     def _extract_analytics_data(self):
         artifact = self.file_path.split("/")[-1]

@@ -47,38 +47,35 @@ class TestAndroidqfPackages:
     def test_non_appstore_warnings(self, caplog, module):
         run_module(module)
 
-        assert len(module.detected) == 4
+        assert len(module.alertstore.alerts) == 5
 
         # Not a super test to be searching logs for this but heuristic detections not yet formalised
-        assert (
-            'Found a non-system package installed via adb or another method: "com.whatsapp"'
-            in caplog.text
-        )
+        adb_message = "Found a non-system package installed via adb or another method:"
         whatsapp_detected = [
-            pkg for pkg in module.detected if pkg["name"] == "com.whatsapp"
+            alert
+            for alert in module.alertstore.alerts
+            if alert.event["name"] == "com.whatsapp"
         ]
         assert len(whatsapp_detected) == 1
+        assert adb_message in whatsapp_detected[0].message
 
-        assert (
-            'Found a package installed via a browser (installer="com.google.android.packageinstaller"): '
-            '"app.revanced.manager.flutter"' in caplog.text
-        )
+        browser_message = 'Found a package installed via a browser (installer="com.google.android.packageinstaller"): '
         revanced_detected = [
-            pkg
-            for pkg in module.detected
-            if pkg["name"] == "app.revanced.manager.flutter"
+            alert
+            for alert in module.alertstore.alerts
+            if alert.event["name"] == "app.revanced.manager.flutter"
         ]
         assert len(revanced_detected) == 1
+        assert browser_message in revanced_detected[0].message
 
-        assert (
-            'Found a package installed via a third party store (installer="org.fdroid.fdroid"): "org.nuclearfog.apollo"'
-            in caplog.text
-        )
-        # We do not currently flag a third party store as a detection, we only flag the app in the logs.
+        third_party_message = 'Found a package installed via a third party store (installer="org.fdroid.fdroid")'
         appollo_detected = [
-            pkg for pkg in module.detected if pkg["name"] == "org.nuclearfog.apollo"
+            alert
+            for alert in module.alertstore.alerts
+            if alert.event["name"] == "org.nuclearfog.apollo"
         ]
-        assert len(appollo_detected) == 0
+        assert len(appollo_detected) == 1
+        assert third_party_message in appollo_detected[0].message
 
     def test_packages_ioc_package_names(self, module, indicators_factory):
         module.indicators = indicators_factory(app_ids=["com.malware.blah"])
@@ -86,13 +83,13 @@ class TestAndroidqfPackages:
         run_module(module)
 
         possible_detected_app = [
-            pkg for pkg in module.detected if pkg["name"] == "com.malware.blah"
+            alert
+            for alert in module.alertstore.alerts
+            if alert.event["name"] == "com.malware.blah"
         ]
         assert len(possible_detected_app) == 1
-        assert possible_detected_app[0]["name"] == "com.malware.blah"
-        assert (
-            possible_detected_app[0]["matched_indicator"]["value"] == "com.malware.blah"
-        )
+        assert possible_detected_app[0].event["name"] == "com.malware.blah"
+        assert possible_detected_app[0].matched_indicator.value == "com.malware.blah"
 
     def test_packages_ioc_sha256(self, module, indicators_factory):
         module.indicators = indicators_factory(
@@ -104,12 +101,14 @@ class TestAndroidqfPackages:
         run_module(module)
 
         possible_detected_app = [
-            pkg for pkg in module.detected if pkg["name"] == "com.malware.muahaha"
+            alert
+            for alert in module.alertstore.alerts
+            if alert.event["name"] == "com.malware.muahaha"
         ]
         assert len(possible_detected_app) == 1
-        assert possible_detected_app[0]["name"] == "com.malware.muahaha"
+        assert possible_detected_app[0].event["name"] == "com.malware.muahaha"
         assert (
-            possible_detected_app[0]["matched_indicator"]["value"]
+            possible_detected_app[0].matched_indicator.value
             == "31037a27af59d4914906c01ad14a318eee2f3e31d48da8954dca62a99174e3fa"
         )
 
@@ -123,11 +122,13 @@ class TestAndroidqfPackages:
         run_module(module)
 
         possible_detected_app = [
-            pkg for pkg in module.detected if pkg["name"] == "com.malware.muahaha"
+            alert
+            for alert in module.alertstore.alerts
+            if alert.event["name"] == "com.malware.muahaha"
         ]
         assert len(possible_detected_app) == 1
-        assert possible_detected_app[0]["name"] == "com.malware.muahaha"
+        assert possible_detected_app[0].event["name"] == "com.malware.muahaha"
         assert (
-            possible_detected_app[0]["matched_indicator"]["value"]
+            possible_detected_app[0].matched_indicator.value
             == "c7e56178748be1441370416d4c10e34817ea0c961eb636c8e9d98e0fd79bf730"
         )

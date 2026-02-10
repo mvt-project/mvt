@@ -4,8 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -26,7 +31,7 @@ class Calendar(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -44,7 +49,7 @@ class Calendar(IOSExtraction):
             "participant_last_modified",
         ]
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
         for timestamp in self.timestamps:
             if timestamp not in record or not record[timestamp]:
@@ -64,18 +69,22 @@ class Calendar(IOSExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if result["participant_email"] and self.indicators:
-                ioc = self.indicators.check_email(result["participant_email"])
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_email(result["participant_email"])
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
             # Custom check for Quadream exploit
             if result["summary"] == "Meeting" and result["description"] == "Notes":
-                self.log.warning(
-                    "Potential Quadream exploit event identified: %s", result["uuid"]
+                self.alertstore.high(
+                    f"Potential Quadream exploit event identified: {result['uuid']}",
+                    "",
+                    result,
                 )
-                self.detected.append(result)
+                self.alertstore.log_latest()
 
     def _parse_calendar_db(self):
         """

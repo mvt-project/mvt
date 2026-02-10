@@ -8,11 +8,17 @@ import logging
 import os
 import plistlib
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from mvt.common.module import DatabaseNotFoundError
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_datetime_to_iso
-from mvt.ios.modules.base import IOSExtraction
+
+from ..base import IOSExtraction
 
 APPLICATIONS_DB_PATH = [
     "private/var/containers/Bundle/Application/*/iTunesMetadata.plist"
@@ -35,7 +41,7 @@ class Applications(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -46,7 +52,7 @@ class Applications(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         if "isodate" in record:
             return {
                 "timestamp": record["isodate"],
@@ -60,41 +66,49 @@ class Applications(IOSExtraction):
         for result in self.results:
             if self.indicators:
                 if "softwareVersionBundleId" not in result:
-                    self.log.warning(
-                        "Suspicious application identified without softwareVersionBundleId"
+                    self.alertstore.high(
+                        "Suspicious application identified without softwareVersionBundleId",
+                        "",
+                        result,
                     )
-                    self.detected.append(result)
                     continue
 
-                ioc = self.indicators.check_process(result["softwareVersionBundleId"])
-                if ioc:
-                    self.log.warning(
-                        "Malicious application %s identified",
-                        result["softwareVersionBundleId"],
+                ioc_match = self.indicators.check_process(
+                    result["softwareVersionBundleId"]
+                )
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        f"Malicious application {result['softwareVersionBundleId']} identified",
+                        "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
                     continue
 
-                ioc = self.indicators.check_app_id(result["softwareVersionBundleId"])
-                if ioc:
-                    self.log.warning(
-                        "Malicious application %s identified",
-                        result["softwareVersionBundleId"],
+                ioc_match = self.indicators.check_app_id(
+                    result["softwareVersionBundleId"]
+                )
+                if ioc_match:
+                    result["matched_indicator"] = ioc_match.ioc
+                    self.alertstore.critical(
+                        f"Malicious application {result['softwareVersionBundleId']} identified",
+                        "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
                     continue
+
             # Some apps installed from apple store with sourceApp "com.apple.AppStore.ProductPageExtension"
             if (
                 result.get("sourceApp", "com.apple.AppStore")
                 not in KNOWN_APP_INSTALLERS
             ):
-                self.log.warning(
-                    "Suspicious app not installed from the App Store or MDM: %s",
-                    result["softwareVersionBundleId"],
+                self.alertstore.medium(
+                    f"Suspicious app not installed from the App Store or MDM: {result['softwareVersionBundleId']}",
+                    "",
+                    result,
                 )
-                self.detected.append(result)
 
     def _parse_itunes_timestamp(self, entry: Dict[str, Any]) -> None:
         """
@@ -145,6 +159,8 @@ class Applications(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
+            if not self.target_path:
+                return
             plist_path = os.path.join(self.target_path, "Info.plist")
             if not os.path.isfile(plist_path):
                 raise DatabaseNotFoundError("Impossible to find Info.plist file")

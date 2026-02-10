@@ -19,7 +19,7 @@ class TestSafariBrowserStateModule:
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 1
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
 
     def test_detection(self, indicator_file):
         m = SafariBrowserState(target_path=get_ios_backup_folder())
@@ -30,6 +30,6 @@ class TestSafariBrowserStateModule:
         ind.ioc_collections[0]["domains"].append("en.wikipedia.org")
         m.indicators = ind
         run_module(m)
-        assert len(m.detected) == 1
+        assert len(m.alertstore.alerts) == 1
         assert len(m.results) == 1
         assert m.results[0]["tab_url"] == "https://en.wikipedia.org/wiki/NSO_Group"
