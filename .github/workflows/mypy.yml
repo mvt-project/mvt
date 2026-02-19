@@ -7,14 +7,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v6
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: 3.9
           cache: 'pip'
-      - name: Checkout
-        uses: actions/checkout@master
       - name: Install Dependencies
         run: |
           pip install mypy

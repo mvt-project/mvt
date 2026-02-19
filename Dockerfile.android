@@ -1,5 +1,5 @@
 # Create main image
-FROM python:3.10.14-alpine3.20 as main
+FROM python:3.10.14-alpine3.20 AS main
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
