@@ -128,7 +128,7 @@ class AQFFiles(AndroidQFModule):
                 data = json.loads(rawdata)
             except json.decoder.JSONDecodeError:
                 data = []
-                for line in rawdata.split("\n"):
+                for line in rawdata.splitlines():
                     if line.strip() == "":
                         continue
                     data.append(json.loads(line))

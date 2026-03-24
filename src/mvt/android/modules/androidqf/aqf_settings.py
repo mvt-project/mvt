@@ -39,7 +39,7 @@ class AQFSettings(SettingsArtifact, AndroidQFModule):
 
             self.results[namespace] = {}
             data = self._get_file_content(setting_file)
-            for line in data.decode("utf-8").split("\n"):
+            for line in data.decode("utf-8").splitlines():
                 line = line.strip()
                 try:
                     key, value = line.split("=", 1)
