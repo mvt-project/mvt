@@ -84,12 +84,16 @@ class BugReportModule(MVTModule):
                 return self._get_file_content(main_content.decode().strip())
             except KeyError:
                 return None
-        else:
-            dumpstate_logs = self._get_files_by_pattern("dumpState_*.log")
-            if not dumpstate_logs:
-                return None
 
+        dumpstate_logs = self._get_files_by_pattern("dumpState_*.log")
+        if dumpstate_logs:
             return self._get_file_content(dumpstate_logs[0])
+
+        dumpsys_files = self._get_files_by_pattern("*/dumpsys.txt")
+        if dumpsys_files:
+            return self._get_file_content(dumpsys_files[0])
+
+        return None
 
     def _get_file_modification_time(self, file_path: str) -> dict:
         if self.zip_archive:
