@@ -87,6 +87,35 @@ class ConfigurationProfiles(IOSExtraction):
                     self.detected.append(result)
                     continue
 
+    @staticmethod
+    def _b64encode_key(d: dict, key: str) -> None:
+        if key in d:
+            d[key] = b64encode(d[key])
+
+    @staticmethod
+    def _b64encode_keys(d: dict, keys: list) -> None:
+        for key in keys:
+            if key in d:
+                d[key] = b64encode(d[key])
+
+    def _b64encode_plist_bytes(self, plist: dict) -> None:
+        """Encode binary plist values to base64 for JSON serialization."""
+        if "SignerCerts" in plist:
+            plist["SignerCerts"] = [b64encode(x) for x in plist["SignerCerts"]]
+
+        self._b64encode_keys(plist, ["PushTokenDataSentToServerKey", "LastPushTokenHash"])
+
+        if "OTAProfileStub" in plist:
+            stub = plist["OTAProfileStub"]
+            if "SignerCerts" in stub:
+                stub["SignerCerts"] = [b64encode(x) for x in stub["SignerCerts"]]
+            if "PayloadContent" in stub:
+                self._b64encode_key(stub["PayloadContent"], "EnrollmentIdentityPersistentID")
+
+        if "PayloadContent" in plist:
+            for entry in plist["PayloadContent"]:
+                self._b64encode_keys(entry, ["PERSISTENT_REF", "IdentityPersistentRef"])
+
     def run(self) -> None:
         for conf_file in self._get_backup_files_from_manifest(
             domain=CONF_PROFILES_DOMAIN
@@ -115,65 +144,7 @@ class ConfigurationProfiles(IOSExtraction):
                 except Exception:
                     conf_plist = {}
 
-            # TODO: Tidy up the following code hell.
-
-            if "SignerCerts" in conf_plist:
-                conf_plist["SignerCerts"] = [
-                    b64encode(x) for x in conf_plist["SignerCerts"]
-                ]
-
-            if "OTAProfileStub" in conf_plist:
-                if "SignerCerts" in conf_plist["OTAProfileStub"]:
-                    conf_plist["OTAProfileStub"]["SignerCerts"] = [
-                        b64encode(x)
-                        for x in conf_plist["OTAProfileStub"]["SignerCerts"]
-                    ]
-
-                if "PayloadContent" in conf_plist["OTAProfileStub"]:
-                    if (
-                        "EnrollmentIdentityPersistentID"
-                        in conf_plist["OTAProfileStub"]["PayloadContent"]
-                    ):
-                        conf_plist["OTAProfileStub"]["PayloadContent"][
-                            "EnrollmentIdentityPersistentID"
-                        ] = b64encode(
-                            conf_plist["OTAProfileStub"]["PayloadContent"][
-                                "EnrollmentIdentityPersistentID"
-                            ]
-                        )
-
-            if "PushTokenDataSentToServerKey" in conf_plist:
-                conf_plist["PushTokenDataSentToServerKey"] = b64encode(
-                    conf_plist["PushTokenDataSentToServerKey"]
-                )
-
-            if "LastPushTokenHash" in conf_plist:
-                conf_plist["LastPushTokenHash"] = b64encode(
-                    conf_plist["LastPushTokenHash"]
-                )
-
-            if "PayloadContent" in conf_plist:
-                for content_entry in range(len(conf_plist["PayloadContent"])):
-                    if "PERSISTENT_REF" in conf_plist["PayloadContent"][content_entry]:
-                        conf_plist["PayloadContent"][content_entry][
-                            "PERSISTENT_REF"
-                        ] = b64encode(
-                            conf_plist["PayloadContent"][content_entry][
-                                "PERSISTENT_REF"
-                            ]
-                        )
-
-                    if (
-                        "IdentityPersistentRef"
-                        in conf_plist["PayloadContent"][content_entry]
-                    ):
-                        conf_plist["PayloadContent"][content_entry][
-                            "IdentityPersistentRef"
-                        ] = b64encode(
-                            conf_plist["PayloadContent"][content_entry][
-                                "IdentityPersistentRef"
-                            ]
-                        )
+            self._b64encode_plist_bytes(conf_plist)
 
             self.results.append(
                 {
