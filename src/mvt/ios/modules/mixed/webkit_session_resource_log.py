@@ -76,12 +76,6 @@ class WebkitSessionResourceLog(IOSExtraction):
                     entry["redirect_destination"]
                 )
 
-                # TODO: Currently not used.
-                # subframe_origins = self._extract_domains(
-                #    entry["subframe_under_origin"])
-                # subresource_domains = self._extract_domains(
-                #    entry["subresource_under_origin"])
-
                 all_origins = set(
                     [entry["origin"]] + source_domains + destination_domains
                 )
