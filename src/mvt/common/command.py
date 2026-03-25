@@ -222,7 +222,6 @@ class Command:
             if self.module_name and module.__name__ != self.module_name:
                 continue
 
-            # FIXME: do we need the logger here
             module_logger = logging.getLogger(module.__module__)
 
             m = module(
