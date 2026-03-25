@@ -139,7 +139,7 @@ class AQFFiles(AndroidQFModule):
                         utc_timestamp = datetime.datetime.fromtimestamp(
                             file_data[ts], tz=datetime.timezone.utc
                         )
-                        # Convert the UTC timestamp to local tiem on Android device's local timezone
+                        # Convert the UTC timestamp to local time on Android device's local timezone
                         local_timestamp = utc_timestamp.astimezone(device_timezone)
 
                         # HACK: We only output the UTC timestamp in convert_datetime_to_iso, we
