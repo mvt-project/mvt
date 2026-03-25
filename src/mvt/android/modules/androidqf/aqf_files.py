@@ -105,15 +105,15 @@ class AQFFiles(AndroidQFModule):
                     )
                     self.detected.append(result)
 
-            if result.get("sha256", "") == "":
-                continue
-
-            ioc = self.indicators.check_file_hash(result["sha256"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-
-            # TODO: adds SHA1 and MD5 when available in MVT
+            for hash_key in ("sha256", "sha1", "md5"):
+                file_hash = result.get(hash_key, "")
+                if not file_hash:
+                    continue
+                ioc = self.indicators.check_file_hash(file_hash)
+                if ioc:
+                    result["matched_indicator"] = ioc
+                    self.detected.append(result)
+                    break
 
     def run(self) -> None:
         if timezone := self._get_device_timezone():
