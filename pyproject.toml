@@ -20,9 +20,9 @@ dependencies = [
     "click==8.3.1",
     "rich==14.1.0",
     "tld==0.13.1",
-    "requests==2.32.5",
+    "requests==2.33.1",
     "simplejson==3.20.2",
-    "packaging==25.0",
+    "packaging==26.0",
     "appdirs==1.4.4",
     "iOSbackup==0.9.925",
     "adb-shell[usb]==0.4.4",
@@ -32,7 +32,7 @@ dependencies = [
     "pyahocorasick==2.2.0",
     "betterproto==1.2.5",
     "pydantic==2.12.5",
-    "pydantic-settings==2.10.1",
+    "pydantic-settings==2.13.1",
     "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
     "tzdata==2025.3",
@@ -81,8 +81,8 @@ addopts = "-ra -q --cov=mvt --cov-report html --junitxml=pytest.xml --cov-report
 testpaths = ["tests"]
 
 [tool.ruff]
-select = ["C90", "E", "F", "W"] # flake8 default set
-ignore = [
+lint.select = ["C90", "E", "F", "W"] # flake8 default set
+lint.ignore = [
     "E501", # don't enforce line length violations
     "C901", # complex-structure
 
@@ -95,10 +95,10 @@ ignore = [
     # "E203",  # whitespace-before-punctuation
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"] # unused-import
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
 [tool.setuptools]
