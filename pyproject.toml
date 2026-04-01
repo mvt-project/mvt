@@ -32,7 +32,7 @@ dependencies = [
     "pyahocorasick==2.2.0",
     "betterproto==1.2.5",
     "pydantic==2.12.5",
-    "pydantic-settings==2.10.1",
+    "pydantic-settings==2.13.1",
     "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
     "tzdata==2025.2",
