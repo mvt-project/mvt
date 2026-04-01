@@ -67,9 +67,7 @@ class Indicators:
             if os.path.isfile(path) and path.lower().endswith(".stix2"):
                 self.parse_stix2(path)
             elif os.path.isdir(path):
-                for file in glob.glob(
-                    os.path.join(path, "**", "*.stix2"), recursive=True
-                ):
+                for file in glob.glob(os.path.join(path, "**", "*.stix2"), recursive=True):
                     self.parse_stix2(file)
             else:
                 self.log.error(
