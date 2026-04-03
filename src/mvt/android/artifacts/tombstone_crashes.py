@@ -6,14 +6,14 @@
 import datetime
 from typing import List, Optional, Union
 
-import pydantic
 import betterproto
+import pydantic
 from dateutil import parser
 
-from mvt.common.utils import convert_datetime_to_iso
 from mvt.android.parsers.proto.tombstone import Tombstone
-from .artifact import AndroidArtifact
+from mvt.common.utils import convert_datetime_to_iso
 
+from .artifact import AndroidArtifact
 
 TOMBSTONE_DELIMITER = "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
 
@@ -129,7 +129,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
 
         # Add some extra metadata
         tombstone_dict["timestamp"] = self._parse_timestamp_string(
-            tombstone_pb.timestamp
+            tombstone_pb.timestamp, file_timestamp
         )
         tombstone_dict["file_name"] = file_name
         tombstone_dict["file_timestamp"] = convert_datetime_to_iso(file_timestamp)
@@ -249,11 +249,21 @@ class TombstoneCrashArtifact(AndroidArtifact):
 
     def _load_timestamp_line(self, line: str, tombstone: dict) -> bool:
         timestamp = line.split(":", 1)[1].strip()
-        tombstone["timestamp"] = self._parse_timestamp_string(timestamp)
+        tombstone["timestamp"] = self._parse_timestamp_string(timestamp, None)
         return True
 
     @staticmethod
-    def _parse_timestamp_string(timestamp: str) -> str:
+    def _parse_timestamp_string(
+        timestamp: str, fallback_timestamp: Optional[datetime.datetime]
+    ) -> str:
+        """Parse timestamp string, using fallback if timestamp is empty."""
+        # Handle empty or whitespace-only timestamps
+        if not timestamp or not timestamp.strip():
+            if fallback_timestamp:
+                return convert_datetime_to_iso(fallback_timestamp)
+            else:
+                raise ValueError("Empty timestamp with no fallback provided")
+
         timestamp_parsed = parser.parse(timestamp)
         # HACK: Swap the local timestamp to UTC, so keep the original time and avoid timezone conversion.
         local_timestamp = timestamp_parsed.replace(tzinfo=datetime.timezone.utc)
