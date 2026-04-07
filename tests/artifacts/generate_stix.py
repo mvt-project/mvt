@@ -82,7 +82,7 @@ def generate_test_stix_file(file_path):
     for h in sha256:
         i = Indicator(
             indicator_types=["malicious-activity"],
-            pattern="[file:hashes.sha256='{}']".format(h),
+            pattern="[file:hashes.'SHA-256'='{}']".format(h),
             pattern_type="stix",
         )
         res.append(i)
@@ -91,7 +91,7 @@ def generate_test_stix_file(file_path):
     for h in sha1:
         i = Indicator(
             indicator_types=["malicious-activity"],
-            pattern="[file:hashes.sha1='{}']".format(h),
+            pattern="[file:hashes.'SHA-1'='{}']".format(h),
             pattern_type="stix",
         )
         res.append(i)
