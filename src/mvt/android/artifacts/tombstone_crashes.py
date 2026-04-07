@@ -7,7 +7,7 @@ import datetime
 from typing import List, Optional, Union
 
 import pydantic
-import betterproto
+import betterproto2
 from dateutil import parser
 
 from mvt.common.utils import convert_datetime_to_iso
@@ -124,7 +124,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
         """Parse Android tombstone crash files from a protobuf object."""
         tombstone_pb = Tombstone().parse(data)
         tombstone_dict = tombstone_pb.to_dict(
-            betterproto.Casing.SNAKE, include_default_values=True
+            casing=betterproto2.Casing.SNAKE, include_default_values=True
         )
 
         # Add some extra metadata
