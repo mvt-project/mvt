@@ -123,6 +123,11 @@ class SMS(IOSExtraction):
                 """
                 )
                 items = list(cur)
+            elif "no such table" in str(exc):
+                self.log.info(
+                    "No SMS tables found in the database, skipping: %s", exc
+                )
+                return
             else:
                 raise exc
         names = [description[0] for description in cur.description]
