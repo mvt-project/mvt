@@ -73,11 +73,11 @@ class Packages(AndroidExtraction):
     def check_indicators(self) -> None:
         for result in self.results:
             if result["package_name"] in ROOT_PACKAGES:
-                self.log.warning(
-                    'Found an installed package related to rooting/jailbreaking: "%s"',
-                    result["package_name"],
+                self.alertstore.high(
+                    f'Found an installed package related to rooting/jailbreaking: "{result["package_name"]}"',
+                    "",
+                    result,
                 )
-                self.detected.append(result)
                 continue
 
             if result["package_name"] in SECURITY_PACKAGES and result["disabled"]:
