@@ -9,7 +9,7 @@ import logging
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional
 
 import ahocorasick
 from appdirs import user_data_dir
@@ -716,30 +716,32 @@ class Indicators:
 
         return None
 
-    def check_receiver_prefix(self, receiver_name: str) -> Union[dict, None]:
+    def check_receiver_prefix(
+        self, receiver_name: str
+    ) -> Optional[IndicatorMatch]:
         """Check the provided receiver name against the list of indicators.
-        An IoC match is detected when a substring of the receiver matches the indicator
-        :param app_id: App ID to check against the list of indicators
-        :type app_id: str
-        :returns: Indicator details if matched, otherwise None
+        An IoC match is detected when a substring of the receiver matches the indicator.
+
+        :param receiver_name: Receiver name to check against app ID indicators
+        :type receiver_name: str
+        :returns: IndicatorMatch if matched, otherwise None
 
         """
         if not receiver_name:
             return None
 
         for ioc in self.get_iocs("app_ids"):
-            if ioc["value"].lower() in receiver_name.lower():
-                self.log.warning(
-                    'Found a known suspicious receiver with name "%s" '
-                    'matching indicators from "%s"',
-                    receiver_name,
-                    ioc["name"],
+            if ioc.value.lower() in receiver_name.lower():
+                return IndicatorMatch(
+                    ioc=ioc,
+                    message=f'Found a known suspicious receiver with name "{receiver_name}" matching indicators from "{ioc.name}"',
                 )
-                return ioc
 
         return None
 
-    def check_android_property_name(self, property_name: str) -> Optional[dict]:
+    def check_android_property_name(
+        self, property_name: str
+    ) -> Optional[IndicatorMatch]:
         """Check the android property name against the list of indicators.
 
         :param property_name: Name of the Android property
