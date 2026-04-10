@@ -77,12 +77,10 @@ class SMS(IOSExtraction):
                 "text", ""
             ).startswith(alert_new):
                 self.alertstore.high(
-                    self.get_slug(),
-                    f"Apple warning about state-sponsored attack received on the {message['isodate']}",
+                    f"Apple warning about state-sponsored attack received on {message['isodate']}",
                     message["isodate"],
                     message,
                 )
-                self.alertstore.log_latest()
 
         if not self.indicators:
             return
