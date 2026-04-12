@@ -247,7 +247,7 @@ class Command:
             try:
                 run_module(m)
             except EncryptedBackupError:
-                log.critical(
+                self.log.critical(
                     "The backup appears to be encrypted. "
                     "Please decrypt it first using `mvt-ios decrypt-backup`."
                 )
