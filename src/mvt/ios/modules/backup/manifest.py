@@ -8,9 +8,10 @@ import io
 import logging
 import os
 import plistlib
+import sqlite3
 from typing import Optional
 
-from mvt.common.module import DatabaseNotFoundError
+from mvt.common.module import DatabaseNotFoundError, EncryptedBackupError
 from mvt.common.url import URL
 from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 
@@ -127,7 +128,14 @@ class Manifest(IOSExtraction):
         conn = self._open_sqlite_db(manifest_db_path)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM Files;")
+        try:
+            cur.execute("SELECT * FROM Files;")
+        except sqlite3.DatabaseError:
+            conn.close()
+            raise EncryptedBackupError(
+                "Manifest.db is not a valid SQLite database. "
+                "The backup may be encrypted."
+            )
         names = [description[0] for description in cur.description]
 
         for file_entry in cur:
