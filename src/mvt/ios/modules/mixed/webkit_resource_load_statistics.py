@@ -79,32 +79,55 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            # FIXME: table contains extra fields with timestamp here
             cur.execute(
                 """
                 SELECT
                     domainID,
                     registrableDomain,
                     lastSeen,
-                    hadUserInteraction
+                    hadUserInteraction,
+                    mostRecentUserInteractionTime,
+                    mostRecentWebPushInteractionTime
                 from ObservedDomains;
             """
             )
+            has_extra_timestamps = True
         except sqlite3.OperationalError:
-            return
+            try:
+                cur.execute(
+                    """
+                    SELECT
+                        domainID,
+                        registrableDomain,
+                        lastSeen,
+                        hadUserInteraction
+                    from ObservedDomains;
+                """
+                )
+                has_extra_timestamps = False
+            except sqlite3.OperationalError:
+                return
 
         for row in cur:
-            self.results.append(
-                {
-                    "domain_id": row[0],
-                    "registrable_domain": row[1],
-                    "last_seen": row[2],
-                    "had_user_interaction": bool(row[3]),
-                    "last_seen_isodate": convert_unix_to_iso(row[2]),
-                    "domain": domain,
-                    "path": path,
-                }
-            )
+            result = {
+                "domain_id": row[0],
+                "registrable_domain": row[1],
+                "last_seen": row[2],
+                "had_user_interaction": bool(row[3]),
+                "last_seen_isodate": convert_unix_to_iso(row[2]),
+                "domain": domain,
+                "path": path,
+            }
+            if has_extra_timestamps:
+                result["most_recent_user_interaction_time"] = row[4]
+                result["most_recent_user_interaction_time_isodate"] = (
+                    convert_unix_to_iso(row[4])
+                )
+                result["most_recent_web_push_interaction_time"] = row[5]
+                result["most_recent_web_push_interaction_time_isodate"] = (
+                    convert_unix_to_iso(row[5])
+                )
+            self.results.append(result)
 
         if len(self.results) > 0:
             self.log.info(

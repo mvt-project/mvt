@@ -193,7 +193,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
             # eg. "Process uptime: 40s"
             tombstone[destination_key] = int(value_clean.rstrip("s"))
         elif destination_key == "command_line":
-            # XXX: Check if command line should be a single string in a list, or a list of strings.
+            # Wrap in list for consistency with protobuf format (repeated string).
             tombstone[destination_key] = [value_clean]
         else:
             tombstone[destination_key] = value_clean

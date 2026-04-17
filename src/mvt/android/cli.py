@@ -117,8 +117,6 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose)
         if from_file:
             download = DownloadAPKs.from_json(from_file)
         else:
-            # TODO: Do we actually want to be able to run without storing any
-            #       file?
             if not output:
                 log.critical("You need to specify an output folder with --output!")
                 ctx.exit(1)

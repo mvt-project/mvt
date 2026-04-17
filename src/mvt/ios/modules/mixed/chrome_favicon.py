@@ -11,7 +11,6 @@ from mvt.common.utils import convert_chrometime_to_datetime, convert_datetime_to
 from ..base import IOSExtraction
 
 CHROME_FAVICON_BACKUP_IDS = ["55680ab883d0fdcffd94f959b1632e5fbbb18c5b"]
-# TODO: Confirm Chrome database path.
 CHROME_FAVICON_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/Favicons",
 ]

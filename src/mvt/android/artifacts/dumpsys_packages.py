@@ -186,7 +186,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         package = []
 
         in_package_list = False
-        for line in content.split("\n"):
+        for line in content.splitlines():
             if line.startswith("Packages:"):
                 in_package_list = True
                 continue

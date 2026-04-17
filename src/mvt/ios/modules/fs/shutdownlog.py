@@ -73,7 +73,7 @@ class ShutdownLog(IOSExtraction):
         recent_processes = []
         times_delayed = 0
         delay = 0.0
-        for line in content.split("\n"):
+        for line in content.splitlines():
             line = line.strip()
 
             if line.startswith("remaining client pid:"):

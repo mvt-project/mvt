@@ -119,10 +119,9 @@ def convert_mactime_to_datetime(timestamp: Union[int, float], from_2001: bool = 
     if from_2001:
         timestamp = timestamp + 978307200
 
-    # TODO: This is rather ugly. Happens sometimes with invalid timestamps.
     try:
         return convert_unix_to_utc_datetime(timestamp)
-    except Exception:
+    except (OSError, OverflowError, ValueError):
         return None
 
 
