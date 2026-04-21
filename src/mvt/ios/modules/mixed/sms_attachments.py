@@ -73,7 +73,6 @@ class SMSAttachments(IOSExtraction):
                 and attachment["direction"] == "received"
             ):
                 self.alertstore.medium(
-                    self.get_slug(),
                     f"Suspicious iMessage attachment {attachment['filename']} on {attachment['isodate']}",
                     attachment["isodate"],
                     attachment,

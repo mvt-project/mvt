@@ -238,7 +238,7 @@ class NetBase(IOSExtraction):
                         )
 
                     self.alertstore.medium(
-                        self.get_slug(), msg, proc["live_isodate"], proc
+                        msg, proc["live_isodate"], proc
                     )
 
             if not proc["live_proc_id"]:
@@ -260,7 +260,6 @@ class NetBase(IOSExtraction):
             if result["live_proc_id"] not in missing_process_cache:
                 missing_process_cache.add(result["live_proc_id"])
                 self.alertstore.high(
-                    self.get_slug(),
                     f"Found manipulated process entry {result['live_proc_id']}. Entry on {result['live_isodate']}",
                     result["live_isodate"],
                     result,
@@ -271,7 +270,6 @@ class NetBase(IOSExtraction):
             result["first_isodate"] = result["isodate"] = result["live_isodate"]
             result["proc_name"] = "MANIPULATED [process record deleted]"
             self.alertstore.high(
-                self.get_slug(),
                 f"Found manipulated process entry {result['live_proc_id']}/",
                 result["first_isodate"],
                 result,
@@ -294,7 +292,6 @@ class NetBase(IOSExtraction):
             if proc_id not in all_proc_id:
                 previous_proc = results_by_proc[last_proc_id]
                 self.alertstore.low(
-                    self.get_slug(),
                     f'Missing process {proc_id}. Previous process at "{previous_proc["first_isodate"]}" ({previous_proc["proc_name"]})',
                     previous_proc["first_isodate"],
                     previous_proc,
@@ -353,5 +350,5 @@ class NetBase(IOSExtraction):
             if ioc_match:
                 result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
-                    self.get_slug(), ioc_match.message, result["first_isodate"], result
+                    ioc_match.message, result["first_isodate"], result
                 )

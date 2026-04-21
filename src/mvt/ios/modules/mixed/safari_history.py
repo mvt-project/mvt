@@ -101,7 +101,6 @@ class SafariHistory(IOSExtraction):
 
                 if elapsed_time.seconds == 0:
                     self.alertstore.medium(
-                        self.get_slug(),
                         f"Redirect took less than a second! ({elapsed_ms} milliseconds)",
                         result["timestamp"],
                         result,

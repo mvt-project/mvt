@@ -129,7 +129,7 @@ class MVTModule:
             detected_json_path = os.path.join(self.results_path, detected_file_name)
             with open(detected_json_path, "w", encoding="utf-8") as handle:
                 json.dump(
-                    self.alertstore.alerts, handle, indent=4, cls=CustomJSONEncoder
+                    self.alertstore.as_json(), handle, indent=4, cls=CustomJSONEncoder
                 )
 
     def serialize(self, result: ModuleAtomicResult) -> ModuleSerializedResult:
