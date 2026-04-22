@@ -38,11 +38,9 @@ By separating artifact collection from forensic analysis, this approach ensures 
 
 For more information, refer to the [AndroidQF project documentation](https://github.com/mvt-project/androidqf).
 
-## Check the device over Android Debug Bridge
+## Android Debug Bridge analysis removed
 
-The ability to analyze Android devices over ADB (`mvt-android check-adb`) has been removed from MVT.
-
-See the [Android ADB documentation](./adb.md) for more information.
+The ability to analyze Android devices directly over ADB has been removed from MVT. Use AndroidQF for device acquisition and `mvt-android check-androidqf` for analysis.
 
 ## Check an Android Backup (SMS messages)
 

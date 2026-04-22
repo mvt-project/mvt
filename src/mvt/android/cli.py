@@ -96,6 +96,7 @@ def version():
 @click.pass_context
 def check_adb(ctx):
     log.error(HELP_MSG_CHECK_ADB_REMOVED_DESCRIPTION)
+    ctx.exit(1)
 
 
 # ==============================================================================
