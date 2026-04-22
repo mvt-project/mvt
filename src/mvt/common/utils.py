@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import re
+from dataclasses import asdict, is_dataclass
 from typing import Any, Iterator, Union
 
 from .log import MVTLogHandler
@@ -30,6 +31,9 @@ class CustomJSONEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
+        # Unwrap dataclass instances (such as Indicator) to dict. Skip class itself.
+        if is_dataclass(o) and not isinstance(o, type):
+            return asdict(o)
         if isinstance(o, bytes):
             # Decode as utf-8, replace any invalid UTF-8 bytes with escaped hex
             return o.decode("utf-8", errors="backslashreplace")
@@ -235,7 +239,7 @@ def init_logging(verbose: bool = False):
     Initialise logging for the MVT module
     """
     log = logging.getLogger("mvt")
-    log.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG)
     consoleHandler = MVTLogHandler()
     consoleHandler.setFormatter(logging.Formatter("%(message)s"))
     if verbose:

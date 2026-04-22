@@ -109,10 +109,13 @@ class MVTModule:
         name = self.get_slug()
 
         if self.results:
-            converted_results = [
-                asdict(result) if is_dataclass(result) else result
-                for result in self.results
-            ]
+            if isinstance(self.results, dict):
+                converted_results = self.results
+            else:
+                converted_results = [
+                    asdict(result) if is_dataclass(result) else result
+                    for result in self.results
+                ]
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.results_path, results_file_name)
             with open(results_json_path, "w", encoding="utf-8") as handle:
