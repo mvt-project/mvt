@@ -54,19 +54,18 @@ class CacheFiles(IOSExtraction):
         if not self.indicators:
             return
 
-        self.alertstore.alerts = {}
         for key, values in self.results.items():
             for value in values:
                 ioc_match = self.indicators.check_url(value["url"])
                 if ioc_match:
+                    value["cache_file"] = key
                     value["matched_indicator"] = ioc_match.ioc
-                    # XXX: Finish converting this method
-                    if key not in self.alertstore.alerts:
-                        self.alertstore.alerts[key] = [
-                            value,
-                        ]
-                    else:
-                        self.alertstore.alerts[key].append(value)
+                    self.alertstore.critical(
+                        ioc_match.message,
+                        value.get("isodate", ""),
+                        value,
+                        matched_indicator=ioc_match.ioc,
+                    )
 
     def _process_cache_file(self, file_path):
         self.log.info("Processing cache file at path: %s", file_path)
