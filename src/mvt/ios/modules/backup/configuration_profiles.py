@@ -77,7 +77,6 @@ class ConfigurationProfiles(IOSExtraction):
                     self.alertstore.critical(
                         warning_message, "", result, matched_indicator=ioc_match.ioc
                     )
-                    self.alertstore.log_latest()
                     continue
 
                 # Highlight suspicious configuration profiles which may be used
@@ -85,7 +84,6 @@ class ConfigurationProfiles(IOSExtraction):
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
                     warning_message = f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}'
                     self.alertstore.medium(warning_message, "", result)
-                    self.alertstore.log_latest()
                     continue
 
     def run(self) -> None:

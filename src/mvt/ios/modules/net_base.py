@@ -264,7 +264,6 @@ class NetBase(IOSExtraction):
                     result["live_isodate"],
                     result,
                 )
-                self.alertstore.log_latest()
 
             # Set manipulated proc timestamp so it appears in timeline.
             result["first_isodate"] = result["isodate"] = result["live_isodate"]
@@ -296,7 +295,6 @@ class NetBase(IOSExtraction):
                     previous_proc["first_isodate"],
                     previous_proc,
                 )
-                self.alertstore.log_latest()
 
                 missing_procs[proc_id] = {
                     "proc_id": proc_id,

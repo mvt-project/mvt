@@ -19,6 +19,7 @@ from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
 from .utils import (
+    CustomJSONEncoder,
     convert_datetime_to_iso,
     generate_hashes_from_path,
     get_sha256_from_file_path,
@@ -141,7 +142,7 @@ class Command:
 
         alerts_path = os.path.join(self.results_path, "alerts.json")
         with open(alerts_path, "w+", encoding="utf-8") as handle:
-            json.dump(alerts, handle, indent=4)
+            json.dump(alerts, handle, indent=4, cls=CustomJSONEncoder)
 
     def _store_alerts_timeline(self) -> None:
         if not self.results_path:

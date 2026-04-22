@@ -90,7 +90,6 @@ class LocationdClients(IOSExtraction):
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
                 continue
 
             if "BundleId" in result:
@@ -102,7 +101,6 @@ class LocationdClients(IOSExtraction):
                         "",
                         result,
                     )
-                    self.alertstore.log_latest()
 
             if "BundlePath" in result:
                 ioc_match = self.indicators.check_file_path(result["BundlePath"])
@@ -113,7 +111,6 @@ class LocationdClients(IOSExtraction):
                         "",
                         result,
                     )
-                    self.alertstore.log_latest()
                     continue
 
             if "Executable" in result:
@@ -125,7 +122,6 @@ class LocationdClients(IOSExtraction):
                         "",
                         result,
                     )
-                    self.alertstore.log_latest()
                     continue
 
             if "Registered" in result:
@@ -141,7 +137,6 @@ class LocationdClients(IOSExtraction):
                         "",
                         result,
                     )
-                    self.alertstore.log_latest()
                     continue
 
     def _extract_locationd_entries(self, file_path):

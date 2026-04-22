@@ -84,7 +84,6 @@ class Calendar(IOSExtraction):
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
 
     def _parse_calendar_db(self):
         """

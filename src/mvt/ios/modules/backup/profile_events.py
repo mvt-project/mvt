@@ -59,7 +59,6 @@ class ProfileEvents(IOSExtraction):
         for result in self.results:
             message = f'On {result.get("timestamp")} process "{result.get("process")}" started operation "{result.get("operation")}" of profile "{result.get("profile_id")}"'
             self.alertstore.low(message, result.get("timestamp") or "", result)
-            self.alertstore.log_latest()
 
         if not self.indicators:
             return

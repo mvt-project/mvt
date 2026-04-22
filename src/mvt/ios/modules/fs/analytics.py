@@ -71,7 +71,6 @@ class Analytics(IOSExtraction):
                     self.alertstore.critical(
                         warning_message, "", new_result, matched_indicator=ioc_match.ioc
                     )
-                    self.alertstore.log_latest()
                     continue
 
                 ioc_match = self.indicators.check_url(value)

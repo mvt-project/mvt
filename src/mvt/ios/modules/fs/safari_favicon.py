@@ -65,7 +65,6 @@ class SafariFavicon(IOSExtraction):
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
-                self.alertstore.log_latest()
 
     def _process_favicon_db(self, file_path):
         conn = self._open_sqlite_db(file_path)

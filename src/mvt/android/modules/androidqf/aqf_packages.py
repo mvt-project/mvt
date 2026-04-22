@@ -49,7 +49,6 @@ class AQFPackages(AndroidQFModule):
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
                 continue
 
             # Detections for apps installed via unusual methods.
@@ -59,21 +58,18 @@ class AQFPackages(AndroidQFModule):
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
             elif result["installer"] in BROWSER_INSTALLERS:
                 self.alertstore.medium(
                     f'Found a package installed via a browser (installer="{result["installer"]}"): "{result["name"]}"',
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
             elif result["installer"] == "null" and result["system"] is False:
                 self.alertstore.high(
                     f'Found a non-system package installed via adb or another method: "{result["name"]}"',
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
             elif result["installer"] in PLAY_STORE_INSTALLERS:
                 pass
 
@@ -85,7 +81,6 @@ class AQFPackages(AndroidQFModule):
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
 
             if result["name"] in SYSTEM_UPDATE_PACKAGES and package_disabled:
                 self.alertstore.high(
@@ -93,7 +88,6 @@ class AQFPackages(AndroidQFModule):
                     "",
                     result,
                 )
-                self.alertstore.log_latest()
 
             if not self.indicators:
                 continue
@@ -103,7 +97,6 @@ class AQFPackages(AndroidQFModule):
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
-                self.alertstore.log_latest()
 
             for package_file in result.get("files", []):
                 ioc_match = self.indicators.check_file_hash(
@@ -113,7 +106,6 @@ class AQFPackages(AndroidQFModule):
                     self.alertstore.critical(
                         ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                     )
-                    self.alertstore.log_latest()
 
                 if "certificate" not in package_file:
                     continue
@@ -131,7 +123,6 @@ class AQFPackages(AndroidQFModule):
                             result,
                             matched_indicator=ioc_match.ioc,
                         )
-                        self.alertstore.log_latest()
                         break
 
     def run(self) -> None:

@@ -60,7 +60,6 @@ class ShutdownLog(IOSExtraction):
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
-                self.alertstore.log_latest()
                 continue
 
             for ioc in self.indicators.get_iocs("processes"):
@@ -73,7 +72,6 @@ class ShutdownLog(IOSExtraction):
                         result,
                         matched_indicator=ioc,
                     )
-                    self.alertstore.log_latest()
                     continue
 
     def process_shutdownlog(self, content):

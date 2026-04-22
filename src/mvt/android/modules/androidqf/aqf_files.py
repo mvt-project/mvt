@@ -92,7 +92,6 @@ class AQFFiles(AndroidQFModule):
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
-                self.alertstore.log_latest()
                 continue
 
             # NOTE: Update with final path used for Android collector.
@@ -107,7 +106,6 @@ class AQFFiles(AndroidQFModule):
 
                     msg = f'Found {file_type}file at suspicious path "{result["path"]}"'
                     self.alertstore.high(msg, "", result)
-                    self.alertstore.log_latest()
 
             if result.get("sha256", "") == "":
                 continue

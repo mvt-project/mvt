@@ -72,7 +72,6 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
-                self.alertstore.log_latest()
 
     def _process_observations_db(self, db_path: str, domain: str, path: str) -> None:
         self.log.info(
