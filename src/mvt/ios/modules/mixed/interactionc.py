@@ -291,37 +291,38 @@ class InteractionC(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            cur.execute(QUERIES[0])
-        except sqlite3.OperationalError:
             try:
-                cur.execute(QUERIES[1])
+                cur.execute(QUERIES[0])
             except sqlite3.OperationalError:
                 try:
-                    cur.execute(QUERIES[2])
+                    cur.execute(QUERIES[1])
                 except sqlite3.OperationalError:
                     try:
-                        cur.execute(QUERIES[3])
-                    except sqlite3.OperationalError as e:
-                        self.log.info(
-                            "Error while reading the InteractionC table: %s", e
-                        )
-                        return None
+                        cur.execute(QUERIES[2])
+                    except sqlite3.OperationalError:
+                        try:
+                            cur.execute(QUERIES[3])
+                        except sqlite3.OperationalError as e:
+                            self.log.info(
+                                "Error while reading the InteractionC table: %s", e
+                            )
+                            return None
 
-        names = [description[0] for description in cur.description]
-        for item in cur:
-            entry = {}
-            for index, value in enumerate(item):
-                if names[index] in self.timestamps:
-                    if value is None or isinstance(value, str):
-                        entry[names[index]] = value
+            names = [description[0] for description in cur.description]
+            for item in cur:
+                entry = {}
+                for index, value in enumerate(item):
+                    if names[index] in self.timestamps:
+                        if value is None or isinstance(value, str):
+                            entry[names[index]] = value
+                        else:
+                            entry[names[index]] = convert_mactime_to_iso(value)
                     else:
-                        entry[names[index]] = convert_mactime_to_iso(value)
-                else:
-                    entry[names[index]] = value
+                        entry[names[index]] = value
 
-            self.results.append(entry)
-
-        cur.close()
-        conn.close()
+                self.results.append(entry)
+        finally:
+            cur.close()
+            conn.close()
 
         self.log.info("Extracted a total of %d InteractionC events", len(self.results))

@@ -85,32 +85,36 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            # FIXME: table contains extra fields with timestamp here
-            cur.execute(
+            try:
+                # FIXME: table contains extra fields with timestamp here
+                cur.execute(
+                    """
+                    SELECT
+                        domainID,
+                        registrableDomain,
+                        lastSeen,
+                        hadUserInteraction
+                    from ObservedDomains;
                 """
-                SELECT
-                    domainID,
-                    registrableDomain,
-                    lastSeen,
-                    hadUserInteraction
-                from ObservedDomains;
-            """
-            )
-        except sqlite3.OperationalError:
-            return
+                )
+            except sqlite3.OperationalError:
+                return
 
-        for row in cur:
-            self.results.append(
-                {
-                    "domain_id": row[0],
-                    "registrable_domain": row[1],
-                    "last_seen": row[2],
-                    "had_user_interaction": bool(row[3]),
-                    "last_seen_isodate": convert_unix_to_iso(row[2]),
-                    "domain": domain,
-                    "path": path,
-                }
-            )
+            for row in cur:
+                self.results.append(
+                    {
+                        "domain_id": row[0],
+                        "registrable_domain": row[1],
+                        "last_seen": row[2],
+                        "had_user_interaction": bool(row[3]),
+                        "last_seen_isodate": convert_unix_to_iso(row[2]),
+                        "domain": domain,
+                        "path": path,
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
         if len(self.results) > 0:
             self.log.info(

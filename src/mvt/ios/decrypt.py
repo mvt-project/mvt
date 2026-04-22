@@ -46,14 +46,16 @@ class DecryptBackup:
 
         """
         conn = sqlite3.connect(os.path.join(backup_path, "Manifest.db"))
-        cur = conn.cursor()
         try:
+            cur = conn.cursor()
             cur.execute("SELECT fileID FROM Files LIMIT 1;")
         except sqlite3.DatabaseError:
             return True
         else:
             log.critical("The backup does not seem encrypted!")
             return False
+        finally:
+            conn.close()
 
     def _process_file(
         self, relative_path: str, domain: str, item, file_id: str, item_folder: str

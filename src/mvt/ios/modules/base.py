@@ -122,6 +122,8 @@ class IOSExtraction(MVTModule):
 
         base_sql = "SELECT fileID, domain, relativePath FROM Files WHERE "
 
+        conn: Optional[sqlite3.Connection] = None
+        cur: Optional[sqlite3.Cursor] = None
         try:
             conn = self._open_sqlite_db(manifest_db_path)
             cur = conn.cursor()
@@ -141,15 +143,23 @@ class IOSExtraction(MVTModule):
                         cur.execute(f"{base_sql} relativePath = ?;", (relative_path,))
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
+            records = [
+                {
+                    "file_id": row[0],
+                    "domain": row[1],
+                    "relative_path": row[2],
+                }
+                for row in cur
+            ]
         except Exception as exc:
             raise DatabaseCorruptedError(f"failed to query Manifest.db: {exc}") from exc
+        finally:
+            if cur:
+                cur.close()
+            if conn:
+                conn.close()
 
-        for row in cur:
-            yield {
-                "file_id": row[0],
-                "domain": row[1],
-                "relative_path": row[2],
-            }
+        return iter(records)
 
     def _get_backup_file_from_id(self, file_id: str) -> Union[str, None]:
         if not self.target_path:

@@ -92,82 +92,87 @@ class SafariBrowserState(IOSExtraction):
 
         cur = conn.cursor()
         try:
-            cur.execute(
-                """
-                SELECT
-                    tabs.title,
-                    tabs.url,
-                    tabs.user_visible_url,
-                    tabs.last_viewed_time,
-                    tab_sessions.session_data
-                FROM tabs
-                JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
-                ORDER BY tabs.last_viewed_time;
-            """
-            )
-        except sqlite3.OperationalError:
-            # Old version iOS <12 likely
             try:
                 cur.execute(
                     """
                     SELECT
-                        title, url, user_visible_url, last_viewed_time, session_data
+                        tabs.title,
+                        tabs.url,
+                        tabs.user_visible_url,
+                        tabs.last_viewed_time,
+                        tab_sessions.session_data
+                    FROM tabs
+                    JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
+                    ORDER BY tabs.last_viewed_time;
+                """
+                )
+            except sqlite3.OperationalError:
+                # Old version iOS <12 likely
+                try:
+                    cur.execute(
+                        """
+                        SELECT
+                            title, url, user_visible_url, last_viewed_time, session_data
                     FROM tabs
                     ORDER BY last_viewed_time;
                 """
-                )
-            except sqlite3.OperationalError as e:
-                self.log.error(f"Error executing query: {e}")
+                    )
+                except sqlite3.OperationalError as e:
+                    self.log.error(f"Error executing query: {e}")
+                    return
 
-        for row in cur:
-            session_entries = []
+            for row in cur:
+                session_entries = []
 
-            if row[4]:
-                # Skip a 4 byte header before the plist content.
-                session_plist = row[4][4:]
-                session_data = {}
-                try:
-                    session_data = plistlib.load(io.BytesIO(session_plist))
-                    session_data = keys_bytes_to_string(session_data)
-                except plistlib.InvalidFileException:
-                    pass
+                if row[4]:
+                    # Skip a 4 byte header before the plist content.
+                    session_plist = row[4][4:]
+                    session_data = {}
+                    try:
+                        session_data = plistlib.load(io.BytesIO(session_plist))
+                        session_data = keys_bytes_to_string(session_data)
+                    except plistlib.InvalidFileException:
+                        pass
 
-                if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
-                    for session_entry in session_data["SessionHistory"].get(
-                        "SessionHistoryEntries"
-                    ):
-                        self._session_history_count += 1
+                    if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
+                        for session_entry in session_data["SessionHistory"].get(
+                            "SessionHistoryEntries"
+                        ):
+                            self._session_history_count += 1
 
-                        data_length = 0
-                        if "SessionHistoryEntryData" in session_entry:
-                            data_length = len(
-                                session_entry.get("SessionHistoryEntryData")
+                            data_length = 0
+                            if "SessionHistoryEntryData" in session_entry:
+                                data_length = len(
+                                    session_entry.get("SessionHistoryEntryData")
+                                )
+
+                            session_entries.append(
+                                {
+                                    "entry_title": session_entry.get(
+                                        "SessionHistoryEntryOriginalURL"
+                                    ),
+                                    "entry_url": session_entry.get(
+                                        "SessionHistoryEntryURL"
+                                    ),
+                                    "data_length": data_length,
+                                }
                             )
 
-                        session_entries.append(
-                            {
-                                "entry_title": session_entry.get(
-                                    "SessionHistoryEntryOriginalURL"
-                                ),
-                                "entry_url": session_entry.get(
-                                    "SessionHistoryEntryURL"
-                                ),
-                                "data_length": data_length,
-                            }
-                        )
-
-            self.results.append(
-                {
-                    "tab_title": row[0],
-                    "tab_url": row[1],
-                    "tab_visible_url": row[2],
-                    "last_viewed_timestamp": convert_mactime_to_iso(row[3]),
-                    "session_data": session_entries,
-                    "safari_browser_state_db": os.path.relpath(
-                        db_path, self.target_path
-                    ),
-                }
-            )
+                self.results.append(
+                    {
+                        "tab_title": row[0],
+                        "tab_url": row[1],
+                        "tab_visible_url": row[2],
+                        "last_viewed_timestamp": convert_mactime_to_iso(row[3]),
+                        "session_data": session_entries,
+                        "safari_browser_state_db": os.path.relpath(
+                            db_path, self.target_path
+                        ),
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
     def run(self) -> None:
         if self.is_backup:

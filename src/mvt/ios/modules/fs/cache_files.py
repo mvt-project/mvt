@@ -74,25 +74,29 @@ class CacheFiles(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            cur.execute("SELECT * FROM cfurl_cache_response;")
-        except sqlite3.OperationalError:
-            return
+            try:
+                cur.execute("SELECT * FROM cfurl_cache_response;")
+            except sqlite3.OperationalError:
+                return
 
-        key_name = os.path.relpath(file_path, self.target_path)
-        if key_name not in self.results:
-            self.results[key_name] = []
+            key_name = os.path.relpath(file_path, self.target_path)
+            if key_name not in self.results:
+                self.results[key_name] = []
 
-        for row in cur:
-            self.results[key_name].append(
-                {
-                    "entry_id": row[0],
-                    "version": row[1],
-                    "hash_value": row[2],
-                    "storage_policy": row[3],
-                    "url": row[4],
-                    "isodate": row[5],
-                }
-            )
+            for row in cur:
+                self.results[key_name].append(
+                    {
+                        "entry_id": row[0],
+                        "version": row[1],
+                        "hash_value": row[2],
+                        "storage_policy": row[3],
+                        "url": row[4],
+                        "isodate": row[5],
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
     def run(self) -> None:
         self.results: dict = {}

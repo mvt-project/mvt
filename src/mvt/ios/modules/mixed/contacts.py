@@ -51,30 +51,31 @@ class Contacts(IOSExtraction):
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         try:
-            cur.execute(
+            try:
+                cur.execute(
+                    """
+                    SELECT
+                        multi.value, person.first, person.middle, person.last,
+                        person.organization
+                    FROM ABPerson person, ABMultiValue multi
+                    WHERE person.rowid = multi.record_id and multi.value not null
+                    ORDER by person.rowid ASC;
                 """
-                SELECT
-                    multi.value, person.first, person.middle, person.last,
-                    person.organization
-                FROM ABPerson person, ABMultiValue multi
-                WHERE person.rowid = multi.record_id and multi.value not null
-                ORDER by person.rowid ASC;
-            """
-            )
-        except sqlite3.OperationalError as e:
-            self.log.info("Error while reading the contact table: %s", e)
-            return None
-        names = [description[0] for description in cur.description]
+                )
+            except sqlite3.OperationalError as e:
+                self.log.info("Error while reading the contact table: %s", e)
+                return None
+            names = [description[0] for description in cur.description]
 
-        for row in cur:
-            new_contact = {}
-            for index, value in enumerate(row):
-                new_contact[names[index]] = value
+            for row in cur:
+                new_contact = {}
+                for index, value in enumerate(row):
+                    new_contact[names[index]] = value
 
-            self.results.append(new_contact)
-
-        cur.close()
-        conn.close()
+                self.results.append(new_contact)
+        finally:
+            cur.close()
+            conn.close()
 
         self.log.info(
             "Extracted a total of %d contacts from the address book", len(self.results)
