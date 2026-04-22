@@ -17,25 +17,25 @@ classifiers = [
     "Programming Language :: Python",
 ]
 dependencies = [
-    "click==8.3.1",
-    "rich==14.1.0",
+    "click==8.3.2",
+    "rich==14.3.3",
     "tld==0.13.1",
-    "requests==2.32.5",
+    "requests==2.33.1",
     "simplejson==3.20.2",
-    "packaging==25.0",
+    "packaging==26.0",
     "appdirs==1.4.4",
     "iOSbackup==0.9.925",
     "adb-shell[usb]==0.4.4",
     "libusb1==3.3.1",
-    "cryptography==46.0.5",
+    "cryptography==46.0.6",
     "PyYAML>=6.0.2",
     "pyahocorasick==2.2.0",
-    "betterproto==1.2.5",
+    "betterproto2==0.9.1",
     "pydantic==2.12.5",
-    "pydantic-settings==2.10.1",
+    "pydantic-settings==2.13.1",
     "NSKeyedUnArchiver==1.5.2",
     "python-dateutil==2.9.0.post0",
-    "tzdata==2025.2",
+    "tzdata==2026.1",
 ]
 requires-python = ">= 3.10"
 
@@ -57,7 +57,7 @@ dev = [
     "stix2>=3.0.1",
     "ruff>=0.1.6",
     "mypy>=1.7.1",
-    "betterproto[compiler]",
+    "betterproto2-compiler",
 ]
 
 [build-system]

@@ -4,6 +4,8 @@ name: Create and publish a Docker image
 # Configures this workflow to run every time a release is published.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   release:
     types: [published]
 
@@ -23,9 +25,18 @@ jobs:
       attestations: write
       id-token: write
       #
+    strategy:
+      matrix:
+        platform:
+          - dockerfile: "Dockerfile"
+            tag-suffix: ""
+          - dockerfile: "Dockerfile.ios"
+            tag-suffix: "-ios"
+          - dockerfile: "Dockerfile.android"
+            tag-suffix: "-android"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -36,26 +47,33 @@ jobs:
       # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=latest,enable={{ is_default_branch }},suffix=${{ matrix.platform.tag-suffix }}
+            type=raw,enable=${{ github.event_name == 'release' || github.ref_type == 'tag' }},value=stable,suffix=${{ matrix.platform.tag-suffix }}
+            type=raw,enable=${{ github.event_name == 'release' }},value=${{ github.event.release.tag_name }},suffix=${{ matrix.platform.tag-suffix }}
+            type=raw,enable=${{ github.ref_type == 'tag' }},value=${{ github.ref_name }},suffix=${{ matrix.platform.tag-suffix }}
+            type=sha,suffix=${{ matrix.platform.tag-suffix }}
+            type=sha,format=long,suffix=${{ matrix.platform.tag-suffix }}
+      # This step sets up some additional capabilities to generate the provenance and sbom attestations
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
       # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
       # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
       - name: Build and push Docker image
         id: push
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@v6
         with:
+          file: ${{ matrix.platform.dockerfile }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see "[AUTOTITLE](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)."
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+          provenance: mode=max
+          sbom: true
 

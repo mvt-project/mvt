@@ -17,7 +17,7 @@ from rich.text import Text
 from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
-from .module import MVTModule, run_module, save_timeline
+from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
 from .utils import (
     convert_datetime_to_iso,
     generate_hashes_from_path,
@@ -294,7 +294,14 @@ class Command:
             except NotImplementedError:
                 pass
 
-            run_module(m)
+            try:
+                run_module(m)
+            except EncryptedBackupError:
+                self.log.critical(
+                    "The backup appears to be encrypted. "
+                    "Please decrypt it first using `mvt-ios decrypt-backup`."
+                )
+                return
 
             self.executed.append(m)
             self.timeline.extend(m.timeline)

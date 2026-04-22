@@ -7,7 +7,7 @@ import pkgutil
 from logging import Logger
 from typing import Dict, Optional
 
-import packaging
+from packaging import version as packaging_version
 
 IPHONE_MODELS = json.loads(pkgutil.get_data("mvt", "ios/data/ios_models.json") or b"[]")
 IPHONE_IOS_VERSIONS = json.loads(
@@ -49,8 +49,8 @@ def is_ios_version_outdated(version: str, log: Optional[Logger] = None) -> bool:
         if version == "":
             return False
 
-    latest_parsed = packaging.version.parse(latest_ios_version()["version"])
-    current_parsed = packaging.version.parse(version)
+    latest_parsed = packaging_version.parse(latest_ios_version()["version"])
+    current_parsed = packaging_version.parse(version)
     if current_parsed < latest_parsed:
         if log:
             log.warning(

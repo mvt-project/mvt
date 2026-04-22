@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+import sqlite3
 from base64 import b64encode
 from typing import Optional
 
@@ -86,21 +87,29 @@ class SMSAttachments(IOSExtraction):
             return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
-        cur.execute(
+        try:
+            cur.execute(
+                """
+                SELECT
+                    attachment.ROWID as "attachment_id",
+                    attachment.*,
+                    message.service as "service",
+                    handle.id as "phone_number"
+                FROM attachment
+                LEFT JOIN message_attachment_join ON
+                    message_attachment_join.attachment_id = attachment.ROWID
+                LEFT JOIN message ON
+                    message.ROWID = message_attachment_join.message_id
+                LEFT JOIN handle ON handle.ROWID = message.handle_id;
             """
-            SELECT
-                attachment.ROWID as "attachment_id",
-                attachment.*,
-                message.service as "service",
-                handle.id as "phone_number"
-            FROM attachment
-            LEFT JOIN message_attachment_join ON
-                message_attachment_join.attachment_id = attachment.ROWID
-            LEFT JOIN message ON
-                message.ROWID = message_attachment_join.message_id
-            LEFT JOIN handle ON handle.ROWID = message.handle_id;
-        """
-        )
+            )
+        except sqlite3.OperationalError as exc:
+            self.log.info(
+                "No SMS attachment tables found in the database, skipping: %s", exc
+            )
+            cur.close()
+            conn.close()
+            return
         names = [description[0] for description in cur.description]
 
         for item in cur:

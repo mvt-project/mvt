@@ -115,6 +115,17 @@ class Indicators:
         key, value = indicator.get("pattern", "").strip("[]").split("=")
         key = key.strip()
 
+        # Normalize hash algorithm keys so that both the STIX2-spec-compliant
+        # form (e.g. file:hashes.'SHA-256', which requires quotes around
+        # algorithm names that contain hyphens) and the non-standard lowercase
+        # form (e.g. file:hashes.sha256) are accepted.  Strip single quotes and
+        # hyphens from the algorithm name only, then lowercase it.
+        for sep in ("hashes.", "cert."):
+            if sep in key:
+                prefix, _, algo = key.partition(sep)
+                key = prefix + sep + algo.replace("'", "").replace("-", "").lower()
+                break
+
         if key == "domain-name:value":
             # We force domain names to lower case.
             self._add_indicator(

@@ -4,6 +4,9 @@
 
 # Mobile Verification Toolkit
 
+> [!IMPORTANT]
+> Soon we will merge the v3 pull request which will result in breaking changes. If you rely on mvt output in other script make sure to the the branch before we merge. More details: https://github.com/mvt-project/mvt/issues/757
+
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
 [![Documentation Status](https://readthedocs.org/projects/mvt/badge/?version=latest)](https://docs.mvt.re/en/latest/?badge=latest)
 [![CI](https://github.com/mvt-project/mvt/actions/workflows/tests.yml/badge.svg)](https://github.com/mvt-project/mvt/actions/workflows/tests.yml)

@@ -30,6 +30,10 @@ class DatabaseCorruptedError(Exception):
     pass
 
 
+class EncryptedBackupError(Exception):
+    pass
+
+
 class InsufficientPrivileges(Exception):
     pass
 
@@ -181,6 +185,8 @@ def run_module(module: MVTModule) -> None:
 
     try:
         exec_or_profile("module.run()", globals(), locals())
+    except EncryptedBackupError:
+        raise
     except NotImplementedError:
         module.log.exception(
             "The run() procedure of module %s was not implemented yet!",
