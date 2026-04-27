@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Optional
 
 from mvt.common.indicators import Indicators
-from mvt.common.module import MVTModule, run_module, save_timeline
+from mvt.common.module import EncryptedBackupError, MVTModule, run_module, save_timeline
 from mvt.common.utils import (
     convert_datetime_to_iso,
     generate_hashes_from_path,
@@ -244,7 +244,14 @@ class Command:
             except NotImplementedError:
                 pass
 
-            run_module(m)
+            try:
+                run_module(m)
+            except EncryptedBackupError:
+                self.log.critical(
+                    "The backup appears to be encrypted. "
+                    "Please decrypt it first using `mvt-ios decrypt-backup`."
+                )
+                return
 
             self.executed.append(m)
 
