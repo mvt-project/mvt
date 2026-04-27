@@ -61,7 +61,6 @@ class ChromeFavicon(IOSExtraction):
                 ioc_match = self.indicators.check_url(result["icon_url"])
 
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )

@@ -84,43 +84,43 @@ class LocationdClients(IOSExtraction):
 
             ioc_match = self.indicators.check_process(proc_name)
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.high(
                     f"Found a suspicious process name in LocationD entry {result['package']}",
                     "",
                     result,
+                    matched_indicator=ioc_match.ioc,
                 )
                 continue
 
             if "BundleId" in result:
                 ioc_match = self.indicators.check_process(result["BundleId"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.high(
                         f"Found a suspicious process name in LocationD entry {result['package']}",
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
 
             if "BundlePath" in result:
                 ioc_match = self.indicators.check_file_path(result["BundlePath"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.high(
                         f"Found a known malicious domain in LocationD entry {result['package']}",
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
             if "Executable" in result:
                 ioc_match = self.indicators.check_file_path(result["Executable"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.high(
                         f"Found a suspicious file path in LocationD entry {result['Executable']}",
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
@@ -131,11 +131,11 @@ class LocationdClients(IOSExtraction):
 
                 ioc_match = self.indicators.check_file_path(result["Registered"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.high(
                         f"Found a suspicious file path in LocationD entry {result['Registered']}",
                         "",
                         result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 

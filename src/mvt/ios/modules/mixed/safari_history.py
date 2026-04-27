@@ -115,7 +115,6 @@ class SafariHistory(IOSExtraction):
         for result in self.results:
             ioc_match = self.indicators.check_url(result["url"])
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )

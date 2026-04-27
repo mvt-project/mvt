@@ -89,7 +89,6 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                 ioc_match = self.indicators.check_urls(all_origins)
                 if ioc_match:
-                    entry["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message, "", entry, matched_indicator=ioc_match.ioc
                     )

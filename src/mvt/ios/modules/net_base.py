@@ -346,7 +346,9 @@ class NetBase(IOSExtraction):
 
             ioc_match = self.indicators.check_process(proc_name)
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
-                    ioc_match.message, result["first_isodate"], result
+                    ioc_match.message,
+                    result["first_isodate"],
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )

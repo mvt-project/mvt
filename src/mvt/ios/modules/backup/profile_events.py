@@ -66,7 +66,6 @@ class ProfileEvents(IOSExtraction):
         for result in self.results:
             ioc_match = self.indicators.check_process(result.get("process") or "")
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
@@ -74,7 +73,6 @@ class ProfileEvents(IOSExtraction):
 
             ioc_match = self.indicators.check_profile(result.get("profile_id") or "")
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )

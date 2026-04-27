@@ -65,7 +65,6 @@ class IDStatusCache(IOSExtraction):
                 email = result["user"][7:].strip("'")
                 ioc_match = self.indicators.check_email(email)
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                     )

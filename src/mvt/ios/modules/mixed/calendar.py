@@ -71,7 +71,6 @@ class Calendar(IOSExtraction):
             if result["participant_email"] and self.indicators:
                 ioc_match = self.indicators.check_email(result["participant_email"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                     )

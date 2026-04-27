@@ -43,7 +43,6 @@ class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
                 # return IoC if the stix2 process name a substring of the receiver name
                 ioc_match = self.indicators.check_receiver_prefix(receiver_name)
                 if ioc_match:
-                    self.results[result][0]["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message,
                         "",

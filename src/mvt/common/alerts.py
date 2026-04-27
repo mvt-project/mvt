@@ -207,6 +207,13 @@ class AlertStore:
             alert_dict = asdict(alert)
             # This is required because an Enum is not JSON serializable.
             alert_dict["level"] = alert.level.name
+            if isinstance(alert_dict.get("event"), dict):
+                event_matched_indicator = alert_dict["event"].pop(
+                    "matched_indicator", None
+                )
+                if alert_dict["matched_indicator"] is None:
+                    alert_dict["matched_indicator"] = event_matched_indicator
+
             alerts.append(alert_dict)
 
         return alerts

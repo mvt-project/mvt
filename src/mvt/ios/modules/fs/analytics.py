@@ -67,7 +67,6 @@ class Analytics(IOSExtraction):
                 if ioc_match:
                     warning_message = f'Found mention of a malicious process "{value}" in {result["artifact"]} file at {result["isodate"]}'
                     new_result = copy.copy(result)
-                    new_result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         warning_message, "", new_result, matched_indicator=ioc_match.ioc
                     )
@@ -76,7 +75,6 @@ class Analytics(IOSExtraction):
                 ioc_match = self.indicators.check_url(value)
                 if ioc_match:
                     new_result = copy.copy(result)
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message,
                         "",

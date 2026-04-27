@@ -65,7 +65,6 @@ class SafariBrowserState(IOSExtraction):
             if "tab_url" in result:
                 ioc_match = self.indicators.check_url(result["tab_url"])
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                     )
@@ -78,7 +77,6 @@ class SafariBrowserState(IOSExtraction):
                 if "entry_url" in session_entry:
                     ioc_match = self.indicators.check_url(session_entry["entry_url"])
                     if ioc_match:
-                        result["matched_indicator"] = ioc_match.ioc
                         self.alertstore.critical(
                             ioc_match.message,
                             "",

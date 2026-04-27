@@ -36,3 +36,15 @@ class TestDatausageModule:
             alert for alert in m.alertstore.alerts if alert.level == AlertLevel.CRITICAL
         ]
         assert len(critical_alerts) == 2
+        assert all(
+            "matched_indicator" not in alert.event for alert in critical_alerts
+        )
+        serialized_alerts = [
+            alert
+            for alert in m.alertstore.as_json()
+            if alert["matched_indicator"] is not None
+        ]
+        assert len(serialized_alerts) == 2
+        assert all(
+            "matched_indicator" not in alert["event"] for alert in serialized_alerts
+        )

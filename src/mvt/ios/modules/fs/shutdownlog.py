@@ -65,7 +65,6 @@ class ShutdownLog(IOSExtraction):
             for ioc in self.indicators.get_iocs("processes"):
                 parts = result["client"].split("/")
                 if ioc.value in parts:
-                    result["matched_indicator"] = ioc
                     self.alertstore.critical(
                         f'Found mention of a known malicious process "{ioc.value}" in shutdown.log',
                         "",

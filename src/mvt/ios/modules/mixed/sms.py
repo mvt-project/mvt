@@ -92,7 +92,6 @@ class SMS(IOSExtraction):
                 message_links = check_for_links(result.get("text", ""))
             ioc_match = self.indicators.check_urls(message_links)
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )

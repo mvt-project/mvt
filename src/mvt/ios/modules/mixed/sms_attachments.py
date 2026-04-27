@@ -65,8 +65,12 @@ class SMSAttachments(IOSExtraction):
             if self.indicators:
                 ioc_match = self.indicators.check_file_path(attachment["filename"])
                 if ioc_match:
-                    attachment["matched_indicator"] = ioc_match.ioc
-                    self.alertstore.high(ioc_match.message, "", attachment)
+                    self.alertstore.high(
+                        ioc_match.message,
+                        "",
+                        attachment,
+                        matched_indicator=ioc_match.ioc,
+                    )
 
             if (
                 attachment["filename"].startswith("/var/tmp/")

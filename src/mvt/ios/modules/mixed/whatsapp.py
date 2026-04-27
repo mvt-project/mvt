@@ -64,7 +64,6 @@ class Whatsapp(IOSExtraction):
         for result in self.results:
             ioc_match = self.indicators.check_urls(result.get("links", []))
             if ioc_match:
-                result["matched_indicator"] = ioc_match.ioc
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )

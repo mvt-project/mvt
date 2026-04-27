@@ -73,7 +73,6 @@ class ConfigurationProfiles(IOSExtraction):
                 )
                 if ioc_match:
                     warning_message = f'Found a known malicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with UUID "{result["plist"]["PayloadUUID"]}"'
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         warning_message, "", result, matched_indicator=ioc_match.ioc
                     )

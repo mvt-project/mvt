@@ -77,7 +77,6 @@ class Applications(IOSExtraction):
                     result["softwareVersionBundleId"]
                 )
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         f"Malicious application {result['softwareVersionBundleId']} identified",
                         "",
@@ -90,7 +89,6 @@ class Applications(IOSExtraction):
                     result["softwareVersionBundleId"]
                 )
                 if ioc_match:
-                    result["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         f"Malicious application {result['softwareVersionBundleId']} identified",
                         "",

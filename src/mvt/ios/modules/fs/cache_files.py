@@ -59,7 +59,6 @@ class CacheFiles(IOSExtraction):
                 ioc_match = self.indicators.check_url(value["url"])
                 if ioc_match:
                     value["cache_file"] = key
-                    value["matched_indicator"] = ioc_match.ioc
                     self.alertstore.critical(
                         ioc_match.message,
                         value.get("isodate", ""),
