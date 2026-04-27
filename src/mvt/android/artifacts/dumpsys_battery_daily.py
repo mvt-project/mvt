@@ -91,10 +91,10 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
 
                 # Check for uninstall (version 0)
                 if vers_nr == "0":
-                    self.log.warning(
-                        "Detected uninstall of package %s (vers 0) on %s",
-                        package_name,
+                    self.alertstore.medium(
+                        f"Detected uninstall of package {package_name} (vers 0)",
                         daily["from"],
+                        update_record,
                     )
                 # Check for downgrade
                 elif package_name in package_versions:
@@ -104,12 +104,11 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
                         if current_vers < previous_vers:
                             update_record["action"] = "downgrade"
                             update_record["previous_vers"] = str(previous_vers)
-                            self.log.warning(
-                                "Detected downgrade of package %s from vers %d to vers %d on %s",
-                                package_name,
-                                previous_vers,
-                                current_vers,
+                            self.alertstore.medium(
+                                f"Detected downgrade of package {package_name} "
+                                f"from vers {previous_vers} to vers {current_vers}",
                                 daily["from"],
+                                update_record,
                             )
                     except ValueError:
                         # If version numbers aren't integers, skip comparison
