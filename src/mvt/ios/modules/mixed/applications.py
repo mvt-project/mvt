@@ -66,7 +66,7 @@ class Applications(IOSExtraction):
         for result in self.results:
             if self.indicators:
                 if "softwareVersionBundleId" not in result:
-                    self.alertstore.high(
+                    self.alertstore.medium(
                         "Suspicious application identified without softwareVersionBundleId",
                         "",
                         result,

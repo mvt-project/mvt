@@ -65,7 +65,7 @@ class AQFPackages(AndroidQFModule):
                     result,
                 )
             elif result["installer"] == "null" and result["system"] is False:
-                self.alertstore.high(
+                self.alertstore.medium(
                     f'Found a non-system package installed via adb or another method: "{result["name"]}"',
                     "",
                     result,
@@ -76,14 +76,14 @@ class AQFPackages(AndroidQFModule):
             # Check for disabled security or software update packages.
             package_disabled = result.get("disabled", None)
             if result["name"] in SECURITY_PACKAGES and package_disabled:
-                self.alertstore.high(
+                self.alertstore.medium(
                     f'Security package "{result["name"]}" disabled on the phone',
                     "",
                     result,
                 )
 
             if result["name"] in SYSTEM_UPDATE_PACKAGES and package_disabled:
-                self.alertstore.high(
+                self.alertstore.medium(
                     f'System OTA update package "{result["name"]}" disabled on the phone',
                     "",
                     result,

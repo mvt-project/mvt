@@ -154,7 +154,7 @@ class Mounts(AndroidArtifact):
                 ):
                     continue
                 suspicious_mounts.append(mount)
-                self.alertstore.high(
+                self.alertstore.medium(
                     f"Suspicious mount options found for {mount_point}: {', '.join(suspicious_opts)}",
                     "",
                     mount,
