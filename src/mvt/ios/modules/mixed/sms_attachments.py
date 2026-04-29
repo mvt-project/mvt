@@ -6,8 +6,13 @@
 import logging
 import sqlite3
 from base64 import b64encode
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -30,7 +35,7 @@ class SMSAttachments(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -41,7 +46,7 @@ class SMSAttachments(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -57,27 +62,33 @@ class SMSAttachments(IOSExtraction):
     def check_indicators(self) -> None:
         for attachment in self.results:
             # Check for known malicious filenames.
-            if self.indicators and self.indicators.check_file_path(
-                attachment["filename"]
-            ):
-                self.detected.append(attachment)
+            if self.indicators:
+                ioc_match = self.indicators.check_file_path(attachment["filename"])
+                if ioc_match:
+                    self.alertstore.high(
+                        ioc_match.message,
+                        "",
+                        attachment,
+                        matched_indicator=ioc_match.ioc,
+                    )
 
             if (
                 attachment["filename"].startswith("/var/tmp/")
                 and attachment["filename"].endswith("-1")
                 and attachment["direction"] == "received"
             ):
-                self.log.warning(
-                    "Suspicious iMessage attachment %s on %s",
-                    attachment["filename"],
+                self.alertstore.medium(
+                    f"Suspicious iMessage attachment {attachment['filename']} on {attachment['isodate']}",
                     attachment["isodate"],
+                    attachment,
                 )
-                self.detected.append(attachment)
 
     def run(self) -> None:
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         try:

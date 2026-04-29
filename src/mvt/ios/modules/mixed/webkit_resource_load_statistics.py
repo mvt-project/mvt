@@ -6,8 +6,13 @@
 import logging
 import os
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_unix_to_iso
 
 from ..base import IOSExtraction
@@ -32,7 +37,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -45,7 +50,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
 
         self.results = [] if not results else results
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         msg = f"Webkit resource loaded from {record['registrable_domain']}"
         if record["domain"] != "":
             msg += f" by app in domain {record['domain']}"
@@ -60,12 +65,12 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         if not self.indicators:
             return
 
-        self.detected = []
         for result in self.results:
-            ioc = self.indicators.check_url(result["registrable_domain"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_url(result["registrable_domain"])
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def _process_observations_db(self, db_path: str, domain: str, path: str) -> None:
         self.log.info(
@@ -79,32 +84,36 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            # FIXME: table contains extra fields with timestamp here
-            cur.execute(
+            try:
+                # FIXME: table contains extra fields with timestamp here
+                cur.execute(
+                    """
+                    SELECT
+                        domainID,
+                        registrableDomain,
+                        lastSeen,
+                        hadUserInteraction
+                    from ObservedDomains;
                 """
-                SELECT
-                    domainID,
-                    registrableDomain,
-                    lastSeen,
-                    hadUserInteraction
-                from ObservedDomains;
-            """
-            )
-        except sqlite3.OperationalError:
-            return
+                )
+            except sqlite3.OperationalError:
+                return
 
-        for row in cur:
-            self.results.append(
-                {
-                    "domain_id": row[0],
-                    "registrable_domain": row[1],
-                    "last_seen": row[2],
-                    "had_user_interaction": bool(row[3]),
-                    "last_seen_isodate": convert_unix_to_iso(row[2]),
-                    "domain": domain,
-                    "path": path,
-                }
-            )
+            for row in cur:
+                self.results.append(
+                    {
+                        "domain_id": row[0],
+                        "registrable_domain": row[1],
+                        "last_seen": row[2],
+                        "had_user_interaction": bool(row[3]),
+                        "last_seen_isodate": convert_unix_to_iso(row[2]),
+                        "domain": domain,
+                        "path": path,
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
         if len(self.results) > 0:
             self.log.info(

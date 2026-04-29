@@ -36,6 +36,6 @@ class TestGetPropArtifact:
             "dalvik.vm.appimageformat"
         )
         gp.indicators = ind
-        assert len(gp.detected) == 0
+        assert len(gp.alertstore.alerts) == 0
         gp.check_indicators()
-        assert len(gp.detected) == 1
+        assert len(gp.alertstore.alerts) == 1

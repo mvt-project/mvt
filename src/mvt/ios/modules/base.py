@@ -11,7 +11,12 @@ import sqlite3
 import subprocess
 from typing import Iterator, Optional, Union
 
-from mvt.common.module import DatabaseCorruptedError, DatabaseNotFoundError, MVTModule
+from mvt.common.module import (
+    DatabaseCorruptedError,
+    DatabaseNotFoundError,
+    ModuleResults,
+    MVTModule,
+)
 
 
 class IOSExtraction(MVTModule):
@@ -25,7 +30,7 @@ class IOSExtraction(MVTModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -109,12 +114,16 @@ class IOSExtraction(MVTModule):
                        (Default value = None)
 
         """
+        if not self.target_path:
+            raise DatabaseNotFoundError("target_path is not set")
         manifest_db_path = os.path.join(self.target_path, "Manifest.db")
         if not os.path.exists(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")
 
         base_sql = "SELECT fileID, domain, relativePath FROM Files WHERE "
 
+        conn: Optional[sqlite3.Connection] = None
+        cur: Optional[sqlite3.Cursor] = None
         try:
             conn = self._open_sqlite_db(manifest_db_path)
             cur = conn.cursor()
@@ -134,17 +143,27 @@ class IOSExtraction(MVTModule):
                         cur.execute(f"{base_sql} relativePath = ?;", (relative_path,))
                 elif domain:
                     cur.execute(f"{base_sql} domain = ?;", (domain,))
+            records = [
+                {
+                    "file_id": row[0],
+                    "domain": row[1],
+                    "relative_path": row[2],
+                }
+                for row in cur
+            ]
         except Exception as exc:
             raise DatabaseCorruptedError(f"failed to query Manifest.db: {exc}") from exc
+        finally:
+            if cur:
+                cur.close()
+            if conn:
+                conn.close()
 
-        for row in cur:
-            yield {
-                "file_id": row[0],
-                "domain": row[1],
-                "relative_path": row[2],
-            }
+        return iter(records)
 
     def _get_backup_file_from_id(self, file_id: str) -> Union[str, None]:
+        if not self.target_path:
+            return None
         file_path = os.path.join(self.target_path, file_id[0:2], file_id)
         if os.path.exists(file_path):
             return file_path
@@ -152,6 +171,8 @@ class IOSExtraction(MVTModule):
         return None
 
     def _get_fs_files_from_patterns(self, root_paths: list) -> Iterator[str]:
+        if not self.target_path:
+            return
         for root_path in root_paths:
             for found_path in glob.glob(os.path.join(self.target_path, root_path)):
                 if not os.path.exists(found_path):
@@ -173,9 +194,10 @@ class IOSExtraction(MVTModule):
         :param backup_ids: Default value = None)
 
         """
-        file_path = None
+        file_path: Optional[str] = None
         # First we check if the was an explicit file path specified.
         if not self.file_path:
+            # Type narrowing: we know self.file_path is None here, work with local file_path
             # If not, we first try with backups.
             # We construct the path to the file according to the iTunes backup
             # folder structure, if we have a valid ID.
@@ -197,8 +219,9 @@ class IOSExtraction(MVTModule):
 
         # If we do not find any, we fail.
         if file_path:
-            self.file_path = file_path
+            self.file_path = file_path  # type: str
         else:
             raise DatabaseNotFoundError("unable to find the module's database file")
 
+        assert self.file_path is not None
         self._recover_sqlite_db_if_needed(self.file_path)

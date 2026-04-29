@@ -12,9 +12,9 @@ import requests
 import yaml
 from packaging import version
 
+from .config import settings
 from .indicators import MVT_DATA_FOLDER, MVT_INDICATORS_FOLDER
 from .version import MVT_VERSION
-from .config import settings
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ INDICATORS_CHECK_FREQUENCY = 12
 class MVTUpdates:
     def check(self) -> str:
         try:
-            res = requests.get(settings.PYPI_UPDATE_URL, timeout=5)
+            res = requests.get(str(settings.PYPI_UPDATE_URL), timeout=5)
         except requests.exceptions.RequestException as e:
             log.error("Failed to check for updates, skipping updates: %s", e)
             return ""

@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
+from mvt.common.module_types import ModuleResults
 
 from .base import AndroidQFModule
 
@@ -21,7 +22,7 @@ class AQFGetProp(GetPropArtifact, AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -31,7 +32,7 @@ class AQFGetProp(GetPropArtifact, AndroidQFModule):
             log=log,
             results=results,
         )
-        self.results = []
+        self.results: list = []
 
     def run(self) -> None:
         getprop_files = self._get_files_by_pattern("*/getprop.txt")
