@@ -2,9 +2,17 @@
 
 The Mobile Verification Toolkit team welcomes contributions of new forensic modules or other contributions which help improve the software.
 
+## Local environment
+
+MVT uses `uv` for dependency management. To install the project and development dependencies from the locked environment, run:
+
+```bash
+make install
+```
+
 ## Testing
 
-MVT uses `pytest` for unit and integration tests. Code style consistency is maintained with `flake8`, `ruff` and `black`. All can
+MVT uses `pytest` for unit and integration tests. Code style consistency is maintained with `ruff` and `mypy`. All can
 be run automatically with:
 
 ```bash
