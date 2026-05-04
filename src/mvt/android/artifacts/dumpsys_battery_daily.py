@@ -3,7 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from typing import Union
+from typing import Any
+
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 
 from .artifact import AndroidArtifact
 
@@ -13,7 +15,7 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
     Parser for dumpsys dattery daily updates.
     """
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         action = record.get("action", "update")
         package_name = record["package_name"]
         vers = record["vers"]
@@ -38,16 +40,19 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(result["package_name"])
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def parse(self, output: str) -> None:
         daily = None
-        daily_updates = []
-        package_versions = {}  # Track package versions to detect downgrades
+        daily_updates: list[dict[str, Any]] = []
+        package_versions: dict[
+            str, str
+        ] = {}  # Track package versions to detect downgrades
         for line in output.splitlines():
             if line.startswith("  Daily from "):
                 if len(daily_updates) > 0:
@@ -76,7 +81,7 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
                     break
 
             if not already_seen:
-                update_record = {
+                update_record: dict[str, Any] = {
                     "action": "update",
                     "from": daily["from"],
                     "to": daily["to"],
@@ -86,10 +91,10 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
 
                 # Check for uninstall (version 0)
                 if vers_nr == "0":
-                    self.log.warning(
-                        "Detected uninstall of package %s (vers 0) on %s",
-                        package_name,
+                    self.alertstore.medium(
+                        f"Detected uninstall of package {package_name} (vers 0)",
                         daily["from"],
+                        update_record,
                     )
                 # Check for downgrade
                 elif package_name in package_versions:
@@ -99,12 +104,11 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
                         if current_vers < previous_vers:
                             update_record["action"] = "downgrade"
                             update_record["previous_vers"] = str(previous_vers)
-                            self.log.warning(
-                                "Detected downgrade of package %s from vers %d to vers %d on %s",
-                                package_name,
-                                previous_vers,
-                                current_vers,
+                            self.alertstore.medium(
+                                f"Detected downgrade of package {package_name} "
+                                f"from vers {previous_vers} to vers {current_vers}",
                                 daily["from"],
+                                update_record,
                             )
                     except ValueError:
                         # If version numbers aren't integers, skip comparison
