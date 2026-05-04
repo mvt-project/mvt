@@ -25,6 +25,9 @@ class TestDumpsysAccessibilityArtifact:
             da.results[0]["service"]
             == "com.android.settings/com.samsung.android.settings.development.gpuwatch.GPUWatchInterceptor"
         )
+        # All services are installed but none enabled in this fixture
+        for result in da.results:
+            assert result["enabled"] is False
 
     def test_parsing_v14_aosp_format(self):
         da = DumpsysAccessibilityArtifact()
@@ -36,7 +39,32 @@ class TestDumpsysAccessibilityArtifact:
         da.parse(data)
         assert len(da.results) == 1
         assert da.results[0]["package_name"] == "com.malware.accessibility"
-        assert da.results[0]["service"] == "com.malware.service.malwareservice"
+        assert (
+            da.results[0]["service"]
+            == "com.malware.accessibility/com.malware.service.malwareservice"
+        )
+        assert da.results[0]["enabled"] is True
+
+    def test_parsing_installed_and_enabled(self):
+        da = DumpsysAccessibilityArtifact()
+        file = get_artifact("android_data/dumpsys_accessibility_enabled.txt")
+        with open(file) as f:
+            data = f.read()
+
+        assert len(da.results) == 0
+        da.parse(data)
+        assert len(da.results) == 5
+
+        enabled = [r for r in da.results if r["enabled"]]
+        assert len(enabled) == 1
+        assert enabled[0]["package_name"] == "com.samsung.accessibility"
+        assert (
+            enabled[0]["service"]
+            == "com.samsung.accessibility/.universalswitch.UniversalSwitchService  (A11yTool)"
+        )
+
+        not_enabled = [r for r in da.results if not r["enabled"]]
+        assert len(not_enabled) == 4
 
     def test_ioc_check(self, indicator_file):
         da = DumpsysAccessibilityArtifact()
