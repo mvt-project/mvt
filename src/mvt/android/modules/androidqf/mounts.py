@@ -3,8 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
 import json
+import logging
 from typing import Optional
 
 from mvt.android.artifacts.mounts import Mounts as MountsArtifact
@@ -32,7 +32,7 @@ class Mounts(MountsArtifact, AndroidQFModule):
             log=log,
             results=results,
         )
-        self.results = []
+        self.results: list = []
 
     def run(self) -> None:
         """

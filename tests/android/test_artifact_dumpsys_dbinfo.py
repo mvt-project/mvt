@@ -37,6 +37,6 @@ class TestDumpsysDBinfoArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.wssyncmldm")
         dbi.indicators = ind
-        assert len(dbi.detected) == 0
+        assert len(dbi.alertstore.alerts) == 0
         dbi.check_indicators()
-        assert len(dbi.detected) == 5
+        assert len(dbi.alertstore.alerts) == 5

@@ -33,6 +33,6 @@ class TestProcessesArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["processes"].append("lru-add-drain")
         p.indicators = ind
-        assert len(p.detected) == 0
+        assert len(p.alertstore.alerts) == 0
         p.check_indicators()
-        assert len(p.detected) == 1
+        assert len(p.alertstore.alerts) == 1

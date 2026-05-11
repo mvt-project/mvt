@@ -4,14 +4,15 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
-from mvt.android.modules.backup.base import BackupExtraction
+from mvt.android.modules.backup.base import BackupModule
 from mvt.android.parsers.backup import parse_sms_file
+from mvt.common.module_types import ModuleResults
 from mvt.common.utils import check_for_links
 
 
-class SMS(BackupExtraction):
+class SMS(BackupModule):
     def __init__(
         self,
         file_path: Optional[str] = None,
@@ -19,7 +20,7 @@ class SMS(BackupExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -29,7 +30,7 @@ class SMS(BackupExtraction):
             log=log,
             results=results,
         )
-        self.results = []
+        self.results: list[dict[str, Any]] = []
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -43,8 +44,11 @@ class SMS(BackupExtraction):
             if message_links == []:
                 message_links = check_for_links(message.get("text", ""))
 
-            if self.indicators.check_urls(message_links):
-                self.detected.append(message)
+            ioc_match = self.indicators.check_urls(message_links)
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", message, matched_indicator=ioc_match.ioc
+                )
                 continue
 
     def run(self) -> None:

@@ -338,11 +338,12 @@ class URL:
         :rtype: str
 
         """
-        return (
-            get_tld(self.url, as_object=True, fix_protocol=True)
-            .parsed_url.netloc.lower()
-            .lstrip("www.")
-        )
+        tld_obj = get_tld(self.url, as_object=True, fix_protocol=True)
+        if isinstance(tld_obj, str):
+            return tld_obj
+        if tld_obj is None:
+            return ""
+        return tld_obj.parsed_url.netloc.lower().lstrip("www.")
 
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
@@ -351,7 +352,12 @@ class URL:
         :rtype: str
 
         """
-        return get_tld(self.url, as_object=True, fix_protocol=True).fld.lower()
+        tld_obj = get_tld(self.url, as_object=True, fix_protocol=True)
+        if isinstance(tld_obj, str):
+            return tld_obj
+        if tld_obj is None:
+            return ""
+        return tld_obj.fld.lower()
 
     def check_if_shortened(self) -> bool:
         """Check if the URL is among list of shortener services.

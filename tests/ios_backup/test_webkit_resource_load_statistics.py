@@ -18,4 +18,4 @@ class TestWebkitResourceLoadStatisticsModule:
         run_module(m)
         assert len(m.results) == 2
         assert len(m.timeline) == 2
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0

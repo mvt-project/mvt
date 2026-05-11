@@ -5,8 +5,13 @@
 
 import logging
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -223,7 +228,7 @@ class InteractionC(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -247,7 +252,7 @@ class InteractionC(IOSExtraction):
             "last_outgoing_recipient_date",
         ]
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
         processed = []
         for timestamp in self.timestamps:
@@ -280,41 +285,44 @@ class InteractionC(IOSExtraction):
         )
         self.log.info("Found InteractionC database at path: %s", self.file_path)
 
+        if not self.file_path:
+            return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
 
         try:
-            cur.execute(QUERIES[0])
-        except sqlite3.OperationalError:
             try:
-                cur.execute(QUERIES[1])
+                cur.execute(QUERIES[0])
             except sqlite3.OperationalError:
                 try:
-                    cur.execute(QUERIES[2])
+                    cur.execute(QUERIES[1])
                 except sqlite3.OperationalError:
                     try:
-                        cur.execute(QUERIES[3])
-                    except sqlite3.OperationalError as e:
-                        self.log.info(
-                            "Error while reading the InteractionC table: %s", e
-                        )
-                        return None
+                        cur.execute(QUERIES[2])
+                    except sqlite3.OperationalError:
+                        try:
+                            cur.execute(QUERIES[3])
+                        except sqlite3.OperationalError as e:
+                            self.log.info(
+                                "Error while reading the InteractionC table: %s", e
+                            )
+                            return None
 
-        names = [description[0] for description in cur.description]
-        for item in cur:
-            entry = {}
-            for index, value in enumerate(item):
-                if names[index] in self.timestamps:
-                    if value is None or isinstance(value, str):
-                        entry[names[index]] = value
+            names = [description[0] for description in cur.description]
+            for item in cur:
+                entry = {}
+                for index, value in enumerate(item):
+                    if names[index] in self.timestamps:
+                        if value is None or isinstance(value, str):
+                            entry[names[index]] = value
+                        else:
+                            entry[names[index]] = convert_mactime_to_iso(value)
                     else:
-                        entry[names[index]] = convert_mactime_to_iso(value)
-                else:
-                    entry[names[index]] = value
+                        entry[names[index]] = value
 
-            self.results.append(entry)
-
-        cur.close()
-        conn.close()
+                self.results.append(entry)
+        finally:
+            cur.close()
+            conn.close()
 
         self.log.info("Extracted a total of %d InteractionC events", len(self.results))

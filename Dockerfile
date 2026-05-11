@@ -1,6 +1,6 @@
 # Base image for building libraries
 # ---------------------------------
-FROM ubuntu:22.04 as build-base
+FROM ubuntu:22.04 AS build-base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -22,7 +22,7 @@ RUN apt-get update \
 
 # libplist
 # --------
-FROM build-base as build-libplist
+FROM build-base AS build-libplist
 
 # Build
 RUN git clone https://github.com/libimobiledevice/libplist && cd libplist \
@@ -32,7 +32,7 @@ RUN git clone https://github.com/libimobiledevice/libplist && cd libplist \
 
 # libimobiledevice-glue
 # ---------------------
-FROM build-base as build-libimobiledevice-glue
+FROM build-base AS build-libimobiledevice-glue
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -45,7 +45,7 @@ RUN git clone https://github.com/libimobiledevice/libimobiledevice-glue && cd li
 
 # libtatsu
 # --------
-FROM build-base as build-libtatsu
+FROM build-base AS build-libtatsu
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -58,7 +58,7 @@ RUN git clone https://github.com/libimobiledevice/libtatsu && cd libtatsu \
 
 # libusbmuxd
 # ----------
-FROM build-base as build-libusbmuxd
+FROM build-base AS build-libusbmuxd
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -72,7 +72,7 @@ RUN git clone https://github.com/libimobiledevice/libusbmuxd && cd libusbmuxd \
 
 # libimobiledevice
 # ----------------
-FROM build-base as build-libimobiledevice
+FROM build-base AS build-libimobiledevice
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -88,7 +88,7 @@ RUN git clone https://github.com/libimobiledevice/libimobiledevice && cd libimob
 
 # usbmuxd
 # -------
-FROM build-base as build-usbmuxd
+FROM build-base AS build-usbmuxd
 
 # Install dependencies
 COPY --from=build-libplist /build /
@@ -103,7 +103,8 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
 
 
 # Create main image
-FROM ubuntu:24.04 as main
+FROM ubuntu:24.04 AS main
+COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
@@ -133,12 +134,8 @@ COPY --from=build-usbmuxd /build /
 
 # Install mvt using the locally checked out source
 COPY . mvt/
-RUN apt-get update \
-   && apt-get install -y git python3-pip \
-   && PIP_NO_CACHE_DIR=1 pip3 install --break-system-packages ./mvt \
-   && apt-get remove -y python3-pip git && apt-get autoremove -y \
-   && rm -rf /var/lib/apt/lists/* \
-   && rm -rf mvt
+RUN uv pip install --system --break-system-packages --no-cache ./mvt \
+  && rm -rf mvt
 
 # Installing ABE
 ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2e11632 \

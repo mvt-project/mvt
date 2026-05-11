@@ -6,6 +6,7 @@
 import logging
 from pathlib import Path
 
+from mvt.common.indicators import Indicator, IndicatorMatch
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf, list_files
@@ -72,6 +73,38 @@ class TestAndroidqfMountsArtifact:
             (("by-name/data" in s or "/data" in s) and "rw" in s) for s in concatenated
         ), f"No data-like tokens (data + rw) found in parsed results: {concatenated}"
 
+    def test_mount_ioc_alert_uses_indicator(self):
+        from mvt.android.artifacts.mounts import Mounts as MountsArtifact
+
+        indicator = Indicator(
+            value="/system",
+            type="file_path",
+            name="TestMalware",
+            stix2_file_name="indicators.stix2",
+        )
+        m = MountsArtifact()
+        m.indicators = type(
+            "MountIndicators",
+            (),
+            {
+                "check_file_path": lambda self, path: IndicatorMatch(
+                    ioc=indicator, message="matched file path"
+                )
+                if path == "/system"
+                else None
+            },
+        )()
+
+        m.parse("/dev/block/by-name/system on /system type ext4 (rw,seclabel)")
+        m.check_indicators()
+
+        indicator_alerts = [
+            alert for alert in m.alertstore.alerts if alert.matched_indicator
+        ]
+        assert len(indicator_alerts) == 1
+        assert indicator_alerts[0].matched_indicator == indicator
+        assert indicator_alerts[0].message == "matched file path"
+
 
 class TestAndroidqfMountsModule:
     def test_androidqf_module_no_mounts_file(self):
@@ -94,4 +127,6 @@ class TestAndroidqfMountsModule:
         assert len(m.results) == 0, (
             f"Expected no results when mounts.json is absent, got: {m.results}"
         )
-        assert len(m.detected) == 0, f"Expected no detections, got: {m.detected}"
+        assert len(m.alertstore.alerts) == 0, (
+            f"Expected no detections, got: {m.alertstore.alerts}"
+        )

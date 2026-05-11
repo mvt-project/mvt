@@ -3,14 +3,16 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import os
 import datetime
 import logging
+import os
 from typing import Optional
 
-from mvt.common.utils import convert_datetime_to_iso
-from .base import AndroidQFModule
 from mvt.android.artifacts.file_timestamps import FileTimestampsArtifact
+from mvt.common.module_types import ModuleResults
+from mvt.common.utils import convert_datetime_to_iso
+
+from .base import AndroidQFModule
 
 
 class AQFLogTimestamps(FileTimestampsArtifact, AndroidQFModule):
@@ -25,7 +27,7 @@ class AQFLogTimestamps(FileTimestampsArtifact, AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -36,11 +38,13 @@ class AQFLogTimestamps(FileTimestampsArtifact, AndroidQFModule):
             results=results,
         )
 
-    def _get_file_modification_time(self, file_path: str) -> dict:
+    def _get_file_modification_time(self, file_path: str) -> datetime.datetime:
         if self.archive:
             file_timetuple = self.archive.getinfo(file_path).date_time
             return datetime.datetime(*file_timetuple)
         else:
+            if not self.parent_path:
+                raise ValueError("parent_path is not set")
             file_stat = os.stat(os.path.join(self.parent_path, file_path))
             return datetime.datetime.fromtimestamp(file_stat.st_mtime)
 

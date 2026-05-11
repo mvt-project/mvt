@@ -96,6 +96,8 @@ class CmdAndroidCheckBugreport(Command):
         if self.__format == "zip":
             module.from_zip(self.__zip, self.__files)
         else:
+            if not self.target_path:
+                raise ValueError("target_path is not set")
             module.from_dir(self.target_path, self.__files)
 
     def finish(self) -> None:

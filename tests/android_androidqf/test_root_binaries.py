@@ -42,7 +42,7 @@ class TestAndroidqfRootBinaries:
 
         # Should find 4 root binaries from the test file
         assert len(module.results) == 4
-        assert len(module.detected) == 4
+        assert len(module.alertstore.alerts) == 4
 
         # Check that all results are detected as indicators
         binary_paths = [result["path"] for result in module.results]
@@ -113,4 +113,4 @@ class TestAndroidqfRootBinaries:
         run_module(m)
 
         assert len(m.results) == 0
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0

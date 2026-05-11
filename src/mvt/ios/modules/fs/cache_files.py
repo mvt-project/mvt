@@ -6,7 +6,13 @@
 import logging
 import os
 import sqlite3
-from typing import Optional, Union
+from typing import Optional
+
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 
 from ..base import IOSExtraction
 
@@ -19,7 +25,7 @@ class CacheFiles(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -30,7 +36,7 @@ class CacheFiles(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
         for item in self.results[record]:
             records.append(
@@ -48,18 +54,17 @@ class CacheFiles(IOSExtraction):
         if not self.indicators:
             return
 
-        self.detected = {}
         for key, values in self.results.items():
             for value in values:
-                ioc = self.indicators.check_url(value["url"])
-                if ioc:
-                    value["matched_indicator"] = ioc
-                    if key not in self.detected:
-                        self.detected[key] = [
-                            value,
-                        ]
-                    else:
-                        self.detected[key].append(value)
+                ioc_match = self.indicators.check_url(value["url"])
+                if ioc_match:
+                    value["cache_file"] = key
+                    self.alertstore.critical(
+                        ioc_match.message,
+                        value.get("isodate", ""),
+                        value,
+                        matched_indicator=ioc_match.ioc,
+                    )
 
     def _process_cache_file(self, file_path):
         self.log.info("Processing cache file at path: %s", file_path)
@@ -68,28 +73,32 @@ class CacheFiles(IOSExtraction):
         cur = conn.cursor()
 
         try:
-            cur.execute("SELECT * FROM cfurl_cache_response;")
-        except sqlite3.OperationalError:
-            return
+            try:
+                cur.execute("SELECT * FROM cfurl_cache_response;")
+            except sqlite3.OperationalError:
+                return
 
-        key_name = os.path.relpath(file_path, self.target_path)
-        if key_name not in self.results:
-            self.results[key_name] = []
+            key_name = os.path.relpath(file_path, self.target_path)
+            if key_name not in self.results:
+                self.results[key_name] = []
 
-        for row in cur:
-            self.results[key_name].append(
-                {
-                    "entry_id": row[0],
-                    "version": row[1],
-                    "hash_value": row[2],
-                    "storage_policy": row[3],
-                    "url": row[4],
-                    "isodate": row[5],
-                }
-            )
+            for row in cur:
+                self.results[key_name].append(
+                    {
+                        "entry_id": row[0],
+                        "version": row[1],
+                        "hash_value": row[2],
+                        "storage_policy": row[3],
+                        "url": row[4],
+                        "isodate": row[5],
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
     def run(self) -> None:
-        self.results = {}
+        self.results: dict = {}
         for root, _, files in os.walk(self.target_path):
             for file_name in files:
                 if file_name != "Cache.db":

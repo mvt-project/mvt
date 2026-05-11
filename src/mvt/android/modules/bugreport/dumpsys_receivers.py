@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.dumpsys_receivers import DumpsysReceiversArtifact
+from mvt.common.module_types import ModuleResults
 
 from .base import BugReportModule
 
@@ -21,7 +22,7 @@ class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -40,10 +41,14 @@ class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
                 receiver_name = self.results[result][0]["receiver"]
 
                 # return IoC if the stix2 process name a substring of the receiver name
-                ioc = self.indicators.check_receiver_prefix(receiver_name)
-                if ioc:
-                    self.results[result][0]["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_receiver_prefix(receiver_name)
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message,
+                        "",
+                        self.results[result][0],
+                        matched_indicator=ioc_match.ioc,
+                    )
                     continue
 
 

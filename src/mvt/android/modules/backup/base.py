@@ -9,10 +9,10 @@ import os
 from tarfile import TarFile
 from typing import List, Optional
 
-from mvt.common.module import MVTModule
+from mvt.common.module import ModuleResults, MVTModule
 
 
-class BackupExtraction(MVTModule):
+class BackupModule(MVTModule):
     """This class provides a base for all backup extractios modules"""
 
     def __init__(
@@ -22,7 +22,7 @@ class BackupExtraction(MVTModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -32,10 +32,10 @@ class BackupExtraction(MVTModule):
             log=log,
             results=results,
         )
-        self.ab = None
-        self.backup_path = None
-        self.tar = None
-        self.files = []
+        self.ab: Optional[str] = None
+        self.backup_path: Optional[str] = None
+        self.tar: Optional[TarFile] = None
+        self.files: list = []
 
     def from_dir(self, backup_path: Optional[str], files: List[str]) -> None:
         self.backup_path = backup_path
@@ -55,12 +55,15 @@ class BackupExtraction(MVTModule):
         return fnmatch.filter(self.files, pattern)
 
     def _get_file_content(self, file_path: str) -> bytes:
+        handle = None
         if self.tar:
             try:
                 member = self.tar.getmember(file_path)
+                handle = self.tar.extractfile(member)
+                if not handle:
+                    raise ValueError(f"Could not extract file: {file_path}")
             except KeyError:
-                return None
-            handle = self.tar.extractfile(member)
+                raise FileNotFoundError(f"File not found in tar: {file_path}")
         elif self.backup_path:
             handle = open(os.path.join(self.backup_path, file_path), "rb")
         else:

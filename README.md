@@ -4,6 +4,9 @@
 
 # Mobile Verification Toolkit
 
+> [!IMPORTANT]
+> We recently merged the "v3" branch. This introduced breaking changes. If you relied on mvt output in other scripts They might have broken. More details: https://github.com/mvt-project/mvt/issues/757
+
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
 [![Documentation Status](https://readthedocs.org/projects/mvt/badge/?version=latest)](https://docs.mvt.re/en/latest/?badge=latest)
 [![CI](https://github.com/mvt-project/mvt/actions/workflows/tests.yml/badge.svg)](https://github.com/mvt-project/mvt/actions/workflows/tests.yml)
@@ -36,6 +39,18 @@ MVT can be installed from sources or from [PyPI](https://pypi.org/project/mvt/) 
 
 ```
 pip3 install mvt
+```
+
+You can also install MVT from PyPI with [uv](https://docs.astral.sh/uv/). First, install uv:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then install MVT as a command-line tool:
+
+```bash
+uv tool install mvt
 ```
 
 For alternative installation options and known issues, please refer to the [documentation](https://docs.mvt.re/en/latest/install/) as well as [GitHub Issues](https://github.com/mvt-project/mvt/issues).

@@ -9,6 +9,7 @@ from typing import Optional
 from mvt.android.artifacts.dumpsys_package_activities import (
     DumpsysPackageActivitiesArtifact,
 )
+from mvt.common.module_types import ModuleResults
 
 from .base import BugReportModule
 
@@ -23,7 +24,7 @@ class DumpsysActivities(DumpsysPackageActivitiesArtifact, BugReportModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: ModuleResults = [],
     ) -> None:
         super().__init__(
             file_path=file_path,

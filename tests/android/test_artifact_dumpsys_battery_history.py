@@ -39,6 +39,6 @@ class TestDumpsysBatteryHistoryArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.samsung.android.app.reminder")
         dba.indicators = ind
-        assert len(dba.detected) == 0
+        assert len(dba.alertstore.alerts) == 0
         dba.check_indicators()
-        assert len(dba.detected) == 2
+        assert len(dba.alertstore.alerts) == 2
