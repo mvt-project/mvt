@@ -47,3 +47,4 @@ HELP_MSG_CHECK_ADB_REMOVED_DESCRIPTION = (
 HELP_MSG_CHECK_BUGREPORT = "Check an Android Bug Report"
 HELP_MSG_CHECK_ANDROID_BACKUP = "Check an Android Backup"
 HELP_MSG_CHECK_ANDROIDQF = "Check data collected with AndroidQF"
+HELP_MSG_CHECK_INTRUSION_LOGS = "Check Android Intrusion Logging files"

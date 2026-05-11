@@ -16,6 +16,7 @@ from mvt.common.help import (
     HELP_MSG_CHECK_ANDROIDQF,
     HELP_MSG_CHECK_BUGREPORT,
     HELP_MSG_CHECK_IOCS,
+    HELP_MSG_CHECK_INTRUSION_LOGS,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_HASHES,
@@ -35,6 +36,8 @@ from mvt.common.utils import init_logging, set_verbose_logging
 from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
 from .cmd_check_backup import CmdAndroidCheckBackup
 from .cmd_check_bugreport import CmdAndroidCheckBugreport
+from .cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
+from .modules.intrusion_logs import INTRUSION_LOGS_MODULES
 from .modules.androidqf import ANDROIDQF_MODULES
 from .modules.backup import BACKUP_MODULES
 from .modules.backup.helpers import cli_load_android_backup_password
@@ -267,6 +270,75 @@ def check_androidqf(
 
 
 # ==============================================================================
+# Command: check-intrusion-logs
+# ==============================================================================
+@cli.command(
+    "check-intrusion-logs",
+    context_settings=CONTEXT_SETTINGS,
+    help=HELP_MSG_CHECK_INTRUSION_LOGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--timezone",
+    "-t",
+    default=None,
+    help=(
+        "IANA timezone name for the device, for example 'Europe/Paris'. "
+        "When provided, event timestamps are expressed in the device's local "
+        "time instead of UTC."
+    ),
+)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.argument("LOGS_PATH", type=click.Path(exists=True))
+@click.pass_context
+def check_intrusion_logs(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    timezone,
+    verbose,
+    logs_path,
+):
+    set_verbose_logging(verbose)
+
+    module_options = {}
+    if timezone:
+        module_options["device_timezone"] = timezone
+
+    cmd = CmdAndroidCheckIntrusionLogs(
+        target_path=logs_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        module_options=module_options if module_options else None,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
+    )
+
+    if list_modules:
+        cmd.list_modules()
+        return
+
+    log.info("Checking intrusion logs at path: %s", logs_path)
+
+    cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
+
+
+# ==============================================================================
 # Command: check-iocs
 # ==============================================================================
 @cli.command("check-iocs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_IOCS)
@@ -284,7 +356,9 @@ def check_androidqf(
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, folder):
     cmd = CmdCheckIOCS(target_path=folder, ioc_files=iocs, module_name=module)
-    cmd.modules = BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES
+    cmd.modules = (
+        BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES + INTRUSION_LOGS_MODULES
+    )
 
     if list_modules:
         cmd.list_modules()
