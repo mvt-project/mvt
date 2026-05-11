@@ -104,6 +104,7 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
 
 # Create main image
 FROM ubuntu:24.04 AS main
+COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
@@ -133,12 +134,8 @@ COPY --from=build-usbmuxd /build /
 
 # Install mvt using the locally checked out source
 COPY . mvt/
-RUN apt-get update \
-   && apt-get install -y git python3-pip \
-   && PIP_NO_CACHE_DIR=1 pip3 install --break-system-packages ./mvt \
-   && apt-get remove -y python3-pip git && apt-get autoremove -y \
-   && rm -rf /var/lib/apt/lists/* \
-   && rm -rf mvt
+RUN uv pip install --system --break-system-packages --no-cache ./mvt \
+  && rm -rf mvt
 
 # Installing ABE
 ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2e11632 \

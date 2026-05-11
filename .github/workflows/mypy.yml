@@ -12,11 +12,14 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.9
-          cache: 'pip'
+          python-version: "3.10"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
       - name: Install Dependencies
         run: |
-          pip install mypy
+          uv sync --locked --group dev
       - name: mypy
         run: |
           make mypy

@@ -105,6 +105,7 @@ RUN git clone https://github.com/libimobiledevice/usbmuxd && cd usbmuxd \
 # Main image
 # ----------
 FROM python:3.10.14-alpine3.20 AS main
+COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
 
 LABEL org.opencontainers.image.url="https://mvt.re"
 LABEL org.opencontainers.image.documentation="https://docs.mvt.re"
@@ -131,7 +132,7 @@ COPY --from=build-usbmuxd /build /
 # Install mvt using the locally checked out source
 COPY ./ mvt
 RUN apk add --no-cache --virtual .build-deps git gcc musl-dev \
-  && PIP_NO_CACHE_DIR=1 pip3 install ./mvt \
+  && uv pip install --system --no-cache ./mvt \
   && apk del .build-deps git gcc musl-dev && rm -rf ./mvt
 
 ENTRYPOINT [ "/usr/local/bin/mvt-ios" ]

@@ -41,6 +41,18 @@ MVT can be installed from sources or from [PyPI](https://pypi.org/project/mvt/) 
 pip3 install mvt
 ```
 
+You can also install MVT from PyPI with [uv](https://docs.astral.sh/uv/). First, install uv:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then install MVT as a command-line tool:
+
+```bash
+uv tool install mvt
+```
+
 For alternative installation options and known issues, please refer to the [documentation](https://docs.mvt.re/en/latest/install/) as well as [GitHub Issues](https://github.com/mvt-project/mvt/issues).
 
 
