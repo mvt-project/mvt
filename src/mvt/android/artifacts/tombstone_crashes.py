@@ -101,8 +101,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
                 continue
 
             if result.get("command_line", []):
-                command_name = result.get("command_line")[0].split("/")[-1]
-                command_name = result["command_line"][0]
+                command_name = result["command_line"][0].split("/")[-1]
                 ioc_match = self.indicators.check_process(command_name)
                 if ioc_match:
                     self.alertstore.critical(
@@ -262,7 +261,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
     @staticmethod
     def _parse_timestamp_string(timestamp: str) -> str:
         timestamp_parsed = parser.parse(timestamp)
-        # HACK: Swap the local timestamp to UTC, so keep the original time and avoid timezone conversion.
+        # Preserve the source wall-clock time while returning the project-wide ISO format.
         local_timestamp = timestamp_parsed.replace(tzinfo=datetime.timezone.utc)
         return convert_datetime_to_iso(local_timestamp)
 

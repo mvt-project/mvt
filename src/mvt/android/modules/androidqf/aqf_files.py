@@ -41,7 +41,7 @@ class AQFFiles(AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -145,8 +145,8 @@ class AQFFiles(AndroidQFModule):
                         # Convert the UTC timestamp to local time on Android device's local timezone
                         local_timestamp = utc_timestamp.astimezone(device_timezone)
 
-                        # HACK: We only output the UTC timestamp in convert_datetime_to_iso, we
-                        # set the timestamp timezone to UTC, to avoid the timezone conversion again.
+                        # Preserve the device-local wall-clock time while using
+                        # the project-wide ISO conversion helper.
                         local_timestamp = local_timestamp.replace(
                             tzinfo=datetime.timezone.utc
                         )

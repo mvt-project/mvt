@@ -36,7 +36,7 @@ class LocationdClients(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -147,7 +147,6 @@ class LocationdClients(IOSExtraction):
             # Some migration information are int and not dicts
             if not isinstance(file_plist[key], dict):
                 continue
-            # FIXME: unclear key format in iOS 17
             result = file_plist[key]
             result["package"] = key.rstrip(":")
             for timestamp in self.timestamps:
