@@ -22,7 +22,7 @@ class AQFSettings(SettingsArtifact, AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -32,7 +32,7 @@ class AQFSettings(SettingsArtifact, AndroidQFModule):
             log=log,
             results=results,
         )
-        self.results: dict = {}
+        self.results: dict = results if results is not None else {}
 
     def run(self) -> None:
         for setting_file in self._get_files_by_pattern("*/settings_*.txt"):
@@ -40,7 +40,7 @@ class AQFSettings(SettingsArtifact, AndroidQFModule):
 
             self.results[namespace] = {}
             data = self._get_file_content(setting_file)
-            for line in data.decode("utf-8").split("\n"):
+            for line in data.decode("utf-8").splitlines():
                 line = line.strip()
                 try:
                     key, value = line.split("=", 1)

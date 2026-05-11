@@ -67,11 +67,14 @@ class Settings(AndroidArtifact):
                     # Check if one of the dangerous settings is using an unsafe
                     # value (different than the one specified).
                     if danger["key"] == key and danger["safe_value"] != value:
-                        self.log.warning(
-                            'Found suspicious "%s" setting "%s = %s" (%s)',
-                            namespace,
-                            key,
-                            value,
-                            danger["description"],
+                        self.alertstore.medium(
+                            f'Found suspicious "{namespace}" setting "{key} = {value}" ({danger["description"]})',
+                            "",
+                            {
+                                "namespace": namespace,
+                                "key": key,
+                                "value": value,
+                                "description": danger["description"],
+                            },
                         )
                         break
