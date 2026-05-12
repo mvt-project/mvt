@@ -12,3 +12,9 @@ INTRUSION_LOGS_MODULES = [
     ConnectEvent,
     SecurityEvent,
 ]
+
+KNOWN_INTRUSION_LOG_EVENT_TYPES = {
+    "connect_event",
+    "dns_event",
+    "security_event",
+}

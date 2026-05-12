@@ -10,7 +10,10 @@ from typing import Optional
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
 
-from .modules.intrusion_logs import INTRUSION_LOGS_MODULES
+from .modules.intrusion_logs import (
+    INTRUSION_LOGS_MODULES,
+    KNOWN_INTRUSION_LOG_EVENT_TYPES,
+)
 from .modules.intrusion_logs.base import IntrusionLogsModule
 
 log = logging.getLogger(__name__)
@@ -94,5 +97,17 @@ class CmdAndroidCheckIntrusionLogs(Command):
             total_events,
             len(all_events),
         )
+
+        unknown_event_types = sorted(
+            event_type
+            for event_type in all_events
+            if event_type not in KNOWN_INTRUSION_LOG_EVENT_TYPES
+        )
+        if unknown_event_types:
+            self.log.warning(
+                "Found unknown intrusion logging event type(s): %s. "
+                "Please open an issue on GitHub so MVT can add support for them.",
+                ", ".join(unknown_event_types),
+            )
 
         return all_events

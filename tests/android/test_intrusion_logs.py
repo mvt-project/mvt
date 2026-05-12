@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import json
+import logging
 
 from click.testing import CliRunner
 
@@ -46,7 +47,32 @@ def test_load_all_events_preserves_unknown_top_level_event(tmp_path):
     }
 
 
-def test_check_intrusion_logs_parses_core_and_unknown_security_events(tmp_path):
+def test_check_intrusion_logs_warns_about_unknown_top_level_event_type(
+    tmp_path, caplog
+):
+    _write_ndjson(
+        tmp_path / "intrusion.txt",
+        [
+            {
+                "future_event": {
+                    "event_time": 1_700_000_000_000,
+                    "field": "value",
+                }
+            }
+        ],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(tmp_path))
+        cmd.run()
+
+    assert "Found unknown intrusion logging event type(s): future_event" in caplog.text
+    assert "Please open an issue on GitHub" in caplog.text
+
+
+def test_check_intrusion_logs_parses_core_and_unknown_security_events(
+    tmp_path, caplog
+):
     _write_ndjson(
         tmp_path / "intrusion.txt",
         [
@@ -87,8 +113,9 @@ def test_check_intrusion_logs_parses_core_and_unknown_security_events(tmp_path):
         ],
     )
 
-    cmd = CmdAndroidCheckIntrusionLogs(target_path=str(tmp_path))
-    cmd.run()
+    with caplog.at_level(logging.WARNING):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(tmp_path))
+        cmd.run()
 
     assert [module.__class__.__name__ for module in cmd.executed] == [
         "DnsEvent",
@@ -109,6 +136,11 @@ def test_check_intrusion_logs_parses_core_and_unknown_security_events(tmp_path):
     assert len(future_timeline_events) == 1
     assert "future_google_event" in future_timeline_events[0]["data"]
     assert "field" in future_timeline_events[0]["data"]
+    assert (
+        "Found unknown intrusion logging security event type(s): future_google_event"
+        in caplog.text
+    )
+    assert "Please open an issue on GitHub" in caplog.text
 
 
 def test_check_intrusion_logs_cli_lists_modules(tmp_path):

@@ -744,3 +744,15 @@ class SecurityEvent(IntrusionLogsModule):
                     "name", event_type
                 )
                 self.log.info("  - %s: %d", event_name, count)
+
+            unknown_event_types = sorted(
+                event_type
+                for event_type in self.event_type_counts
+                if event_type not in SECURITY_EVENT_TAGS
+            )
+            if unknown_event_types:
+                self.log.warning(
+                    "Found unknown intrusion logging security event type(s): %s. "
+                    "Please open an issue on GitHub so MVT can add support for them.",
+                    ", ".join(unknown_event_types),
+                )
