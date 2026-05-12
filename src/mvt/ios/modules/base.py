@@ -9,6 +9,7 @@ import os
 import shutil
 import sqlite3
 import subprocess
+from pathlib import Path
 from typing import Iterator, Optional, Union
 
 from mvt.common.module import (
@@ -165,6 +166,8 @@ class IOSExtraction(MVTModule):
         if not self.target_path:
             return None
         file_path = os.path.join(self.target_path, file_id[0:2], file_id)
+        if not Path(file_path).resolve().is_relative_to(Path(self.target_path).resolve()):
+            return None
         if os.path.exists(file_path):
             return file_path
 

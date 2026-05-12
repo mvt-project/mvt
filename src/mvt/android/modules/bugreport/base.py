@@ -6,6 +6,7 @@ import datetime
 import fnmatch
 import logging
 import os
+from pathlib import Path
 from typing import List, Optional
 from zipfile import ZipFile
 
@@ -70,7 +71,10 @@ class BugReportModule(MVTModule):
         else:
             if not self.extract_path:
                 raise ValueError("extract_path is not set")
-            handle = open(os.path.join(self.extract_path, file_path), "rb")
+            joined = os.path.join(self.extract_path, file_path)
+            if not Path(joined).resolve().is_relative_to(Path(self.extract_path).resolve()):
+                raise ValueError("unsafe file_path")
+            handle = open(joined, "rb")
 
         data = handle.read()
         handle.close()
