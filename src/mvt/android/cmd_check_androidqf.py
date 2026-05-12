@@ -251,19 +251,19 @@ class CmdAndroidCheckAndroidQF(Command):
         intrusion_log_files = [
             f
             for f in self.__files
-            if "/intrusion-logs/" in f.replace("\\", "/")
-            or f.replace("\\", "/").startswith("intrusion-logs/")
+            if "/intrusion_logs/" in f.replace("\\", "/")
+            or f.replace("\\", "/").startswith("intrusion_logs/")
         ]
 
         if not intrusion_log_files:
             self.log.info(
-                "No intrusion-logs found in AndroidQF data, "
+                "No intrusion_logs folder found in AndroidQF data, "
                 "skipping intrusion logs analysis."
             )
             return False
 
         self.log.info(
-            "Found intrusion-logs in AndroidQF data, running intrusion logs analysis."
+            "Found intrusion_logs folder in AndroidQF data, running intrusion logs analysis."
         )
 
         intrusion_logs_path = None
@@ -272,11 +272,11 @@ class CmdAndroidCheckAndroidQF(Command):
         try:
             if self.__format == "dir" and self.target_path:
                 intrusion_logs_path = os.path.join(
-                    os.path.abspath(self.target_path), "intrusion-logs"
+                    os.path.abspath(self.target_path), "intrusion_logs"
                 )
                 if not os.path.isdir(intrusion_logs_path):
                     self.log.warning(
-                        "intrusion-logs directory not found at %s",
+                        "intrusion_logs directory not found at %s",
                         intrusion_logs_path,
                     )
                     return False
@@ -285,8 +285,8 @@ class CmdAndroidCheckAndroidQF(Command):
                 temp_dir = tempfile.mkdtemp(prefix="mvt_intrusion_logs_")
                 for entry in intrusion_log_files:
                     normalized = entry.replace("\\", "/")
-                    idx = normalized.find("intrusion-logs/")
-                    relative = normalized[idx + len("intrusion-logs/") :]
+                    idx = normalized.find("intrusion_logs/")
+                    relative = normalized[idx + len("intrusion_logs/") :]
                     if not relative or relative.endswith("/"):
                         continue
 
