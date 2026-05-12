@@ -38,9 +38,17 @@ By separating artifact collection from forensic analysis, this approach ensures 
 
 For more information, refer to the [AndroidQF project documentation](https://github.com/mvt-project/androidqf).
 
+## Android Intrusion Logs
+
+On devices where the user has opted into Android's [**Advanced Protection Mode**](https://support.google.com/android/answer/16339980) and turned on the optional Intrusion Logging featrue, Android can create and archive structured *Intrusion Logs* in an encrypted format. These logs record DNS queries, outbound network connections, process starts, ADB activity and other security-relevant events, and are a high-fidelity complement to the rest of an AndroidQF acquisition. The logs are generated on-device and encrypted before being stored in the Google account associated with the device. The encryption key is protected by the user device PIN. The intrusion log data is not accessible to Google.
+
+AndroidQF will prompt the user to download, decrypt and collect device intrusion logs as part of an acquisition. When they are present, `mvt-android check-androidqf` will automatically run the intrusion-log checks alongside the other AndroidQF modules — no extra command is required. This is the recommended workflow for Android forensic analysis with MVT.
+
+For cases where intrusion logs were collected outside of an AndroidQF acquisition, the standalone `mvt-android check-intrusion-logs` command can analyse them directly. See [Check Android Intrusion Logs](intrusion_logs.md) for details, and the [feature announcment from Amnesty International's Security Lab](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/) for background on the data source.
+
 ## Android Debug Bridge analysis removed
 
-The ability to analyze Android devices directly over ADB has been removed from MVT. Use AndroidQF for device acquisition and `mvt-android check-androidqf` for analysis.
+The ability to analyze Android devices directly over ADB has been removed from MVT. Direct extraction of data from ADB was error-prone and frequently resulted in inconsistent data collection between ADB and AndroidQF acquisitions. Use AndroidQF for device acquisition and `mvt-android check-androidqf` for analysis.
 
 ## Check an Android Backup (SMS messages)
 
