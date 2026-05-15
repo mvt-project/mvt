@@ -259,7 +259,7 @@ def save_timeline(timeline: list, timeline_path: str, is_utc: bool = True) -> No
     :param timeline_path: Path to the csv file to store the timeline to
 
     """
-    with open(timeline_path, "a+", encoding="utf-8") as handle:
+    with open(timeline_path, "w", encoding="utf-8") as handle:
         csvoutput = csv.writer(
             handle, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL, escapechar="\\"
         )
