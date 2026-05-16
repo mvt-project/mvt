@@ -22,7 +22,7 @@ dependencies = [
     "tld==0.13.1",
     "requests==2.33.1",
     "simplejson==3.20.2",
-    "packaging==26.0",
+    "packaging==26.2",
     "appdirs==1.4.4",
     "iOSbackup==0.9.925",
     "adb-shell[usb]==0.4.4",
