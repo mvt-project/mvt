@@ -50,13 +50,11 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
     def parse(self, output: str) -> None:
         daily = None
         daily_updates: list[dict[str, Any]] = []
-        package_versions: dict[
-            str, str
-        ] = {}  # Track package versions to detect downgrades
+        records: list[dict[str, Any]] = []
         for line in output.splitlines():
             if line.startswith("  Daily from "):
                 if len(daily_updates) > 0:
-                    self.results.extend(daily_updates)
+                    records.extend(daily_updates)
                     daily_updates = []
 
                 timeframe = line[13:].strip()
@@ -89,35 +87,53 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
                     "vers": vers_nr,
                 }
 
-                # Check for uninstall (version 0)
-                if vers_nr == "0":
-                    self.alertstore.medium(
-                        f"Detected uninstall of package {package_name} (vers 0)",
-                        daily["from"],
-                        update_record,
-                    )
-                # Check for downgrade
-                elif package_name in package_versions:
-                    try:
-                        current_vers = int(vers_nr)
-                        previous_vers = int(package_versions[package_name])
-                        if current_vers < previous_vers:
-                            update_record["action"] = "downgrade"
-                            update_record["previous_vers"] = str(previous_vers)
-                            self.alertstore.medium(
-                                f"Detected downgrade of package {package_name} "
-                                f"from vers {previous_vers} to vers {current_vers}",
-                                daily["from"],
-                                update_record,
-                            )
-                    except ValueError:
-                        # If version numbers aren't integers, skip comparison
-                        pass
-
-                # Update tracking dictionary
-                package_versions[package_name] = vers_nr
-
                 daily_updates.append(update_record)
 
         if len(daily_updates) > 0:
-            self.results.extend(daily_updates)
+            records.extend(daily_updates)
+
+        self._detect_uninstalls_and_downgrades(records)
+        self.results.extend(records)
+
+    def _detect_uninstalls_and_downgrades(
+        self, records: list[dict[str, Any]]
+    ) -> None:
+        package_versions: dict[str, int] = {}
+
+        for record in sorted(
+            records,
+            key=lambda record: (
+                record["from"],
+                record["to"],
+                record["package_name"],
+            ),
+        ):
+            package_name = record["package_name"]
+            vers_nr = record["vers"]
+
+            if vers_nr == "0":
+                self.alertstore.medium(
+                    f"Detected uninstall of package {package_name} (vers 0)",
+                    record["from"],
+                    record,
+                )
+                package_versions.pop(package_name, None)
+                continue
+
+            try:
+                current_vers = int(vers_nr)
+            except ValueError:
+                continue
+
+            previous_vers = package_versions.get(package_name)
+            if previous_vers is not None and current_vers < previous_vers:
+                record["action"] = "downgrade"
+                record["previous_vers"] = str(previous_vers)
+                self.alertstore.medium(
+                    f"Detected downgrade of package {package_name} "
+                    f"from vers {previous_vers} to vers {current_vers}",
+                    record["from"],
+                    record,
+                )
+
+            package_versions[package_name] = current_vers
