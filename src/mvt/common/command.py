@@ -273,7 +273,6 @@ class Command:
             ):
                 continue
 
-            # FIXME: do we need the logger here
             module_logger = logging.getLogger(module.__module__)
 
             m = module(

@@ -14,9 +14,12 @@ from .artifact import AndroidArtifact
 
 class DumpsysPackagesArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
+        alerted_root_packages = set()
         for result in self.results:
-            # XXX: De-duplication Package detections
             if result["package_name"] in ROOT_PACKAGES:
+                if result["package_name"] in alerted_root_packages:
+                    continue
+                alerted_root_packages.add(result["package_name"])
                 self.alertstore.medium(
                     f'Found an installed package related to rooting/jailbreaking: "{result["package_name"]}"',
                     "",
@@ -188,7 +191,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         package = []
 
         in_package_list = False
-        for line in content.split("\n"):
+        for line in content.splitlines():
             if line.startswith("Packages:"):
                 in_package_list = True
                 continue

@@ -41,7 +41,7 @@ class AQFFiles(AndroidQFModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -107,16 +107,16 @@ class AQFFiles(AndroidQFModule):
                     msg = f'Found {file_type}file at suspicious path "{result["path"]}"'
                     self.alertstore.high(msg, "", result)
 
-            if result.get("sha256", "") == "":
-                continue
-
-            ioc_match = self.indicators.check_file_hash(result.get("sha256") or "")
-            if ioc_match:
-                self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
-                )
-
-            # TODO: adds SHA1 and MD5 when available in MVT
+            for hash_key in ("sha256", "sha1", "md5"):
+                file_hash = result.get(hash_key, "")
+                if not file_hash:
+                    continue
+                ioc_match = self.indicators.check_file_hash(file_hash)
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
+                    break
 
     def run(self) -> None:
         if timezone := self._get_device_timezone():
@@ -131,7 +131,7 @@ class AQFFiles(AndroidQFModule):
                 data = json.loads(rawdata)
             except json.decoder.JSONDecodeError:
                 data = []
-                for line in rawdata.split("\n"):
+                for line in rawdata.splitlines():
                     if line.strip() == "":
                         continue
                     data.append(json.loads(line))
@@ -142,11 +142,11 @@ class AQFFiles(AndroidQFModule):
                         utc_timestamp = datetime.datetime.fromtimestamp(
                             file_data[ts], tz=datetime.timezone.utc
                         )
-                        # Convert the UTC timestamp to local tiem on Android device's local timezone
+                        # Convert the UTC timestamp to local time on Android device's local timezone
                         local_timestamp = utc_timestamp.astimezone(device_timezone)
 
-                        # HACK: We only output the UTC timestamp in convert_datetime_to_iso, we
-                        # set the timestamp timezone to UTC, to avoid the timezone conversion again.
+                        # Preserve the device-local wall-clock time while using
+                        # the project-wide ISO conversion helper.
                         local_timestamp = local_timestamp.replace(
                             tzinfo=datetime.timezone.utc
                         )
