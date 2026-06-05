@@ -5,10 +5,14 @@
 
 import logging
 import os
+import shutil
+import tempfile
 import zipfile
 from pathlib import Path
 from typing import List, Optional
 
+from mvt.android.artifacts.getprop import GetProp
+from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
 from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
 from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.common.command import Command
@@ -139,6 +143,55 @@ class CmdAndroidCheckAndroidQF(Command):
 
         raise NoAndroidQFBackup
 
+    def _read_device_timezone(self) -> Optional[str]:
+        getprop_files = [
+            f for f in self.__files if f.replace("\\", "/").endswith("getprop.txt")
+        ]
+        if not getprop_files:
+            self.log.warning(
+                "Could not find getprop.txt; intrusion log timestamps will use UTC."
+            )
+            return None
+
+        try:
+            content = self._get_file_content(getprop_files[0]).decode(
+                "utf-8", errors="ignore"
+            )
+        except Exception as exc:
+            self.log.warning("Could not read getprop.txt: %s", exc)
+            return None
+
+        props = GetProp()
+        props.parse(content)
+        timezone = props.get_device_timezone()
+        if timezone:
+            self.log.info(
+                "Device timezone identified from getprop.txt: %s",
+                timezone,
+            )
+        else:
+            self.log.warning(
+                "persist.sys.timezone not found in getprop.txt; "
+                "intrusion log timestamps will use UTC."
+            )
+
+        return timezone
+
+    def _get_file_content(self, file_path: str) -> bytes:
+        if self.__format == "zip" and self.__zip:
+            handle = self.__zip.open(file_path)
+            try:
+                return handle.read()
+            finally:
+                handle.close()
+
+        if self.__format == "dir" and self.target_path:
+            parent_path = Path(self.target_path).absolute().parent.as_posix()
+            with open(os.path.join(parent_path, file_path), "rb") as handle:
+                return handle.read()
+
+        raise FileNotFoundError(file_path)
+
     def run_bugreport_cmd(self) -> bool:
         bugreport = None
         try:
@@ -194,9 +247,85 @@ class CmdAndroidCheckAndroidQF(Command):
         self.alertstore.extend(cmd.alertstore.alerts)
         return True
 
+    def run_intrusion_logs_cmd(self) -> bool:
+        intrusion_log_files = [
+            f
+            for f in self.__files
+            if "/intrusion_logs/" in f.replace("\\", "/")
+            or f.replace("\\", "/").startswith("intrusion_logs/")
+        ]
+
+        if not intrusion_log_files:
+            self.log.info(
+                "No intrusion_logs folder found in AndroidQF data, "
+                "skipping intrusion logs analysis."
+            )
+            return False
+
+        self.log.info(
+            "Found intrusion_logs folder in AndroidQF data, running intrusion logs analysis."
+        )
+
+        intrusion_logs_path = None
+        temp_dir = None
+
+        try:
+            if self.__format == "dir" and self.target_path:
+                intrusion_logs_path = os.path.join(
+                    os.path.abspath(self.target_path), "intrusion_logs"
+                )
+                if not os.path.isdir(intrusion_logs_path):
+                    self.log.warning(
+                        "intrusion_logs directory not found at %s",
+                        intrusion_logs_path,
+                    )
+                    return False
+
+            elif self.__format == "zip" and self.__zip:
+                temp_dir = tempfile.mkdtemp(prefix="mvt_intrusion_logs_")
+                for entry in intrusion_log_files:
+                    normalized = entry.replace("\\", "/")
+                    idx = normalized.find("intrusion_logs/")
+                    relative = normalized[idx + len("intrusion_logs/") :]
+                    if not relative or relative.endswith("/"):
+                        continue
+
+                    target = os.path.join(temp_dir, relative)
+                    os.makedirs(os.path.dirname(target), exist_ok=True)
+                    with self.__zip.open(entry) as src, open(target, "wb") as dst:
+                        dst.write(src.read())
+
+                intrusion_logs_path = temp_dir
+            else:
+                return False
+
+            adv_module_options = dict(self.module_options or {})
+            if device_timezone := self._read_device_timezone():
+                adv_module_options["device_timezone"] = device_timezone
+
+            cmd = CmdAndroidCheckIntrusionLogs(
+                target_path=intrusion_logs_path,
+                results_path=self.results_path,
+                ioc_files=self.ioc_files,
+                iocs=self.iocs,
+                module_options=adv_module_options,
+                hashes=self.hashes,
+                sub_command=True,
+            )
+            cmd.run()
+
+            self.timeline.extend(cmd.timeline)
+            self.alertstore.extend(cmd.alertstore.alerts)
+            return True
+
+        finally:
+            if temp_dir:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+
     def finish(self) -> None:
         """
-        Run the bugreport and backup modules if the respective files are found in the AndroidQF data.
+        Run nested modules if their respective files are found in AndroidQF data.
         """
         self.run_bugreport_cmd()
         self.run_backup_cmd()
+        self.run_intrusion_logs_cmd()

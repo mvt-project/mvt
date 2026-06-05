@@ -219,7 +219,7 @@ class AlertStore:
         return alerts
 
     def save_timeline(self, timeline_path: str) -> None:
-        with open(timeline_path, "a+", encoding="utf-8") as handle:
+        with open(timeline_path, "w", encoding="utf-8") as handle:
             csvoutput = csv.writer(
                 handle,
                 delimiter=",",

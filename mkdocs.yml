@@ -43,6 +43,7 @@ nav:
     - MVT for Android:
         - Android Forensic Methodology: "android/methodology.md"
         - Check an Android Backup (SMS messages): "android/backup.md"
+        - Check Android Intrusion Logs: "android/intrusion_logs.md"
     - Indicators of Compromise: "iocs.md"
     - Development: "development.md"
     - License: "license.md"
