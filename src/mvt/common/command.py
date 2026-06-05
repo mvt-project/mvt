@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from heapq import heappop, heappush
 from typing import Any, Optional
 
 from rich.console import Console
@@ -18,6 +19,7 @@ from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
+from .module_types import ModuleTimeline
 from .utils import (
     CustomJSONEncoder,
     convert_datetime_to_iso,
@@ -44,7 +46,7 @@ class Command:
         disable_indicator_check: bool = False,
     ) -> None:
         self.name = ""
-        self.modules: list[Any] = []
+        self.modules: list[type[MVTModule]] = []
 
         self.target_path = target_path
         self.results_path = results_path
@@ -63,10 +65,10 @@ class Command:
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
-        self.executed: list[Any] = []
+        self.executed: list[MVTModule] = []
         self.hashes = hashes
         self.hash_values: list[dict[str, Any]] = []
-        self.timeline: list[dict[str, Any]] = []
+        self.timeline: ModuleTimeline = []
 
         # Load IOCs
         self._create_storage()
@@ -258,20 +260,84 @@ class Command:
         console.print("")
         console.print(panel)
 
+    def _ordered_modules(self) -> Optional[list[type[MVTModule]]]:
+        """Return enabled modules in stable topological order."""
+        module_indexes = {module: index for index, module in enumerate(self.modules)}
+
+        if self.module_name:
+            selected = [
+                module for module in self.modules if module.__name__ == self.module_name
+            ]
+        else:
+            selected = [module for module in self.modules if module.enabled]
+
+        required = set(selected)
+        pending = list(selected)
+        while pending:
+            module = pending.pop()
+            for dependency in module.dependencies:
+                if dependency not in module_indexes:
+                    self.log.warning(
+                        "Module %s depends on unavailable module %s. "
+                        "No modules will be run.",
+                        module.__name__,
+                        dependency.__name__,
+                    )
+                    return None
+                if dependency not in required:
+                    required.add(dependency)
+                    pending.append(dependency)
+
+        dependents: dict[type[MVTModule], list[type[MVTModule]]] = {
+            module: [] for module in required
+        }
+        indegree = {module: 0 for module in required}
+        for module in required:
+            for dependency in module.dependencies:
+                if dependency not in required:
+                    continue
+                dependents[dependency].append(module)
+                indegree[module] += 1
+
+        ready: list[tuple[int, type[MVTModule]]] = []
+        for module, count in indegree.items():
+            if count == 0:
+                heappush(ready, (module_indexes[module], module))
+
+        ordered = []
+        while ready:
+            _, module = heappop(ready)
+            ordered.append(module)
+            for dependent in dependents[module]:
+                indegree[dependent] -= 1
+                if indegree[dependent] == 0:
+                    heappush(ready, (module_indexes[dependent], dependent))
+
+        if len(ordered) != len(required):
+            cyclic_modules = sorted(
+                (module.__name__ for module, count in indegree.items() if count > 0)
+            )
+            self.log.warning(
+                "Circular module dependency detected involving: %s. "
+                "No modules will be run.",
+                ", ".join(cyclic_modules),
+            )
+            return None
+
+        return ordered
+
     def run(self) -> None:
+        ordered_modules = self._ordered_modules()
+        if ordered_modules is None:
+            return
+
         try:
             self.init()
         except NotImplementedError:
             pass
 
-        for module in self.modules:
-            if self.module_name and module.__name__ != self.module_name:
-                continue
-
-            if not module.enabled and not (
-                self.module_name and module.__name__ == self.module_name
-            ):
-                continue
+        executed_by_type: dict[type[MVTModule], MVTModule] = {}
+        for module in ordered_modules:
 
             # FIXME: do we need the logger here
             module_logger = logging.getLogger(module.__module__)
@@ -282,6 +348,10 @@ class Command:
                 module_options=self.module_options,
                 log=module_logger,
             )
+            m.dependency_modules = {
+                dependency: executed_by_type[dependency]
+                for dependency in module.dependencies
+            }
 
             if self.iocs.total_ioc_count:
                 m.indicators = self.iocs
@@ -305,6 +375,7 @@ class Command:
                 return
 
             self.executed.append(m)
+            executed_by_type[module] = m
             self.timeline.extend(m.timeline)
             self.alertstore.extend(m.alertstore.alerts)
 

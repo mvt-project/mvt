@@ -9,7 +9,7 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
 from .alerts import AlertStore
 from .indicators import Indicators
@@ -43,6 +43,7 @@ class MVTModule:
 
     enabled: bool = True
     slug: Optional[str] = None
+    dependencies: Sequence[type["MVTModule"]] = ()
 
     def __init__(
         self,
@@ -71,6 +72,7 @@ class MVTModule:
         self.file_path: Optional[str] = file_path
         self.target_path: Optional[str] = target_path
         self.results_path: Optional[str] = results_path
+        self.serial: Optional[str] = None
         self.module_options: Optional[Dict[str, Any]] = (
             module_options if module_options else {}
         )
@@ -81,6 +83,13 @@ class MVTModule:
 
         self.results: ModuleResults = results if results else []
         self.timeline: ModuleTimeline = []
+        self.dependency_modules: Dict[type["MVTModule"], "MVTModule"] = {}
+
+    def get_dependency_results(
+        self, module_class: type["MVTModule"]
+    ) -> ModuleResults:
+        """Return the results produced by a prerequisite module."""
+        return self.dependency_modules[module_class].results
 
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
