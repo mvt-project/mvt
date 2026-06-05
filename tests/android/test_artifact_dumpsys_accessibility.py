@@ -5,6 +5,7 @@
 import logging
 
 from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
+from mvt.common.alerts import AlertLevel
 from mvt.common.indicators import Indicators
 
 from ..utils import get_artifact
@@ -38,6 +39,19 @@ class TestDumpsysAccessibilityArtifact:
         assert da.results[0]["package_name"] == "com.malware.accessibility"
         assert da.results[0]["service"] == "com.malware.service.malwareservice"
 
+    def test_accessibility_service_alert(self):
+        da = DumpsysAccessibilityArtifact()
+        file = get_artifact("android_data/dumpsys_accessibility_v14_or_later.txt")
+        with open(file) as f:
+            data = f.read()
+        da.parse(data)
+
+        da.check_indicators()
+
+        assert len(da.alertstore.alerts) == 1
+        assert da.alertstore.alerts[0].level == AlertLevel.MEDIUM
+        assert da.alertstore.alerts[0].event == da.results[0]
+
     def test_ioc_check(self, indicator_file):
         da = DumpsysAccessibilityArtifact()
         file = get_artifact("android_data/dumpsys_accessibility.txt")
@@ -51,4 +65,12 @@ class TestDumpsysAccessibilityArtifact:
         da.indicators = ind
         assert len(da.alertstore.alerts) == 0
         da.check_indicators()
-        assert len(da.alertstore.alerts) == 1
+        assert len(da.alertstore.alerts) == len(da.results)
+        assert da.alertstore.count(AlertLevel.MEDIUM) == 3
+        assert da.alertstore.count(AlertLevel.CRITICAL) == 1
+        critical_alert = next(
+            alert
+            for alert in da.alertstore.alerts
+            if alert.level == AlertLevel.CRITICAL
+        )
+        assert critical_alert.event["package_name"] == "com.sec.android.app.camera"
