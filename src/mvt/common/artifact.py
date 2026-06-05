@@ -8,5 +8,6 @@ from .module import MVTModule
 class Artifact(MVTModule):
     """Base class for artifacts.
 
-    XXX: Inheriting from MVTModule to have the same signature as other modules. Not sure if this is a good idea.
+    Artifacts share the MVTModule lifecycle so commands can run artifacts and
+    extraction modules through the same interface.
     """

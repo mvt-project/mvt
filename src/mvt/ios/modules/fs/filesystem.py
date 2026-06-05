@@ -29,7 +29,7 @@ class Filesystem(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -73,6 +73,10 @@ class Filesystem(IOSExtraction):
                 )
 
     def run(self) -> None:
+        if not self.target_path:
+            self.log.error("No filesystem dump path provided")
+            return
+
         for root, dirs, files in os.walk(self.target_path):
             for dir_name in dirs:
                 try:

@@ -25,7 +25,7 @@ class BackupInfo(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -36,7 +36,7 @@ class BackupInfo(IOSExtraction):
             results=results,
         )
 
-        self.results: dict = {}
+        self.results: dict = results if results is not None else {}
 
     def run(self) -> None:
         if not self.target_path:

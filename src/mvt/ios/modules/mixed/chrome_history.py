@@ -18,7 +18,6 @@ from ..base import IOSExtraction
 CHROME_HISTORY_BACKUP_IDS = [
     "faf971ce92c3ac508c018dce1bef2a8b8e9838f1",
 ]
-# TODO: Confirm Chrome database path.
 CHROME_HISTORY_ROOT_PATHS = [
     "private/var/mobile/Containers/Data/Application/*/Library/Application Support/Google/Chrome/Default/History",  # pylint: disable=line-too-long
 ]
@@ -34,7 +33,7 @@ class ChromeHistory(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
