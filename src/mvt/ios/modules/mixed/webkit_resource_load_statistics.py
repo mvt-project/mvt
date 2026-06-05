@@ -85,34 +85,31 @@ class WebkitResourceLoadStatistics(IOSExtraction):
 
         try:
             try:
-                cur.execute(
-                    """
-                    SELECT
-                        domainID,
-                        registrableDomain,
-                        lastSeen,
-                        hadUserInteraction,
-                        mostRecentUserInteractionTime,
-                        mostRecentWebPushInteractionTime
-                    from ObservedDomains;
-                """
-                )
-                has_extra_timestamps = True
-            except sqlite3.OperationalError:
-                try:
-                    cur.execute(
-                        """
-                        SELECT
-                            domainID,
-                            registrableDomain,
-                            lastSeen,
-                            hadUserInteraction
-                        from ObservedDomains;
-                    """
-                    )
-                    has_extra_timestamps = False
-                except sqlite3.OperationalError:
+                cur.execute("PRAGMA table_info(ObservedDomains);")
+                available_columns = {row[1] for row in cur}
+                required_columns = [
+                    "domainID",
+                    "registrableDomain",
+                    "lastSeen",
+                    "hadUserInteraction",
+                ]
+                if not set(required_columns).issubset(available_columns):
                     return
+
+                optional_columns = [
+                    column
+                    for column in [
+                        "mostRecentUserInteractionTime",
+                        "mostRecentWebPushInteractionTime",
+                    ]
+                    if column in available_columns
+                ]
+                selected_columns = required_columns + optional_columns
+                cur.execute(
+                    f"SELECT {', '.join(selected_columns)} FROM ObservedDomains;"
+                )
+            except sqlite3.OperationalError:
+                return
 
             for row in cur:
                 result = {
@@ -124,15 +121,19 @@ class WebkitResourceLoadStatistics(IOSExtraction):
                     "domain": domain,
                     "path": path,
                 }
-                if has_extra_timestamps:
-                    result["most_recent_user_interaction_time"] = row[4]
-                    result["most_recent_user_interaction_time_isodate"] = (
-                        convert_unix_to_iso(row[4])
-                    )
-                    result["most_recent_web_push_interaction_time"] = row[5]
-                    result["most_recent_web_push_interaction_time_isodate"] = (
-                        convert_unix_to_iso(row[5])
-                    )
+                for index, column in enumerate(optional_columns, start=4):
+                    field = {
+                        "mostRecentUserInteractionTime": (
+                            "most_recent_user_interaction_time"
+                        ),
+                        "mostRecentWebPushInteractionTime": (
+                            "most_recent_web_push_interaction_time"
+                        ),
+                    }[column]
+                    timestamp = row[index]
+                    result[field] = timestamp
+                    if timestamp is not None and timestamp >= 0:
+                        result[f"{field}_isodate"] = convert_unix_to_iso(timestamp)
                 self.results.append(result)
         finally:
             cur.close()
