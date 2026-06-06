@@ -11,7 +11,7 @@ from mvt.common.module import MVTModule
 
 
 class RecordingModule(MVTModule):
-    run_order = []
+    run_order: list[str] = []
 
     def run(self):
         self.run_order.append(self.__class__.__name__)
