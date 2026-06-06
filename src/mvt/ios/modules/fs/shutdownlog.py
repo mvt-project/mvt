@@ -30,7 +30,7 @@ class ShutdownLog(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -78,7 +78,7 @@ class ShutdownLog(IOSExtraction):
         recent_processes = []
         times_delayed = 0
         delay = 0.0
-        for line in content.split("\n"):
+        for line in content.splitlines():
             line = line.strip()
 
             if line.startswith("remaining client pid:"):

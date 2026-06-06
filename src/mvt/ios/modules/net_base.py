@@ -30,7 +30,7 @@ class NetBase(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -322,14 +322,11 @@ class NetBase(IOSExtraction):
         self.results = sorted(self.results, key=operator.itemgetter("first_isodate"))
 
     def check_indicators(self) -> None:
-        # Check for manipulated process records.
-        # TODO: Catching KeyError for live_isodate for retro-compatibility.
-        #       This is not very good.
-        try:
+        # check_manipulated/find_deleted require "live_isodate" and
+        # "live_proc_id" keys which may be absent in older result formats.
+        if self.results and "live_isodate" in self.results[0]:
             self.check_manipulated()
             self.find_deleted()
-        except KeyError:
-            pass
 
         if not self.indicators:
             return

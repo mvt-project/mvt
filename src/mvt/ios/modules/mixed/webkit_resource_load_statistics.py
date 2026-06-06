@@ -37,7 +37,7 @@ class WebkitResourceLoadStatistics(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -85,32 +85,56 @@ class WebkitResourceLoadStatistics(IOSExtraction):
 
         try:
             try:
-                # FIXME: table contains extra fields with timestamp here
+                cur.execute("PRAGMA table_info(ObservedDomains);")
+                available_columns = {row[1] for row in cur}
+                required_columns = [
+                    "domainID",
+                    "registrableDomain",
+                    "lastSeen",
+                    "hadUserInteraction",
+                ]
+                if not set(required_columns).issubset(available_columns):
+                    return
+
+                optional_columns = [
+                    column
+                    for column in [
+                        "mostRecentUserInteractionTime",
+                        "mostRecentWebPushInteractionTime",
+                    ]
+                    if column in available_columns
+                ]
+                selected_columns = required_columns + optional_columns
                 cur.execute(
-                    """
-                    SELECT
-                        domainID,
-                        registrableDomain,
-                        lastSeen,
-                        hadUserInteraction
-                    from ObservedDomains;
-                """
+                    f"SELECT {', '.join(selected_columns)} FROM ObservedDomains;"
                 )
             except sqlite3.OperationalError:
                 return
 
             for row in cur:
-                self.results.append(
-                    {
-                        "domain_id": row[0],
-                        "registrable_domain": row[1],
-                        "last_seen": row[2],
-                        "had_user_interaction": bool(row[3]),
-                        "last_seen_isodate": convert_unix_to_iso(row[2]),
-                        "domain": domain,
-                        "path": path,
-                    }
-                )
+                result = {
+                    "domain_id": row[0],
+                    "registrable_domain": row[1],
+                    "last_seen": row[2],
+                    "had_user_interaction": bool(row[3]),
+                    "last_seen_isodate": convert_unix_to_iso(row[2]),
+                    "domain": domain,
+                    "path": path,
+                }
+                for index, column in enumerate(optional_columns, start=4):
+                    field = {
+                        "mostRecentUserInteractionTime": (
+                            "most_recent_user_interaction_time"
+                        ),
+                        "mostRecentWebPushInteractionTime": (
+                            "most_recent_web_push_interaction_time"
+                        ),
+                    }[column]
+                    timestamp = row[index]
+                    result[field] = timestamp
+                    if timestamp is not None and timestamp >= 0:
+                        result[f"{field}_isodate"] = convert_unix_to_iso(timestamp)
+                self.results.append(result)
         finally:
             cur.close()
             conn.close()

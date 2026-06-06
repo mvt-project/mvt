@@ -131,10 +131,17 @@ class DumpsysADBArtifact(AndroidArtifact):
             )
             return
 
-        # TODO: Parse AdbDebuggingManager line in output.
-        start_of_json = content.find(b"\n{") + 2
-        end_of_json = content.rfind(b"}\n") - 2
-        json_content = content[start_of_json:end_of_json].rstrip()
+        start_of_json = content.find(b"\n{")
+        if start_of_json == -1:
+            self.log.error("Unable to find ADB manager state in dumpsys output")
+            return
+
+        end_of_json = content.rfind(b"}\n")
+        if end_of_json == -1 or end_of_json <= start_of_json:
+            self.log.error("Unable to find complete ADB manager state in dumpsys output")
+            return
+
+        json_content = content[start_of_json + 2 : end_of_json - 2].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
         if parsed.get("debugging_manager") is None:

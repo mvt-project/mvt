@@ -339,7 +339,6 @@ class Command:
         executed_by_type: dict[type[MVTModule], MVTModule] = {}
         for module in ordered_modules:
 
-            # FIXME: do we need the logger here
             module_logger = logging.getLogger(module.__module__)
 
             m = module(

@@ -34,7 +34,7 @@ class Analytics(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -44,7 +44,7 @@ class Analytics(IOSExtraction):
             log=log,
             results=results,
         )
-        self.results: list = []
+        self.results: list = [] if results is None else results
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {

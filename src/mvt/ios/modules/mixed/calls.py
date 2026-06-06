@@ -27,7 +27,7 @@ class Calls(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: list = [],
+        results: Optional[list] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,

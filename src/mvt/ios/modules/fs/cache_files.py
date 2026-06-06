@@ -25,7 +25,7 @@ class CacheFiles(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -99,6 +99,10 @@ class CacheFiles(IOSExtraction):
 
     def run(self) -> None:
         self.results: dict = {}
+        if not self.target_path:
+            self.log.error("No filesystem dump path provided")
+            return
+
         for root, _, files in os.walk(self.target_path):
             for file_name in files:
                 if file_name != "Cache.db":

@@ -29,9 +29,6 @@ class InvalidBackupPassword(AndroidBackupParsingError):
     pass
 
 
-# TODO: Need to clean all the following code and conform it to the coding style.
-
-
 def to_utf8_bytes(input_bytes):
     output = []
     for byte in input_bytes:
@@ -157,13 +154,13 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
         checksum_salt=checksum_salt,
     )
 
-    # Decrypt and unpad backup data using derivied key.
+    # Decrypt and unpad backup data using derived key.
     cipher = Cipher(algorithms.AES(master_key), modes.CBC(master_iv))
     decryptor = cipher.decryptor()
     decrypted_tar = decryptor.update(encrypted_data) + decryptor.finalize()
 
     unpadder = padding.PKCS7(128).unpadder()
-    return unpadder.update(decrypted_tar)
+    return unpadder.update(decrypted_tar) + unpadder.finalize()
 
 
 def parse_backup_file(data, password=None):
@@ -210,6 +207,8 @@ def parse_tar_for_sms(data):
                 or member.name.endswith("_mms_backup")
             ):
                 dhandler = tar.extractfile(member)
+                if not dhandler:
+                    continue
                 res.extend(parse_sms_file(dhandler.read()))
 
     return res

@@ -31,7 +31,7 @@ class IOSExtraction(MVTModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -53,7 +53,7 @@ class IOSExtraction(MVTModule):
         :param file_path: Path to the malformed database file.
 
         """
-        # TODO: Find a better solution.
+        # SQLite's immutable mode cannot open databases with active WAL files.
         if not forced:
             # If the database is open, do not use immutable
             if os.path.isfile(file_path + "-shm"):
