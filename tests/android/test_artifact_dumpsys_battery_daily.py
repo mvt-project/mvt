@@ -69,3 +69,65 @@ class TestDumpsysBatteryDailyArtifact:
         assert downgrade_alert.event["package_name"] == "com.example.app"
         assert downgrade_alert.event["action"] == "downgrade"
         assert downgrade_alert.event["previous_vers"] == "10"
+
+    def test_newest_first_update_is_not_reported_as_downgrade(self):
+        dba = DumpsysBatteryDailyArtifact()
+        dba.parse(
+            """
+  Daily from 2026-01-10 to 2026-01-11:
+      Update com.example.app vers=102
+  Daily from 2026-01-05 to 2026-01-06:
+      Update com.example.app vers=101
+"""
+        )
+
+        assert len(dba.results) == 2
+        assert len(dba.alertstore.alerts) == 0
+        assert all(result["action"] == "update" for result in dba.results)
+
+    def test_newest_first_downgrade_creates_medium_alert(self):
+        dba = DumpsysBatteryDailyArtifact()
+        dba.parse(
+            """
+  Daily from 2026-01-10 to 2026-01-11:
+      Update com.example.app vers=101
+  Daily from 2026-01-05 to 2026-01-06:
+      Update com.example.app vers=102
+"""
+        )
+
+        assert len(dba.results) == 2
+        assert len(dba.alertstore.alerts) == 1
+
+        downgrade_alert = dba.alertstore.alerts[0]
+        assert downgrade_alert.level == AlertLevel.MEDIUM
+        assert downgrade_alert.message == (
+            "Detected downgrade of package com.example.app from vers 102 to vers 101"
+        )
+        assert downgrade_alert.event_time == "2026-01-10"
+        assert downgrade_alert.event["package_name"] == "com.example.app"
+        assert downgrade_alert.event["action"] == "downgrade"
+        assert downgrade_alert.event["previous_vers"] == "102"
+
+    def test_reinstall_after_uninstall_is_not_reported_as_downgrade(self):
+        dba = DumpsysBatteryDailyArtifact()
+        dba.parse(
+            """
+  Daily from 2026-01-15 to 2026-01-16:
+      Update com.example.app vers=10
+  Daily from 2026-01-10 to 2026-01-11:
+      Update com.example.app vers=0
+  Daily from 2026-01-05 to 2026-01-06:
+      Update com.example.app vers=102
+"""
+        )
+
+        assert len(dba.results) == 3
+        assert len(dba.alertstore.alerts) == 1
+
+        uninstall_alert = dba.alertstore.alerts[0]
+        assert uninstall_alert.level == AlertLevel.MEDIUM
+        assert uninstall_alert.message == (
+            "Detected uninstall of package com.example.app (vers 0)"
+        )
+        assert uninstall_alert.event_time == "2026-01-10"
