@@ -6,6 +6,7 @@
 import json
 import logging
 
+import pytest
 from click.testing import CliRunner
 
 from mvt.android.cli import check_intrusion_logs
@@ -179,6 +180,27 @@ def test_cert_authority_installed_raises_medium_alert_without_indicators():
     assert alerts[0].level == AlertLevel.MEDIUM
     assert "Certificate authority installed" in alerts[0].message
     assert "Unexpected Root CA" in alerts[0].message
+
+
+# Exported logs encode success as a JSON bool, raw SecurityLog as int 0/1.
+@pytest.mark.parametrize("success", [False, 0])
+def test_failed_cert_authority_install_does_not_alert(success, caplog):
+    with caplog.at_level(logging.WARNING):
+        alerts = _run_security_heuristics(
+            [
+                {
+                    "timestamp": "2024-01-01 00:00:00.000",
+                    "cert_authority_installed": {
+                        "subject": "CN=Unexpected Root CA",
+                        "success": success,
+                    },
+                }
+            ]
+        )
+
+    assert alerts == []
+    assert "Failed certificate authority install attempt" in caplog.text
+    assert "Unexpected Root CA" in caplog.text
 
 
 def test_cert_validation_failure_raises_medium_alert_without_indicators():

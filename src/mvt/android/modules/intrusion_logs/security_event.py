@@ -422,16 +422,22 @@ class SecurityEvent(IntrusionLogsModule):
                 result,
             )
 
-        # Flag certificate authority installations (potential MITM)
+        # Flag successful certificate authority installations (potential
+        # MITM); a missing success field is treated as installed
         if "cert_authority_installed" in result:
             cert_info = result["cert_authority_installed"]
-            self.alertstore.medium(
-                "Certificate authority installed: "
-                f"{cert_info.get('subject', 'unknown')} "
-                f"(success: {cert_info.get('success', 'unknown')})",
-                result.get("timestamp") or "",
-                result,
-            )
+            if cert_info.get("success", True):
+                self.alertstore.medium(
+                    "Certificate authority installed: "
+                    f"{cert_info.get('subject', 'unknown')}",
+                    result.get("timestamp") or "",
+                    result,
+                )
+            else:
+                self.log.warning(
+                    "Failed certificate authority install attempt: %s",
+                    cert_info.get("subject", "unknown"),
+                )
 
         # Flag wipe failures
         if "wipe_failure" in result:
