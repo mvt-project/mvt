@@ -29,7 +29,7 @@ dependencies = [
     "libusb1==3.3.1",
     "cryptography==47.0.0",
     "PyYAML>=6.0.2",
-    "pyahocorasick==2.2.0",
+    "pyahocorasick==2.3.1",
     "betterproto2==0.9.1",
     "pydantic==2.13.3",
     "pydantic-settings==2.13.1",
