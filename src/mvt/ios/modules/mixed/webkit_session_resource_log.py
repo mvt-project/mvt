@@ -39,7 +39,7 @@ class WebkitSessionResourceLog(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -50,7 +50,7 @@ class WebkitSessionResourceLog(IOSExtraction):
             results=results,
         )
 
-        self.results: dict = {}
+        self.results: dict = results if results is not None else {}
 
     @staticmethod
     def _extract_domains(entries):
@@ -77,14 +77,21 @@ class WebkitSessionResourceLog(IOSExtraction):
                     entry["redirect_destination"]
                 )
 
-                # TODO: Currently not used.
-                # subframe_origins = self._extract_domains(
-                #    entry["subframe_under_origin"])
-                # subresource_domains = self._extract_domains(
-                #    entry["subresource_under_origin"])
+                subframe_origins = self._extract_domains(
+                    entry["subframe_under_origin"]
+                )
+                subresource_domains = self._extract_domains(
+                    entry["subresource_under_origin"]
+                )
 
                 all_origins = list(
-                    set([entry["origin"]] + source_domains + destination_domains)
+                    set(
+                        [entry["origin"]]
+                        + source_domains
+                        + destination_domains
+                        + subframe_origins
+                        + subresource_domains
+                    )
                 )
 
                 ioc_match = self.indicators.check_urls(all_origins)

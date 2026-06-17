@@ -264,6 +264,7 @@ SECURITY_EVENT_TAGS = {
 }
 
 SECURITY_EVENT_METADATA_KEYS = {
+    "event_id",
     "event_time",
     "event_type",
     "timestamp",
@@ -302,10 +303,15 @@ class SecurityEvent(IntrusionLogsModule):
 
     def check_indicators(self) -> None:
         """Check security events against indicators of compromise."""
-        if not self.indicators:
-            return
-
         for result in self.results:
+            # Heuristic alerts are intrinsic to the event, so they run even
+            # when no indicator set is loaded.
+            self._check_security_heuristics(result)
+
+            # The remaining checks match events against loaded indicators.
+            if not self.indicators:
+                continue
+
             # Check app process start events for suspicious package names
             if "app_process_start" in result:
                 process_info = result["app_process_start"]
@@ -389,59 +395,72 @@ class SecurityEvent(IntrusionLogsModule):
                                 matched_indicator=ioc.ioc,
                             )
 
-            # Flag failed cryptographic operations as potentially suspicious
-            if "key_generated" in result:
-                if not result["key_generated"].get("success", True):
-                    self.log.warning(
-                        "Failed key generation detected for key_id: %s",
-                        result["key_generated"].get("key_id", "unknown"),
-                    )
-
-            # Flag certificate validation failures
-            if "cert_validation_failure" in result:
+    def _check_security_heuristics(self, result: dict) -> None:
+        """Raise alerts for events that are intrinsically suspicious,
+        independent of any loaded indicators."""
+        # Flag failed cryptographic operations as potentially suspicious
+        if "key_generated" in result:
+            if not result["key_generated"].get("success", True):
                 self.log.warning(
-                    "Certificate validation failure detected: %s",
-                    result.get("cert_validation_failure"),
+                    "Failed key generation detected for key_id: %s",
+                    result["key_generated"].get("key_id", "unknown"),
                 )
 
-            # Flag key integrity violations
-            if "key_integrity_violation" in result:
+        # Flag certificate validation failures
+        if "cert_validation_failure" in result:
+            self.alertstore.medium(
+                "Certificate validation failure detected: "
+                f"{result.get('cert_validation_failure')}",
+                result.get("timestamp") or "",
+                result,
+            )
+
+        # Flag key integrity violations
+        if "key_integrity_violation" in result:
+            self.alertstore.medium(
+                f"Key integrity violation detected: {result.get('key_integrity_violation')}",
+                result.get("timestamp") or "",
+                result,
+            )
+
+        # Flag successful certificate authority installations (potential
+        # MITM); a missing success field is treated as installed
+        if "cert_authority_installed" in result:
+            cert_info = result["cert_authority_installed"]
+            if cert_info.get("success", True):
                 self.alertstore.medium(
-                    f"Key integrity violation detected: {result.get('key_integrity_violation')}",
+                    "Certificate authority installed: "
+                    f"{cert_info.get('subject', 'unknown')}",
                     result.get("timestamp") or "",
                     result,
                 )
-
-            # Flag certificate authority installations (potential MITM)
-            if "cert_authority_installed" in result:
-                cert_info = result["cert_authority_installed"]
+            else:
                 self.log.warning(
-                    "Certificate authority installed: %s (success: %s)",
+                    "Failed certificate authority install attempt: %s",
                     cert_info.get("subject", "unknown"),
-                    cert_info.get("success", "unknown"),
                 )
 
-            # Flag wipe failures
-            if "wipe_failure" in result:
+        # Flag wipe failures
+        if "wipe_failure" in result:
+            self.alertstore.medium(
+                "Device wipe failure detected",
+                result.get("timestamp") or "",
+                result,
+            )
+
+        # Flag crypto self test failures
+        if "crypto_self_test_completed" in result:
+            test_result = result["crypto_self_test_completed"]
+            if isinstance(test_result, dict):
+                success = test_result.get("success", True)
+            else:
+                success = test_result == 1
+            if not success:
                 self.alertstore.medium(
-                    "Device wipe failure detected",
+                    "Cryptographic self test failed",
                     result.get("timestamp") or "",
                     result,
                 )
-
-            # Flag crypto self test failures
-            if "crypto_self_test_completed" in result:
-                test_result = result["crypto_self_test_completed"]
-                if isinstance(test_result, dict):
-                    success = test_result.get("success", True)
-                else:
-                    success = test_result == 1
-                if not success:
-                    self.alertstore.medium(
-                        "Cryptographic self test failed",
-                        result.get("timestamp") or "",
-                        result,
-                    )
 
     def serialize(self, record: dict) -> Union[dict, list]:
         """Serialize a security event record for timeline output."""

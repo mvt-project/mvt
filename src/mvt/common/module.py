@@ -9,7 +9,7 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
 from .alerts import AlertStore
 from .indicators import Indicators
@@ -43,6 +43,7 @@ class MVTModule:
 
     enabled: bool = True
     slug: Optional[str] = None
+    dependencies: Sequence[type["MVTModule"]] = ()
 
     def __init__(
         self,
@@ -51,7 +52,7 @@ class MVTModule:
         results_path: Optional[str] = None,
         module_options: Optional[Dict[str, Any]] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: ModuleResults = [],
+        results: Optional[ModuleResults] = None,
     ) -> None:
         """Initialize module.
 
@@ -71,16 +72,22 @@ class MVTModule:
         self.file_path: Optional[str] = file_path
         self.target_path: Optional[str] = target_path
         self.results_path: Optional[str] = results_path
-        self.module_options: Optional[Dict[str, Any]] = (
-            module_options if module_options else {}
-        )
+        self.serial: Optional[str] = None
+        self.module_options: Dict[str, Any] = module_options if module_options else {}
 
         self.log = log
         self.indicators: Optional[Indicators] = None
         self.alertstore: AlertStore = AlertStore(log=log)
 
-        self.results: ModuleResults = results if results else []
+        self.results: ModuleResults = results if results is not None else []
         self.timeline: ModuleTimeline = []
+        self.dependency_modules: Dict[type["MVTModule"], "MVTModule"] = {}
+
+    def get_dependency_results(
+        self, module_class: type["MVTModule"]
+    ) -> ModuleResults:
+        """Return the results produced by a prerequisite module."""
+        return self.dependency_modules[module_class].results
 
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
@@ -109,11 +116,14 @@ class MVTModule:
         name = self.get_slug()
 
         if self.results:
+            converted_results: Any
             if isinstance(self.results, dict):
                 converted_results = self.results
             else:
                 converted_results = [
-                    asdict(result) if is_dataclass(result) else result
+                    asdict(result)
+                    if is_dataclass(result) and not isinstance(result, type)
+                    else result
                     for result in self.results
                 ]
             results_file_name = f"{name}.json"

@@ -180,10 +180,8 @@ class IndicatorsUpdates:
     def _get_remote_file_latest_commit(
         self, owner: str, repo: str, branch: str, path: str
     ) -> int:
-        # TODO: The branch is currently not taken into consideration.
-        #       How do we specify which branch to look up to the API?
         file_commit_url = (
-            f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}"
+            f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}&sha={branch}"
         )
         try:
             res = requests.get(file_commit_url, timeout=5)

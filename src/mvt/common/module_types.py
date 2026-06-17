@@ -16,7 +16,10 @@ from typing import Any, Dict, List, Union
 ModuleAtomicResult = Dict[str, Any]
 
 
-ModuleResults = List[ModuleAtomicResult]
+# Extraction modules historically use either a list of records or grouped
+# dictionaries keyed by source path. Keep this alias broad until those shapes
+# are modeled per module.
+ModuleResults = Any
 
 
 @dataclass

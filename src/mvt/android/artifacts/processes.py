@@ -8,7 +8,7 @@ from .artifact import AndroidArtifact
 
 class Processes(AndroidArtifact):
     def parse(self, entry: str) -> None:
-        for line in entry.split("\n")[1:]:
+        for line in entry.splitlines()[1:]:
             proc = line.split()
 
             # Skip empty lines

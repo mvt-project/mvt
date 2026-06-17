@@ -21,4 +21,5 @@ class TestSettingsModule:
         run_module(m)
         assert len(m.results) == 1
         assert "random" in m.results.keys()
-        assert len(m.alertstore.alerts) == 0
+        assert len(m.alertstore.alerts) == 1
+        assert "samsung_errorlog_agree" in m.alertstore.alerts[0].message
