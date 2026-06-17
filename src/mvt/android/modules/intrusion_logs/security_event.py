@@ -264,6 +264,7 @@ SECURITY_EVENT_TAGS = {
 }
 
 SECURITY_EVENT_METADATA_KEYS = {
+    "event_id",
     "event_time",
     "event_type",
     "timestamp",

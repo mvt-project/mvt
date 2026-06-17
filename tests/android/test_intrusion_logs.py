@@ -145,6 +145,58 @@ def test_check_intrusion_logs_parses_core_and_unknown_security_events(
     assert "Please open an issue on GitHub" in caplog.text
 
 
+def test_check_intrusion_logs_treats_event_id_as_security_event_metadata(
+    tmp_path, caplog
+):
+    _write_ndjson(
+        tmp_path / "intrusion.txt",
+        [
+            {
+                "security_event": {
+                    "event_id": 191,
+                    "event_time": 1_700_000_002_000_000_000,
+                    "keyguard_dismiss_auth_attempt": {
+                        "success": True,
+                        "method_strength": 0,
+                    },
+                }
+            },
+            {
+                "security_event": {
+                    "event_id": 192,
+                    "event_time": 1_700_000_003_000_000_000,
+                    "keyguard_dismissed": {},
+                }
+            },
+        ],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(tmp_path))
+        cmd.run()
+
+    security_module = next(
+        module for module in cmd.executed if isinstance(module, SecurityEvent)
+    )
+    assert security_module.event_type_counts == {
+        "keyguard_dismiss_auth_attempt": 1,
+        "keyguard_dismissed": 1,
+    }
+    assert [event["event_id"] for event in security_module.results] == [191, 192]
+
+    keyguard_events = {
+        event["event"]: event
+        for event in cmd.timeline
+        if event["event"]
+        in {"keyguard_dismiss_auth_attempt", "keyguard_dismissed"}
+    }
+    assert "Auth attempt: Success" in keyguard_events[
+        "keyguard_dismiss_auth_attempt"
+    ]["data"]
+    assert keyguard_events["keyguard_dismissed"]["data"] == "Keyguard dismissed"
+    assert "unknown intrusion logging security event type(s): event_id" not in caplog.text
+
+
 def test_check_intrusion_logs_cli_lists_modules(tmp_path):
     _write_ndjson(tmp_path / "intrusion.txt", [])
 
