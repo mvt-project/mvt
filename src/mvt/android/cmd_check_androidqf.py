@@ -17,6 +17,7 @@ from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
 from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
 
 from .modules.androidqf import ANDROIDQF_MODULES
 from .modules.androidqf.base import AndroidQFModule
@@ -50,6 +51,7 @@ class CmdAndroidCheckAndroidQF(Command):
         sub_command: Optional[bool] = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -64,8 +66,10 @@ class CmdAndroidCheckAndroidQF(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = "android"
         self.name = "check-androidqf"
         self.modules = ANDROIDQF_MODULES
 
@@ -210,6 +214,7 @@ class CmdAndroidCheckAndroidQF(Command):
                 module_options=self.module_options,
                 hashes=self.hashes,
                 sub_command=True,
+                custom_modules=self.custom_modules,
             )
             cmd.from_zip(bugreport)
             cmd.run()
@@ -239,6 +244,7 @@ class CmdAndroidCheckAndroidQF(Command):
             module_options=self.module_options,
             hashes=self.hashes,
             sub_command=True,
+            custom_modules=self.custom_modules,
         )
         cmd.from_ab(backup)
         cmd.run()
@@ -311,6 +317,7 @@ class CmdAndroidCheckAndroidQF(Command):
                 module_options=adv_module_options,
                 hashes=self.hashes,
                 sub_command=True,
+                custom_modules=self.custom_modules,
             )
             cmd.run()
 

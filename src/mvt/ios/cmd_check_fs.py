@@ -8,6 +8,7 @@ from typing import Optional
 
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
 
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
@@ -29,6 +30,7 @@ class CmdIOSCheckFS(Command):
         sub_command: bool = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -42,8 +44,10 @@ class CmdIOSCheckFS(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = "ios"
         self.name = "check-fs"
         self.modules = FS_MODULES + MIXED_MODULES
 

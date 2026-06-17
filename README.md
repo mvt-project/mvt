@@ -60,6 +60,11 @@ For alternative installation options and known issues, please refer to the [docu
 
 MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
+Module-running `check-*` commands can load custom Python modules with
+`--load-module PATH` or from a folder set in `MVT_CUSTOM_MODULES`. See the
+[development documentation](https://docs.mvt.re/en/latest/development/) for
+details.
+
 
 ## License
 
