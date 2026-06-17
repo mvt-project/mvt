@@ -6,12 +6,14 @@
 import json
 import logging
 
+import pytest
 from click.testing import CliRunner
 
 from mvt.android.cli import check_intrusion_logs
 from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
 from mvt.android.modules.intrusion_logs.base import IntrusionLogsModule
 from mvt.android.modules.intrusion_logs.security_event import SecurityEvent
+from mvt.common.alerts import AlertLevel
 
 
 def _write_ndjson(path, records):
@@ -204,3 +206,82 @@ def test_check_intrusion_logs_cli_lists_modules(tmp_path):
     assert "DnsEvent" in result.output
     assert "ConnectEvent" in result.output
     assert "SecurityEvent" in result.output
+
+
+def _run_security_heuristics(results):
+    # No indicators loaded: heuristic alerts must still fire.
+    module = SecurityEvent(results=results)
+    module.check_indicators()
+    return module.alertstore.alerts
+
+
+def test_cert_authority_installed_raises_medium_alert_without_indicators():
+    alerts = _run_security_heuristics(
+        [
+            {
+                "timestamp": "2024-01-01 00:00:00.000",
+                "cert_authority_installed": {
+                    "subject": "CN=Unexpected Root CA",
+                    "success": True,
+                },
+            }
+        ]
+    )
+
+    assert len(alerts) == 1
+    assert alerts[0].level == AlertLevel.MEDIUM
+    assert "Certificate authority installed" in alerts[0].message
+    assert "Unexpected Root CA" in alerts[0].message
+
+
+# Exported logs encode success as a JSON bool, raw SecurityLog as int 0/1.
+@pytest.mark.parametrize("success", [False, 0])
+def test_failed_cert_authority_install_does_not_alert(success, caplog):
+    with caplog.at_level(logging.WARNING):
+        alerts = _run_security_heuristics(
+            [
+                {
+                    "timestamp": "2024-01-01 00:00:00.000",
+                    "cert_authority_installed": {
+                        "subject": "CN=Unexpected Root CA",
+                        "success": success,
+                    },
+                }
+            ]
+        )
+
+    assert alerts == []
+    assert "Failed certificate authority install attempt" in caplog.text
+    assert "Unexpected Root CA" in caplog.text
+
+
+def test_cert_validation_failure_raises_medium_alert_without_indicators():
+    alerts = _run_security_heuristics(
+        [
+            {
+                "timestamp": "2024-01-01 00:00:00.000",
+                "cert_validation_failure": "chain validation failed",
+            }
+        ]
+    )
+
+    assert len(alerts) == 1
+    assert alerts[0].level == AlertLevel.MEDIUM
+    assert "Certificate validation failure" in alerts[0].message
+
+
+def test_security_heuristics_fire_when_no_indicators_loaded():
+    # check_indicators() previously returned early with no indicators loaded,
+    # so none of the heuristic alerts fired on a default run.
+    alerts = _run_security_heuristics(
+        [
+            {"timestamp": "2024-01-01 00:00:00.000", "wipe_failure": {"reason": "x"}},
+            {
+                "timestamp": "2024-01-01 00:00:00.000",
+                "key_integrity_violation": {"key_id": "k1"},
+            },
+        ]
+    )
+
+    assert len(alerts) == 2
+    assert all(alert.level == AlertLevel.MEDIUM for alert in alerts)
