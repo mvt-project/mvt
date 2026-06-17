@@ -21,6 +21,24 @@ make check
 
 Run these tests before making new commits or opening pull requests.
 
+## Module dependencies
+
+Modules can require other modules to run first by declaring their classes in
+`dependencies`. The command runner uses a stable topological ordering, so the
+existing module list order is preserved wherever dependency constraints allow.
+
+```python
+class DependentModule(MVTModule):
+    dependencies = (PrerequisiteModule,)
+
+    def run(self):
+        prerequisite_results = self.get_dependency_results(PrerequisiteModule)
+```
+
+Selecting a single module also runs its transitive dependencies. If a dependency
+is unavailable or the dependency graph contains a cycle, the command logs a
+warning and does not run any modules.
+
 ## Profiling
 
 Some MVT modules extract and process significant amounts of data during the analysis process or while checking results against known indicators. Care must be
