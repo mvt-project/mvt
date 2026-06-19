@@ -18,7 +18,7 @@ from mvt.android.utils import (
     SYSTEM_UPDATE_PACKAGES,
     THIRD_PARTY_STORE_INSTALLERS,
 )
-from mvt.common.module_types import ModuleResults
+from mvt.common.module_types import ModuleAtomicResult, ModuleResults
 from mvt.common.virustotal import VTNoKey, VTQuotaExceeded, virustotal_lookup
 
 from .base import AndroidQFModule
@@ -135,7 +135,9 @@ class AQFPackages(AndroidQFModule):
             )
 
     def check_virustotal(self, delay: int = 0) -> None:
-        files_by_hash = {}
+        files_by_hash: dict[
+            str, list[tuple[ModuleAtomicResult, ModuleAtomicResult]]
+        ] = {}
         for package in self.results:
             if package.get("system", False):
                 continue
