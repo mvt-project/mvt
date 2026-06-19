@@ -11,6 +11,7 @@ import os
 import os.path
 import shutil
 import sqlite3
+from pathlib import Path
 from typing import Optional
 
 from iOSbackup import iOSbackup
@@ -46,18 +47,21 @@ class DecryptBackup:
 
         """
         conn = sqlite3.connect(os.path.join(backup_path, "Manifest.db"))
-        cur = conn.cursor()
         try:
+            cur = conn.cursor()
             cur.execute("SELECT fileID FROM Files LIMIT 1;")
         except sqlite3.DatabaseError:
             return True
         else:
             log.critical("The backup does not seem encrypted!")
             return False
+        finally:
+            conn.close()
 
     def _process_file(
         self, relative_path: str, domain: str, item, file_id: str, item_folder: str
     ) -> None:
+        assert self._backup is not None
         self._backup.getFileDecryptedCopy(
             manifestEntry=item, targetName=file_id, targetFolder=item_folder
         )
@@ -70,6 +74,9 @@ class DecryptBackup:
         )
 
     def process_backup(self) -> None:
+        assert self._backup is not None
+        assert self.dest_path is not None
+
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
 
@@ -90,6 +97,9 @@ class DecryptBackup:
                 # This may be a partial backup. Skip files from the manifest
                 # which do not exist locally.
                 source_file_path = os.path.join(self.backup_path, file_id[0:2], file_id)
+                if not Path(source_file_path).resolve().is_relative_to(Path(self.backup_path).resolve()):
+                    log.warning("Skipping unsafe file_id: %r", file_id)
+                    continue
                 if not os.path.exists(source_file_path):
                     log.debug(
                         "Skipping file %s. File not found in encrypted backup directory.",
@@ -97,7 +107,10 @@ class DecryptBackup:
                     )
                     continue
 
-                item_folder = os.path.join(self.dest_path, file_id[0:2])
+                item_folder = os.path.join(self.dest_path, file_id[0:2])  # type: ignore[arg-type]
+                if not Path(os.path.join(item_folder, file_id)).resolve().is_relative_to(Path(self.dest_path).resolve()):
+                    log.warning("Skipping unsafe file_id: %r", file_id)
+                    continue
                 if not os.path.exists(item_folder):
                     os.makedirs(item_folder)
 

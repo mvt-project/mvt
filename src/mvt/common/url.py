@@ -3,10 +3,15 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
 from typing import Optional
 
 import requests
 from tld import get_tld
+
+from .config import settings
+
+log = logging.getLogger(__name__)
 
 SHORTENER_DOMAINS = [
     "0rz.tw",
@@ -338,11 +343,12 @@ class URL:
         :rtype: str
 
         """
-        return (
-            get_tld(self.url, as_object=True, fix_protocol=True)
-            .parsed_url.netloc.lower()
-            .lstrip("www.")
-        )
+        tld_obj = get_tld(self.url, as_object=True, fix_protocol=True)
+        if isinstance(tld_obj, str):
+            return tld_obj
+        if tld_obj is None:
+            return ""
+        return tld_obj.parsed_url.netloc.lower().lstrip("www.")
 
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
@@ -351,7 +357,12 @@ class URL:
         :rtype: str
 
         """
-        return get_tld(self.url, as_object=True, fix_protocol=True).fld.lower()
+        tld_obj = get_tld(self.url, as_object=True, fix_protocol=True)
+        if isinstance(tld_obj, str):
+            return tld_obj
+        if tld_obj is None:
+            return ""
+        return tld_obj.fld.lower()
 
     def check_if_shortened(self) -> bool:
         """Check if the URL is among list of shortener services.
@@ -369,7 +380,16 @@ class URL:
 
     def unshorten(self) -> Optional[str]:
         """Unshorten the URL by requesting an HTTP HEAD response."""
-        res = requests.head(self.url)
+
+        if settings.NETWORK_ACCESS_ALLOWED is False:
+            log.info(
+                "Network access disabled (MVT_NETWORK_ACCESS_ALLOWED=False), "
+                "skipping unshorten for %s",
+                self.url,
+            )
+            return ""
+
+        res = requests.head(self.url, timeout=settings.NETWORK_TIMEOUT)
         if str(res.status_code).startswith("30"):
             return res.headers["Location"]
 

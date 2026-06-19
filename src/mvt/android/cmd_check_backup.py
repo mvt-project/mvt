@@ -11,7 +11,7 @@ import tarfile
 from pathlib import Path
 from typing import List, Optional
 
-from mvt.android.modules.backup.base import BackupExtraction
+from mvt.android.modules.backup.base import BackupModule
 from mvt.android.modules.backup.helpers import prompt_or_load_android_backup_password
 from mvt.android.parsers.backup import (
     AndroidBackupParsingError,
@@ -20,6 +20,7 @@ from mvt.android.parsers.backup import (
     parse_backup_file,
 )
 from mvt.common.command import Command
+from mvt.common.indicators import Indicators
 
 from .modules.backup import BACKUP_MODULES
 
@@ -32,73 +33,88 @@ class CmdAndroidCheckBackup(Command):
         target_path: Optional[str] = None,
         results_path: Optional[str] = None,
         ioc_files: Optional[list] = None,
+        iocs: Optional[Indicators] = None,
         module_name: Optional[str] = None,
         serial: Optional[str] = None,
         module_options: Optional[dict] = None,
-        hashes: bool = False,
+        hashes: Optional[bool] = False,
+        sub_command: Optional[bool] = False,
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
     ) -> None:
         super().__init__(
             target_path=target_path,
             results_path=results_path,
             ioc_files=ioc_files,
+            iocs=iocs,
             module_name=module_name,
             serial=serial,
             module_options=module_options,
             hashes=hashes,
+            sub_command=sub_command,
             log=log,
+            disable_version_check=disable_version_check,
+            disable_indicator_check=disable_indicator_check,
         )
 
         self.name = "check-backup"
         self.modules = BACKUP_MODULES
 
-        self.backup_type: str = ""
-        self.backup_archive: Optional[tarfile.TarFile] = None
-        self.backup_files: List[str] = []
+        self.__type: str = ""
+        self.__tar: Optional[tarfile.TarFile] = None
+        self.__files: List[str] = []
+
+    def from_ab(self, ab_file_bytes: bytes) -> None:
+        self.__type = "ab"
+        header = parse_ab_header(ab_file_bytes)
+        if not header["backup"]:
+            log.critical("Invalid backup format, file should be in .ab format")
+            sys.exit(1)
+
+        password = None
+        if header["encryption"] != "none":
+            password = prompt_or_load_android_backup_password(log, self.module_options)
+            if not password:
+                log.critical("No backup password provided.")
+                sys.exit(1)
+        try:
+            tardata = parse_backup_file(ab_file_bytes, password=password)
+        except InvalidBackupPassword:
+            log.critical("Invalid backup password")
+            sys.exit(1)
+        except AndroidBackupParsingError as exc:
+            log.critical("Impossible to parse this backup file: %s", exc)
+            log.critical("Please use Android Backup Extractor (ABE) instead")
+            sys.exit(1)
+
+        dbytes = io.BytesIO(tardata)
+        self.__tar = tarfile.open(fileobj=dbytes)
+        for member in self.__tar:
+            self.__files.append(member.name)
 
     def init(self) -> None:
-        if not self.target_path:
+        if not self.target_path:  # type: ignore[has-type]
             return
 
-        if os.path.isfile(self.target_path):
-            self.backup_type = "ab"
-            with open(self.target_path, "rb") as handle:
-                data = handle.read()
+        # Type guard: we know it's not None here after the check above
+        assert self.target_path is not None  # type: ignore[has-type]
+        # Use a different local variable name to avoid any scoping issues
+        backup_path: str = self.target_path  # type: ignore[has-type]
 
-            header = parse_ab_header(data)
-            if not header["backup"]:
-                log.critical("Invalid backup format, file should be in .ab format")
-                sys.exit(1)
+        if os.path.isfile(backup_path):
+            self.__type = "ab"
+            with open(backup_path, "rb") as handle:
+                ab_file_bytes = handle.read()
+            self.from_ab(ab_file_bytes)
 
-            password = None
-            if header["encryption"] != "none":
-                password = prompt_or_load_android_backup_password(
-                    log, self.module_options
-                )
-                if not password:
-                    log.critical("No backup password provided.")
-                    sys.exit(1)
-            try:
-                tardata = parse_backup_file(data, password=password)
-            except InvalidBackupPassword:
-                log.critical("Invalid backup password")
-                sys.exit(1)
-            except AndroidBackupParsingError as exc:
-                log.critical("Impossible to parse this backup file: %s", exc)
-                log.critical("Please use Android Backup Extractor (ABE) instead")
-                sys.exit(1)
-
-            dbytes = io.BytesIO(tardata)
-            self.backup_archive = tarfile.open(fileobj=dbytes)
-            for member in self.backup_archive:
-                self.backup_files.append(member.name)
-
-        elif os.path.isdir(self.target_path):
-            self.backup_type = "folder"
-            self.target_path = Path(self.target_path).absolute().as_posix()
-            for root, subdirs, subfiles in os.walk(os.path.abspath(self.target_path)):
+        elif os.path.isdir(backup_path):
+            self.__type = "folder"
+            backup_path = Path(backup_path).absolute().as_posix()
+            self.target_path = backup_path
+            for root, subdirs, subfiles in os.walk(os.path.abspath(backup_path)):
                 for fname in subfiles:
-                    self.backup_files.append(
-                        os.path.relpath(os.path.join(root, fname), self.target_path)
+                    self.__files.append(
+                        os.path.relpath(os.path.join(root, fname), backup_path)
                     )
         else:
             log.critical(
@@ -107,8 +123,12 @@ class CmdAndroidCheckBackup(Command):
             )
             sys.exit(1)
 
-    def module_init(self, module: BackupExtraction) -> None:  # type: ignore[override]
-        if self.backup_type == "folder":
-            module.from_folder(self.target_path, self.backup_files)
+    def module_init(self, module: BackupModule) -> None:  # type: ignore[override]
+        if self.__type == "folder":
+            module.from_dir(self.target_path, self.__files)
         else:
-            module.from_ab(self.target_path, self.backup_archive, self.backup_files)
+            module.from_ab(self.target_path, self.__tar, self.__files)
+
+    def finish(self) -> None:
+        if self.__tar:
+            self.__tar.close()

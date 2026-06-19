@@ -2,9 +2,17 @@
 
 The Mobile Verification Toolkit team welcomes contributions of new forensic modules or other contributions which help improve the software.
 
+## Local environment
+
+MVT uses `uv` for dependency management. To install the project and development dependencies from the locked environment, run:
+
+```bash
+make install
+```
+
 ## Testing
 
-MVT uses `pytest` for unit and integration tests. Code style consistency is maintained with `flake8`, `ruff` and `black`. All can
+MVT uses `pytest` for unit and integration tests. Code style consistency is maintained with `ruff` and `mypy`. All can
 be run automatically with:
 
 ```bash
@@ -12,6 +20,24 @@ make check
 ```
 
 Run these tests before making new commits or opening pull requests.
+
+## Module dependencies
+
+Modules can require other modules to run first by declaring their classes in
+`dependencies`. The command runner uses a stable topological ordering, so the
+existing module list order is preserved wherever dependency constraints allow.
+
+```python
+class DependentModule(MVTModule):
+    dependencies = (PrerequisiteModule,)
+
+    def run(self):
+        prerequisite_results = self.get_dependency_results(PrerequisiteModule)
+```
+
+Selecting a single module also runs its transitive dependencies. If a dependency
+is unavailable or the dependency graph contains a cycle, the command logs a
+warning and does not run any modules.
 
 ## Profiling
 

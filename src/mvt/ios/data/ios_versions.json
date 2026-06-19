@@ -632,6 +632,10 @@
         "version": "12.5.7"
     },
     {
+        "version": "12.5.8",
+        "build": "16H88"
+    },
+    {
         "build": "17A577",
         "version": "13.0"
     },
@@ -896,6 +900,22 @@
         "build": "19H390"
     },
     {
+        "version": "15.8.5",
+        "build": "19H394"
+    },
+    {
+        "version": "15.8.6",
+        "build": "19H402"
+    },
+    {
+        "version": "15.8.7",
+        "build": "19H411"
+    },
+    {
+        "version": "15.8.8",
+        "build": "19H422"
+    },
+    {
         "build": "20A362",
         "version": "16.0"
     },
@@ -999,6 +1019,22 @@
     {
         "version": "16.7.11",
         "build": "20H360"
+    },
+    {
+        "version": "16.7.12",
+        "build": "20H364"
+    },
+    {
+        "version": "16.7.14",
+        "build": "20H370"
+    },
+    {
+        "version": "16.7.15",
+        "build": "20H380"
+    },
+    {
+        "version": "16.7.16",
+        "build": "20H392"
     },
     {
         "version": "17.0",
@@ -1131,5 +1167,93 @@
     {
         "version": "18.5",
         "build": "22F76"
+    },
+    {
+        "version": "18.6",
+        "build": "22G86"
+    },
+    {
+        "version": "18.6.1",
+        "build": "22G90"
+    },
+    {
+        "version": "18.6.2",
+        "build": "22G100"
+    },
+    {
+        "version": "18.7",
+        "build": "22H20"
+    },
+    {
+        "version": "18.7.2",
+        "build": "22H124"
+    },
+    {
+        "version": "18.7.3",
+        "build": "22H217"
+    },
+    {
+        "version": "18.7.4",
+        "build": "22H218"
+    },
+    {
+        "version": "18.7.5",
+        "build": "22H311"
+    },
+    {
+        "version": "18.7.6",
+        "build": "22H320"
+    },
+    {
+        "version": "18.7.7",
+        "build": "22H333"
+    },
+    {
+        "version": "18.7.8",
+        "build": "22H352"
+    },
+    {
+        "version": "18.7.9",
+        "build": "22H355"
+    },
+    {
+        "version": "26",
+        "build": "23A341"
+    },
+    {
+        "version": "26.0.1",
+        "build": "23A355"
+    },
+    {
+        "version": "26.1",
+        "build": "23B85"
+    },
+    {
+        "version": "26.2",
+        "build": "23C55"
+    },
+    {
+        "version": "26.2.1",
+        "build": "23C71"
+    },
+    {
+        "version": "26.3",
+        "build": "23D127"
+    },
+    {
+        "version": "26.3.1",
+        "build": "23D8133"
+    },
+    {
+        "version": "26.4",
+        "build": "23E246"
+    },
+    {
+        "version": "26.4.2",
+        "build": "23E261"
+    },
+    {
+        "version": "26.5",
+        "build": "23F77"
     }
 ]

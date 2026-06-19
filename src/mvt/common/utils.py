@@ -10,9 +10,10 @@ import json
 import logging
 import os
 import re
+from dataclasses import asdict, is_dataclass
 from typing import Any, Iterator, Union
 
-from rich.logging import RichHandler
+from .log import MVTLogHandler
 from mvt.common.config import settings
 
 
@@ -30,6 +31,9 @@ class CustomJSONEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
+        # Unwrap dataclass instances (such as Indicator) to dict. Skip class itself.
+        if is_dataclass(o) and not isinstance(o, type):
+            return asdict(o)
         if isinstance(o, bytes):
             # Decode as utf-8, replace any invalid UTF-8 bytes with escaped hex
             return o.decode("utf-8", errors="backslashreplace")
@@ -119,10 +123,9 @@ def convert_mactime_to_datetime(timestamp: Union[int, float], from_2001: bool = 
     if from_2001:
         timestamp = timestamp + 978307200
 
-    # TODO: This is rather ugly. Happens sometimes with invalid timestamps.
     try:
         return convert_unix_to_utc_datetime(timestamp)
-    except Exception:
+    except (OSError, OverflowError, ValueError):
         return None
 
 
@@ -234,11 +237,10 @@ def init_logging(verbose: bool = False):
     """
     Initialise logging for the MVT module
     """
-    # Setup logging using Rich.
     log = logging.getLogger("mvt")
     log.setLevel(logging.DEBUG)
-    consoleHandler = RichHandler(show_path=False, log_time_format="%X")
-    consoleHandler.setFormatter(logging.Formatter("[%(name)s] %(message)s"))
+    consoleHandler = MVTLogHandler()
+    consoleHandler.setFormatter(logging.Formatter("%(message)s"))
     if verbose:
         consoleHandler.setLevel(logging.DEBUG)
     else:

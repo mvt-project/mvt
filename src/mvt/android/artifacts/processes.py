@@ -8,7 +8,7 @@ from .artifact import AndroidArtifact
 
 class Processes(AndroidArtifact):
     def parse(self, entry: str) -> None:
-        for line in entry.split("\n")[1:]:
+        for line in entry.splitlines()[1:]:
             proc = line.split()
 
             # Skip empty lines
@@ -58,13 +58,15 @@ class Processes(AndroidArtifact):
             if result["proc_name"] == "gatekeeperd":
                 continue
 
-            ioc = self.indicators.check_app_id(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_app_id(proc_name)
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
-            ioc = self.indicators.check_process(proc_name)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_process(proc_name)
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )

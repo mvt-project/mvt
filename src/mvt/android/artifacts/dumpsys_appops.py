@@ -4,12 +4,12 @@
 #   https://license.mvt.re/1.1/
 
 from datetime import datetime
-from typing import Any, Dict, List, Union
+from typing import Any
 
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_datetime_to_iso
 
 from .artifact import AndroidArtifact
-
 
 RISKY_PERMISSIONS = ["REQUEST_INSTALL_PACKAGES"]
 RISKY_PACKAGES = ["com.android.shell"]
@@ -20,9 +20,9 @@ class DumpsysAppopsArtifact(AndroidArtifact):
     Parser for dumpsys app ops info
     """
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, result: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
-        for perm in record["permissions"]:
+        for perm in result["permissions"]:
             if "entries" not in perm:
                 continue
 
@@ -33,7 +33,7 @@ class DumpsysAppopsArtifact(AndroidArtifact):
                             "timestamp": entry["timestamp"],
                             "module": self.__class__.__name__,
                             "event": entry["access"],
-                            "data": f"{record['package_name']} access to "
+                            "data": f"{result['package_name']} access to "
                             f"{perm['name']}: {entry['access']}",
                         }
                     )
@@ -43,51 +43,51 @@ class DumpsysAppopsArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         for result in self.results:
             if self.indicators:
-                ioc = self.indicators.check_app_id(result.get("package_name"))
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_app_id(result.get("package_name"))
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
-            detected_permissions = []
+            # We use a placeholder entry to create a basic alert even without permission entries.
+            placeholder_entry = {"access": "Unknown", "timestamp": ""}
+
             for perm in result["permissions"]:
                 if (
                     perm["name"] in RISKY_PERMISSIONS
                     # and perm["access"] == "allow"
                 ):
-                    detected_permissions.append(perm)
-                    for entry in sorted(perm["entries"], key=lambda x: x["timestamp"]):
-                        self.log.warning(
-                            "Package '%s' had risky permission '%s' set to '%s' at %s",
-                            result["package_name"],
-                            perm["name"],
-                            entry["access"],
+                    for entry in sorted(
+                        perm["entries"] or [placeholder_entry],
+                        key=lambda x: x["timestamp"],
+                    ):
+                        cleaned_result = result.copy()
+                        cleaned_result["permissions"] = [perm]
+                        self.alertstore.medium(
+                            f"Package '{result['package_name']}' had risky permission '{perm['name']}' set to '{entry['access']}' at {entry['timestamp']}",
                             entry["timestamp"],
+                            cleaned_result,
                         )
 
                 elif result["package_name"] in RISKY_PACKAGES:
-                    detected_permissions.append(perm)
-                    for entry in sorted(perm["entries"], key=lambda x: x["timestamp"]):
-                        self.log.warning(
-                            "Risky package '%s' had '%s' permission set to '%s' at %s",
-                            result["package_name"],
-                            perm["name"],
-                            entry["access"],
+                    for entry in sorted(
+                        perm["entries"] or [placeholder_entry],
+                        key=lambda x: x["timestamp"],
+                    ):
+                        cleaned_result = result.copy()
+                        cleaned_result["permissions"] = [perm]
+                        self.alertstore.medium(
+                            f"Risky package '{result['package_name']}' had '{perm['name']}' permission set to '{entry['access']}' at {entry['timestamp']}",
                             entry["timestamp"],
+                            cleaned_result,
                         )
 
-            if detected_permissions:
-                # We clean the result to only include the risky permission, otherwise the timeline
-                # will be polluted with all the other irrelevant permissions
-                cleaned_result = result.copy()
-                cleaned_result["permissions"] = detected_permissions
-                self.detected.append(cleaned_result)
-
     def parse(self, output: str) -> None:
-        self.results: List[Dict[str, Any]] = []
-        perm = {}
-        package = {}
-        entry = {}
+        # self.results: List[Dict[str, Any]] = []
+        perm: dict[str, Any] = {}
+        package: dict[str, Any] = {}
+        entry: dict[str, Any] = {}
         uid = None
         in_packages = False
 

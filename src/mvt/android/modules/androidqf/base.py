@@ -7,9 +7,10 @@ import fnmatch
 import logging
 import os
 import zipfile
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional
 
 from mvt.common.module import MVTModule
+from mvt.common.module_types import ModuleResults
 
 
 class AndroidQFModule(MVTModule):
@@ -22,7 +23,7 @@ class AndroidQFModule(MVTModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -32,16 +33,16 @@ class AndroidQFModule(MVTModule):
             log=log,
             results=results,
         )
-        self.parent_path = None
-        self._path: str = target_path
+        self.parent_path: Optional[str] = None
+        self._path: Optional[str] = target_path
         self.files: List[str] = []
         self.archive: Optional[zipfile.ZipFile] = None
 
-    def from_folder(self, parent_path: str, files: List[str]):
+    def from_dir(self, parent_path: str, files: List[str]) -> None:
         self.parent_path = parent_path
         self.files = files
 
-    def from_zip_file(self, archive: zipfile.ZipFile, files: List[str]):
+    def from_zip(self, archive: zipfile.ZipFile, files: List[str]) -> None:
         self.archive = archive
         self.files = files
 

@@ -3,38 +3,22 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from .dumpsys_accessibility import DumpsysAccessibility
-from .dumpsys_activities import DumpsysActivities
-from .dumpsys_appops import DumpsysAppops
-from .dumpsys_battery_daily import DumpsysBatteryDaily
-from .dumpsys_battery_history import DumpsysBatteryHistory
-from .dumpsys_dbinfo import DumpsysDBInfo
-from .dumpsys_packages import DumpsysPackages
-from .dumpsys_receivers import DumpsysReceivers
-from .dumpsys_adb import DumpsysADBState
-from .getprop import Getprop
-from .packages import Packages
-from .dumpsys_platform_compat import DumpsysPlatformCompat
-from .processes import Processes
-from .settings import Settings
+from .aqf_files import AQFFiles
+from .aqf_getprop import AQFGetProp
+from .aqf_packages import AQFPackages
+from .aqf_processes import AQFProcesses
+from .aqf_settings import AQFSettings
+from .mounts import Mounts
+from .root_binaries import RootBinaries
 from .sms import SMS
-from .files import Files
 
 ANDROIDQF_MODULES = [
-    DumpsysActivities,
-    DumpsysReceivers,
-    DumpsysAccessibility,
-    DumpsysAppops,
-    DumpsysDBInfo,
-    DumpsysBatteryDaily,
-    DumpsysBatteryHistory,
-    DumpsysADBState,
-    Packages,
-    DumpsysPlatformCompat,
-    Processes,
-    Getprop,
-    Settings,
+    AQFPackages,
+    AQFProcesses,
+    AQFGetProp,
+    AQFSettings,
+    AQFFiles,
     SMS,
-    DumpsysPackages,
-    Files,
+    RootBinaries,
+    Mounts,
 ]

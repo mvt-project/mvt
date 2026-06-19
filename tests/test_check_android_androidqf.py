@@ -32,7 +32,8 @@ class TestCheckAndroidqfCommand:
         path = os.path.join(get_artifact_folder(), "androidqf_encrypted")
         result = runner.invoke(check_androidqf, [path])
 
-        assert prompt_mock.call_count == 1
+        # Called twice, once in AnroidQF SMS module and once in Backup SMS module
+        assert prompt_mock.call_count == 2
         assert result.exit_code == 0
 
     def test_check_encrypted_backup_cli(self, mocker):

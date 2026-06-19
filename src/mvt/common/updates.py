@@ -12,9 +12,9 @@ import requests
 import yaml
 from packaging import version
 
+from .config import settings
 from .indicators import MVT_DATA_FOLDER, MVT_INDICATORS_FOLDER
 from .version import MVT_VERSION
-from .config import settings
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +24,11 @@ INDICATORS_CHECK_FREQUENCY = 12
 
 class MVTUpdates:
     def check(self) -> str:
-        res = requests.get(settings.PYPI_UPDATE_URL, timeout=15)
+        try:
+            res = requests.get(str(settings.PYPI_UPDATE_URL), timeout=5)
+        except requests.exceptions.RequestException as e:
+            log.error("Failed to check for updates, skipping updates: %s", e)
+            return ""
         data = res.json()
         latest_version = data.get("info", {}).get("version", "")
 
@@ -93,7 +97,12 @@ class IndicatorsUpdates:
         url = self.github_raw_url.format(
             self.index_owner, self.index_repo, self.index_branch, self.index_path
         )
-        res = requests.get(url, timeout=15)
+        try:
+            res = requests.get(url, timeout=5)
+        except requests.exceptions.RequestException as e:
+            log.error("Failed to retrieve indicators index from %s: %s", url, e)
+            return None
+
         if res.status_code != 200:
             log.error(
                 "Failed to retrieve indicators index located at %s (error %d)",
@@ -105,7 +114,12 @@ class IndicatorsUpdates:
         return yaml.safe_load(res.content)
 
     def download_remote_ioc(self, ioc_url: str) -> Optional[str]:
-        res = requests.get(ioc_url, timeout=15)
+        try:
+            res = requests.get(ioc_url, timeout=15)
+        except requests.exceptions.RequestException as e:
+            log.error("Failed to download indicators file from %s: %s", ioc_url, e)
+            return None
+
         if res.status_code != 200:
             log.error(
                 "Failed to download indicators file from %s (error %d)",
@@ -166,12 +180,15 @@ class IndicatorsUpdates:
     def _get_remote_file_latest_commit(
         self, owner: str, repo: str, branch: str, path: str
     ) -> int:
-        # TODO: The branch is currently not taken into consideration.
-        #       How do we specify which branch to look up to the API?
         file_commit_url = (
-            f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}"
+            f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}&sha={branch}"
         )
-        res = requests.get(file_commit_url, timeout=15)
+        try:
+            res = requests.get(file_commit_url, timeout=5)
+        except requests.exceptions.RequestException as e:
+            log.error("Failed to get details about file %s: %s", file_commit_url, e)
+            return -1
+
         if res.status_code != 200:
             log.error(
                 "Failed to get details about file %s (error %d)",
