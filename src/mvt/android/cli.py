@@ -8,6 +8,12 @@ import logging
 import click
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
+from mvt.common.completion import (
+    SUPPORTED_SHELLS,
+    completion_instructions,
+    generate_completion_script,
+    install_completion_script,
+)
 from mvt.common.help import (
     HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_CHECK_ADB_REMOVED,
@@ -17,6 +23,7 @@ from mvt.common.help import (
     HELP_MSG_CHECK_BUGREPORT,
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_CHECK_INTRUSION_LOGS,
+    HELP_MSG_COMPLETION,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_HASHES,
@@ -76,10 +83,11 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    logo(
-        disable_version_check=disable_update_check,
-        disable_indicator_check=disable_indicator_update_check,
-    )
+    if ctx.invoked_subcommand != "completion":
+        logo(
+            disable_version_check=disable_update_check,
+            disable_indicator_check=disable_indicator_update_check,
+        )
 
 
 # ==============================================================================
@@ -88,6 +96,40 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
 @cli.command("version", help=HELP_MSG_VERSION)
 def version():
     return
+
+
+# ==============================================================================
+# Command: completion
+# ==============================================================================
+@cli.command("completion", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_COMPLETION)
+@click.argument("shell", required=False, type=click.Choice(SUPPORTED_SHELLS))
+@click.option(
+    "--install",
+    is_flag=True,
+    help="Write completion files and update shell configuration.",
+)
+@click.pass_context
+def completion(ctx, shell, install):
+    program_name = "mvt-android"
+
+    if shell is None:
+        if install:
+            raise click.UsageError("A shell is required when using --install.")
+        click.echo(completion_instructions(program_name))
+        return
+
+    root_cli = ctx.find_root().command
+
+    if install:
+        script_path = install_completion_script(root_cli, program_name, shell)
+        click.echo(f"Installed {shell} completion to {script_path}")
+        if shell in ("bash", "zsh"):
+            click.echo(f"Updated ~/.{shell}rc")
+        else:
+            click.echo("Fish loads completion files automatically.")
+        return
+
+    click.echo(generate_completion_script(root_cli, program_name, shell))
 
 
 # ==============================================================================

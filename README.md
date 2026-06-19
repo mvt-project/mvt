@@ -60,6 +60,24 @@ For alternative installation options and known issues, please refer to the [docu
 
 MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
+### Shell completion
+
+MVT can generate shell completion scripts for Bash, Zsh, and Fish:
+
+```bash
+mvt-ios completion
+mvt-android completion
+```
+
+The commands print setup instructions by default. To generate a completion script directly, pass the shell name:
+
+```bash
+mvt-ios completion bash
+mvt-android completion zsh
+```
+
+MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
+
 
 ## License
 

@@ -17,6 +17,7 @@ HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
 HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
 HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
+HELP_MSG_COMPLETION = "Generate or install shell completion"
 
 # IOS Specific
 HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"
