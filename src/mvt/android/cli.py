@@ -79,7 +79,9 @@ def version():
 @click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
 @click.option("--all-apks", "-a", is_flag=True, help=HELP_MSG_DOWNLOAD_ALL_APKS)
 @click.option("--virustotal", "-V", is_flag=True, help=HELP_MSG_VIRUS_TOTAL)
-@click.option("--delay", "-d", type=int, default=16, help=HELP_MSG_DELAY_CHECKS)
+@click.option(
+    "--delay", "-d", type=click.IntRange(min=0), default=16, help=HELP_MSG_DELAY_CHECKS
+)
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_APK_OUTPUT)
 @click.option(
     "--from-file", "-f", type=click.Path(exists=True), help=HELP_MSG_APKS_FROM_FILE
@@ -116,11 +118,7 @@ def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose,
 
         if virustotal:
             m = Packages()
-            if delay:
-                m.check_virustotal(packages_to_lookup, delay)
-            else:
-                delay = 0
-                m.check_virustotal(packages_to_lookup, delay)
+            m.check_virustotal(packages_to_lookup, delay)
     except KeyboardInterrupt:
         print("")
         ctx.exit(1)

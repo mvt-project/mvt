@@ -109,7 +109,7 @@ class Packages(AndroidExtraction):
                     self.detected.append(result)
 
     @staticmethod
-    def check_virustotal(packages: list, delay: int) -> None:
+    def check_virustotal(packages: list, delay: int = 0) -> None:
         hashes = []
         for package in packages:
             for file in package.get("files", []):
@@ -129,10 +129,11 @@ class Packages(AndroidExtraction):
                 print("Unable to continue: %s", exc)
                 break
 
+            if i < total_hashes - 1 and delay > 0:
+                time.sleep(delay)
+
             if not results:
                 continue
-
-            time.sleep(delay)
 
             positives = results["attributes"]["last_analysis_stats"]["malicious"]
             total = len(results["attributes"]["last_analysis_results"])
@@ -305,10 +306,7 @@ class Packages(AndroidExtraction):
             )
 
         if not self.module_options.get("fast_mode", None):
-            if "delay" not in locals():
-                delay = 0
-
-            self.check_virustotal(packages_to_lookup, delay)
+            self.check_virustotal(packages_to_lookup)
 
         self.log.info(
             "Extracted at total of %d installed package names", len(self.results)
