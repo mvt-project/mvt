@@ -56,23 +56,24 @@ class CmdIOSCheckBackup(Command):
         self.modules = BACKUP_MODULES + MIXED_MODULES
 
     def resolve_backup_path(self) -> bool:
-        if not self.target_path:
+        target_path = getattr(self, "target_path", None)
+        if not isinstance(target_path, str) or not target_path:
             return False
 
-        if is_ios_backup_folder(self.target_path):
+        if is_ios_backup_folder(target_path):
             return True
 
-        if not os.path.isdir(self.target_path):
+        if not os.path.isdir(target_path):
             self.log.critical(
                 "%s does not appear to be an iTunes backup folder. "
                 "Expected Manifest.db and Info.plist.",
-                self.target_path,
+                target_path,
             )
             return False
 
         candidates = []
-        for entry_name in sorted(os.listdir(self.target_path)):
-            entry_path = os.path.join(self.target_path, entry_name)
+        for entry_name in sorted(os.listdir(target_path)):
+            entry_path = os.path.join(target_path, entry_name)
             if os.path.isdir(entry_path) and is_ios_backup_folder(entry_path):
                 candidates.append(entry_path)
 
@@ -84,14 +85,14 @@ class CmdIOSCheckBackup(Command):
         if candidates:
             self.log.critical(
                 "Found multiple iTunes backups in %s. Please specify one backup folder.",
-                self.target_path,
+                target_path,
             )
             return False
 
         self.log.critical(
             "%s does not appear to be an iTunes backup folder. "
             "Expected Manifest.db and Info.plist.",
-            self.target_path,
+            target_path,
         )
         return False
 
