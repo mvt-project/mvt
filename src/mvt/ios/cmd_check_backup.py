@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+import os
 from typing import Optional
 
 from mvt.common.command import Command
@@ -13,6 +14,12 @@ from .modules.backup import BACKUP_MODULES
 from .modules.mixed import MIXED_MODULES
 
 log = logging.getLogger(__name__)
+
+
+def is_ios_backup_folder(path: str) -> bool:
+    return os.path.isfile(os.path.join(path, "Manifest.db")) and os.path.isfile(
+        os.path.join(path, "Info.plist")
+    )
 
 
 class CmdIOSCheckBackup(Command):
@@ -47,6 +54,46 @@ class CmdIOSCheckBackup(Command):
 
         self.name = "check-backup"
         self.modules = BACKUP_MODULES + MIXED_MODULES
+
+    def resolve_backup_path(self) -> bool:
+        if not self.target_path:
+            return False
+
+        if is_ios_backup_folder(self.target_path):
+            return True
+
+        if not os.path.isdir(self.target_path):
+            self.log.critical(
+                "%s does not appear to be an iTunes backup folder. "
+                "Expected Manifest.db and Info.plist.",
+                self.target_path,
+            )
+            return False
+
+        candidates = []
+        for entry_name in sorted(os.listdir(self.target_path)):
+            entry_path = os.path.join(self.target_path, entry_name)
+            if os.path.isdir(entry_path) and is_ios_backup_folder(entry_path):
+                candidates.append(entry_path)
+
+        if len(candidates) == 1:
+            self.log.info("Found iTunes backup in subfolder: %s", candidates[0])
+            self.target_path = candidates[0]
+            return True
+
+        if candidates:
+            self.log.critical(
+                "Found multiple iTunes backups in %s. Please specify one backup folder.",
+                self.target_path,
+            )
+            return False
+
+        self.log.critical(
+            "%s does not appear to be an iTunes backup folder. "
+            "Expected Manifest.db and Info.plist.",
+            self.target_path,
+        )
+        return False
 
     def module_init(self, module):
         module.is_backup = True

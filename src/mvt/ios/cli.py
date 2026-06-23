@@ -254,7 +254,10 @@ def check_backup(
         cmd.list_modules()
         return
 
-    log.info("Checking iTunes backup located at: %s", backup_path)
+    if not cmd.resolve_backup_path():
+        ctx.exit(1)
+
+    log.info("Checking iTunes backup located at: %s", cmd.target_path)
 
     cmd.run()
     cmd.show_alerts_brief()
