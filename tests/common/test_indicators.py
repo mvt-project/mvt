@@ -172,6 +172,15 @@ class TestIndicators:
         assert ind.check_android_property_name("sys.foobar")
         assert ind.check_android_property_name("sys.soundsokay") is None
 
+    def test_check_app_id_no_substring_match(self, indicator_file):
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([indicator_file], load_default=False)
+        ind.ioc_collections[0]["app_ids"].append("com.android.services")
+
+        assert ind.check_app_id("com.android.services") is not None
+        assert ind.check_app_id("com.android.phone") is None
+        assert ind.check_app_id("com.android.services.telephony") is None
+
     def test_env_stix(self, indicator_file):
         os.environ["MVT_STIX2"] = indicator_file
         settings.__init__()  # Reset settings
