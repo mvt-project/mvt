@@ -58,7 +58,7 @@ class SMS(AndroidQFModule):
     def parse_backup(self, data):
         header = parse_ab_header(data)
         if not header["backup"]:
-            self.log.critical("Invalid backup format, backup.ab was not analysed")
+            self.log.warning("Invalid backup format, backup.ab was not analysed")
             return
 
         password = None
@@ -76,7 +76,7 @@ class SMS(AndroidQFModule):
             self.log.critical("Invalid backup password")
             return
         except AndroidBackupParsingError:
-            self.log.critical(
+            self.log.warning(
                 "Impossible to parse this backup file, please use"
                 " Android Backup Extractor instead"
             )
