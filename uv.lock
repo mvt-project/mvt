@@ -73,20 +73,20 @@ wheels = [
 
 [[package]]
 name = "betterproto2"
-version = "0.9.1"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/02/4ae507aa18b8aa1681ea6e9f0dec08fabd610a94ade584fd9b071d286bf1/betterproto2-0.9.1.tar.gz", hash = "sha256:59d518cfbdd316e216c3d7f53448a6956432c7bd86ab9918fd8793c88c623cce", size = 143980, upload-time = "2025-10-15T09:36:24.425Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/88/7249571b6d525968afbc70f4fc7774cee5cdd55ecebe084a0d49f75513cb/betterproto2-0.10.0.tar.gz", hash = "sha256:fa0bcc3b87b6fd9151cd0058c153e480830f55fddb5afe3fef92e842490be266", size = 16997, upload-time = "2026-05-10T13:02:19.29Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/a3/44f9d1188ee3802d2402efb121e7a9ce4c825eaa34ca739fbfb8979526a2/betterproto2-0.9.1-py3-none-any.whl", hash = "sha256:de0544b4b2b6b5a05ce0c1bfac36d232f745087b02907e748f31466becfc3dbd", size = 19562, upload-time = "2025-10-15T09:36:23.169Z" },
+    { url = "https://files.pythonhosted.org/packages/56/e8/596fde3196b253cee2c7a94df2d434b043d99c5a565fb3110468501b2562/betterproto2-0.10.0-py3-none-any.whl", hash = "sha256:be80a0cb1aee34f1b5e424db43884bde659ce1dbc323676aa0d47930e70a898b", size = 19904, upload-time = "2026-05-10T13:02:17.757Z" },
 ]
 
 [[package]]
 name = "betterproto2-compiler"
-version = "0.10.0"
+version = "0.10.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "betterproto2" },
@@ -95,9 +95,9 @@ dependencies = [
     { name = "strenum", marker = "python_full_version < '3.11'" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b8/38/cdac9ca1cde9bf8a213bc7972985565b381d4faa2214ad097f8f614977b2/betterproto2_compiler-0.10.0.tar.gz", hash = "sha256:063179e0b6732e04f792e8317ed5d2cbfa069cac4eff42a3734f203a51e47599", size = 54682, upload-time = "2026-05-10T13:03:32.821Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/12/ae/66cd7614711c73ef8654e018e8f4bc8344fbf8e1dd80241e1ee61cb91db4/betterproto2_compiler-0.10.1.tar.gz", hash = "sha256:0a6bf4673befac9916e5822598231e5885f2f570e6cb61285f6cd47085f88e81", size = 54675, upload-time = "2026-05-13T17:05:28.747Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/7e/a7f247847253983b1adbd084bbb4789ee25dd14e2a7601eb5c7aca531e19/betterproto2_compiler-0.10.0-py3-none-any.whl", hash = "sha256:075252253ca4f730b664546e2c91ab33557a98bb98141f9554ed5621eb8d25a7", size = 66884, upload-time = "2026-05-10T13:03:31.366Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/9b/4a396309d0b5e31ad7f73d74139477b518fadddbdba7c4f54bbd0fdc5350/betterproto2_compiler-0.10.1-py3-none-any.whl", hash = "sha256:0c4666d40a9fe31331b5ab4cfd0367d70f4bf04d273127e14cd23b221e93575d", size = 66888, upload-time = "2026-05-13T17:05:27.301Z" },
 ]
 
 [[package]]
@@ -934,7 +934,7 @@ docs = [
 requires-dist = [
     { name = "adb-shell", extras = ["usb"], specifier = "==0.4.4" },
     { name = "appdirs", specifier = "==1.4.4" },
-    { name = "betterproto2", specifier = "==0.9.1" },
+    { name = "betterproto2", specifier = "==0.10.0" },
     { name = "click", specifier = "==8.3.3" },
     { name = "cryptography", specifier = "==47.0.0" },
     { name = "iosbackup", specifier = "==0.9.925" },
