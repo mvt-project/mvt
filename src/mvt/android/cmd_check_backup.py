@@ -21,10 +21,15 @@ from mvt.android.parsers.backup import (
 )
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
 
 from .modules.backup import BACKUP_MODULES
 
 log = logging.getLogger(__name__)
+
+
+class InvalidAndroidBackup(Exception):
+    pass
 
 
 class CmdAndroidCheckBackup(Command):
@@ -41,6 +46,7 @@ class CmdAndroidCheckBackup(Command):
         sub_command: Optional[bool] = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -55,8 +61,10 @@ class CmdAndroidCheckBackup(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = "android"
         self.name = "check-backup"
         self.modules = BACKUP_MODULES
 
@@ -68,6 +76,10 @@ class CmdAndroidCheckBackup(Command):
         self.__type = "ab"
         header = parse_ab_header(ab_file_bytes)
         if not header["backup"]:
+            if self.sub_command:
+                raise InvalidAndroidBackup(
+                    "Invalid backup format, file should be in .ab format"
+                )
             log.critical("Invalid backup format, file should be in .ab format")
             sys.exit(1)
 
@@ -83,12 +95,25 @@ class CmdAndroidCheckBackup(Command):
             log.critical("Invalid backup password")
             sys.exit(1)
         except AndroidBackupParsingError as exc:
+            if self.sub_command:
+                raise InvalidAndroidBackup(
+                    f"Impossible to parse this backup file: {exc}"
+                ) from exc
             log.critical("Impossible to parse this backup file: %s", exc)
             log.critical("Please use Android Backup Extractor (ABE) instead")
             sys.exit(1)
 
         dbytes = io.BytesIO(tardata)
-        self.__tar = tarfile.open(fileobj=dbytes)
+        try:
+            self.__tar = tarfile.open(fileobj=dbytes)
+        except tarfile.TarError as exc:
+            if self.sub_command:
+                raise InvalidAndroidBackup(
+                    f"Impossible to parse this backup file: {exc}"
+                ) from exc
+            log.critical("Impossible to parse this backup file: %s", exc)
+            log.critical("Please use Android Backup Extractor (ABE) instead")
+            sys.exit(1)
         for member in self.__tar:
             self.__files.append(member.name)
 

@@ -19,6 +19,7 @@ from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
+from .module_loader import module_supports_command
 from .module_types import ModuleTimeline
 from .utils import (
     CustomJSONEncoder,
@@ -44,9 +45,12 @@ class Command:
         log: logging.Logger = logging.getLogger(__name__),
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         self.name = ""
+        self.platform = ""
         self.modules: list[type[MVTModule]] = []
+        self.custom_modules = custom_modules if custom_modules else []
 
         self.target_path = target_path
         self.results_path = results_path
@@ -199,8 +203,23 @@ class Command:
 
     def list_modules(self) -> None:
         self.log.info("Following is the list of available %s modules:", self.name)
-        for module in self.modules:
+        for module in self._available_modules():
             self.log.info(" - %s", module.__name__)
+
+    def _available_modules(self) -> list[type[MVTModule]]:
+        modules = list(self.modules)
+        modules.extend(
+            module
+            for module in self.custom_modules
+            if module_supports_command(module, self.platform, self.name)
+        )
+
+        deduplicated = []
+        for module in modules:
+            if module not in deduplicated:
+                deduplicated.append(module)
+
+        return deduplicated
 
     def init(self) -> None:
         raise NotImplementedError
@@ -262,14 +281,15 @@ class Command:
 
     def _ordered_modules(self) -> Optional[list[type[MVTModule]]]:
         """Return enabled modules in stable topological order."""
-        module_indexes = {module: index for index, module in enumerate(self.modules)}
+        modules = self._available_modules()
+        module_indexes = {module: index for index, module in enumerate(modules)}
 
         if self.module_name:
             selected = [
-                module for module in self.modules if module.__name__ == self.module_name
+                module for module in modules if module.__name__ == self.module_name
             ]
         else:
-            selected = [module for module in self.modules if module.enabled]
+            selected = [module for module in modules if module.enabled]
 
         required = set(selected)
         pending = list(selected)

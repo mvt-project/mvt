@@ -10,6 +10,10 @@ HELP_MSG_IOC = "Path to indicators file (can be invoked multiple time)"
 HELP_MSG_FAST = "Avoid running time/resource consuming features"
 HELP_MSG_LIST_MODULES = "Print list of available modules and exit"
 HELP_MSG_MODULE = "Name of a single module you would like to run instead of all"
+HELP_MSG_LOAD_MODULE = (
+    "Load custom MVT module(s) from a Python file or folder "
+    "(can be invoked multiple times)"
+)
 HELP_MSG_NONINTERACTIVE = "Don't ask interactive questions during processing"
 HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"
@@ -17,6 +21,7 @@ HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
 HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
 HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
+HELP_MSG_COMPLETION = "Generate or install shell completion"
 
 # IOS Specific
 HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"

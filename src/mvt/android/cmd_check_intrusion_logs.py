@@ -9,6 +9,7 @@ from typing import Optional
 
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
 
 from .modules.intrusion_logs import (
     INTRUSION_LOGS_MODULES,
@@ -35,6 +36,7 @@ class CmdAndroidCheckIntrusionLogs(Command):
         sub_command: Optional[bool] = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -49,8 +51,10 @@ class CmdAndroidCheckIntrusionLogs(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = "android"
         self.name = "check-intrusion-logs"
         self.modules = INTRUSION_LOGS_MODULES
         self._all_events: dict[str, list[dict]] = {}

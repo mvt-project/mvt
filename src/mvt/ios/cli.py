@@ -11,6 +11,12 @@ import click
 from rich.prompt import Prompt
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
+from mvt.common.completion import (
+    SUPPORTED_SHELLS,
+    completion_instructions,
+    generate_completion_script,
+    install_completion_script,
+)
 from mvt.common.logo import logo
 from mvt.common.options import MutuallyExclusiveOption
 from mvt.common.updates import IndicatorsUpdates
@@ -31,6 +37,7 @@ from mvt.common.help import (
     HELP_MSG_OUTPUT,
     HELP_MSG_FAST,
     HELP_MSG_LIST_MODULES,
+    HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
     HELP_MSG_VERBOSE,
     HELP_MSG_CHECK_FS,
@@ -39,7 +46,9 @@ from mvt.common.help import (
     HELP_MSG_CHECK_IOS_BACKUP,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
+    HELP_MSG_COMPLETION,
 )
+from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
 from .decrypt import DecryptBackup
@@ -65,6 +74,13 @@ def _get_disable_flags(ctx):
     )
 
 
+def _load_custom_modules(load_module):
+    try:
+        return load_custom_modules(load_module)
+    except CustomModuleLoadError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
@@ -82,10 +98,11 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    logo(
-        disable_version_check=disable_update_check,
-        disable_indicator_check=disable_indicator_update_check,
-    )
+    if ctx.invoked_subcommand != "completion":
+        logo(
+            disable_version_check=disable_update_check,
+            disable_indicator_check=disable_indicator_update_check,
+        )
 
 
 # ==============================================================================
@@ -94,6 +111,40 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
 @cli.command("version", help=HELP_MSG_VERSION)
 def version():
     return
+
+
+# ==============================================================================
+# Command: completion
+# ==============================================================================
+@cli.command("completion", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_COMPLETION)
+@click.argument("shell", required=False, type=click.Choice(SUPPORTED_SHELLS))
+@click.option(
+    "--install",
+    is_flag=True,
+    help="Write completion files and update shell configuration.",
+)
+@click.pass_context
+def completion(ctx, shell, install):
+    program_name = "mvt-ios"
+
+    if shell is None:
+        if install:
+            raise click.UsageError("A shell is required when using --install.")
+        click.echo(completion_instructions(program_name))
+        return
+
+    root_cli = ctx.find_root().command
+
+    if install:
+        script_path = install_completion_script(root_cli, program_name, shell)
+        click.echo(f"Installed {shell} completion to {script_path}")
+        if shell in ("bash", "zsh"):
+            click.echo(f"Updated ~/.{shell}rc")
+        else:
+            click.echo("Fish loads completion files automatically.")
+        return
+
+    click.echo(generate_completion_script(root_cli, program_name, shell))
 
 
 # ==============================================================================
@@ -229,15 +280,32 @@ def extract_key(password, key_file, backup_path):
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
-    ctx, iocs, output, fast, list_modules, module, hashes, verbose, backup_path
+    ctx,
+    iocs,
+    output,
+    fast,
+    list_modules,
+    module,
+    load_module,
+    hashes,
+    verbose,
+    backup_path,
 ):
     set_verbose_logging(verbose)
     module_options = {"fast_mode": fast}
+    custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdIOSCheckBackup(
         target_path=backup_path,
@@ -248,6 +316,7 @@ def check_backup(
         hashes=hashes,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -277,13 +346,32 @@ def check_backup(
 @click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dump_path):
+def check_fs(
+    ctx,
+    iocs,
+    output,
+    fast,
+    list_modules,
+    module,
+    load_module,
+    hashes,
+    verbose,
+    dump_path,
+):
     set_verbose_logging(verbose)
     module_options = {"fast_mode": fast}
+    custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdIOSCheckFS(
         target_path=dump_path,
@@ -294,6 +382,7 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
         hashes=hashes,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -321,15 +410,25 @@ def check_fs(ctx, iocs, output, fast, list_modules, module, hashes, verbose, dum
 )
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
-def check_iocs(ctx, iocs, list_modules, module, folder):
+def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
+    custom_modules = _load_custom_modules(load_module)
     cmd = CmdCheckIOCS(
         target_path=folder,
         ioc_files=iocs,
         module_name=module,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+        platform="ios",
     )
     cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES
 

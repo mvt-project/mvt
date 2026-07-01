@@ -8,6 +8,12 @@ import logging
 import click
 
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
+from mvt.common.completion import (
+    SUPPORTED_SHELLS,
+    completion_instructions,
+    generate_completion_script,
+    install_completion_script,
+)
 from mvt.common.help import (
     HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_CHECK_ADB_REMOVED,
@@ -18,11 +24,13 @@ from mvt.common.help import (
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_CHECK_INTRUSION_LOGS,
     HELP_MSG_DELAY_CHECKS,
+    HELP_MSG_COMPLETION,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_HASHES,
     HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
+    HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
     HELP_MSG_NONINTERACTIVE,
     HELP_MSG_OUTPUT,
@@ -32,6 +40,7 @@ from mvt.common.help import (
     HELP_MSG_VIRUS_TOTAL,
 )
 from mvt.common.logo import logo
+from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
 from mvt.common.updates import IndicatorsUpdates
 from mvt.common.utils import init_logging, set_verbose_logging
 
@@ -61,6 +70,13 @@ def _get_disable_flags(ctx):
     )
 
 
+def _load_custom_modules(load_module):
+    try:
+        return load_custom_modules(load_module)
+    except CustomModuleLoadError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
@@ -78,10 +94,11 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    logo(
-        disable_version_check=disable_update_check,
-        disable_indicator_check=disable_indicator_update_check,
-    )
+    if ctx.invoked_subcommand != "completion":
+        logo(
+            disable_version_check=disable_update_check,
+            disable_indicator_check=disable_indicator_update_check,
+        )
 
 
 # ==============================================================================
@@ -90,6 +107,40 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
 @cli.command("version", help=HELP_MSG_VERSION)
 def version():
     return
+
+
+# ==============================================================================
+# Command: completion
+# ==============================================================================
+@cli.command("completion", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_COMPLETION)
+@click.argument("shell", required=False, type=click.Choice(SUPPORTED_SHELLS))
+@click.option(
+    "--install",
+    is_flag=True,
+    help="Write completion files and update shell configuration.",
+)
+@click.pass_context
+def completion(ctx, shell, install):
+    program_name = "mvt-android"
+
+    if shell is None:
+        if install:
+            raise click.UsageError("A shell is required when using --install.")
+        click.echo(completion_instructions(program_name))
+        return
+
+    root_cli = ctx.find_root().command
+
+    if install:
+        script_path = install_completion_script(root_cli, program_name, shell)
+        click.echo(f"Installed {shell} completion to {script_path}")
+        if shell in ("bash", "zsh"):
+            click.echo(f"Updated ~/.{shell}rc")
+        else:
+            click.echo("Fish loads completion files automatically.")
+        return
+
+    click.echo(generate_completion_script(root_cli, program_name, shell))
 
 
 # ==============================================================================
@@ -121,11 +172,28 @@ def check_adb(ctx):
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_path):
+def check_bugreport(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    load_module,
+    verbose,
+    bugreport_path,
+):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(
         target_path=bugreport_path,
@@ -135,6 +203,7 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
         hashes=True,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -166,6 +235,13 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 )
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
@@ -176,12 +252,14 @@ def check_backup(
     iocs,
     output,
     list_modules,
+    load_module,
     non_interactive,
     backup_password,
     verbose,
     backup_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(
@@ -195,6 +273,7 @@ def check_backup(
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -225,6 +304,13 @@ def check_backup(
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--virustotal", "-V", is_flag=True, help=HELP_MSG_VIRUS_TOTAL)
 @click.option(
@@ -241,6 +327,7 @@ def check_androidqf(
     output,
     list_modules,
     module,
+    load_module,
     hashes,
     virustotal,
     delay,
@@ -250,6 +337,7 @@ def check_androidqf(
     androidqf_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdAndroidCheckAndroidQF(
         target_path=androidqf_path,
@@ -265,6 +353,7 @@ def check_androidqf(
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -299,6 +388,13 @@ def check_androidqf(
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
+@click.option(
     "--timezone",
     "-t",
     default=None,
@@ -317,11 +413,13 @@ def check_intrusion_logs(
     output,
     list_modules,
     module,
+    load_module,
     timezone,
     verbose,
     logs_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     module_options = {}
     if timezone:
@@ -335,6 +433,7 @@ def check_intrusion_logs(
         module_options=module_options if module_options else None,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -362,15 +461,25 @@ def check_intrusion_logs(
 )
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
-def check_iocs(ctx, iocs, list_modules, module, folder):
+def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
+    custom_modules = _load_custom_modules(load_module)
     cmd = CmdCheckIOCS(
         target_path=folder,
         ioc_files=iocs,
         module_name=module,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+        platform="android",
     )
     cmd.modules = (
         BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES + INTRUSION_LOGS_MODULES
