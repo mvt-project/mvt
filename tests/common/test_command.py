@@ -42,6 +42,19 @@ class IndependentModule(RecordingModule):
     pass
 
 
+class CustomIOSBackupModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+
+
+class CustomIOSFSModule(RecordingModule):
+    supported_commands = (("ios", "check-fs"),)
+
+
+class CustomDependsOnBuiltin(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    dependencies = (FirstModule,)
+
+
 class RecordingCommand(Command):
     def init(self):
         self.initialized = True
@@ -132,3 +145,46 @@ class TestCommand:
         assert RecordingModule.run_order == []
         assert not hasattr(cmd, "initialized")
         assert "depends on unavailable module UnavailableModule" in caplog.text
+
+    def test_custom_modules_are_filtered_before_ordering(self):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [CustomIOSBackupModule, CustomIOSFSModule]
+
+        assert [module.__name__ for module in cmd._ordered_modules()] == [
+            "FirstModule",
+            "CustomIOSBackupModule",
+        ]
+
+    def test_selected_custom_module_runs(self):
+        cmd = RecordingCommand(module_name="CustomIOSBackupModule")
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.custom_modules = [CustomIOSBackupModule]
+
+        cmd.run()
+
+        assert RecordingModule.run_order == ["CustomIOSBackupModule"]
+
+    def test_selected_unsupported_custom_module_does_not_run(self):
+        cmd = RecordingCommand(module_name="CustomIOSFSModule")
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.custom_modules = [CustomIOSFSModule]
+
+        cmd.run()
+
+        assert RecordingModule.run_order == []
+
+    def test_custom_module_dependencies_use_topological_order(self):
+        cmd = RecordingCommand(module_name="CustomDependsOnBuiltin")
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [SecondModule, FirstModule]
+        cmd.custom_modules = [CustomDependsOnBuiltin]
+
+        cmd.run()
+
+        assert RecordingModule.run_order == ["FirstModule", "CustomDependsOnBuiltin"]

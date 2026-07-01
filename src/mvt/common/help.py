@@ -10,6 +10,10 @@ HELP_MSG_IOC = "Path to indicators file (can be invoked multiple time)"
 HELP_MSG_FAST = "Avoid running time/resource consuming features"
 HELP_MSG_LIST_MODULES = "Print list of available modules and exit"
 HELP_MSG_MODULE = "Name of a single module you would like to run instead of all"
+HELP_MSG_LOAD_MODULE = (
+    "Load custom MVT module(s) from a Python file or folder "
+    "(can be invoked multiple times)"
+)
 HELP_MSG_NONINTERACTIVE = "Don't ask interactive questions during processing"
 HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"

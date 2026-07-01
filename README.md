@@ -77,6 +77,10 @@ mvt-android completion zsh
 ```
 
 MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
+Module-running `check-*` commands can load custom Python modules with
+`--load-module PATH` or from a folder set in `MVT_CUSTOM_MODULES`. See the
+[development documentation](https://docs.mvt.re/en/latest/development/) for
+details.
 
 
 ## License

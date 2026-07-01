@@ -29,6 +29,7 @@ from mvt.common.help import (
     HELP_MSG_HASHES,
     HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
+    HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
     HELP_MSG_NONINTERACTIVE,
     HELP_MSG_OUTPUT,
@@ -37,6 +38,7 @@ from mvt.common.help import (
     HELP_MSG_VERSION,
 )
 from mvt.common.logo import logo
+from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
 from mvt.common.updates import IndicatorsUpdates
 from mvt.common.utils import init_logging, set_verbose_logging
 
@@ -64,6 +66,13 @@ def _get_disable_flags(ctx):
         ctx.obj.get("disable_version_check", False),
         ctx.obj.get("disable_indicator_check", False),
     )
+
+
+def _load_custom_modules(load_module):
+    try:
+        return load_custom_modules(load_module)
+    except CustomModuleLoadError as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 # ==============================================================================
@@ -161,11 +170,28 @@ def check_adb(ctx):
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_path):
+def check_bugreport(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    load_module,
+    verbose,
+    bugreport_path,
+):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(
         target_path=bugreport_path,
@@ -175,6 +201,7 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
         hashes=True,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -206,6 +233,13 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 )
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
@@ -216,12 +250,14 @@ def check_backup(
     iocs,
     output,
     list_modules,
+    load_module,
     non_interactive,
     backup_password,
     verbose,
     backup_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(
@@ -235,6 +271,7 @@ def check_backup(
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -265,6 +302,13 @@ def check_backup(
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
@@ -277,6 +321,7 @@ def check_androidqf(
     output,
     list_modules,
     module,
+    load_module,
     hashes,
     non_interactive,
     backup_password,
@@ -284,6 +329,7 @@ def check_androidqf(
     androidqf_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdAndroidCheckAndroidQF(
         target_path=androidqf_path,
@@ -297,6 +343,7 @@ def check_androidqf(
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -331,6 +378,13 @@ def check_androidqf(
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
 @click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
+@click.option(
     "--timezone",
     "-t",
     default=None,
@@ -349,11 +403,13 @@ def check_intrusion_logs(
     output,
     list_modules,
     module,
+    load_module,
     timezone,
     verbose,
     logs_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     module_options = {}
     if timezone:
@@ -367,6 +423,7 @@ def check_intrusion_logs(
         module_options=module_options if module_options else None,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -394,15 +451,25 @@ def check_intrusion_logs(
 )
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
-def check_iocs(ctx, iocs, list_modules, module, folder):
+def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
+    custom_modules = _load_custom_modules(load_module)
     cmd = CmdCheckIOCS(
         target_path=folder,
         ioc_files=iocs,
         module_name=module,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+        platform="android",
     )
     cmd.modules = (
         BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES + INTRUSION_LOGS_MODULES
