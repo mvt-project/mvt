@@ -44,6 +44,7 @@ class MVTModule:
     enabled: bool = True
     slug: Optional[str] = None
     dependencies: Sequence[type["MVTModule"]] = ()
+    supported_commands: Sequence[tuple[str, str]] = ()
 
     def __init__(
         self,
