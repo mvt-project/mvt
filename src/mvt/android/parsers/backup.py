@@ -48,13 +48,16 @@ def parse_ab_header(data):
         'encryption': "none", 'version': 4}
     """
     if data.startswith(b"ANDROID BACKUP"):
-        [_, version, is_compressed, encryption, _] = data.split(b"\n", 4)
-        return {
-            "backup": True,
-            "compression": (is_compressed == b"1"),
-            "version": int(version),
-            "encryption": encryption.decode("utf-8"),
-        }
+        try:
+            [_, version, is_compressed, encryption, _] = data.split(b"\n", 4)
+            return {
+                "backup": True,
+                "compression": (is_compressed == b"1"),
+                "version": int(version),
+                "encryption": encryption.decode("utf-8"),
+            }
+        except (UnicodeDecodeError, ValueError):
+            pass
 
     return {"backup": False, "compression": None, "version": None, "encryption": None}
 

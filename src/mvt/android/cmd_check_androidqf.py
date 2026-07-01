@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from mvt.android.artifacts.getprop import GetProp
 from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
-from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
+from mvt.android.cmd_check_backup import CmdAndroidCheckBackup, InvalidAndroidBackup
 from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
@@ -246,7 +246,14 @@ class CmdAndroidCheckAndroidQF(Command):
             sub_command=True,
             custom_modules=self.custom_modules,
         )
-        cmd.from_ab(backup)
+        try:
+            cmd.from_ab(backup)
+        except InvalidAndroidBackup as exc:
+            self.log.warning(
+                "Skipping backup modules as backup.ab is malformed: %s", exc
+            )
+            return False
+
         cmd.run()
 
         self.timeline.extend(cmd.timeline)
