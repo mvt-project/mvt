@@ -23,6 +23,7 @@ from mvt.common.help import (
     HELP_MSG_CHECK_BUGREPORT,
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_CHECK_INTRUSION_LOGS,
+    HELP_MSG_DELAY_CHECKS,
     HELP_MSG_COMPLETION,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
@@ -36,6 +37,7 @@ from mvt.common.help import (
     HELP_MSG_STIX2,
     HELP_MSG_VERBOSE,
     HELP_MSG_VERSION,
+    HELP_MSG_VIRUS_TOTAL,
 )
 from mvt.common.logo import logo
 from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
@@ -310,6 +312,10 @@ def check_backup(
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--virustotal", "-V", is_flag=True, help=HELP_MSG_VIRUS_TOTAL)
+@click.option(
+    "--delay", "-d", type=click.IntRange(min=0), default=16, help=HELP_MSG_DELAY_CHECKS
+)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
@@ -323,6 +329,8 @@ def check_androidqf(
     module,
     load_module,
     hashes,
+    virustotal,
+    delay,
     non_interactive,
     backup_password,
     verbose,
@@ -340,6 +348,8 @@ def check_androidqf(
         module_options={
             "interactive": not non_interactive,
             "backup_password": cli_load_android_backup_password(log, backup_password),
+            "virustotal": virustotal,
+            "virustotal_delay": delay,
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
