@@ -1,0 +1,16 @@
+ACCESSIBILITY MANAGER (dumpsys accessibility)
+
+currentUserId=0
+User state[
+     attributes:{id=0, touchExplorationEnabled=false, installedServiceCount=5}
+     installed services: {
+      0 : com.google.android.apps.accessibility.voiceaccess/.JustSpeakService  (A11yTool)
+      1 : com.microsoft.appmanager/com.microsoft.mmx.screenmirroringsrc.accessibility.ScreenMirroringAccessibilityService
+      2 : com.samsung.accessibility/.assistantmenu.serviceframework.AssistantMenuService  (A11yTool)
+      3 : com.samsung.accessibility/.universalswitch.UniversalSwitchService  (A11yTool)
+      4 : com.samsung.android.accessibility.talkback/com.samsung.android.marvin.talkback.TalkBackService  (A11yTool)
+     }
+     Bound services:{}
+     Enabled services:{{com.samsung.accessibility/.universalswitch.UniversalSwitchService}}
+     Binding services:{}
+     Crashed services:{}
