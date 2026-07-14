@@ -6,6 +6,7 @@
 import logging
 from typing import Optional
 
+from mvt.common.module import DatabaseNotFoundError
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
@@ -17,6 +18,7 @@ from ..base import IOSExtraction
 
 SHUTDOWN_LOG_PATH = [
     "private/var/db/diagnostics/shutdown.log",
+    "private/var/db/diagnostics/shutdown.*.log",
 ]
 
 
@@ -132,10 +134,17 @@ class ShutdownLog(IOSExtraction):
         self.results = sorted(self.results, key=lambda entry: entry["isodate"])
 
     def run(self) -> None:
-        self._find_ios_database(root_paths=SHUTDOWN_LOG_PATH)
-        self.log.info("Found shutdown log at path: %s", self.file_path)
+        if self.file_path:
+            shutdown_log_paths = [self.file_path]
+        else:
+            shutdown_log_paths = sorted(
+                self._get_fs_files_from_patterns(SHUTDOWN_LOG_PATH)
+            )
 
-        if not self.file_path:
-            return
-        with open(self.file_path, "r", encoding="utf-8") as handle:
-            self.process_shutdownlog(handle.read())
+        if not shutdown_log_paths:
+            raise DatabaseNotFoundError("unable to find any shutdown log files")
+
+        for shutdown_log_path in shutdown_log_paths:
+            self.log.info("Found shutdown log at path: %s", shutdown_log_path)
+            with open(shutdown_log_path, "r", encoding="utf-8") as handle:
+                self.process_shutdownlog(handle.read())

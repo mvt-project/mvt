@@ -35,6 +35,7 @@ def indicators_factory(indicator_file):
         domains=[],
         emails=[],
         file_names=[],
+        file_paths=[],
         processes=[],
         app_ids=[],
         app_cert_hashes=[],
@@ -47,6 +48,7 @@ def indicators_factory(indicator_file):
         ind.ioc_collections[0]["domains"].extend(domains)
         ind.ioc_collections[0]["emails"].extend(emails)
         ind.ioc_collections[0]["file_names"].extend(file_names)
+        ind.ioc_collections[0]["file_paths"].extend(file_paths)
         ind.ioc_collections[0]["processes"].extend(processes)
         ind.ioc_collections[0]["app_ids"].extend(app_ids)
         ind.ioc_collections[0]["android_property_names"].extend(android_property_names)
