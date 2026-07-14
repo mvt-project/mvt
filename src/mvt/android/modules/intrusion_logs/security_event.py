@@ -270,6 +270,11 @@ SECURITY_EVENT_METADATA_KEYS = {
     "timestamp",
 }
 
+# Known platform failures that remain in the timeline but do not need a warning.
+KNOWN_BENIGN_KEY_GENERATION_FAILURES = {
+    ("PinStorage_crossReboot_key", 1001),
+}
+
 
 class SecurityEvent(IntrusionLogsModule):
     """This module analyzes security events from intrusion logs."""
@@ -400,10 +405,17 @@ class SecurityEvent(IntrusionLogsModule):
         independent of any loaded indicators."""
         # Flag failed cryptographic operations as potentially suspicious
         if "key_generated" in result:
-            if not result["key_generated"].get("success", True):
+            key_info = result["key_generated"]
+            key_id = key_info.get("key_id", "unknown")
+            uid = key_info.get("uid")
+            is_known_benign_failure = (
+                key_id,
+                uid,
+            ) in KNOWN_BENIGN_KEY_GENERATION_FAILURES
+            if not key_info.get("success", True) and not is_known_benign_failure:
                 self.log.warning(
                     "Failed key generation detected for key_id: %s",
-                    result["key_generated"].get("key_id", "unknown"),
+                    key_id,
                 )
 
         # Flag certificate validation failures
