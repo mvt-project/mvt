@@ -50,6 +50,10 @@ class CustomIOSFSModule(RecordingModule):
     supported_commands = (("ios", "check-fs"),)
 
 
+class UnscopedCustomModule(RecordingModule):
+    pass
+
+
 class CustomDependsOnBuiltin(RecordingModule):
     supported_commands = (("ios", "check-backup"),)
     dependencies = (FirstModule,)
@@ -151,7 +155,11 @@ class TestCommand:
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.modules = [FirstModule]
-        cmd.custom_modules = [CustomIOSBackupModule, CustomIOSFSModule]
+        cmd.custom_modules = [
+            CustomIOSBackupModule,
+            CustomIOSFSModule,
+            UnscopedCustomModule,
+        ]
 
         assert [module.__name__ for module in cmd._ordered_modules()] == [
             "FirstModule",

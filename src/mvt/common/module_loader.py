@@ -6,6 +6,7 @@
 import hashlib
 import importlib.util
 import inspect
+import logging
 import os
 import sys
 from pathlib import Path
@@ -15,6 +16,7 @@ from typing import Iterable, Optional
 from .module import MVTModule
 
 MVT_CUSTOM_MODULES_ENV = "MVT_CUSTOM_MODULES"
+log = logging.getLogger(__name__)
 
 
 class CustomModuleLoadError(Exception):
@@ -122,6 +124,11 @@ def module_supports_command(
 ) -> bool:
     supported_commands = getattr(module_class, "supported_commands", None)
     if not supported_commands:
-        return True
+        log.warning(
+            "Custom module %s has no supported_commands and will not be run. "
+            "Declare the platform/command pairs it supports.",
+            module_class.__name__,
+        )
+        return False
 
     return (platform, command) in {tuple(entry) for entry in supported_commands}
