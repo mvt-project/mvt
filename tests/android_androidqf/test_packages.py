@@ -7,8 +7,11 @@ import logging
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
+from mvt.android.cli import check_androidqf
 from mvt.android.modules.androidqf.aqf_packages import AQFPackages
+from mvt.android.modules.androidqf import aqf_packages as aqf_packages_module
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf, list_files
@@ -132,3 +135,55 @@ class TestAndroidqfPackages:
             possible_detected_app[0].matched_indicator.value
             == "c7e56178748be1441370416d4c10e34817ea0c961eb636c8e9d98e0fd79bf730"
         )
+
+    def test_virustotal_delays_after_missing_result(self, monkeypatch):
+        lookups = []
+        sleeps = []
+
+        def fake_virustotal_lookup(file_hash):
+            lookups.append(file_hash)
+            if file_hash == "missing_hash":
+                return None
+            return {
+                "attributes": {
+                    "last_analysis_stats": {"malicious": 1},
+                    "last_analysis_results": {"engine": {}},
+                }
+            }
+
+        monkeypatch.setattr(
+            aqf_packages_module, "virustotal_lookup", fake_virustotal_lookup
+        )
+        monkeypatch.setattr(aqf_packages_module.time, "sleep", sleeps.append)
+
+        module = AQFPackages(
+            module_options={"virustotal": True, "virustotal_delay": 16},
+            results=[
+                {
+                    "name": "org.example",
+                    "installer": "com.android.vending",
+                    "disabled": False,
+                    "system": False,
+                    "files": [
+                        {"path": "/data/app/missing.apk", "sha256": "missing_hash"},
+                        {"path": "/data/app/found.apk", "sha256": "found_hash"},
+                    ],
+                }
+            ],
+        )
+
+        module.check_indicators()
+
+        assert lookups == ["missing_hash", "found_hash"]
+        assert sleeps == [16]
+        assert module.results[0]["files"][1]["virustotal"] == "1/1"
+        assert len(module.alertstore.alerts) == 1
+
+
+def test_check_androidqf_rejects_negative_virustotal_delay(data_path):
+    runner = CliRunner()
+
+    result = runner.invoke(check_androidqf, ["--delay", "-1", data_path])
+
+    assert result.exit_code == 2
+    assert "Invalid value for '--delay'" in result.output

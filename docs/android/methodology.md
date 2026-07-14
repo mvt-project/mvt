@@ -38,6 +38,22 @@ By separating artifact collection from forensic analysis, this approach ensures 
 
 For more information, refer to the [AndroidQF project documentation](https://github.com/mvt-project/androidqf).
 
+### VirusTotal package lookups
+
+AndroidQF records APK file hashes in `packages.json`. MVT can optionally look up non-system APK hashes on VirusTotal while checking an AndroidQF acquisition:
+
+```bash
+MVT_VT_API_KEY=<key> mvt-android check-androidqf --virustotal /path/to/androidqf-output
+```
+
+The `--virustotal` option is disabled by default because it sends APK hashes to VirusTotal and requires network access. It uses the `VT_API_KEY` MVT configuration value, which can also be provided through the `MVT_VT_API_KEY` environment variable.
+
+To avoid exhausting free VirusTotal API quotas, MVT waits 16 seconds between package hash requests by default. Use `--delay` to change the delay, or `--delay 0` to disable throttling:
+
+```bash
+mvt-android check-androidqf --virustotal --delay 30 /path/to/androidqf-output
+```
+
 ## Android Intrusion Logs
 
 On devices where the user has opted into Android's [**Advanced Protection Mode**](https://support.google.com/android/answer/16339980) and turned on the optional Intrusion Logging featrue, Android can create and archive structured *Intrusion Logs* in an encrypted format. These logs record DNS queries, outbound network connections, process starts, ADB activity and other security-relevant events, and are a high-fidelity complement to the rest of an AndroidQF acquisition. The logs are generated on-device and encrypted before being stored in the Google account associated with the device. The encryption key is protected by the user device PIN. The intrusion log data is not accessible to Google.

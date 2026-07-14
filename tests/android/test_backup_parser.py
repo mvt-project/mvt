@@ -5,12 +5,24 @@
 
 import hashlib
 
-from mvt.android.parsers.backup import parse_backup_file, parse_tar_for_sms
+from mvt.android.parsers.backup import (
+    parse_ab_header,
+    parse_backup_file,
+    parse_tar_for_sms,
+)
 
 from ..utils import get_artifact
 
 
 class TestBackupParsing:
+    def test_parse_incomplete_header(self):
+        assert parse_ab_header(b"ANDROID BACKUP\n") == {
+            "backup": False,
+            "compression": None,
+            "version": None,
+            "encryption": None,
+        }
+
     def test_parsing_noencryption(self):
         file = get_artifact("android_backup/backup.ab")
         with open(file, "rb") as f:

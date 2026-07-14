@@ -3,7 +3,9 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
 import os
+import shutil
 
 from click.testing import CliRunner
 
@@ -68,3 +70,18 @@ class TestCheckAndroidqfCommand:
         assert result.exit_code == 0
         del os.environ["MVT_ANDROID_BACKUP_PASSWORD"]
         settings.__init__()  # Reset settings
+
+    def test_check_malformed_backup_skips_backup_modules(self, tmp_path, caplog):
+        path = tmp_path / "androidqf"
+        shutil.copytree(os.path.join(get_artifact_folder(), "androidqf"), path)
+        (path / "backup.ab").write_bytes(b"")
+
+        runner = CliRunner()
+        with caplog.at_level(logging.WARNING):
+            result = runner.invoke(check_androidqf, [str(path)])
+
+        assert result.exit_code == 0
+        assert "Skipping backup modules as backup.ab is malformed" in caplog.text
+        assert not any(
+            record.levelname in {"CRITICAL", "FATAL"} for record in caplog.records
+        )

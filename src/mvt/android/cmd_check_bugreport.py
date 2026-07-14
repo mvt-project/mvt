@@ -12,6 +12,7 @@ from zipfile import ZipFile
 from mvt.android.modules.bugreport.base import BugReportModule
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
 
 from .modules.bugreport import BUGREPORT_MODULES
 
@@ -32,6 +33,7 @@ class CmdAndroidCheckBugreport(Command):
         sub_command: Optional[bool] = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -46,8 +48,10 @@ class CmdAndroidCheckBugreport(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = "android"
         self.name = "check-bugreport"
         self.modules = BUGREPORT_MODULES
 
