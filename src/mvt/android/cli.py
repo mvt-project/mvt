@@ -29,6 +29,7 @@ from mvt.common.help import (
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_HASHES,
     HELP_MSG_IOC,
+    HELP_MSG_JOBS,
     HELP_MSG_LIST_MODULES,
     HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
@@ -180,6 +181,9 @@ def check_adb(ctx):
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option(
+    "--jobs", type=click.IntRange(min=1), default=4, show_default=True, help=HELP_MSG_JOBS
+)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_bugreport(
@@ -190,6 +194,7 @@ def check_bugreport(
     module,
     load_module,
     verbose,
+    jobs,
     bugreport_path,
 ):
     set_verbose_logging(verbose)
@@ -204,6 +209,7 @@ def check_bugreport(
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
         custom_modules=custom_modules,
+        jobs=jobs,
     )
 
     if list_modules:
@@ -245,6 +251,9 @@ def check_bugreport(
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option(
+    "--jobs", type=click.IntRange(min=1), default=4, show_default=True, help=HELP_MSG_JOBS
+)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -256,6 +265,7 @@ def check_backup(
     non_interactive,
     backup_password,
     verbose,
+    jobs,
     backup_path,
 ):
     set_verbose_logging(verbose)
@@ -274,6 +284,7 @@ def check_backup(
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
         custom_modules=custom_modules,
+        jobs=jobs,
     )
 
     if list_modules:
@@ -319,6 +330,9 @@ def check_backup(
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option(
+    "--jobs", type=click.IntRange(min=1), default=4, show_default=True, help=HELP_MSG_JOBS
+)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
@@ -334,6 +348,7 @@ def check_androidqf(
     non_interactive,
     backup_password,
     verbose,
+    jobs,
     androidqf_path,
 ):
     set_verbose_logging(verbose)
@@ -354,6 +369,7 @@ def check_androidqf(
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
         custom_modules=custom_modules,
+        jobs=jobs,
     )
 
     if list_modules:
@@ -405,6 +421,9 @@ def check_androidqf(
     ),
 )
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option(
+    "--jobs", type=click.IntRange(min=1), default=4, show_default=True, help=HELP_MSG_JOBS
+)
 @click.argument("LOGS_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_intrusion_logs(
@@ -416,6 +435,7 @@ def check_intrusion_logs(
     load_module,
     timezone,
     verbose,
+    jobs,
     logs_path,
 ):
     set_verbose_logging(verbose)
@@ -434,6 +454,7 @@ def check_intrusion_logs(
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
         custom_modules=custom_modules,
+        jobs=jobs,
     )
 
     if list_modules:

@@ -34,6 +34,7 @@ class CmdAndroidCheckBugreport(Command):
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
         custom_modules: Optional[list[type[MVTModule]]] = None,
+        jobs: int = 4,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -49,6 +50,7 @@ class CmdAndroidCheckBugreport(Command):
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
             custom_modules=custom_modules,
+            jobs=jobs,
         )
 
         self.platform = "android"

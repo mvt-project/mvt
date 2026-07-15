@@ -55,21 +55,22 @@ class BackupModule(MVTModule):
         return fnmatch.filter(self.files, pattern)
 
     def _get_file_content(self, file_path: str) -> bytes:
-        handle = None
-        if self.tar:
-            try:
-                member = self.tar.getmember(file_path)
-                handle = self.tar.extractfile(member)
-                if not handle:
-                    raise ValueError(f"Could not extract file: {file_path}")
-            except KeyError:
-                raise FileNotFoundError(f"File not found in tar: {file_path}")
-        elif self.backup_path:
-            handle = open(os.path.join(self.backup_path, file_path), "rb")
-        else:
-            raise ValueError("No backup path or tar file provided")
+        with self.resource_lock:
+            handle = None
+            if self.tar:
+                try:
+                    member = self.tar.getmember(file_path)
+                    handle = self.tar.extractfile(member)
+                    if not handle:
+                        raise ValueError(f"Could not extract file: {file_path}")
+                except KeyError:
+                    raise FileNotFoundError(f"File not found in tar: {file_path}")
+            elif self.backup_path:
+                handle = open(os.path.join(self.backup_path, file_path), "rb")
+            else:
+                raise ValueError("No backup path or tar file provided")
 
-        data = handle.read()
-        handle.close()
+            data = handle.read()
+            handle.close()
 
-        return data
+            return data

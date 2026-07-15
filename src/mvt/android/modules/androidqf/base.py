@@ -81,12 +81,13 @@ class AndroidQFModule(MVTModule):
         return None
 
     def _get_file_content(self, file_path):
-        if self.archive:
-            handle = self.archive.open(file_path)
-        else:
-            handle = open(os.path.join(self.parent_path, file_path), "rb")
+        with self.resource_lock:
+            if self.archive:
+                handle = self.archive.open(file_path)
+            else:
+                handle = open(os.path.join(self.parent_path, file_path), "rb")
 
-        data = handle.read()
-        handle.close()
+            data = handle.read()
+            handle.close()
 
-        return data
+            return data

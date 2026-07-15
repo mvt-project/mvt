@@ -82,6 +82,11 @@ Module-running `check-*` commands can load custom Python modules with
 [development documentation](https://docs.mvt.re/en/latest/development/) for
 details.
 
+Extraction commands run independent modules concurrently with four workers by
+default. Use `--jobs 1` for sequential execution or another positive value to
+set the worker limit. Dependencies retain their declared ordering, and parallel
+console logs are printed as grouped module blocks.
+
 
 ## License
 

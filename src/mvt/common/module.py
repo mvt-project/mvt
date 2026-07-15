@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import threading
 from dataclasses import asdict, is_dataclass
 from typing import Any, Dict, Optional, Sequence
 
@@ -45,6 +46,7 @@ class MVTModule:
     slug: Optional[str] = None
     dependencies: Sequence[type["MVTModule"]] = ()
     supported_commands: Sequence[tuple[str, str]] = ()
+    parallel_safe: bool = True
 
     def __init__(
         self,
@@ -83,6 +85,9 @@ class MVTModule:
         self.results: ModuleResults = results if results is not None else []
         self.timeline: ModuleTimeline = []
         self.dependency_modules: Dict[type["MVTModule"], "MVTModule"] = {}
+        # Commands replace this with a command-scoped lock for modules sharing
+        # archive handles or other non-thread-safe read resources.
+        self.resource_lock = threading.RLock()
 
     def get_dependency_results(
         self, module_class: type["MVTModule"]
@@ -161,17 +166,20 @@ class MVTModule:
 
         """
         timeline_set = set()
+        deduplicated = []
         for record in timeline:
-            timeline_set.add(
-                json.dumps(
-                    asdict(record)
-                    if is_dataclass(record) and not isinstance(record, type)
-                    else record,
-                    sort_keys=True,
-                )
+            serialized = json.dumps(
+                asdict(record)
+                if is_dataclass(record) and not isinstance(record, type)
+                else record,
+                sort_keys=True,
             )
+            if serialized in timeline_set:
+                continue
+            timeline_set.add(serialized)
+            deduplicated.append(json.loads(serialized))
 
-        return [json.loads(record) for record in timeline_set]
+        return deduplicated
 
     def to_timeline(self) -> None:
         """Convert results into a timeline."""

@@ -66,20 +66,23 @@ class BugReportModule(MVTModule):
         return []
 
     def _get_file_content(self, file_path: str) -> bytes:
-        if self.zip_archive:
-            handle = self.zip_archive.open(file_path)
-        else:
-            if not self.extract_path:
-                raise ValueError("extract_path is not set")
-            joined = os.path.join(self.extract_path, file_path)
-            if not Path(joined).resolve().is_relative_to(Path(self.extract_path).resolve()):
-                raise ValueError("unsafe file_path")
-            handle = open(joined, "rb")
+        with self.resource_lock:
+            if self.zip_archive:
+                handle = self.zip_archive.open(file_path)
+            else:
+                if not self.extract_path:
+                    raise ValueError("extract_path is not set")
+                joined = os.path.join(self.extract_path, file_path)
+                if not Path(joined).resolve().is_relative_to(
+                    Path(self.extract_path).resolve()
+                ):
+                    raise ValueError("unsafe file_path")
+                handle = open(joined, "rb")
 
-        data = handle.read()
-        handle.close()
+            data = handle.read()
+            handle.close()
 
-        return data
+            return data
 
     def _get_dumpstate_file(self) -> Optional[bytes]:
         main = self._get_files_by_pattern("main_entry.txt")
@@ -102,7 +105,8 @@ class BugReportModule(MVTModule):
 
     def _get_file_modification_time(self, file_path: str) -> datetime.datetime:
         if self.zip_archive:
-            file_timetuple = self.zip_archive.getinfo(file_path).date_time
+            with self.resource_lock:
+                file_timetuple = self.zip_archive.getinfo(file_path).date_time
             return datetime.datetime(*file_timetuple)
         else:
             if not self.extract_path:
