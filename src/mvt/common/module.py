@@ -88,6 +88,9 @@ class MVTModule:
         # Commands replace this with a command-scoped lock for modules sharing
         # archive handles or other non-thread-safe read resources.
         self.resource_lock = threading.RLock()
+        # Commands also replace this with a command-scoped cache. Cached values
+        # must be immutable, because parallel modules can read them concurrently.
+        self.resource_cache: Dict[object, Any] = {}
 
     def get_dependency_results(
         self, module_class: type["MVTModule"]

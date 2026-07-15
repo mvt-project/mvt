@@ -34,18 +34,16 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        full_dumpsys = self._get_dumpstate_file()
-        if not full_dumpsys:
+        content = self._get_dumpsys_section(
+            "DUMP OF SERVICE accessibility:", errors="ignore"
+        )
+        if content is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        content = self.extract_dumpsys_section(
-            full_dumpsys.decode("utf-8", errors="ignore"),
-            "DUMP OF SERVICE accessibility:",
-        )
         self.parse(content)
 
         for result in self.results:

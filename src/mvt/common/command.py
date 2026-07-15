@@ -70,6 +70,7 @@ class Command:
             raise ValueError("jobs must be at least 1")
         self.jobs = jobs
         self._resource_lock = threading.RLock()
+        self._resource_cache: dict[object, Any] = {}
 
         # This dictionary can contain options that will be passed down from
         # the Command to all modules. This can for example be used to pass
@@ -377,6 +378,7 @@ class Command:
                 for dependency in module.dependencies
             }
             m.resource_lock = self._resource_lock
+            m.resource_cache = self._resource_cache
 
             if self.iocs.total_ioc_count:
                 # IOC collections are shared read-only during module execution.
