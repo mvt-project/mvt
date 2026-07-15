@@ -8,8 +8,6 @@ import logging
 import os
 
 import click
-from rich.prompt import Prompt
-
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.completion import (
     SUPPORTED_SHELLS,
@@ -49,6 +47,7 @@ from mvt.common.help import (
     HELP_MSG_COMPLETION,
 )
 from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
+from mvt.common.password import prompt_password
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
 from .decrypt import DecryptBackup
@@ -201,7 +200,7 @@ def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
         log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
         backup.decrypt_with_password(os.environ[MVT_IOS_BACKUP_PASSWORD])
     else:
-        sekrit = Prompt.ask("Enter backup password", password=True)
+        sekrit = prompt_password("Enter backup password: ")
         backup.decrypt_with_password(sekrit)
 
     if not backup.can_process():
@@ -253,7 +252,7 @@ def extract_key(password, key_file, backup_path):
         log.info("Using password from %s environment variable", MVT_IOS_BACKUP_PASSWORD)
         password = os.environ[MVT_IOS_BACKUP_PASSWORD]
     else:
-        password = Prompt.ask("Enter backup password", password=True)
+        password = prompt_password("Enter backup password: ")
 
     backup.decrypt_with_password(password)
     backup.get_key()

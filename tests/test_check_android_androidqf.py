@@ -27,21 +27,24 @@ class TestCheckAndroidqfCommand:
     def test_check_encrypted_backup_prompt_valid(self, mocker):
         """Prompt for password on CLI"""
         prompt_mock = mocker.patch(
-            "rich.prompt.Prompt.ask", return_value=TEST_BACKUP_PASSWORD
+            "mvt.android.modules.backup.helpers.prompt_password",
+            return_value=TEST_BACKUP_PASSWORD,
         )
 
         runner = CliRunner()
         path = os.path.join(get_artifact_folder(), "androidqf_encrypted")
         result = runner.invoke(check_androidqf, [path])
 
-        # Called twice, once in AnroidQF SMS module and once in Backup SMS module
-        assert prompt_mock.call_count == 2
+        # The password entered for the AndroidQF SMS module is reused by the
+        # nested backup command.
+        assert prompt_mock.call_count == 1
         assert result.exit_code == 0
 
     def test_check_encrypted_backup_cli(self, mocker):
         """Provide password as CLI argument"""
         prompt_mock = mocker.patch(
-            "rich.prompt.Prompt.ask", return_value=TEST_BACKUP_PASSWORD
+            "mvt.android.modules.backup.helpers.prompt_password",
+            return_value=TEST_BACKUP_PASSWORD,
         )
 
         runner = CliRunner()
@@ -56,7 +59,8 @@ class TestCheckAndroidqfCommand:
     def test_check_encrypted_backup_env(self, mocker):
         """Provide password as environment variable"""
         prompt_mock = mocker.patch(
-            "rich.prompt.Prompt.ask", return_value=TEST_BACKUP_PASSWORD
+            "mvt.android.modules.backup.helpers.prompt_password",
+            return_value=TEST_BACKUP_PASSWORD,
         )
 
         os.environ["MVT_ANDROID_BACKUP_PASSWORD"] = TEST_BACKUP_PASSWORD

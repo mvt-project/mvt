@@ -10,7 +10,6 @@ from .aqf_processes import AQFProcesses
 from .aqf_settings import AQFSettings
 from .mounts import Mounts
 from .root_binaries import RootBinaries
-from .sms import SMS
 
 ANDROIDQF_MODULES = [
     AQFPackages,
@@ -18,7 +17,6 @@ ANDROIDQF_MODULES = [
     AQFGetProp,
     AQFSettings,
     AQFFiles,
-    SMS,
     RootBinaries,
     Mounts,
 ]
