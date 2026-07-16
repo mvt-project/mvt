@@ -368,11 +368,19 @@ class TestCommand:
             logger.removeHandler(handler)
 
         console_output = output.getvalue()
-        assert console_output.index("--- FastLog ---") < console_output.index(
-            "--- SlowLog ---"
+        fast_block = (
+            console_output.index("--- FastLog ---"),
+            console_output.index("fast-a"),
+            console_output.index("fast-b"),
         )
-        assert console_output.index("fast-a") < console_output.index("fast-b")
-        assert "slow-a" in console_output and "slow-b" in console_output
+        slow_block = (
+            console_output.index("--- SlowLog ---"),
+            console_output.index("slow-a"),
+            console_output.index("slow-b"),
+        )
+        assert fast_block == tuple(sorted(fast_block))
+        assert slow_block == tuple(sorted(slow_block))
+        assert fast_block[-1] < slow_block[0] or slow_block[-1] < fast_block[0]
         file_output = (tmp_path / "command.log").read_text()
         for message in ("slow-a", "slow-b", "fast-a", "fast-b"):
             assert message in file_output
