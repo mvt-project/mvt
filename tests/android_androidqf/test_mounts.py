@@ -6,6 +6,7 @@
 import logging
 from pathlib import Path
 
+from mvt.android.modules.androidqf.mounts import Mounts
 from mvt.common.indicators import Indicator, IndicatorMatch
 from mvt.common.module import run_module
 
@@ -112,11 +113,15 @@ class TestAndroidqfMountsModule:
         When no `mounts.json` is present in the androidqf dataset, the module
         should not produce results nor detections.
         """
-        from mvt.android.modules.androidqf.mounts import Mounts
 
         data_path = get_android_androidqf()
         m = Mounts(target_path=data_path, log=logging)
-        files = list_files(data_path)
+        # filter out valid mount files for the test
+        files = [
+            path
+            for path in list_files(data_path)
+            if not path.endswith("mounts.json") and not path.endswith("mounts.pb")
+        ]
         parent_path = Path(data_path).absolute().parent.as_posix()
         m.from_dir(parent_path, files)
 
@@ -130,3 +135,31 @@ class TestAndroidqfMountsModule:
         assert len(m.alertstore.alerts) == 0, (
             f"Expected no detections, got: {m.alertstore.alerts}"
         )
+
+    def test_androidqf_mounts_json(self):
+        data_path = get_android_androidqf()
+        m = Mounts(target_path=data_path, log=logging)
+        files = ["androidqf/mounts.json"]
+        parent_path = Path(data_path).absolute().parent.as_posix()
+        m.from_dir(parent_path, files)
+        run_module(m)
+
+        assert len(m.results) == 3
+        assert m.results[0]["device"] == "/dev/block/dm-12"
+        assert m.results[0]["mount_point"] == "/"
+        assert m.results[0]["filesystem_type"] == "ext4"
+        assert m.results[0]["mount_options"] == "ro,seclabel,noatime"
+
+    def test_androidqf_mounts_pb(self):
+        data_path = get_android_androidqf()
+        m = Mounts(target_path=data_path, log=logging)
+        files = ["androidqf/mounts.pb"]
+        parent_path = Path(data_path).absolute().parent.as_posix()
+        m.from_dir(parent_path, files)
+        run_module(m)
+
+        assert len(m.results) == 3
+        assert m.results[0]["device"] == "/dev/block/dm-12"
+        assert m.results[0]["mount_point"] == "/"
+        assert m.results[0]["filesystem_type"] == "ext4"
+        assert m.results[0]["mount_options"] == "ro,seclabel,noatime"

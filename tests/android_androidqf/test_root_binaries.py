@@ -114,3 +114,9 @@ class TestAndroidqfRootBinaries:
 
         assert len(m.results) == 0
         assert len(m.alertstore.alerts) == 0
+
+    def test_root_binaries_from_protobuf(self, parent_data_path):
+        module = RootBinaries(target_path=parent_data_path, log=logging)
+        module.from_dir(parent_data_path, ["androidqf/root_binaries.pb"])
+        run_module(module)
+        assert len(module.results) == 4

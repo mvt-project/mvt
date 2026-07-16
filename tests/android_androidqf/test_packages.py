@@ -13,7 +13,7 @@ from mvt.android.cli import check_androidqf
 from mvt.android.modules.androidqf.aqf_packages import AQFPackages
 from mvt.android.modules.androidqf import aqf_packages as aqf_packages_module
 from mvt.common.module import run_module
-
+from mvt.android.parsers.protobuf_parsers import parse_packages_records
 from ..utils import get_android_androidqf, list_files
 
 
@@ -46,6 +46,26 @@ class TestAndroidqfPackages:
         # There should just be 7 packages listed, no detections
         assert len(module.results) == 7
         assert len(module.timeline) == 0
+
+    def test_packages_from_protobuf(self):
+        data_path = get_android_androidqf()
+
+        # test protobuf parser per-se
+        data = (Path(data_path) / "packages.pb").read_bytes()
+        records = parse_packages_records(data)
+        assert len(records) == 7
+        assert records[0]["name"] == "com.whatsapp"
+        assert records[0]["files"][0]["certificate"]["Md5"] == "556c6019249bbc0cab70495178d3a9d1"
+
+        # test module with protobuf file
+        m = AQFPackages(target_path=data_path, log=logging)
+        files = ["androidqf/packages.pb"]
+        parent_path = Path(data_path).absolute().parent.as_posix()
+        m.from_dir(parent_path, files)
+        run_module(m)
+        assert len(m.results) == 7
+        assert m.results[0]["name"] == "com.whatsapp"
+        assert m.results[0]["files"][0]["certificate"]["Md5"] == "556c6019249bbc0cab70495178d3a9d1"
 
     def test_non_appstore_warnings(self, caplog, module):
         run_module(module)
