@@ -191,7 +191,7 @@ class AQFPackages(AndroidQFModule):
 
     def run(self) -> None:
         packages = self._get_files_by_pattern("*/packages.json")
-        if packages:            
+        if packages:
             self.results = json.loads(self._get_file_content(packages[0]))
             self.log.info("Found %d packages in packages.json", len(self.results))
             return
