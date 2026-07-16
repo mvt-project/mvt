@@ -7,6 +7,8 @@ import json
 import logging
 from typing import Optional
 
+from mvt.android.parsers.protobuf_parsers import parse_string_records
+
 from .base import AndroidQFModule
 
 
@@ -58,26 +60,42 @@ class RootBinaries(AndroidQFModule):
                 len(self.results),
             )
 
+    def _load_json(self, file: str) -> list[str]:
+        data = self._get_file_content(file).decode("utf-8", errors="ignore")
+        return json.loads(data)
+
+    def _load_pb(self, file: str) -> list[str]:
+        data = self._get_file_content(file)
+        return parse_string_records(data)
+
     def run(self) -> None:
         """Run the root binaries analysis."""
+        root_binary_paths = []
+
         root_binaries_files = self._get_files_by_pattern("*/root_binaries.json")
+        if root_binaries_files:
+            try:
+                root_binary_paths = self._load_json(root_binaries_files[0])
+                self.log.info("Found root_binaries.json file: %s", root_binaries_files[0])
+            except Exception as exc:
+                self.log.error("Failed to parse JSON root_binaries.json: %s", exc)
+                return
 
-        if not root_binaries_files:
-            self.log.info("No root_binaries.json file found")
-            return
+        root_binaries_files = self._get_files_by_pattern("*/root_binaries.pb")
+        if root_binaries_files:
+            try:
+                root_binary_paths = self._load_pb(root_binaries_files[0])
+                self.log.info("Found root_binaries.pb file: %s", root_binaries_files[0])
+            except Exception as exc:
+                self.log.error("Failed to parse Protobuf root_binaries.pb: %s", exc)
+                return
 
-        rawdata = self._get_file_content(root_binaries_files[0]).decode(
-            "utf-8", errors="ignore"
-        )
-
-        try:
-            root_binary_paths = json.loads(rawdata)
-        except json.JSONDecodeError as e:
-            self.log.error("Failed to parse root_binaries.json: %s", e)
+        if root_binary_paths == []:
+            self.log.info("No root_binaries file found")
             return
 
         if not isinstance(root_binary_paths, list):
-            self.log.error("Expected root_binaries.json to contain a list of paths")
+            self.log.error("Expected root_binaries.json or root_binaries.pb to contain a list of paths")
             return
 
         # Known root binary names that might be found and their descriptions

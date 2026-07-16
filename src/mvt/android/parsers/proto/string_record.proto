@@ -1,0 +1,8 @@
+// Bugbane string record, used by root_binaries.pb and mounts.pb.
+syntax = "proto3";
+
+message StringRecord {
+  // Root binaries: absolute path to a su/magisk-like binary.
+  // Mounts: one line from `mount` output.
+  string value = 1;
+}

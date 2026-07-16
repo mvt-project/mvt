@@ -14,6 +14,7 @@ except ImportError:
 from typing import Optional
 
 from mvt.android.modules.androidqf.base import AndroidQFModule
+from mvt.android.parsers.protobuf_parsers import parse_files_records
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleResults,
@@ -125,6 +126,7 @@ class AQFFiles(AndroidQFModule):
             self.log.warning("Unable to determine device timezone, using UTC")
             device_timezone = zoneinfo.ZoneInfo("UTC")
 
+        data = []
         for file in self._get_files_by_pattern("*/files.json"):
             rawdata = self._get_file_content(file).decode("utf-8", errors="ignore")
             try:
@@ -136,24 +138,31 @@ class AQFFiles(AndroidQFModule):
                         continue
                     data.append(json.loads(line))
 
-            for file_data in data:
-                for ts in ["access_time", "changed_time", "modified_time"]:
-                    if ts in file_data:
-                        utc_timestamp = datetime.datetime.fromtimestamp(
-                            file_data[ts], tz=datetime.timezone.utc
-                        )
-                        # Convert the UTC timestamp to local time on Android device's local timezone
-                        local_timestamp = utc_timestamp.astimezone(device_timezone)
+        if data == []:
+            for file in self._get_files_by_pattern("*/files.pb"):
+                try:
+                    data = parse_files_records(self._get_file_content(file))
+                except ValueError as exc:
+                    self.log.error("Failed to parse files.pb: %s", exc)
+                    return
+                break
 
-                        # Preserve the device-local wall-clock time while using
-                        # the project-wide ISO conversion helper.
-                        local_timestamp = local_timestamp.replace(
-                            tzinfo=datetime.timezone.utc
-                        )
-                        file_data[ts] = convert_datetime_to_iso(local_timestamp)
+        for file_data in data:
+            for ts in ["access_time", "changed_time", "modified_time"]:
+                if ts in file_data:
+                    utc_timestamp = datetime.datetime.fromtimestamp(
+                        file_data[ts], tz=datetime.timezone.utc
+                    )
+                    # Convert the UTC timestamp to local time on Android device's local timezone
+                    local_timestamp = utc_timestamp.astimezone(device_timezone)
 
-                self.results.append(file_data)
+                    # Preserve the device-local wall-clock time while using
+                    # the project-wide ISO conversion helper.
+                    local_timestamp = local_timestamp.replace(
+                        tzinfo=datetime.timezone.utc
+                    )
+                    file_data[ts] = convert_datetime_to_iso(local_timestamp)
 
-            break  # Only process the first matching file
+            self.results.append(file_data)
 
         self.log.info("Found a total of %d files", len(self.results))

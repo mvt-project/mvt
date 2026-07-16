@@ -1,0 +1,11 @@
+// Bugbane file metadata record, used by files.pb.
+syntax = "proto3";
+
+message FilesRecord {
+  string path = 1;
+  double mtime = 2;   // Unix epoch seconds (optional)
+  string mode = 3;    // e.g. "0644" (optional)
+  int64 size = 4;     // bytes (optional)
+  string user = 5;    // owner name (optional)
+  string group = 6;   // group name (optional)
+}

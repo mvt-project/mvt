@@ -10,6 +10,7 @@ from typing import Optional
 
 from rich.progress import track
 
+from mvt.android.parsers.protobuf_parsers import parse_packages_records
 from mvt.android.utils import (
     BROWSER_INSTALLERS,
     PLAY_STORE_INSTALLERS,
@@ -190,11 +191,18 @@ class AQFPackages(AndroidQFModule):
 
     def run(self) -> None:
         packages = self._get_files_by_pattern("*/packages.json")
-        if not packages:
-            self.log.error(
-                "packages.json file not found in this androidqf bundle. Possibly malformed?"
-            )
+        if packages:            
+            self.results = json.loads(self._get_file_content(packages[0]))
+            self.log.info("Found %d packages in packages.json", len(self.results))
             return
 
-        self.results = json.loads(self._get_file_content(packages[0]))
-        self.log.info("Found %d packages in packages.json", len(self.results))
+        packages = self._get_files_by_pattern("*/packages.pb")
+        if packages:
+            self.results = parse_packages_records(self._get_file_content(packages[0]))
+            self.log.info("Found %d packages in packages.pb", len(self.results))
+            return
+
+        self.log.error(
+            "packages.json or packages.pb file not found in this androidqf bundle. Possibly malformed?"
+        )
+        return

@@ -1,0 +1,36 @@
+// Bugbane package inventory, used by packages.pb.
+syntax = "proto3";
+
+message PackageCertificateRecord {
+  string md5 = 1;
+  string sha1 = 2;
+  string sha256 = 3;
+  string valid_from = 4;
+  string valid_to = 5;
+  string issuer = 6;
+  string subject = 7;
+  string signature_algorithm = 8;
+  string serial_number = 9;
+}
+
+message PackageFileRecord {
+  string path = 1;
+  string local_name = 2;
+  string md5 = 3;
+  string sha1 = 4;
+  string sha256 = 5;
+  string sha512 = 6;
+  bool suspicious = 7;    // suspiciousness, should APK be dumped? (optional)
+  repeated PackageCertificateRecord certificates = 8;  // certificates (optional)
+  repeated string infiles = 9;   // files in APK (optional)
+}
+
+message PackagesRecord {
+  string name = 1;
+  string installer = 2;
+  int32 uid = 3;
+  bool disabled = 4;
+  bool system = 5;
+  bool third_party = 6;
+  repeated PackageFileRecord files = 7;
+}

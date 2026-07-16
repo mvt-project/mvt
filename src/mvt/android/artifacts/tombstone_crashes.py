@@ -10,7 +10,7 @@ import pydantic
 import betterproto2
 from dateutil import parser
 
-from mvt.android.parsers.proto.tombstone import Tombstone
+from mvt.android.parsers.proto import Tombstone
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_datetime_to_iso
 

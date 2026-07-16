@@ -8,6 +8,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.mounts import Mounts as MountsArtifact
+from mvt.android.parsers.protobuf_parsers import parse_string_records
 
 from .base import AndroidQFModule
 
@@ -34,6 +35,14 @@ class Mounts(MountsArtifact, AndroidQFModule):
         )
         self.results: list = [] if results is None else results
 
+    def _load_json(self, file: str) -> list[str]:
+        data = self._get_file_content(file).decode("utf-8", errors="replace")
+        return json.loads(data)
+
+    def _load_pb(self, file: str) -> list[str]:
+        data = self._get_file_content(file)
+        return parse_string_records(data)
+
     def run(self) -> None:
         """
         Run the mounts analysis module.
@@ -42,30 +51,37 @@ class Mounts(MountsArtifact, AndroidQFModule):
         and analyzes them for suspicious configurations, particularly focusing
         on detecting root access indicators like /system mounted as read-write.
         """
+
+        mount_data = []
+
         mount_files = self._get_files_by_pattern("*/mounts.json")
+        if mount_files:
+            try:
+                mount_data = self._load_json(mount_files[0])
+                self.log.info("Found mount information file: %s", mount_files[0])
+            except Exception as exc:
+                self.log.error("Failed to parse JSON mount information: %s", exc)
+                return
 
-        if not mount_files:
+        mount_files = self._get_files_by_pattern("*/mounts.pb")
+        if mount_files:
+            try:
+                mount_data = self._load_pb(mount_files[0])
+                self.log.info("Found mount information file: %s", mount_files[0])
+            except Exception as exc:
+                self.log.error("Failed to parse Protobuf mount information: %s", exc)
+                return
+
+        if mount_data == []:
             self.log.info("No mount information file found")
-            return
-
-        self.log.info("Found mount information file: %s", mount_files[0])
-
-        try:
-            data = self._get_file_content(mount_files[0]).decode(
-                "utf-8", errors="replace"
-            )
-        except Exception as exc:
-            self.log.error("Failed to read mount information file: %s", exc)
             return
 
         # Parse the mount data
         try:
-            json_data = json.loads(data)
-
-            if isinstance(json_data, list):
+            if isinstance(mount_data, list):
                 # AndroidQF format: array of strings like
                 # "/dev/block/dm-12 on / type ext4 (ro,seclabel,noatime)"
-                mount_content = "\n".join(json_data)
+                mount_content = "\n".join(mount_data)
             else:
                 self.log.error("Expected mounts.json to contain a list of mount lines")
                 return
