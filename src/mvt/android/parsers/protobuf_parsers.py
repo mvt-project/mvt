@@ -12,12 +12,13 @@ from typing import Any, TypeVar
 
 import betterproto2
 
-from mvt.android.parsers.proto import (
+from .proto import (
     FilesRecord,
     PackageCertificateRecord,
     PackageFileRecord,
     PackagesRecord,
     StringRecord,
+    Tombstone
 )
 
 T = TypeVar("T", bound=betterproto2.Message)
@@ -138,3 +139,7 @@ def parse_packages_records(data: bytes) -> list[dict[str, Any]]:
         packages_record_to_dict(record)
         for record in _parse_delimited_messages(data, PackagesRecord)
     ]
+
+def parse_tombstone_record(data: bytes) -> Tombstone:
+    """Parse tombstone.pb into a Tombstone record."""
+    return Tombstone().parse(data)

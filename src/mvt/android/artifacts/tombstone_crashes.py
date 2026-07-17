@@ -10,7 +10,7 @@ import pydantic
 import betterproto2
 from dateutil import parser
 
-from mvt.android.parsers.proto import Tombstone
+from mvt.android.parsers.protobuf_parsers import parse_tombstone_record
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_datetime_to_iso
 
@@ -128,7 +128,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
         self, file_name: str, file_timestamp: datetime.datetime, data: bytes
     ) -> None:
         """Parse Android tombstone crash files from a protobuf object."""
-        tombstone_pb = Tombstone().parse(data)
+        tombstone_pb = parse_tombstone_record(data)
         tombstone_dict = tombstone_pb.to_dict(
             casing=betterproto2.Casing.SNAKE, include_default_values=True
         )
