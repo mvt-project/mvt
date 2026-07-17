@@ -158,8 +158,20 @@ class TestAndroidqfMountsModule:
         m.from_dir(parent_path, files)
         run_module(m)
 
-        assert len(m.results) == 3
+        assert len(m.results) == 4
         assert m.results[0]["device"] == "/dev/block/dm-12"
         assert m.results[0]["mount_point"] == "/"
         assert m.results[0]["filesystem_type"] == "ext4"
         assert m.results[0]["mount_options"] == "ro,seclabel,noatime"
+
+    def test_androidqf_mounts_json_priority_over_pb(self):
+        data_path = get_android_androidqf()
+        m = Mounts(target_path=data_path, log=logging)
+        files = ["androidqf/mounts.json", "androidqf/mounts.pb"]
+        parent_path = Path(data_path).absolute().parent.as_posix()
+        m.from_dir(parent_path, files)
+        run_module(m)
+
+        # We expect 3 results since the JSON should have priority over the PB.
+        assert len(m.results) == 3
+        assert "/vendor" not in [result["mount_point"] for result in m.results]

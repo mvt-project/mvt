@@ -2,4 +2,5 @@
 /system/bin/su
 /system/xbin/busybox
 /data/local/tmp/magisk
-/system/bin/magiskhide
+/system/bin/magiskhide
+/system/bin/magisk

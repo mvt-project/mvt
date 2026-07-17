@@ -64,7 +64,7 @@ class Mounts(MountsArtifact, AndroidQFModule):
                 return
 
         mount_files = self._get_files_by_pattern("*/mounts.pb")
-        if mount_files:
+        if len(mount_data) == 0 and mount_files:
             try:
                 mount_data = self._load_pb(mount_files[0])
                 self.log.info("Found mount information file: %s", mount_files[0])
@@ -72,7 +72,7 @@ class Mounts(MountsArtifact, AndroidQFModule):
                 self.log.error("Failed to parse Protobuf mount information: %s", exc)
                 return
 
-        if mount_data == []:
+        if len(mount_data) == 0:
             self.log.info("No mount information file found")
             return
 

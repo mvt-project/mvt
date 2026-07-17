@@ -82,7 +82,7 @@ class RootBinaries(AndroidQFModule):
                 return
 
         root_binaries_files = self._get_files_by_pattern("*/root_binaries.pb")
-        if root_binaries_files:
+        if len(root_binary_paths) == 0 and root_binaries_files:
             try:
                 root_binary_paths = self._load_pb(root_binaries_files[0])
                 self.log.info("Found root_binaries.pb file: %s", root_binaries_files[0])
@@ -90,7 +90,7 @@ class RootBinaries(AndroidQFModule):
                 self.log.error("Failed to parse Protobuf root_binaries.pb: %s", exc)
                 return
 
-        if root_binary_paths == []:
+        if len(root_binary_paths) == 0:
             self.log.info("No root_binaries file found")
             return
 

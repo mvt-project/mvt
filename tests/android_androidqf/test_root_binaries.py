@@ -119,4 +119,11 @@ class TestAndroidqfRootBinaries:
         module = RootBinaries(target_path=parent_data_path, log=logging)
         module.from_dir(parent_data_path, ["androidqf/root_binaries.pb"])
         run_module(module)
+        assert len(module.results) == 5
+
+    def test_root_binaries_json_priority_over_protobuf(self, parent_data_path):
+        module = RootBinaries(target_path=parent_data_path, log=logging)
+        module.from_dir(parent_data_path, ["androidqf/root_binaries.json", "androidqf/root_binaries.pb"])
+        run_module(module)
         assert len(module.results) == 4
+        assert "/system/bin/magisk" not in [result["path"] for result in module.results]
