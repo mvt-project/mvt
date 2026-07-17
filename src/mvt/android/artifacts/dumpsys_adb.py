@@ -18,7 +18,7 @@ class DumpsysADBArtifact(AndroidArtifact):
         if key == "}":
             return True
         # XML keystore continuations also split on "=", but never into an identifier.
-        return len(vals) == 2 and vals[1] == b"{" and key.isidentifier()
+        return len(vals) == 2 and key.isidentifier()
 
     def indented_dump_parser(self, dump_data):
         """
@@ -48,7 +48,8 @@ class DumpsysADBArtifact(AndroidArtifact):
                 if key == "":
                     # If the line is empty, it's the terminator for the multiline value
                     in_multiline = False
-                    stack.pop()
+                    if isinstance(stack[-1], list):
+                        stack.pop()
                     continue
 
                 if not self.is_structural_line(key, vals):
@@ -56,7 +57,8 @@ class DumpsysADBArtifact(AndroidArtifact):
                     continue
 
                 in_multiline = False
-                stack.pop()
+                if isinstance(stack[-1], list):
+                    stack.pop()
                 current_dict = stack[-1]
 
             if key == "}":
