@@ -41,7 +41,7 @@ def parse_string_records(data: bytes) -> list[str]:
 
 def files_record_to_dict(record: FilesRecord) -> dict[str, Any]:
     """Map protobuf file metadata to the AndroidQF files.json result shape."""
-    modified_time = int(record.mtime) if record.mtime else 0
+    modified_time = record.mtime or 0.0
     return {
         "path": record.path,
         "size": record.size,
