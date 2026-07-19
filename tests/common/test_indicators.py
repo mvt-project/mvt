@@ -80,6 +80,14 @@ class TestIndicators:
         assert ind.check_url("https://198.51.100.1:8080/")
         assert ind.check_url("https://1.1.1.1/") is None
 
+    def test_google_maps_short_url_is_not_resolved(self, indicator_file, mocker):
+        head_request = mocker.patch("mvt.common.url.requests.head")
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([indicator_file], load_default=False)
+
+        assert ind.check_url("https://goo.gl/maps/example") is None
+        head_request.assert_not_called()
+
     def test_check_file_hash(self, indicator_file):
         ind = Indicators(log=logging)
         ind.load_indicators_files([indicator_file], load_default=False)

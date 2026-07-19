@@ -5,6 +5,7 @@
 
 import logging
 from typing import Optional
+from urllib.parse import urlparse
 
 import requests
 from tld import get_tld
@@ -373,6 +374,10 @@ class URL:
         :rtype: bool
 
         """
+        parsed_url = urlparse(self.url if "://" in self.url else f"//{self.url}")
+        if self.domain.lower() == "goo.gl" and parsed_url.path.startswith("/maps/"):
+            return False
+
         if self.domain.lower() in SHORTENER_DOMAINS:
             self.is_shortened = True
 
