@@ -36,6 +36,8 @@ class SMS(BackupModule):
         if not self.indicators:
             return
 
+        messages = []
+        url_batches = []
         for message in self.results:
             if "body" not in message:
                 continue
@@ -44,12 +46,16 @@ class SMS(BackupModule):
             if message_links == []:
                 message_links = check_for_links(message.get("text", ""))
 
-            ioc_match = self.indicators.check_urls(message_links)
+            messages.append(message)
+            url_batches.append(message_links)
+
+        for message, ioc_match in zip(
+            messages, self.indicators.check_url_batches(url_batches)
+        ):
             if ioc_match:
                 self.alertstore.critical(
                     ioc_match.message, "", message, matched_indicator=ioc_match.ioc
                 )
-                continue
 
     def run(self) -> None:
         sms_path = "apps/com.android.providers.telephony/d_f/*_sms_backup"

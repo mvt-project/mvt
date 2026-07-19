@@ -70,6 +70,8 @@ class WebkitSessionResourceLog(IOSExtraction):
         if not self.indicators:
             return
 
+        records = []
+        url_batches = []
         for _, entries in self.results.items():
             for entry in entries:
                 source_domains = self._extract_domains(entry["redirect_source"])
@@ -94,36 +96,42 @@ class WebkitSessionResourceLog(IOSExtraction):
                     )
                 )
 
-                ioc_match = self.indicators.check_urls(all_origins)
-                if ioc_match:
-                    self.alertstore.critical(
-                        ioc_match.message, "", entry, matched_indicator=ioc_match.ioc
-                    )
+                records.append((entry, source_domains, destination_domains))
+                url_batches.append(all_origins)
 
-                    redirect_path = ""
-                    if len(source_domains) > 0:
-                        redirect_path += "SOURCE: "
-                        for idx, item in enumerate(source_domains):
-                            source_domains[idx] = f'"{item}"'
+        for record, ioc_match in zip(
+            records, self.indicators.check_url_batches(url_batches)
+        ):
+            if ioc_match:
+                entry, source_domains, destination_domains = record
+                self.alertstore.critical(
+                    ioc_match.message, "", entry, matched_indicator=ioc_match.ioc
+                )
 
-                        redirect_path += ", ".join(source_domains)
-                        redirect_path += " -> "
+                redirect_path = ""
+                if len(source_domains) > 0:
+                    redirect_path += "SOURCE: "
+                    for idx, item in enumerate(source_domains):
+                        source_domains[idx] = f'"{item}"'
 
-                    redirect_path += f'ORIGIN: "{entry["origin"]}"'
+                    redirect_path += ", ".join(source_domains)
+                    redirect_path += " -> "
 
-                    if len(destination_domains) > 0:
-                        redirect_path += " -> "
-                        redirect_path += "DESTINATION: "
-                        for idx, item in enumerate(destination_domains):
-                            destination_domains[idx] = f'"{item}"'
+                redirect_path += f'ORIGIN: "{entry["origin"]}"'
 
-                        redirect_path += ", ".join(destination_domains)
+                if len(destination_domains) > 0:
+                    redirect_path += " -> "
+                    redirect_path += "DESTINATION: "
+                    for idx, item in enumerate(destination_domains):
+                        destination_domains[idx] = f'"{item}"'
 
-                    self.alertstore.high(
-                        f"Found HTTP redirect between suspicious domains: {redirect_path}",
-                        "",
-                        entry,
-                    )
+                    redirect_path += ", ".join(destination_domains)
+
+                self.alertstore.high(
+                    f"Found HTTP redirect between suspicious domains: {redirect_path}",
+                    "",
+                    entry,
+                )
 
     def _extract_browsing_stats(self, log_path):
         items = []
