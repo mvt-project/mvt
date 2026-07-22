@@ -36,29 +36,13 @@ class DumpsysGetProp(GetPropArtifact, BugReportModule):
         self.results = [] if not results else results
 
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        content = self._get_system_properties_text()
+        if content is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        lines = []
-        in_getprop = False
-
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip().startswith("------ SYSTEM PROPERTIES"):
-                in_getprop = True
-                continue
-
-            if not in_getprop:
-                continue
-
-            if line.strip() == "------":
-                break
-
-            lines.append(line)
-
-        self.parse("\n".join(lines))
+        self.parse(content)
         self.log.info("Extracted %d Android system properties", len(self.results))

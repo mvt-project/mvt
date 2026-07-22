@@ -138,15 +138,19 @@ def test_androidqf_propagates_custom_modules_to_nested_commands(tmp_path, monkey
     cmd = CmdAndroidCheckAndroidQF(
         target_path=str(tmp_path),
         custom_modules=custom_modules,
+        jobs=7,
     )
 
     def record_available(name):
         def _record(command):
-            records[name] = [
-                module.__name__
-                for module in command._available_modules()
-                if module.__name__.startswith("Nested")
-            ]
+            records[name] = {
+                "jobs": command.jobs,
+                "modules": [
+                    module.__name__
+                    for module in command._available_modules()
+                    if module.__name__.startswith("Nested")
+                ],
+            }
 
         return _record
 
@@ -189,7 +193,7 @@ def test_androidqf_propagates_custom_modules_to_nested_commands(tmp_path, monkey
     assert cmd.run_backup_cmd()
     assert cmd.run_intrusion_logs_cmd()
     assert records == {
-        "bugreport": ["NestedBugreportModule"],
-        "backup": ["NestedBackupModule"],
-        "intrusion_logs": ["NestedIntrusionLogsModule"],
+        "bugreport": {"jobs": 7, "modules": ["NestedBugreportModule"]},
+        "backup": {"jobs": 7, "modules": ["NestedBackupModule"]},
+        "intrusion_logs": {"jobs": 7, "modules": ["NestedIntrusionLogsModule"]},
     }

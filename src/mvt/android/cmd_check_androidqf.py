@@ -52,6 +52,7 @@ class CmdAndroidCheckAndroidQF(Command):
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
         custom_modules: Optional[list[type[MVTModule]]] = None,
+        jobs: int = 4,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -67,6 +68,7 @@ class CmdAndroidCheckAndroidQF(Command):
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
             custom_modules=custom_modules,
+            jobs=jobs,
         )
 
         self.platform = "android"
@@ -215,6 +217,7 @@ class CmdAndroidCheckAndroidQF(Command):
                 hashes=self.hashes,
                 sub_command=True,
                 custom_modules=self.custom_modules,
+                jobs=self.jobs,
             )
             cmd.from_zip(bugreport)
             cmd.run()
@@ -245,6 +248,7 @@ class CmdAndroidCheckAndroidQF(Command):
             hashes=self.hashes,
             sub_command=True,
             custom_modules=self.custom_modules,
+            jobs=self.jobs,
         )
         try:
             cmd.from_ab(backup)
@@ -325,6 +329,7 @@ class CmdAndroidCheckAndroidQF(Command):
                 hashes=self.hashes,
                 sub_command=True,
                 custom_modules=self.custom_modules,
+                jobs=self.jobs,
             )
             cmd.run()
 

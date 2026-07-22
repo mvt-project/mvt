@@ -34,17 +34,14 @@ class DumpsysAppops(DumpsysAppopsArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        section = self._get_dumpsys_section("DUMP OF SERVICE appops:")
+        if section is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE appops:"
-        )
         self.parse(section)
 
         self.log.info(

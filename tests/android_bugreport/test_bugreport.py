@@ -4,8 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 import os
+import threading
+from concurrent.futures import ThreadPoolExecutor
+from io import BytesIO
 from pathlib import Path
+from unittest.mock import MagicMock
 
+from mvt.android.modules.bugreport.base import BugReportModule
 from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
 from mvt.android.modules.bugreport.dumpsys_getprop import DumpsysGetProp
 from mvt.android.modules.bugreport.dumpsys_packages import DumpsysPackages
@@ -90,3 +95,53 @@ class TestBugreportAnalysis:
         m = self.launch_bug_report_module(Tombstones)
         assert len(m.results) == 2
         assert m.results[1]["pid"] == 3559
+
+    def test_dumpstate_section_is_cached_across_parallel_modules(self):
+        dumpstate = (
+            b"header\n"
+            b"------ SYSTEM PROPERTIES (getprop) ------\n"
+            b"[persist.sys.timezone]: [Europe/Berlin]\n"
+            b"------------------------------------------------------------------------------\n"
+            b"------\n"
+            b"DUMP OF SERVICE package:\n"
+            b"package data\n"
+            b"------------------------------------------------------------------------------\n"
+            b"DUMP OF SERVICE package:\n"
+            b"duplicate package data\n"
+            b"------------------------------------------------------------------------------\n"
+            b"DUMP OF SERVICE adb:\n"
+            b"adb data\n"
+            b"------------------------------------------------------------------------------\n"
+        )
+        archive = MagicMock()
+        archive.open.side_effect = lambda _: BytesIO(dumpstate)
+        shared_lock = threading.RLock()
+        shared_cache = {}
+        modules = []
+
+        for _ in range(4):
+            module = BugReportModule()
+            module.from_zip(archive, ["dumpState_test.log"])
+            module.resource_lock = shared_lock
+            module.resource_cache = shared_cache
+            modules.append(module)
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            sections = list(
+                executor.map(
+                    lambda module: module._get_dumpsys_section(
+                        "DUMP OF SERVICE package:"
+                    ),
+                    modules,
+                )
+            )
+
+        assert sections == ["package data"] * 4
+        assert all(section is sections[0] for section in sections)
+        assert modules[0]._get_dumpsys_section_bytes(b"DUMP OF SERVICE adb:") == (
+            b"adb data"
+        )
+        assert modules[0]._get_system_properties_text() == (
+            "[persist.sys.timezone]: [Europe/Berlin]"
+        )
+        archive.open.assert_called_once_with("dumpState_test.log")

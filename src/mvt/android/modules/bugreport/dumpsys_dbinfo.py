@@ -36,17 +36,13 @@ class DumpsysDBInfo(DumpsysDBInfoArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        data = self._get_dumpstate_file()
-        if not data:
+        section = self._get_dumpsys_section("DUMP OF SERVICE dbinfo:", errors="ignore")
+        if section is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
-
-        section = self.extract_dumpsys_section(
-            data.decode("utf-8", errors="ignore"), "DUMP OF SERVICE dbinfo:"
-        )
 
         self.parse(section)
         self.log.info(

@@ -8,8 +8,6 @@ import logging
 import time
 from typing import Optional
 
-from rich.progress import track
-
 from mvt.android.utils import (
     BROWSER_INSTALLERS,
     PLAY_STORE_INSTALLERS,
@@ -153,10 +151,9 @@ class AQFPackages(AndroidQFModule):
         if total_hashes == 0:
             return
 
-        progress_desc = f"Looking up {total_hashes} package files on VirusTotal..."
-        for index, file_hash in enumerate(
-            track(files_by_hash, description=progress_desc)
-        ):
+        self.log.info("Looking up %d package files on VirusTotal...", total_hashes)
+        for index, file_hash in enumerate(files_by_hash):
+            self.log.debug("VirusTotal lookup %d/%d", index + 1, total_hashes)
             try:
                 results = virustotal_lookup(file_hash)
             except VTNoKey as exc:

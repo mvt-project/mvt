@@ -34,18 +34,14 @@ class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        data = self._get_dumpstate_file()
-        if not data:
+        content = self._get_dumpsys_section("DUMP OF SERVICE platform_compat:")
+        if content is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        decoded_data = data.decode("utf-8", errors="replace")
-        content = self.extract_dumpsys_section(
-            decoded_data, "DUMP OF SERVICE platform_compat:"
-        )
         self.parse(content)
 
         self.log.info("Found %d uninstalled apps", len(self.results))

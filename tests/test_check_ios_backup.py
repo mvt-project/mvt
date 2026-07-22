@@ -33,3 +33,11 @@ class TestCheckBackupCommand:
         result = runner.invoke(check_backup, [str(tmp_path)])
         assert result.exit_code == 1
         assert "does not appear to be an iTunes backup folder" in caplog.text
+
+    def test_check_rejects_non_positive_jobs(self):
+        result = CliRunner().invoke(
+            check_backup, ["--jobs", "0", get_ios_backup_folder()]
+        )
+
+        assert result.exit_code == 2
+        assert "Invalid value for '--jobs'" in result.output

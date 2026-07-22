@@ -34,19 +34,14 @@ class DumpsysADBState(DumpsysADBArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        full_dumpsys = self._get_dumpstate_file()
-        if not full_dumpsys:
+        content = self._get_dumpsys_section_bytes(b"DUMP OF SERVICE adb:")
+        if content is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        content = self.extract_dumpsys_section(
-            full_dumpsys,
-            b"DUMP OF SERVICE adb:",
-            binary=True,
-        )
         self.parse(content)
         if self.results:
             self.log.info(
