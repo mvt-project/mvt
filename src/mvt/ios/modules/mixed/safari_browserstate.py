@@ -19,10 +19,17 @@ from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
 
 from ..base import IOSExtraction
 
-SAFARI_BROWSER_STATE_BACKUP_RELPATH = "Library/Safari/BrowserState.db"
+# Safari profiles (iOS 17 and later) keep their per-profile databases under
+# Library/Safari/Profiles/<UUID>/, separate from the default profile's.
+SAFARI_BROWSER_STATE_BACKUP_RELPATHS = [
+    "Library/Safari/BrowserState.db",
+    "Library/Safari/Profiles/*/BrowserState.db",
+]
 SAFARI_BROWSER_STATE_ROOT_PATHS = [
     "private/var/mobile/Library/Safari/BrowserState.db",
+    "private/var/mobile/Library/Safari/Profiles/*/BrowserState.db",
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/BrowserState.db",
+    "private/var/mobile/Containers/Data/Application/*/Library/Safari/Profiles/*/BrowserState.db",
 ]
 
 
@@ -174,20 +181,22 @@ class SafariBrowserState(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
-            for backup_file in self._get_backup_files_from_manifest(
-                relative_path=SAFARI_BROWSER_STATE_BACKUP_RELPATH
-            ):
-                browserstate_path = self._get_backup_file_from_id(
-                    backup_file["file_id"]
-                )
+            for relative_path in SAFARI_BROWSER_STATE_BACKUP_RELPATHS:
+                for backup_file in self._get_backup_files_from_manifest(
+                    relative_path=relative_path
+                ):
+                    browserstate_path = self._get_backup_file_from_id(
+                        backup_file["file_id"]
+                    )
 
-                if not browserstate_path:
-                    continue
+                    if not browserstate_path:
+                        continue
 
-                self.log.info(
-                    "Found Safari browser state database at path: %s", browserstate_path
-                )
-                self._process_browser_state_db(browserstate_path)
+                    self.log.info(
+                        "Found Safari browser state database at path: %s",
+                        browserstate_path,
+                    )
+                    self._process_browser_state_db(browserstate_path)
         elif self.is_fs_dump:
             for browserstate_path in self._get_fs_files_from_patterns(
                 SAFARI_BROWSER_STATE_ROOT_PATHS
