@@ -5,7 +5,9 @@
 
 import logging
 import os
+import threading
 
+import requests
 
 from mvt.common.config import settings
 from mvt.common.indicators import Indicators
@@ -87,6 +89,119 @@ class TestIndicators:
 
         assert ind.check_url("https://goo.gl/maps/example") is None
         head_request.assert_not_called()
+
+    def test_check_url_batches_preserves_order(self, indicator_file):
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([indicator_file], load_default=False)
+
+        matches = ind.check_url_batches(
+            [
+                [
+                    "https://github.com",
+                    "http://example.com/thisisbad",
+                    "https://www.example.org/foobar",
+                ],
+                ["https://github.com", "https://www.example.org/foobar"],
+                [],
+                None,
+            ]
+        )
+
+        assert matches[0]
+        assert matches[0].ioc.value == "http://example.com/thisisbad"
+        assert matches[1]
+        assert matches[1].ioc.value == "example.org"
+        assert matches[2] is None
+        assert matches[3] is None
+
+    def test_check_url_batches_deduplicates_and_limits_workers(
+        self, indicator_file, mocker
+    ):
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([indicator_file], load_default=False)
+        mocker.patch("mvt.common.indicators.URL_CHECK_MAX_WORKERS", 2)
+
+        barrier = threading.Barrier(2)
+        lock = threading.Lock()
+        calls = []
+        active = 0
+        max_active = 0
+
+        def head_request(url, timeout):
+            nonlocal active, max_active
+            with lock:
+                calls.append(url)
+                active += 1
+                max_active = max(max_active, active)
+                call_number = len(calls)
+
+            try:
+                if call_number <= 2:
+                    barrier.wait(timeout=5)
+                return mocker.Mock(status_code=200, headers={})
+            finally:
+                with lock:
+                    active -= 1
+
+        mocker.patch("mvt.common.url.requests.head", side_effect=head_request)
+        urls = [
+            "https://bit.ly/one",
+            "https://tinyurl.com/two",
+            "https://t.co/three",
+        ]
+
+        assert ind.check_url_batches([urls, [urls[0]]]) == [None, None]
+        assert sorted(calls) == sorted(urls)
+        assert max_active == 2
+
+    def test_check_url_batches_respects_disabled_network(
+        self, indicator_file, mocker
+    ):
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([indicator_file], load_default=False)
+        mocker.patch("mvt.common.indicators.settings.NETWORK_ACCESS_ALLOWED", False)
+        head_request = mocker.patch("mvt.common.url.requests.head")
+
+        assert ind.check_url_batches([["https://bit.ly/example"]]) == [None]
+        head_request.assert_not_called()
+
+    def test_check_url_batches_handles_nested_redirects_and_request_failures(
+        self, indicator_file, mocker
+    ):
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([indicator_file], load_default=False)
+
+        def head_request(url, timeout):
+            if url == "https://bit.ly/failure":
+                raise requests.Timeout()
+            if url == "https://tinyurl.com/nested":
+                return mocker.Mock(
+                    status_code=301,
+                    headers={"Location": "https://t.co/nested"},
+                )
+            if url == "https://t.co/nested":
+                return mocker.Mock(
+                    status_code=302,
+                    headers={"Location": "https://www.example.org/landing"},
+                )
+            raise AssertionError(f"Unexpected URL: {url}")
+
+        head = mocker.patch(
+            "mvt.common.url.requests.head", side_effect=head_request
+        )
+
+        matches = ind.check_url_batches(
+            [["https://bit.ly/failure"], ["https://tinyurl.com/nested"]]
+        )
+
+        assert matches[0] is None
+        assert matches[1]
+        assert matches[1].ioc.value == "example.org"
+        assert {call.args[0] for call in head.call_args_list} == {
+            "https://bit.ly/failure",
+            "https://tinyurl.com/nested",
+            "https://t.co/nested",
+        }
 
     def test_check_file_hash(self, indicator_file):
         ind = Indicators(log=logging)
