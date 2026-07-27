@@ -6,6 +6,7 @@
 import logging
 import shutil
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -112,6 +113,43 @@ class TestSafariHistoryModule:
 
         assert len(m.results) == 2
         assert {result["url"] for result in m.results} == {DEFAULT_URL, PROFILE_URL}
+
+    def test_redirect_ids_are_scoped_to_database(self, fs_dump_with_safari_profile):
+        safari_path = (
+            Path(fs_dump_with_safari_profile)
+            / "private"
+            / "var"
+            / "mobile"
+            / "Library"
+            / "Safari"
+        )
+        with sqlite3.connect(safari_path / "History.db") as conn:
+            conn.execute(
+                "UPDATE history_items SET url = ? WHERE id = 1;",
+                ("http://safe.example.com/start",),
+            )
+            conn.execute(
+                "INSERT INTO history_items VALUES (2, ?);",
+                ("https://safe.example.com/end",),
+            )
+            conn.execute(
+                "UPDATE history_visits SET redirect_destination = 2 WHERE id = 1;"
+            )
+            conn.execute(
+                "INSERT INTO history_visits VALUES (2, 2, 726100000.1, 1, NULL);"
+            )
+
+        profile_db = safari_path / "Profiles" / PROFILE_UUID / "History.db"
+        with sqlite3.connect(profile_db) as conn:
+            # Visit IDs are local to each database and commonly overlap.
+            conn.execute("UPDATE history_visits SET id = 2 WHERE id = 1;")
+
+        m = SafariHistory(target_path=fs_dump_with_safari_profile)
+        m.is_fs_dump = True
+        run_module(m)
+
+        assert len(m.results) == 3
+        assert len(m.alertstore.alerts) == 0
 
     def test_detection_in_profile(self, backup_with_safari_profile, indicator_file):
         """An indicator only visited inside a Safari profile still alerts."""

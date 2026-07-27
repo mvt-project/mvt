@@ -82,6 +82,9 @@ class SafariHistory(IOSExtraction):
 
             # We loop again through visits in order to find redirect record.
             for redirect in self.results:
+                if redirect["safari_history_db"] != result["safari_history_db"]:
+                    continue
+
                 if redirect["visit_id"] != result["redirect_destination"]:
                     continue
 
