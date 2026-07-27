@@ -37,8 +37,10 @@ export MVT_STIX2="/home/user/IOC1.stix2:/home/user/IOC2.stix2"
 ## Network Access
 
 When checking URL indicators, MVT follows recognized shortened URLs with an
-HTTP `HEAD` request. The following environment variables control these
-requests:
+HTTP `HEAD` request. URL checks are deduplicated and run concurrently, with at
+most 20 requests in progress at a time. Redirects within an individual URL
+chain are still followed sequentially. The following environment variables
+control these requests:
 
 - `MVT_NETWORK_ACCESS_ALLOWED` enables or disables network requests. It defaults
   to `true`. Set it to `false` to prevent MVT from attempting to resolve
@@ -72,5 +74,4 @@ So far MVT implements only a subset of [STIX2 specifications](https://docs.oasis
 You can automaticallly download the latest public indicator files with the command `mvt-ios download-iocs` or `mvt-android download-iocs`. These commands download the list of indicators from the [mvt-indicators](https://github.com/mvt-project/mvt-indicators/blob/main/indicators.yaml) repository and store them in the [appdir](https://pypi.org/project/appdirs/) folder. They are then loaded automatically by MVT.
 
 Please [open an issue](https://github.com/mvt-project/mvt/issues/) to suggest new sources of STIX-formatted IOCs.
-
 
