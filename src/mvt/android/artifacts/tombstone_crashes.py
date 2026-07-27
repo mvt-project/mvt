@@ -206,6 +206,11 @@ class TombstoneCrashArtifact(AndroidArtifact):
         return True
 
     def _load_pid_line(self, line: str, tombstone: dict) -> bool:
+        # The first pid line identifies the crashing thread. Full text tombstones
+        # contain additional pid lines for the other threads in the process.
+        if "pid" in tombstone:
+            return True
+
         try:
             parts = line.split(" >>> ") if " >>> " in line else line.split(">>>")
             process_info = parts[0]
