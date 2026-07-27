@@ -42,6 +42,32 @@ class TestTombstoneCrashArtifact:
         assert len(tombstone_artifact.results) == 1
         self.validate_tombstone_result(tombstone_artifact.results[0])
 
+    def test_text_tombstone_keeps_crashing_thread(self):
+        tombstone_artifact = TombstoneCrashArtifact()
+        artifact_path = "android_data/tombstone_process.txt"
+        file = get_artifact(artifact_path)
+        with open(file, "rb") as f:
+            data = f.read()
+
+        data += (
+            b"\npid: 25541, tid: 31896, name: worker-thread"
+            b"  >>> /vendor/bin/other <<<\n"
+        )
+        tombstone_artifact.parse(
+            os.path.basename(artifact_path),
+            datetime.datetime(2023, 4, 12, 12, 32, 40, 518290),
+            data,
+        )
+
+        result = tombstone_artifact.results[0]
+        assert result["pid"] == 25541
+        assert result["tid"] == 21307
+        assert result["process_name"] == "mtk.ape.decoder"
+        assert (
+            result["binary_path"]
+            == "/vendor/bin/hw/android.hardware.media.c2@1.2-mediatek"
+        )
+
     @pytest.mark.skip(reason="Not implemented yet")
     def test_tombtone_kernel_parsing(self):
         tombstone_artifact = TombstoneCrashArtifact()
