@@ -31,6 +31,44 @@ class TestDumpsysReceiversArtifact:
             == "com.android.storagemanager"
         )
 
+    def test_parsing_misindented_action(self):
+        dr = DumpsysReceiversArtifact()
+        data = """\
+Receiver Resolver Table:
+  Non-Data Actions:
+      android.app.action.ENTER_CAR_MODE:
+        b5b40f6 com.google.android.projection.gearhead/.CarModeBroadcastReceiver
+               android.intent.action.MY_PACKAGE_REPLACED:
+        e7706c1 com.psycatgames.nhiegame/.ScheduledNotificationBootReceiver
+"""
+
+        dr.parse(data)
+
+        assert (
+            dr.results["android.intent.action.MY_PACKAGE_REPLACED"][0][
+                "package_name"
+            ]
+            == "com.psycatgames.nhiegame"
+        )
+
+    def test_parsing_misindented_first_action(self):
+        dr = DumpsysReceiversArtifact()
+        data = """\
+Receiver Resolver Table:
+  Non-Data Actions:
+               android.intent.action.MY_PACKAGE_REPLACED:
+        e7706c1 com.psycatgames.nhiegame/.ScheduledNotificationBootReceiver
+"""
+
+        dr.parse(data)
+
+        assert (
+            dr.results["android.intent.action.MY_PACKAGE_REPLACED"][0][
+                "package_name"
+            ]
+            == "com.psycatgames.nhiegame"
+        )
+
     def test_ioc_check(self, indicator_file):
         dr = DumpsysReceiversArtifact()
         file = get_artifact("android_data/dumpsys_packages.txt")
