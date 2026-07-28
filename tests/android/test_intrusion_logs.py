@@ -215,6 +215,52 @@ def _run_security_heuristics(results):
     return module.alertstore.alerts
 
 
+@pytest.mark.parametrize("success", [False, 0])
+def test_known_pinstorage_key_generation_failure_does_not_warn(success, caplog):
+    record = {
+        "timestamp": "2026-06-17 15:31:02.014",
+        "key_generated": {
+            "success": success,
+            "key_id": "PinStorage_crossReboot_key",
+            "uid": 1001,
+        },
+    }
+
+    with caplog.at_level(logging.WARNING):
+        _run_security_heuristics([record])
+
+    assert "Failed key generation detected" not in caplog.text
+
+    timeline_event = SecurityEvent().serialize(record)
+    assert timeline_event["event"] == "key_generated"
+    assert "Key generation failed: PinStorage_crossReboot_key" in timeline_event["data"]
+
+
+@pytest.mark.parametrize(
+    ("key_id", "uid"),
+    [
+        ("PinStorage_crossReboot_key", 10_000),
+        ("another_key", 1001),
+    ],
+)
+def test_other_key_generation_failures_still_warn(key_id, uid, caplog):
+    with caplog.at_level(logging.WARNING):
+        _run_security_heuristics(
+            [
+                {
+                    "timestamp": "2026-06-17 15:31:02.014",
+                    "key_generated": {
+                        "success": False,
+                        "key_id": key_id,
+                        "uid": uid,
+                    },
+                }
+            ]
+        )
+
+    assert f"Failed key generation detected for key_id: {key_id}" in caplog.text
+
+
 def test_cert_authority_installed_raises_medium_alert_without_indicators():
     alerts = _run_security_heuristics(
         [

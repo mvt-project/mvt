@@ -85,12 +85,17 @@ class SMS(IOSExtraction):
         if not self.indicators:
             return
 
+        url_batches = []
         for result in self.results:
             message_links = result.get("links", [])
             # Making sure not link was ignored
             if message_links == []:
                 message_links = check_for_links(result.get("text", ""))
-            ioc_match = self.indicators.check_urls(message_links)
+            url_batches.append(message_links)
+
+        for result, ioc_match in zip(
+            self.results, self.indicators.check_url_batches(url_batches)
+        ):
             if ioc_match:
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc

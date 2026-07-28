@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+from zipfile import BadZipFile
 
 import click
 
@@ -212,7 +213,10 @@ def check_bugreport(
 
     log.info("Checking Android bug report at path: %s", bugreport_path)
 
-    cmd.run()
+    try:
+        cmd.run()
+    except BadZipFile as exc:
+        raise click.ClickException(f"Invalid bugreport archive: {exc}") from exc
     cmd.show_alerts_brief()
     cmd.show_support_message()
 

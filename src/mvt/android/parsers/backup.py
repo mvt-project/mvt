@@ -131,20 +131,23 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
     if password is None:
         raise InvalidBackupPassword()
 
-    [
-        user_salt,
-        checksum_salt,
-        pbkdf2_rounds,
-        user_iv,
-        master_key_blob,
-        encrypted_data,
-    ] = encrypted_backup.split(b"\n", 5)
+    try:
+        [
+            user_salt,
+            checksum_salt,
+            pbkdf2_rounds,
+            user_iv,
+            master_key_blob,
+            encrypted_data,
+        ] = encrypted_backup.split(b"\n", 5)
 
-    user_salt = bytes.fromhex(user_salt.decode("utf-8"))
-    checksum_salt = bytes.fromhex(checksum_salt.decode("utf-8"))
-    pbkdf2_rounds = int(pbkdf2_rounds)
-    user_iv = bytes.fromhex(user_iv.decode("utf-8"))
-    master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
+        user_salt = bytes.fromhex(user_salt.decode("utf-8"))
+        checksum_salt = bytes.fromhex(checksum_salt.decode("utf-8"))
+        pbkdf2_rounds = int(pbkdf2_rounds)
+        user_iv = bytes.fromhex(user_iv.decode("utf-8"))
+        master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise AndroidBackupParsingError("Invalid encrypted backup header") from exc
 
     # Derive decryption master key from password.
     master_key, master_iv = decrypt_master_key(
@@ -174,10 +177,12 @@ def parse_backup_file(data, password=None):
     if not data.startswith(b"ANDROID BACKUP"):
         raise AndroidBackupParsingError("Invalid file header")
 
-    [_, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
-
-    version = int(version)
-    is_compressed = int(is_compressed)
+    try:
+        [_, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
+        version = int(version)
+        is_compressed = int(is_compressed)
+    except ValueError as exc:
+        raise AndroidBackupParsingError("Invalid file header") from exc
 
     if encryption_algo != b"none":
         tar_data = decrypt_backup_data(

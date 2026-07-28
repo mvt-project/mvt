@@ -63,6 +63,8 @@ def test_load_module_appears_only_for_supported_cli_command(tmp_path):
 
 
 def test_module_option_runs_supported_custom_module(tmp_path):
+    (tmp_path / "Manifest.db").touch()
+    (tmp_path / "Info.plist").touch()
     module_path = _write_custom_module(
         tmp_path / "custom.py",
         "CustomRunModule",

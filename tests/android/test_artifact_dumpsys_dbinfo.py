@@ -40,3 +40,22 @@ class TestDumpsysDBinfoArtifact:
         assert len(dbi.alertstore.alerts) == 0
         dbi.check_indicators()
         assert len(dbi.alertstore.alerts) == 5
+
+    def test_parsing_month_day_timestamp_without_pid(self):
+        dbi = DumpsysDBInfoArtifact()
+        dbi.parse(
+            """
+Connection pool for /data/user/0/com.example/databases/current.db:
+      Most recently executed operations:
+        0: [07-15 20:27:39.431] executeForCursorWindow took 1ms - succeeded, sql="SELECT 1"
+"""
+        )
+
+        assert dbi.results == [
+            {
+                "isodate": "07-15 20:27:39.431",
+                "action": "executeForCursorWindow",
+                "sql": "SELECT 1",
+                "path": "/data/user/0/com.example/databases/current.db",
+            }
+        ]
