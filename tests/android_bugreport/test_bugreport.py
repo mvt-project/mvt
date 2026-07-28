@@ -4,7 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 import os
-import shutil
 from pathlib import Path
 
 from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
@@ -91,23 +90,3 @@ class TestBugreportAnalysis:
         m = self.launch_bug_report_module(Tombstones)
         assert len(m.results) == 2
         assert m.results[1]["pid"] == 3559
-
-    def test_tombstones_prefers_protobuf_for_paired_files(self, tmp_path):
-        tombstone_dir = tmp_path / "FS" / "data" / "tombstones"
-        tombstone_dir.mkdir(parents=True)
-        artifacts = Path(get_artifact_folder()) / "android_data"
-        shutil.copy(artifacts / "tombstone_process.txt", tombstone_dir / "tombstone_00")
-        shutil.copy(
-            artifacts / "tombstone_process.pb", tombstone_dir / "tombstone_00.pb"
-        )
-
-        module = Tombstones(target_path=str(tmp_path))
-        files = [
-            str(path.relative_to(tmp_path))
-            for path in tombstone_dir.iterdir()
-            if path.is_file()
-        ]
-        module.from_dir(str(tmp_path), files)
-        run_module(module)
-
-        assert len(module.results) == 1

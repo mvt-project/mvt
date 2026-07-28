@@ -43,15 +43,7 @@ class Tombstones(TombstoneCrashArtifact, BugReportModule):
             )
             return
 
-        parsed_tombstones = set()
-        for tombstone_file in sorted(
-            tombstone_files,
-            key=lambda path: (path.removesuffix(".pb"), not path.endswith(".pb")),
-        ):
-            tombstone_base = tombstone_file.removesuffix(".pb")
-            if tombstone_base in parsed_tombstones:
-                continue
-
+        for tombstone_file in sorted(tombstone_files):
             tombstone_filename = tombstone_file.split("/")[-1]
             modification_time = self._get_file_modification_time(tombstone_file)
             tombstone_data = self._get_file_content(tombstone_file)
@@ -63,7 +55,6 @@ class Tombstones(TombstoneCrashArtifact, BugReportModule):
                     )
                 else:
                     self.parse(tombstone_filename, modification_time, tombstone_data)
-                parsed_tombstones.add(tombstone_base)
             except ValueError as e:
                 # Catch any exceptions raised during parsing or validation.
                 self.log.error(f"Error parsing tombstone file {tombstone_file}: {e}")
