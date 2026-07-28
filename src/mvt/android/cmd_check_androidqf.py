@@ -296,6 +296,7 @@ class CmdAndroidCheckAndroidQF(Command):
 
             elif self.__format == "zip" and self.__zip:
                 temp_dir = tempfile.mkdtemp(prefix="mvt_intrusion_logs_")
+                temp_root = Path(temp_dir).resolve()
                 for entry in intrusion_log_files:
                     normalized = entry.replace("\\", "/")
                     idx = normalized.find("intrusion_logs/")
@@ -303,9 +304,15 @@ class CmdAndroidCheckAndroidQF(Command):
                     if not relative or relative.endswith("/"):
                         continue
 
-                    target = os.path.join(temp_dir, relative)
-                    os.makedirs(os.path.dirname(target), exist_ok=True)
-                    with self.__zip.open(entry) as src, open(target, "wb") as dst:
+                    target = (temp_root / relative).resolve()
+                    if not target.is_relative_to(temp_root):
+                        self.log.warning(
+                            "Skipping unsafe intrusion log archive entry: %s", entry
+                        )
+                        continue
+
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with self.__zip.open(entry) as src, target.open("wb") as dst:
                         dst.write(src.read())
 
                 intrusion_logs_path = temp_dir

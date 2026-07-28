@@ -49,8 +49,7 @@ def add_backup_manifest_entry(backup_path, file_id, domain, relative_path):
         (file_id, domain, relative_path, b""),
     )
     conn.commit()
-    # MVT opens backup databases with immutable=1, which ignores any -wal file,
-    # so the new row has to be checkpointed into Manifest.db itself.
+    # Checkpoint the test change so the fixture does not retain SQLite sidecars.
     conn.execute("PRAGMA journal_mode=DELETE;")
     conn.close()
 

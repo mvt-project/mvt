@@ -5,6 +5,7 @@
 
 from .aqf_files import AQFFiles
 from .aqf_getprop import AQFGetProp
+from .aqf_log_timestamps import AQFLogTimestamps
 from .aqf_packages import AQFPackages
 from .aqf_processes import AQFProcesses
 from .aqf_settings import AQFSettings
@@ -17,6 +18,7 @@ ANDROIDQF_MODULES = [
     AQFGetProp,
     AQFSettings,
     AQFFiles,
+    AQFLogTimestamps,
     RootBinaries,
     Mounts,
 ]
