@@ -125,12 +125,13 @@ def test_load_custom_modules_loads_env_folder_first(tmp_path, monkeypatch):
     assert [module.__name__ for module in modules] == ["EnvModule", "CliModule"]
 
 
-def test_module_supports_command_defaults_to_all_commands(tmp_path):
+def test_module_supports_command_requires_explicit_declaration(tmp_path, caplog):
     module_path = _write_module(tmp_path / "custom.py", "DefaultModule")
     module = load_custom_modules_from_path(str(module_path))[0]
 
-    assert module_supports_command(module, "ios", "check-backup")
-    assert module_supports_command(module, "android", "check-bugreport")
+    assert not module_supports_command(module, "ios", "check-backup")
+    assert not module_supports_command(module, "android", "check-bugreport")
+    assert "DefaultModule has no supported_commands" in caplog.text
 
 
 def test_module_supports_command_honors_supported_commands(tmp_path):

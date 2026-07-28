@@ -3,6 +3,8 @@ repo_url: https://github.com/mvt-project/mvt
 edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2021-2023 MVT Project Developers
 site_description: Mobile Verification Toolkit Documentation
+not_in_nav: |
+    android/adb.md
 markdown_extensions:
     - attr_list
     - admonition
@@ -28,6 +30,7 @@ nav:
     - Welcome: "index.md"
     - Introduction: "introduction.md"
     - Installation: "install.md"
+    - Command Completion: "command_completion.md"
     - Using Docker: "docker.md"
     - MVT for iOS:
         - iOS Forensic Methodology: "ios/methodology.md"
@@ -39,6 +42,7 @@ nav:
         - Check a Filesystem Dump:
             - Dumping the filesystem: "ios/filesystem/dump.md"
             - Check a Filesystem Dump with mvt-ios: "ios/filesystem/check.md"
+        - Check a Sysdiagnose: "ios/sysdiagnose.md"
         - Records extracted by mvt-ios: "ios/records.md"
     - MVT for Android:
         - Android Forensic Methodology: "android/methodology.md"

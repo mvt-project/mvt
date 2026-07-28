@@ -38,6 +38,7 @@ HELP_MSG_BACKUP_KEYFILE = (
 HELP_MSG_EXTRACT_KEY = "Extract decryption key from an iTunes backup"
 HELP_MSG_CHECK_IOS_BACKUP = "Extract artifacts from an iTunes backup"
 HELP_MSG_CHECK_FS = "Extract artifacts from a full filesystem dump"
+HELP_MSG_CHECK_SYSDIAGNOSE = "Extract artifacts from an iOS sysdiagnose archive"
 
 # Android Specific
 HELP_MSG_ANDROID_BACKUP_PASSWORD = "The backup password to use for an Android backup"

@@ -42,6 +42,7 @@ from mvt.common.help import (
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_STIX2,
     HELP_MSG_CHECK_IOS_BACKUP,
+    HELP_MSG_CHECK_SYSDIAGNOSE,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_COMPLETION,
@@ -50,6 +51,7 @@ from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
 from mvt.common.password import prompt_password
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
+from .cmd_check_sysdiagnose import CmdIOSCheckSysdiagnose
 from .decrypt import DecryptBackup
 from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
@@ -393,6 +395,77 @@ def check_fs(
 
     log.info("Checking iOS filesystem located at: %s", dump_path)
 
+    cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
+
+
+# ==============================================================================
+# Command: check-sysdiagnose
+# ==============================================================================
+@cli.command(
+    "check-sysdiagnose",
+    context_settings=CONTEXT_SETTINGS,
+    help=HELP_MSG_CHECK_SYSDIAGNOSE,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.argument("SYSDIAGNOSE_PATH", type=click.Path(exists=True))
+@click.pass_context
+def check_sysdiagnose(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    load_module,
+    hashes,
+    verbose,
+    sysdiagnose_path,
+):
+    set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
+    cmd = CmdIOSCheckSysdiagnose(
+        target_path=sysdiagnose_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        hashes=hashes,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+    )
+
+    if not cmd._available_modules():
+        raise click.ClickException(
+            "No custom modules support mvt-ios check-sysdiagnose. "
+            "Load a module that declares supported_commands = "
+            "((\"ios\", \"check-sysdiagnose\"),)."
+        )
+
+    if list_modules:
+        cmd.list_modules()
+        return
+
+    log.info("Checking iOS sysdiagnose at path: %s", sysdiagnose_path)
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()

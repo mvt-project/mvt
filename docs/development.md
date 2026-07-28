@@ -82,14 +82,16 @@ class ExampleCustomModule(MVTModule):
         return None
 ```
 
-Use `supported_commands` to restrict a module to specific platform/command
-pairs. Missing or empty `supported_commands` means the module is available to
-all commands, which keeps older modules compatible. Supported pairs are:
+Use `supported_commands` to declare the platform/command pairs a module
+supports. Empty `supported_commands` means the module will not run and MVT logs
+a warning. This explicit declaration is required for every command. Supported
+pairs are:
 
 ```python
 ("ios", "check-backup")
 ("ios", "check-fs")
 ("ios", "check-iocs")
+("ios", "check-sysdiagnose")
 ("android", "check-backup")
 ("android", "check-bugreport")
 ("android", "check-androidqf")
