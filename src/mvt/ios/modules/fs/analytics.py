@@ -134,6 +134,8 @@ class Analytics(IOSExtraction):
                 isodate = ""
                 data = plistlib.loads(row[1])
                 data["isodate"] = isodate
+            else:
+                continue
 
             data["artifact"] = artifact
 

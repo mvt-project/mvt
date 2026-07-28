@@ -31,21 +31,38 @@ class DumpsysBatteryHistoryArtifact(AndroidArtifact):
             if line.strip() == "":
                 break
 
-            time_elapsed = line.strip().split(" ", 1)[0]
+            time_parts = line.strip().split()
+            time_elapsed = time_parts[0]
+            if (
+                len(time_parts) > 1
+                and len(time_parts[0]) == 5
+                and time_parts[0][2] == "-"
+                and ":" in time_parts[1]
+            ):
+                time_elapsed = " ".join(time_parts[:2])
 
             event = ""
             if line.find("+job") > 0:
                 event = "start_job"
-                uid = line[line.find("+job") + 5 : line.find(":")]
-                service = line[line.find(":") + 1 :].strip('"')
+                payload = line.split("+job=", 1)[1]
+                uid, separator, service = payload.partition(":")
+                if not separator:
+                    continue
+                service = service.strip().strip('"')
                 package_name = service.split("/")[0]
             elif line.find("-job") > 0:
                 event = "end_job"
-                uid = line[line.find("-job") + 5 : line.find(":")]
-                service = line[line.find(":") + 1 :].strip('"')
+                payload = line.split("-job=", 1)[1]
+                uid, separator, service = payload.partition(":")
+                if not separator:
+                    continue
+                service = service.strip().strip('"')
                 package_name = service.split("/")[0]
             elif line.find("+running +wake_lock=") > 0:
-                uid = line[line.find("+running +wake_lock=") + 21 : line.find(":")]
+                payload = line.split("+running +wake_lock=", 1)[1]
+                uid, separator, _ = payload.partition(":")
+                if not separator:
+                    continue
                 event = "wake"
                 service = (
                     line[line.find("*walarm*:") + 9 :].split(" ")[0].strip('"').strip()

@@ -6,10 +6,15 @@
 import logging
 import os
 import shutil
+import tempfile
+import zipfile
 
 from click.testing import CliRunner
 
 from mvt.android.cli import check_androidqf
+from mvt.android.cmd_check_androidqf import CmdAndroidCheckAndroidQF
+from mvt.android.modules.androidqf import ANDROIDQF_MODULES
+from mvt.android.modules.androidqf.aqf_log_timestamps import AQFLogTimestamps
 from mvt.common.config import settings
 
 from .utils import get_artifact_folder
@@ -18,6 +23,9 @@ TEST_BACKUP_PASSWORD = "123456"
 
 
 class TestCheckAndroidqfCommand:
+    def test_log_timestamps_module_is_registered(self):
+        assert AQFLogTimestamps in ANDROIDQF_MODULES
+
     def test_check(self):
         runner = CliRunner()
         path = os.path.join(get_artifact_folder(), "androidqf")
@@ -89,3 +97,25 @@ class TestCheckAndroidqfCommand:
         assert not any(
             record.levelname in {"CRITICAL", "FATAL"} for record in caplog.records
         )
+
+    def test_intrusion_log_zip_rejects_path_traversal(self, tmp_path, mocker, caplog):
+        escaped_name = f"mvt-escaped-{tmp_path.name}.txt"
+        escaped_path = os.path.join(tempfile.gettempdir(), escaped_name)
+        archive_path = tmp_path / "androidqf.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.writestr(f"intrusion_logs/../{escaped_name}", "unsafe")
+            archive.writestr("intrusion_logs/safe.txt", "safe")
+
+        nested_command = mocker.patch(
+            "mvt.android.cmd_check_androidqf.CmdAndroidCheckIntrusionLogs"
+        )
+        nested_command.return_value.timeline = []
+        nested_command.return_value.alertstore.alerts = []
+        command = CmdAndroidCheckAndroidQF(target_path=str(archive_path))
+        command.init()
+
+        with caplog.at_level(logging.WARNING):
+            assert command.run_intrusion_logs_cmd() is True
+
+        assert not os.path.exists(escaped_path)
+        assert "Skipping unsafe intrusion log archive entry" in caplog.text

@@ -29,10 +29,9 @@ class DumpsysDBInfoArtifact(AndroidArtifact):
 
     def parse(self, output: str) -> None:
         rxp = re.compile(
-            r".*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\].*\[Pid:\((\d+)\)\](\w+).*sql\=\"(.+?)\""
-        )  # pylint: disable=line-too-long
-        rxp_no_pid = re.compile(
-            r".*\[([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\][ ]{1}(\w+).*sql\=\"(.+?)\""
+            r".*\[((?:[0-9]{4}-)?[0-9]{2}-[0-9]{2} "
+            r"[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})\]\s*"
+            r"(?:\[Pid:\((\d+)\)\])?([\w-]+).*?sql=\"(.+?)\""
         )  # pylint: disable=line-too-long
 
         pool = None
@@ -56,29 +55,16 @@ class DumpsysDBInfoArtifact(AndroidArtifact):
                 pool = None
                 continue
 
-            matches = rxp.findall(line)
-            if not matches:
-                matches = rxp_no_pid.findall(line)
-                if not matches:
-                    continue
+            match = rxp.match(line)
+            if not match:
+                continue
 
-                match = matches[0]
-                self.results.append(
-                    {
-                        "isodate": match[0],
-                        "action": match[1],
-                        "sql": match[2],
-                        "path": pool,
-                    }
-                )
-            else:
-                match = matches[0]
-                self.results.append(
-                    {
-                        "isodate": match[0],
-                        "pid": match[1],
-                        "action": match[2],
-                        "sql": match[3],
-                        "path": pool,
-                    }
-                )
+            result = {
+                "isodate": match.group(1),
+                "action": match.group(3),
+                "sql": match.group(4),
+                "path": pool,
+            }
+            if match.group(2):
+                result["pid"] = match.group(2)
+            self.results.append(result)
