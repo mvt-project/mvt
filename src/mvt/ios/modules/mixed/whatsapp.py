@@ -70,6 +70,11 @@ class Whatsapp(IOSExtraction):
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
 
+    def collect_url_results(self) -> None:
+        for message in self.results:
+            for url in message.get("links", []):
+                self.add_url_result(url, message.get("isodate"), "whatsapp")
+
     def run(self) -> None:
         self._find_ios_database(
             backup_ids=WHATSAPP_BACKUP_IDS, root_paths=WHATSAPP_ROOT_PATHS

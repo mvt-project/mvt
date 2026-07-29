@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
 import shutil
@@ -31,6 +32,24 @@ class TestCheckAndroidqfCommand:
         path = os.path.join(get_artifact_folder(), "androidqf")
         result = runner.invoke(check_androidqf, [path])
         assert result.exit_code == 0
+
+    def test_check_stores_nested_sms_urls(self, tmp_path):
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf")
+
+        result = runner.invoke(check_androidqf, ["--output", str(tmp_path), path])
+
+        assert result.exit_code == 0
+        urls = json.loads((tmp_path / "urls.json").read_text())
+        assert {entry["url"] for entry in urls} == {
+            "http://google.com",
+            "https://google.com/",
+        }
+        assert all(
+            set(entry) == {"url", "expanded_url", "timestamp", "source"}
+            for entry in urls
+        )
+        assert all(entry["source"] == "sms" for entry in urls)
 
     def test_check_encrypted_backup_prompt_valid(self, mocker):
         """Prompt for password on CLI"""

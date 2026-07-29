@@ -197,6 +197,15 @@ class TestIndicators:
         assert matches[0] is None
         assert matches[1]
         assert matches[1].ioc.value == "example.org"
+        assert (
+            ind.get_expanded_url("https://tinyurl.com/nested")
+            == "https://www.example.org/landing"
+        )
+        assert (
+            ind.get_expanded_url("https://t.co/nested")
+            == "https://www.example.org/landing"
+        )
+        assert ind.get_expanded_url("https://bit.ly/failure") is None
         assert {call.args[0] for call in head.call_args_list} == {
             "https://bit.ly/failure",
             "https://tinyurl.com/nested",

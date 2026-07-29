@@ -18,6 +18,7 @@ from .module_types import (
     ModuleResults,
     ModuleSerializedResult,
     ModuleTimeline,
+    URLResult,
 )
 from .utils import CustomJSONEncoder, exec_or_profile
 
@@ -82,6 +83,7 @@ class MVTModule:
 
         self.results: ModuleResults = results if results is not None else []
         self.timeline: ModuleTimeline = []
+        self.url_results: list[URLResult] = []
         self.dependency_modules: Dict[type["MVTModule"], "MVTModule"] = {}
 
     def get_dependency_results(
@@ -109,6 +111,23 @@ class MVTModule:
 
     def check_indicators(self) -> None:
         raise NotImplementedError
+
+    def collect_url_results(self) -> None:
+        """Collect URL records exposed by this module."""
+
+    def add_url_result(self, url: str, timestamp: Optional[str], source: str) -> None:
+        expanded_url = None
+        if self.indicators:
+            expanded_url = self.indicators.get_expanded_url(url)
+
+        self.url_results.append(
+            {
+                "url": url,
+                "expanded_url": expanded_url,
+                "timestamp": timestamp,
+                "source": source,
+            }
+        )
 
     def save_to_json(self) -> None:
         if not self.results_path:
@@ -248,6 +267,15 @@ def run_module(module: MVTModule) -> None:
                 module.log.info(
                     "The %s module produced no detections!", module.__class__.__name__
                 )
+
+        try:
+            module.collect_url_results()
+        except Exception as exc:
+            module.log.exception(
+                "Error when collecting URLs from module %s: %s",
+                module.__class__.__name__,
+                exc,
+            )
 
         try:
             module.to_timeline()

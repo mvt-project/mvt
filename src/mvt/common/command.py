@@ -20,7 +20,7 @@ from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
 from .module_loader import module_supports_command
-from .module_types import ModuleTimeline
+from .module_types import ModuleTimeline, URLResult
 from .utils import (
     CustomJSONEncoder,
     convert_datetime_to_iso,
@@ -73,6 +73,7 @@ class Command:
         self.hashes = hashes
         self.hash_values: list[dict[str, Any]] = []
         self.timeline: ModuleTimeline = []
+        self.url_results: list[URLResult] = []
 
         # Load IOCs
         self._create_storage()
@@ -149,6 +150,14 @@ class Command:
         alerts_path = os.path.join(self.results_path, "alerts.json")
         with open(alerts_path, "w+", encoding="utf-8") as handle:
             json.dump(alerts, handle, indent=4, cls=CustomJSONEncoder)
+
+    def _store_urls(self) -> None:
+        if not self.results_path or not self.url_results:
+            return
+
+        urls_path = os.path.join(self.results_path, "urls.json")
+        with open(urls_path, "w", encoding="utf-8") as handle:
+            json.dump(self.url_results, handle, indent=4, cls=CustomJSONEncoder)
 
     def _store_alerts_timeline(self) -> None:
         if not self.results_path:
@@ -396,6 +405,7 @@ class Command:
             self.executed.append(m)
             executed_by_type[module] = m
             self.timeline.extend(m.timeline)
+            self.url_results.extend(m.url_results)
             self.alertstore.extend(m.alertstore.alerts)
 
         try:
@@ -410,4 +420,5 @@ class Command:
         self._store_timeline()
         self._store_alerts_timeline()
         self._store_alerts()
+        self._store_urls()
         self._store_info()
