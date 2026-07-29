@@ -11,6 +11,7 @@ from .aqf_processes import AQFProcesses
 from .aqf_settings import AQFSettings
 from .mounts import Mounts
 from .root_binaries import RootBinaries
+from .samsung_sfs_logs import SamsungSFSLogs
 
 ANDROIDQF_MODULES = [
     AQFPackages,
@@ -21,4 +22,5 @@ ANDROIDQF_MODULES = [
     AQFLogTimestamps,
     RootBinaries,
     Mounts,
+    SamsungSFSLogs,
 ]

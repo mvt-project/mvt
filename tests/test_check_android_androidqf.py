@@ -15,6 +15,7 @@ from mvt.android.cli import check_androidqf
 from mvt.android.cmd_check_androidqf import CmdAndroidCheckAndroidQF
 from mvt.android.modules.androidqf import ANDROIDQF_MODULES
 from mvt.android.modules.androidqf.aqf_log_timestamps import AQFLogTimestamps
+from mvt.android.modules.androidqf.samsung_sfs_logs import SamsungSFSLogs
 from mvt.common.config import settings
 
 from .utils import get_artifact_folder
@@ -25,6 +26,9 @@ TEST_BACKUP_PASSWORD = "123456"
 class TestCheckAndroidqfCommand:
     def test_log_timestamps_module_is_registered(self):
         assert AQFLogTimestamps in ANDROIDQF_MODULES
+
+    def test_samsung_sfs_logs_module_is_registered(self):
+        assert SamsungSFSLogs in ANDROIDQF_MODULES
 
     def test_check(self):
         runner = CliRunner()
