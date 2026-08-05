@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
 import shutil
@@ -31,6 +32,49 @@ class TestCheckAndroidqfCommand:
         path = os.path.join(get_artifact_folder(), "androidqf")
         result = runner.invoke(check_androidqf, [path])
         assert result.exit_code == 0
+
+    def test_acquisition_context_is_passed_to_bugreport(self, tmp_path, mocker):
+        data_path = tmp_path / "androidqf"
+        data_path.mkdir()
+        (data_path / "acquisition.json").write_text(
+            json.dumps(
+                {
+                    "started": "2025-06-20T18:00:00Z",
+                    "adb_host_public_key": "QUJDRA== acquisition@host",
+                }
+            )
+        )
+        with zipfile.ZipFile(data_path / "bugreport.zip", "w"):
+            pass
+
+        nested_command = mocker.patch(
+            "mvt.android.cmd_check_androidqf.CmdAndroidCheckBugreport"
+        )
+        nested_command.return_value.timeline = []
+        nested_command.return_value.alertstore.alerts = []
+        command = CmdAndroidCheckAndroidQF(target_path=str(data_path))
+        command.init()
+
+        assert command.run_bugreport_cmd() is True
+
+        assert nested_command.call_args.kwargs["module_options"][
+            "androidqf_acquisition"
+        ] == {
+            "started": "2025-06-20T18:00:00Z",
+            "adb_host_public_key": "QUJDRA== acquisition@host",
+        }
+
+    def test_acquisition_context_falls_back_to_public_key_file(self, tmp_path):
+        data_path = tmp_path / "androidqf"
+        data_path.mkdir()
+        (data_path / "adb_host_key.pub").write_text("QUJDRA== acquisition@host\n")
+        command = CmdAndroidCheckAndroidQF(target_path=str(data_path))
+
+        command.init()
+
+        assert command.module_options["androidqf_acquisition"] == {
+            "adb_host_public_key": "QUJDRA== acquisition@host\n"
+        }
 
     def test_check_encrypted_backup_prompt_valid(self, mocker):
         """Prompt for password on CLI"""
