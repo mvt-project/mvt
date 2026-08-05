@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
 import shutil
@@ -93,6 +94,47 @@ class CmdAndroidCheckAndroidQF(Command):
             self.__format = "zip"
             self.__zip = zipfile.ZipFile(self.target_path)
             self.__files = self.__zip.namelist()
+
+        self._load_acquisition_context()
+
+    def _load_acquisition_context(self) -> None:
+        """Pass AndroidQF acquisition metadata to nested commands and modules."""
+        context = {}
+        metadata_files = [
+            file_path
+            for file_path in self.__files
+            if file_path.replace("\\", "/").rsplit("/", 1)[-1] == "acquisition.json"
+        ]
+        for file_path in metadata_files:
+            try:
+                metadata = json.loads(self._get_file_content(file_path))
+                if isinstance(metadata, dict):
+                    context["started"] = metadata.get("started")
+                    context["adb_host_public_key"] = metadata.get("adb_host_public_key")
+                    break
+            except (json.JSONDecodeError, OSError, TypeError, UnicodeDecodeError):
+                self.log.warning(
+                    'Unable to read AndroidQF acquisition metadata "%s"', file_path
+                )
+
+        if not context.get("adb_host_public_key"):
+            key_files = [
+                file_path
+                for file_path in self.__files
+                if file_path.replace("\\", "/").rsplit("/", 1)[-1] == "adb_host_key.pub"
+            ]
+            for file_path in key_files:
+                try:
+                    context["adb_host_public_key"] = self._get_file_content(
+                        file_path
+                    ).decode("utf-8")
+                    break
+                except (OSError, UnicodeDecodeError):
+                    self.log.warning(
+                        'Unable to read AndroidQF ADB host key "%s"', file_path
+                    )
+
+        self.module_options["androidqf_acquisition"] = context
 
     def module_init(self, module: AndroidQFModule) -> None:  # type: ignore[override]
         if self.__format == "zip" and self.__zip:
