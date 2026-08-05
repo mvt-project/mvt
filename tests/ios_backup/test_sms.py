@@ -18,6 +18,14 @@ class TestSMSModule:
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 2
+        assert m.url_results == [
+            {
+                "url": "https://badbadbad.example.org/",
+                "expanded_url": None,
+                "timestamp": "2019-08-29 23:13:30.000000",
+                "source": "sms",
+            }
+        ]
         assert len(m.alertstore.alerts) == 0
 
     def test_detection(self, indicator_file):
