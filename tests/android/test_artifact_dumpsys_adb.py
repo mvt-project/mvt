@@ -4,6 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 from mvt.android.artifacts.dumpsys_adb import DumpsysADBArtifact
+from mvt.android.modules.bugreport.dumpsys_adb_state import DumpsysADBState
+from mvt.common.alerts import AlertLevel
 
 from ..utils import get_artifact
 
@@ -114,3 +116,119 @@ class TestDumpsysADBArtifact:
         assert key_store_entry["user"] == "user@laptop"
         assert key_store_entry["fingerprint"] == expected_fingerprint
         assert key_store_entry["last_connected"] == "1628501829898"
+
+
+class TestDumpsysADBStateAlerts:
+    def test_no_androidqf_context_preserves_existing_behavior(self):
+        module = DumpsysADBState(
+            results=[
+                {
+                    "user_keys": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "host@example",
+                            "fingerprint": "fingerprint",
+                        }
+                    ]
+                }
+            ]
+        )
+
+        module.check_indicators()
+
+        assert module.alertstore.alerts == []
+
+    def test_androidqf_trusted_keys_create_expected_alerts(self):
+        module = DumpsysADBState(
+            module_options={
+                "androidqf_acquisition": {
+                    "started": "2025-06-20T18:00:00Z",
+                    "adb_host_public_key": "QUJDRA== acquisition@host",
+                }
+            },
+            results=[
+                {
+                    "user_keys": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "acquisition@host",
+                            "fingerprint": "acquisition-fingerprint",
+                        },
+                        {
+                            "key": b"RUZHSA==",
+                            "user": "other@host",
+                            "fingerprint": "other-fingerprint",
+                        },
+                        {
+                            "key": b"not-base64",
+                            "user": "invalid@host",
+                            "fingerprint": "",
+                        },
+                    ],
+                    "keystore": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "acquisition@host",
+                            "fingerprint": "acquisition-fingerprint",
+                            "last_connected": "1750266000000",
+                        }
+                    ],
+                }
+            ],
+        )
+
+        module.check_indicators()
+
+        assert [alert.level for alert in module.alertstore.alerts] == [
+            AlertLevel.INFORMATIONAL,
+            AlertLevel.LOW,
+            AlertLevel.LOW,
+        ]
+        informational, different, invalid = module.alertstore.alerts
+        assert "at least one day before" in informational.message
+        assert informational.event_time == "2025-06-18 17:00:00.000000"
+        assert "different from the AndroidQF acquisition host" in different.message
+        assert "invalid trusted ADB host key" in invalid.message
+
+    def test_missing_androidqf_host_key_creates_low_alert(self):
+        trusted_key = {
+            "key": b"QUJDRA==",
+            "user": "host@example",
+            "fingerprint": "fingerprint",
+        }
+        module = DumpsysADBState(
+            module_options={"androidqf_acquisition": {}},
+            results=[{"user_keys": [trusted_key]}],
+        )
+
+        module.check_indicators()
+
+        assert len(module.alertstore.alerts) == 1
+        assert module.alertstore.alerts[0].level == AlertLevel.LOW
+        assert "does not include its host key" in module.alertstore.alerts[0].message
+
+    def test_recent_acquisition_host_key_does_not_create_alert(self):
+        module = DumpsysADBState(
+            module_options={
+                "androidqf_acquisition": {
+                    "started": "2025-06-20T18:00:00Z",
+                    "adb_host_public_key": "QUJDRA== acquisition@host",
+                }
+            },
+            results=[
+                {
+                    "keystore": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "acquisition@host",
+                            "fingerprint": "fingerprint",
+                            "last_connected": "1750438800000",
+                        }
+                    ]
+                }
+            ],
+        )
+
+        module.check_indicators()
+
+        assert module.alertstore.alerts == []
