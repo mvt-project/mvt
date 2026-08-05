@@ -30,7 +30,7 @@ class CustomCommandLoadError(Exception):
 class BrokenPluginCommand(click.Command):
     """A placeholder for an installed or configured command that failed to load."""
 
-    def __init__(self, name: str, source: str, exception: Exception):
+    def __init__(self, name: str, source: str, exception: BaseException):
         super().__init__(
             name,
             help=(
@@ -87,7 +87,7 @@ def _load_python_file(path: Path) -> ModuleType:
     sys.modules[module_name] = module
     try:
         spec.loader.exec_module(module)
-    except Exception as exc:
+    except (Exception, SystemExit) as exc:
         raise CustomCommandLoadError(
             f"Unable to import custom command {path}: {exc}"
         ) from exc
@@ -234,7 +234,7 @@ def register_installed_cli_commands(
                     f"entry point must resolve to a Click command or group, "
                     f"not {type(command).__name__}"
                 )
-        except Exception as exc:
+        except (Exception, SystemExit) as exc:
             command = BrokenPluginCommand(entry_point.name, source, exc)
 
         if _register_command(

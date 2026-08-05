@@ -158,6 +158,21 @@ def test_environment_command_failure_gets_broken_placeholder(tmp_path):
     assert str(command_path) in result.output
 
 
+def test_environment_command_system_exit_gets_broken_placeholder(tmp_path):
+    command_path = tmp_path / "exiting_command.py"
+    command_path.write_text("raise SystemExit(7)", encoding="utf-8")
+    group = click.Group()
+
+    registered = register_cli_commands_from_path(group, command_path)
+
+    assert registered == ["exiting-command"]
+    assert isinstance(group.commands["exiting-command"], BrokenPluginCommand)
+    result = CliRunner().invoke(group, ["exiting-command"])
+    assert result.exit_code == 1
+    assert "Unable to import custom command" in result.output
+    assert result.output.rstrip().endswith(": 7")
+
+
 def test_installed_entry_point_name_is_the_command_name(monkeypatch):
     @click.command("internal-name")
     def command():
@@ -206,6 +221,28 @@ def test_broken_installed_plugin_does_not_break_cli(monkeypatch):
     assert result.exit_code == 1
     assert "broken-plugin 1.0 (broken_plugin:cli)" in result.output
     assert "RuntimeError: missing dependency" in result.output
+
+
+def test_installed_plugin_system_exit_does_not_break_cli(monkeypatch):
+    exiting = _entry_point(
+        "exiting",
+        "exiting_plugin:cli",
+        exception=SystemExit(7),
+        distribution="exiting-plugin",
+    )
+    monkeypatch.setattr(
+        "mvt.common.cli_plugins.importlib.metadata.entry_points",
+        lambda **kwargs: [exiting],
+    )
+    group = click.Group()
+
+    register_installed_cli_commands(group, IOS_CLI_PLUGIN_GROUP)
+
+    help_result = CliRunner().invoke(group, ["--help"])
+    assert help_result.exit_code == 0
+    result = CliRunner().invoke(group, ["exiting"])
+    assert result.exit_code == 1
+    assert "SystemExit: 7" in result.output
 
 
 def test_non_click_entry_point_gets_broken_placeholder(monkeypatch):
