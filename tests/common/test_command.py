@@ -42,6 +42,15 @@ class IndependentModule(RecordingModule):
     pass
 
 
+class URLRecordingModule(RecordingModule):
+    def collect_url_results(self):
+        self.add_url_result(
+            "https://example.org/message",
+            "2026-07-29 12:00:00.000000",
+            "test-chat",
+        )
+
+
 class CustomIOSBackupModule(RecordingModule):
     supported_commands = (("ios", "check-backup"),)
 
@@ -86,6 +95,21 @@ class TestCommand:
 
         alerts = json.loads((tmp_path / "alerts.json").read_text())
         assert alerts[0]["event"]["payload"] == "\\xa8\\xa9"
+
+    def test_stores_collected_urls(self, tmp_path):
+        cmd = RecordingCommand(results_path=str(tmp_path))
+        cmd.modules = [URLRecordingModule]
+
+        cmd.run()
+
+        assert json.loads((tmp_path / "urls.json").read_text()) == [
+            {
+                "url": "https://example.org/message",
+                "expanded_url": None,
+                "timestamp": "2026-07-29 12:00:00.000000",
+                "source": "test-chat",
+            }
+        ]
 
     def test_modules_run_in_stable_topological_order(self):
         cmd = RecordingCommand()

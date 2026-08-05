@@ -33,6 +33,24 @@ class TestCheckAndroidqfCommand:
         result = runner.invoke(check_androidqf, [path])
         assert result.exit_code == 0
 
+    def test_check_stores_nested_sms_urls(self, tmp_path):
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf")
+
+        result = runner.invoke(check_androidqf, ["--output", str(tmp_path), path])
+
+        assert result.exit_code == 0
+        urls = json.loads((tmp_path / "urls.json").read_text())
+        assert {entry["url"] for entry in urls} == {
+            "http://google.com",
+            "https://google.com/",
+        }
+        assert all(
+            set(entry) == {"url", "expanded_url", "timestamp", "source"}
+            for entry in urls
+        )
+        assert all(entry["source"] == "sms" for entry in urls)
+
     def test_acquisition_context_is_passed_to_bugreport(self, tmp_path, mocker):
         data_path = tmp_path / "androidqf"
         data_path.mkdir()

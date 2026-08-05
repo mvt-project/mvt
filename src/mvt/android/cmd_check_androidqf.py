@@ -262,6 +262,7 @@ class CmdAndroidCheckAndroidQF(Command):
             cmd.run()
 
             self.timeline.extend(cmd.timeline)
+            self.url_results.extend(cmd.url_results)
             self.alertstore.extend(cmd.alertstore.alerts)
         finally:
             if bugreport:
@@ -299,6 +300,7 @@ class CmdAndroidCheckAndroidQF(Command):
         cmd.run()
 
         self.timeline.extend(cmd.timeline)
+        self.url_results.extend(cmd.url_results)
         self.alertstore.extend(cmd.alertstore.alerts)
         return True
 
@@ -378,6 +380,7 @@ class CmdAndroidCheckAndroidQF(Command):
             cmd.run()
 
             self.timeline.extend(cmd.timeline)
+            self.url_results.extend(cmd.url_results)
             self.alertstore.extend(cmd.alertstore.alerts)
             return True
 

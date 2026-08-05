@@ -49,6 +49,7 @@ class Indicators:
         self.log = log
         self.ioc_collections: List[Dict[str, Any]] = []
         self.total_ioc_count = 0
+        self.resolved_urls: Dict[str, str] = {}
 
     def _load_downloaded_indicators(self) -> None:
         if not os.path.isdir(MVT_INDICATORS_FOLDER):
@@ -439,9 +440,14 @@ class Indicators:
                         orig_url.url,
                         dest_url.url,
                     )
-                    return self.check_url(dest_url.url)
+                    match = self.check_url(dest_url.url)
+                    self.resolved_urls[url] = self.resolved_urls.get(
+                        dest_url.url, dest_url.url
+                    )
+                    return match
 
                 final_url = dest_url
+                self.resolved_urls[url] = final_url.url
             else:
                 # If it's not shortened, we just use the original URL object.
                 final_url = orig_url
@@ -480,6 +486,13 @@ class Indicators:
 
                 return IndicatorMatch(ioc=ioc, message=message)
 
+        return None
+
+    def get_expanded_url(self, url: str) -> Optional[str]:
+        """Return the final URL recorded while checking a shortened URL."""
+        expanded_url = self.resolved_urls.get(url)
+        if expanded_url and expanded_url != url:
+            return expanded_url
         return None
 
     def check_urls(self, urls: list) -> Optional[IndicatorMatch]:

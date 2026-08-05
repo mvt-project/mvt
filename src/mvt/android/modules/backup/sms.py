@@ -57,6 +57,11 @@ class SMS(BackupModule):
                     ioc_match.message, "", message, matched_indicator=ioc_match.ioc
                 )
 
+    def collect_url_results(self) -> None:
+        for message in self.results:
+            for url in message.get("links", []):
+                self.add_url_result(url, message.get("isodate"), "sms")
+
     def run(self) -> None:
         sms_path = "apps/com.android.providers.telephony/d_f/*_sms_backup"
         for file in self._get_files_by_pattern(sms_path):

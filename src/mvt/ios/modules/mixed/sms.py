@@ -101,6 +101,11 @@ class SMS(IOSExtraction):
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
 
+    def collect_url_results(self) -> None:
+        for message in self.results:
+            for url in message.get("links", []):
+                self.add_url_result(url, message.get("isodate"), "sms")
+
     def run(self) -> None:
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
