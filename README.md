@@ -82,6 +82,11 @@ Module-running `check-*` commands can load custom Python modules with
 [development documentation](https://docs.mvt.re/en/latest/development/) for
 details.
 
+Users can also add top-level commands to `mvt-ios` and `mvt-android` from
+installed Python packages or local files and folders. See the
+[custom CLI command documentation](https://docs.mvt.re/en/latest/custom_commands/)
+for the plugin entry points and `--load-command` interface.
+
 
 ## License
 

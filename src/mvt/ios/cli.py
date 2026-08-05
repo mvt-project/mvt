@@ -8,6 +8,12 @@ import logging
 import os
 
 import click
+from mvt.common.cli_plugins import (
+    IOS_CLI_PLUGIN_GROUP,
+    MVT_IOS_CUSTOM_COMMANDS_ENV,
+    load_cli_commands_option,
+    register_cli_plugins,
+)
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
 from mvt.common.completion import (
     SUPPORTED_SHELLS,
@@ -86,6 +92,7 @@ def _load_custom_modules(load_module):
 # Main
 # ==============================================================================
 @click.group(invoke_without_command=False)
+@load_cli_commands_option
 @click.option(
     "--disable-update-check", is_flag=True, help=HELP_MSG_DISABLE_UPDATE_CHECK
 )
@@ -523,3 +530,10 @@ def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
+
+
+register_cli_plugins(
+    cli,
+    entry_point_group=IOS_CLI_PLUGIN_GROUP,
+    environment_variable=MVT_IOS_CUSTOM_COMMANDS_ENV,
+)
