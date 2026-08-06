@@ -21,7 +21,7 @@ dependencies = [
     "rich==14.3.3",
     "tld==0.13.2",
     "requests==2.33.1",
-    "simplejson==3.20.2",
+    "simplejson==4.1.1",
     "packaging==26.2",
     "appdirs==1.4.4",
     "iOSbackup==0.9.925",
