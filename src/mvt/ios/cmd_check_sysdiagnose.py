@@ -6,8 +6,10 @@
 import json
 import logging
 import os
+import shutil
 import tarfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from tempfile import TemporaryDirectory
 from typing import Any, Optional
 
 from mvt.common.command import Command
@@ -54,6 +56,8 @@ class CmdIOSCheckSysdiagnose(Command):
         self.sysdiagnose_archive: Optional[tarfile.TarFile] = None
         self.sysdiagnose_files: list[str] = []
         self.ips_files: list[dict[str, Any]] = []
+        self.temp_sysdiagnose_dir: Optional[TemporaryDirectory[str]] = None
+        self.extracted_sysdiagnose_path: Optional[str] = None
 
     @staticmethod
     def _parse_bugtype_header(data: bytes) -> Optional[int]:
@@ -91,21 +95,68 @@ class CmdIOSCheckSysdiagnose(Command):
         self.log.info("Parsing sysdiagnose archive. This might take a while...")
         self.sysdiagnose_format = "tar"
         self.sysdiagnose_archive = tarfile.open(self.target_path, "r:gz")
-        for member in self.sysdiagnose_archive:
-            self.sysdiagnose_files.append(member.name)
-            if member.isfile() and member.name.endswith(".ips"):
-                archive_handle = self.sysdiagnose_archive.extractfile(member)
-                if archive_handle is not None:
-                    with archive_handle:
-                        self._add_ips_file(member.name, archive_handle.read())
+        self._extract_sysdiagnose_archive()
+
+    def _extract_sysdiagnose_archive(self) -> None:
+        archive = self.sysdiagnose_archive
+        if archive is None:
+            raise RuntimeError("Sysdiagnose archive has not been initialized")
+
+        self.temp_sysdiagnose_dir = TemporaryDirectory()
+        extraction_root = Path(self.temp_sysdiagnose_dir.name).resolve()
+        archive_roots = set()
+
+        for member in archive:
+            member_path = PurePosixPath(member.name.replace("\\", "/"))
+            if member_path.is_absolute() or ".." in member_path.parts:
+                self.log.warning("Skipping unsafe sysdiagnose path %r", member.name)
+                continue
+
+            destination = extraction_root.joinpath(*member_path.parts).resolve()
+            if not destination.is_relative_to(extraction_root):
+                self.log.warning("Skipping unsafe sysdiagnose path %r", member.name)
+                continue
+
+            if not member_path.parts:
+                continue
+            archive_roots.add(member_path.parts[0])
+
+            if member.isdir():
+                destination.mkdir(parents=True, exist_ok=True)
+                continue
+
+            # Modules only need directories and regular files. Do not materialize
+            # links or device nodes from an untrusted sysdiagnose archive.
+            if not member.isfile():
+                self.log.warning("Skipping unsafe sysdiagnose member %r", member.name)
+                continue
+
+            normalized_name = member_path.as_posix()
+            self.sysdiagnose_files.append(normalized_name)
+
+            source = archive.extractfile(member)
+            if source is None:
+                continue
+
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with source, destination.open("wb") as output:
+                shutil.copyfileobj(source, output)
+
+            if normalized_name.endswith(".ips"):
+                self._add_ips_file(str(destination), destination.read_bytes())
+
+        if len(archive_roots) != 1:
+            raise ValueError("Sysdiagnose archive must contain one top-level directory")
+
+        self.extracted_sysdiagnose_path = str(extraction_root / archive_roots.pop())
 
     def module_init(self, module) -> None:
         module.ips_files = self.ips_files
         if self.sysdiagnose_format == "tar":
-            if self.sysdiagnose_archive is None:
-                raise RuntimeError("Sysdiagnose archive has not been initialized")
-            module.from_sysdiagnose_tar(
-                self.sysdiagnose_archive, self.sysdiagnose_files
+            if self.extracted_sysdiagnose_path is None:
+                raise RuntimeError("Sysdiagnose archive has not been extracted")
+            module.from_sysdiagnose_folder(
+                self.extracted_sysdiagnose_path, self.sysdiagnose_files
             )
             return
         if self.sysdiagnose_format == "dir" and self.target_path:
@@ -117,3 +168,6 @@ class CmdIOSCheckSysdiagnose(Command):
         if self.sysdiagnose_archive is not None:
             self.sysdiagnose_archive.close()
             self.sysdiagnose_archive = None
+        if self.temp_sysdiagnose_dir is not None:
+            self.temp_sysdiagnose_dir.cleanup()
+            self.temp_sysdiagnose_dir = None
