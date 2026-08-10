@@ -34,6 +34,7 @@ TOMBSTONE_TEXT_KEY_MAPPINGS = {
     "signal": "signal_info",
     "code": "code",
     "Cause": "cause",
+    "Abort message": "abort_message",
 }
 
 
@@ -67,6 +68,8 @@ class TombstoneCrashResult(pydantic.BaseModel):
     uid: int
     signal_info: SignalInfo
     cause: Optional[str] = None
+    causes: Optional[List[dict]] = None
+    abort_message: Optional[str] = None
     extra: Optional[str] = None
 
 
