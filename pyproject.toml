@@ -30,7 +30,7 @@ dependencies = [
     "cryptography==47.0.0",
     "PyYAML>=6.0.2",
     "pyahocorasick==2.3.1",
-    "betterproto2==0.9.1",
+    "betterproto2==0.10.0",
     "pydantic==2.13.3",
     "pydantic-settings==2.14.0",
     "NSKeyedUnArchiver==1.5.2",
