@@ -99,7 +99,10 @@ class TombstoneCrashArtifact(AndroidArtifact):
             ioc_match = self.indicators.check_process(result["process_name"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("timestamp") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
                 continue
 
@@ -108,7 +111,10 @@ class TombstoneCrashArtifact(AndroidArtifact):
                 ioc_match = self.indicators.check_process(command_name)
                 if ioc_match:
                     self.alertstore.critical(
-                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                        ioc_match.message,
+                        result.get("timestamp") or "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
@@ -123,7 +129,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
                         f"Potentially suspicious crash in process '{result['process_name']}' "
                         f"running as UID '{result['uid']}' in tombstone '{result['file_name']}' at {result['timestamp']}"
                     ),
-                    "",
+                    result.get("timestamp") or "",
                     result,
                 )
 

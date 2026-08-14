@@ -42,11 +42,23 @@ class DumpsysAppopsArtifact(AndroidArtifact):
 
     def check_indicators(self) -> None:
         for result in self.results:
+            event_time = max(
+                (
+                    entry["timestamp"]
+                    for permission in result["permissions"]
+                    for entry in permission.get("entries", [])
+                    if entry.get("timestamp")
+                ),
+                default="",
+            )
             if self.indicators:
                 ioc_match = self.indicators.check_app_id(result.get("package_name"))
                 if ioc_match:
                     self.alertstore.critical(
-                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                        ioc_match.message,
+                        event_time,
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
