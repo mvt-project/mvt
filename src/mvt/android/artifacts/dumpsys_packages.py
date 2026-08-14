@@ -71,6 +71,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
             "timestamp": "",
             "first_install_time": "",
             "last_update_time": "",
+            "installer": "",
             "permissions": list(),
             "requested_permissions": list(),
         }
@@ -126,6 +127,8 @@ class DumpsysPackagesArtifact(AndroidArtifact):
                 details["version_code"] = line.split("=", 1)[1].strip()
             elif line.strip().startswith("timeStamp="):
                 details["timestamp"] = line.split("=")[1].strip()
+            elif line.strip().startswith("installerPackageName="):
+                details["installer"] = line.split("=", 1)[1].strip()
             elif line.strip().startswith("firstInstallTime="):
                 details["first_install_time"] = line.split("=")[1].strip()
             elif line.strip().startswith("lastUpdateTime="):
