@@ -54,6 +54,8 @@ class TestBugreportAnalysis:
             == "com.samsung.android.provider.filterprovider"
         )
         assert m.results[1]["package_name"] == "com.instagram.android"
+        assert m.results[0]["installer"] == ""
+        assert m.results[1]["installer"] == "com.android.vending"
         assert len(m.results[0]["permissions"]) == 4
         assert len(m.results[1]["permissions"]) == 32
 
