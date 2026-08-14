@@ -26,6 +26,24 @@ class TestDumpsysPackagesArtifact:
         )
         assert dpa.results[0]["version_name"] == "5.0.07"
         assert dpa.results[0]["first_install_time"] == "2008-12-31 16:00:00"
+        assert dpa.results[0]["system"] is True
+
+    def test_parsing_system_flag(self):
+        system_details = DumpsysPackagesArtifact.parse_dumpsys_package_for_details(
+            "    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]"
+        )
+        third_party_details = DumpsysPackagesArtifact.parse_dumpsys_package_for_details(
+            "    pkgFlags=[ HAS_CODE ALLOW_BACKUP ]"
+        )
+        missing_flag_details = (
+            DumpsysPackagesArtifact.parse_dumpsys_package_for_details(
+                "    versionName=1.0"
+            )
+        )
+
+        assert system_details["system"] is True
+        assert third_party_details["system"] is False
+        assert missing_flag_details["system"] is False
 
     def test_ioc_check(self, indicator_file):
         dpa = DumpsysPackagesArtifact()
