@@ -25,6 +25,7 @@ class TestDumpsysPackagesArtifact:
             == "com.samsung.android.provider.filterprovider"
         )
         assert dpa.results[0]["version_name"] == "5.0.07"
+        assert dpa.results[0]["first_install_time"] == "2008-12-31 16:00:00"
 
     def test_ioc_check(self, indicator_file):
         dpa = DumpsysPackagesArtifact()
@@ -40,3 +41,43 @@ class TestDumpsysPackagesArtifact:
         assert len(dpa.alertstore.alerts) == 0
         dpa.check_indicators()
         assert len(dpa.alertstore.alerts) == 1
+
+    def test_per_user_fields_use_primary_user(self):
+        details = DumpsysPackagesArtifact.parse_dumpsys_package_for_details(
+            """    User 0: installed=true
+      firstInstallTime=2024-01-10 09:19:39
+      runtime permissions:
+        android.permission.CAMERA: granted=true
+    User 95: installed=false
+      firstInstallTime=1970-01-01 01:00:00
+      runtime permissions:
+        android.permission.CAMERA: granted=false
+        android.permission.RECORD_AUDIO: granted=false
+"""
+        )
+
+        assert details["first_install_time"] == "2024-01-10 09:19:39"
+        runtime_permissions = [
+            permission
+            for permission in details["permissions"]
+            if permission["type"] == "runtime"
+        ]
+        assert runtime_permissions == [
+            {
+                "name": "android.permission.CAMERA",
+                "granted": True,
+                "type": "runtime",
+            }
+        ]
+
+    def test_per_user_fields_fall_back_when_user_zero_is_missing(self):
+        details = DumpsysPackagesArtifact.parse_dumpsys_package_for_details(
+            """    User 10: installed=true
+      firstInstallTime=2024-02-10 09:19:39
+      runtime permissions:
+        android.permission.CAMERA: granted=true
+"""
+        )
+
+        assert details["first_install_time"] == "2024-02-10 09:19:39"
+        assert details["permissions"][-1]["name"] == "android.permission.CAMERA"
