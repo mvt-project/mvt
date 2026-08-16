@@ -4,14 +4,21 @@
 #   https://license.mvt.re/1.1/
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module import DatabaseNotFoundError
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
 SHUTDOWN_LOG_PATH = [
     "private/var/db/diagnostics/shutdown.log",
+    "private/var/db/diagnostics/shutdown.*.log",
 ]
 
 
@@ -25,7 +32,7 @@ class ShutdownLog(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -36,7 +43,7 @@ class ShutdownLog(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -50,22 +57,22 @@ class ShutdownLog(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_file_path(result["client"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_file_path(result["client"])
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
             for ioc in self.indicators.get_iocs("processes"):
                 parts = result["client"].split("/")
-                if ioc in parts:
-                    self.log.warning(
-                        'Found mention of a known malicious process "%s" in '
-                        "shutdown.log",
-                        ioc,
+                if ioc.value in parts:
+                    self.alertstore.critical(
+                        f'Found mention of a known malicious process "{ioc.value}" in shutdown.log',
+                        "",
+                        result,
+                        matched_indicator=ioc,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
                     continue
 
     def process_shutdownlog(self, content):
@@ -73,7 +80,7 @@ class ShutdownLog(IOSExtraction):
         recent_processes = []
         times_delayed = 0
         delay = 0.0
-        for line in content.split("\n"):
+        for line in content.splitlines():
             line = line.strip()
 
             if line.startswith("remaining client pid:"):
@@ -127,7 +134,17 @@ class ShutdownLog(IOSExtraction):
         self.results = sorted(self.results, key=lambda entry: entry["isodate"])
 
     def run(self) -> None:
-        self._find_ios_database(root_paths=SHUTDOWN_LOG_PATH)
-        self.log.info("Found shutdown log at path: %s", self.file_path)
-        with open(self.file_path, "r", encoding="utf-8") as handle:
-            self.process_shutdownlog(handle.read())
+        if self.file_path:
+            shutdown_log_paths = [self.file_path]
+        else:
+            shutdown_log_paths = sorted(
+                self._get_fs_files_from_patterns(SHUTDOWN_LOG_PATH)
+            )
+
+        if not shutdown_log_paths:
+            raise DatabaseNotFoundError("unable to find any shutdown log files")
+
+        for shutdown_log_path in shutdown_log_paths:
+            self.log.info("Found shutdown log at path: %s", shutdown_log_path)
+            with open(shutdown_log_path, "r", encoding="utf-8") as handle:
+                self.process_shutdownlog(handle.read())

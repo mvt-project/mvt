@@ -3,8 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-import logging
 import json
+import logging
 from typing import Optional
 
 from mvt.android.artifacts.mounts import Mounts as MountsArtifact
@@ -32,7 +32,7 @@ class Mounts(MountsArtifact, AndroidQFModule):
             log=log,
             results=results,
         )
-        self.results = []
+        self.results: list = [] if results is None else results
 
     def run(self) -> None:
         """
@@ -66,6 +66,9 @@ class Mounts(MountsArtifact, AndroidQFModule):
                 # AndroidQF format: array of strings like
                 # "/dev/block/dm-12 on / type ext4 (ro,seclabel,noatime)"
                 mount_content = "\n".join(json_data)
+            else:
+                self.log.error("Expected mounts.json to contain a list of mount lines")
+                return
             self.parse(mount_content)
         except Exception as exc:
             self.log.error("Failed to parse mount information: %s", exc)

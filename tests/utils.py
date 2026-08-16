@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import os
+import sqlite3
 from pathlib import Path
 
 
@@ -35,6 +36,22 @@ def get_android_androidqf():
 
 def get_indicator_file():
     print("PYTEST env", os.getenv("PYTEST_CURRENT_TEST"))
+
+
+def add_backup_manifest_entry(backup_path, file_id, domain, relative_path):
+    """
+    Register an extra file in a test backup's Manifest.db
+    """
+    conn = sqlite3.connect(os.path.join(backup_path, "Manifest.db"))
+    conn.execute(
+        "INSERT INTO Files (fileID, domain, relativePath, flags, file) "
+        "VALUES (?, ?, ?, 1, ?);",
+        (file_id, domain, relative_path, b""),
+    )
+    conn.commit()
+    # Checkpoint the test change so the fixture does not retain SQLite sidecars.
+    conn.execute("PRAGMA journal_mode=DELETE;")
+    conn.close()
 
 
 def delete_tmp_db_files(file_path):

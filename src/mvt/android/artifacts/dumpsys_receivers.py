@@ -50,14 +50,18 @@ class DumpsysReceiversArtifact(AndroidArtifact):
                 if not self.indicators:
                     continue
 
-                ioc = self.indicators.check_app_id(receiver["package_name"])
-                if ioc:
-                    receiver["matched_indicator"] = ioc
-                    self.detected.append({intent: receiver})
+                ioc_match = self.indicators.check_app_id(receiver["package_name"])
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message,
+                        "",
+                        {intent: receiver},
+                        matched_indicator=ioc_match.ioc,
+                    )
                     continue
 
     def parse(self, output: str) -> None:
-        self.results = {}
+        self.results: dict[str, list[dict[str, str]]] = {}
 
         in_receiver_resolver_table = False
         in_non_data_actions = False
@@ -92,6 +96,18 @@ class DumpsysReceiversArtifact(AndroidArtifact):
                 self.results[intent] = []
                 continue
 
+            parts = line.strip().split(" ")
+            if len(parts) < 2:
+                # A single-token line here is not a receiver. Real dumpstate
+                # output can print an action header mis-indented (observed with
+                # 15 leading spaces instead of 6), which used to raise
+                # IndexError and abort the whole module. Treat a trailing-colon
+                # token as the next action, skip anything else.
+                if parts[0].endswith(":"):
+                    intent = parts[0][:-1]
+                    self.results.setdefault(intent, [])
+                continue
+
             # If we are not in an intent block yet, skip.
             if not intent:
                 continue
@@ -105,7 +121,7 @@ class DumpsysReceiversArtifact(AndroidArtifact):
 
             # If we got this far, we are processing receivers for the
             # activities we are interested in.
-            receiver = line.strip().split(" ")[1]
+            receiver = parts[1]
             package_name = receiver.split("/")[0]
 
             self.results[intent].append(

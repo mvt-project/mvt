@@ -12,9 +12,9 @@ import requests
 import yaml
 from packaging import version
 
+from .config import settings
 from .indicators import MVT_DATA_FOLDER, MVT_INDICATORS_FOLDER
 from .version import MVT_VERSION
-from .config import settings
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ INDICATORS_CHECK_FREQUENCY = 12
 class MVTUpdates:
     def check(self) -> str:
         try:
-            res = requests.get(settings.PYPI_UPDATE_URL, timeout=5)
+            res = requests.get(str(settings.PYPI_UPDATE_URL), timeout=5)
         except requests.exceptions.RequestException as e:
             log.error("Failed to check for updates, skipping updates: %s", e)
             return ""
@@ -180,10 +180,8 @@ class IndicatorsUpdates:
     def _get_remote_file_latest_commit(
         self, owner: str, repo: str, branch: str, path: str
     ) -> int:
-        # TODO: The branch is currently not taken into consideration.
-        #       How do we specify which branch to look up to the API?
         file_commit_url = (
-            f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}"
+            f"https://api.github.com/repos/{owner}/{repo}/commits?path={path}&sha={branch}"
         )
         try:
             res = requests.get(file_commit_url, timeout=5)

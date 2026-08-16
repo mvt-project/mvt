@@ -4,8 +4,8 @@
 
 # Mobile Verification Toolkit
 
-> [!IMPORTANT]  
-> Soon we will merge the v3 pull request which will result in breaking changes. If you rely on mvt output in other script make sure to the the branch before we merge. More details: https://github.com/mvt-project/mvt/issues/757
+> [!IMPORTANT]
+> We recently merged the "v3" branch. This introduced breaking changes. If you relied on mvt output in other scripts They might have broken. More details: https://github.com/mvt-project/mvt/issues/757
 
 [![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
 [![Documentation Status](https://readthedocs.org/projects/mvt/badge/?version=latest)](https://docs.mvt.re/en/latest/?badge=latest)
@@ -41,12 +41,51 @@ MVT can be installed from sources or from [PyPI](https://pypi.org/project/mvt/) 
 pip3 install mvt
 ```
 
+You can also install MVT from PyPI with [uv](https://docs.astral.sh/uv/). First, install uv:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then install MVT as a command-line tool:
+
+```bash
+uv tool install mvt
+```
+
 For alternative installation options and known issues, please refer to the [documentation](https://docs.mvt.re/en/latest/install/) as well as [GitHub Issues](https://github.com/mvt-project/mvt/issues).
 
 
 ## Usage
 
 MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+
+### Shell completion
+
+MVT can generate shell completion scripts for Bash, Zsh, and Fish:
+
+```bash
+mvt-ios completion
+mvt-android completion
+```
+
+The commands print setup instructions by default. To generate a completion script directly, pass the shell name:
+
+```bash
+mvt-ios completion bash
+mvt-android completion zsh
+```
+
+MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
+Module-running `check-*` commands can load custom Python modules with
+`--load-module PATH` or from a folder set in `MVT_CUSTOM_MODULES`. See the
+[development documentation](https://docs.mvt.re/en/latest/development/) for
+details.
+
+Users can also add top-level commands to `mvt-ios` and `mvt-android` from
+installed Python packages or local files and folders. See the
+[custom CLI command documentation](https://docs.mvt.re/en/latest/custom_commands/)
+for the plugin entry points and `--load-command` interface.
 
 
 ## License

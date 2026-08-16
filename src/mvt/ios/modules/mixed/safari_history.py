@@ -5,17 +5,29 @@
 
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.url import URL
 from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
-SAFARI_HISTORY_BACKUP_RELPATH = "Library/Safari/History.db"
+# Safari profiles (iOS 17 and later) each keep their own History.db under
+# Library/Safari/Profiles/<UUID>/, separate from the default profile's database.
+SAFARI_HISTORY_BACKUP_RELPATHS = [
+    "Library/Safari/History.db",
+    "Library/Safari/Profiles/*/History.db",
+]
 SAFARI_HISTORY_ROOT_PATHS = [
     "private/var/mobile/Library/Safari/History.db",
+    "private/var/mobile/Library/Safari/Profiles/*/History.db",
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/History.db",
+    "private/var/mobile/Containers/Data/Application/*/Library/Safari/Profiles/*/History.db",
 ]
 
 
@@ -33,7 +45,7 @@ class SafariHistory(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -44,7 +56,7 @@ class SafariHistory(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
             "timestamp": record["isodate"],
             "module": self.__class__.__name__,
@@ -70,6 +82,9 @@ class SafariHistory(IOSExtraction):
 
             # We loop again through visits in order to find redirect record.
             for redirect in self.results:
+                if redirect["safari_history_db"] != result["safari_history_db"]:
+                    continue
+
                 if redirect["visit_id"] != result["redirect_destination"]:
                     continue
 
@@ -95,9 +110,10 @@ class SafariHistory(IOSExtraction):
                 elapsed_ms = elapsed_time.microseconds / 1000
 
                 if elapsed_time.seconds == 0:
-                    self.log.warning(
-                        "Redirect took less than a second! (%d milliseconds)",
-                        elapsed_ms,
+                    self.alertstore.medium(
+                        f"Redirect took less than a second! ({elapsed_ms} milliseconds)",
+                        convert_mactime_to_iso(result["timestamp"]),
+                        result,
                     )
 
     def check_indicators(self) -> None:
@@ -107,10 +123,11 @@ class SafariHistory(IOSExtraction):
             return
 
         for result in self.results:
-            ioc = self.indicators.check_url(result["url"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_url(result["url"])
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
 
     def _process_history_db(self, history_path):
         self._recover_sqlite_db_if_needed(history_path)
@@ -152,17 +169,22 @@ class SafariHistory(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
-            for history_file in self._get_backup_files_from_manifest(
-                relative_path=SAFARI_HISTORY_BACKUP_RELPATH
-            ):
-                history_path = self._get_backup_file_from_id(history_file["file_id"])
+            for relative_path in SAFARI_HISTORY_BACKUP_RELPATHS:
+                for history_file in self._get_backup_files_from_manifest(
+                    relative_path=relative_path
+                ):
+                    history_path = self._get_backup_file_from_id(
+                        history_file["file_id"]
+                    )
 
-                if not history_path:
-                    continue
+                    if not history_path:
+                        continue
 
-                self.log.info("Found Safari history database at path: %s", history_path)
+                    self.log.info(
+                        "Found Safari history database at path: %s", history_path
+                    )
 
-                self._process_history_db(history_path)
+                    self._process_history_db(history_path)
         elif self.is_fs_dump:
             for history_path in self._get_fs_files_from_patterns(
                 SAFARI_HISTORY_ROOT_PATHS

@@ -3,16 +3,22 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
+import shutil
+import tempfile
 import zipfile
 from pathlib import Path
 from typing import List, Optional
 
-from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
+from mvt.android.artifacts.getprop import GetProp
+from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
+from mvt.android.cmd_check_backup import CmdAndroidCheckBackup, InvalidAndroidBackup
 from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
 
 from .modules.androidqf import ANDROIDQF_MODULES
 from .modules.androidqf.base import AndroidQFModule
@@ -46,6 +52,7 @@ class CmdAndroidCheckAndroidQF(Command):
         sub_command: Optional[bool] = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -60,8 +67,10 @@ class CmdAndroidCheckAndroidQF(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = "android"
         self.name = "check-androidqf"
         self.modules = ANDROIDQF_MODULES
 
@@ -70,6 +79,9 @@ class CmdAndroidCheckAndroidQF(Command):
         self.__files: List[str] = []
 
     def init(self):
+        if not self.target_path:
+            raise NoAndroidQFTargetPath
+
         if os.path.isdir(self.target_path):
             self.__format = "dir"
             parent_path = Path(self.target_path).absolute().parent.as_posix()
@@ -82,6 +94,47 @@ class CmdAndroidCheckAndroidQF(Command):
             self.__format = "zip"
             self.__zip = zipfile.ZipFile(self.target_path)
             self.__files = self.__zip.namelist()
+
+        self._load_acquisition_context()
+
+    def _load_acquisition_context(self) -> None:
+        """Pass AndroidQF acquisition metadata to nested commands and modules."""
+        context = {}
+        metadata_files = [
+            file_path
+            for file_path in self.__files
+            if file_path.replace("\\", "/").rsplit("/", 1)[-1] == "acquisition.json"
+        ]
+        for file_path in metadata_files:
+            try:
+                metadata = json.loads(self._get_file_content(file_path))
+                if isinstance(metadata, dict):
+                    context["started"] = metadata.get("started")
+                    context["adb_host_public_key"] = metadata.get("adb_host_public_key")
+                    break
+            except (json.JSONDecodeError, OSError, TypeError, UnicodeDecodeError):
+                self.log.warning(
+                    'Unable to read AndroidQF acquisition metadata "%s"', file_path
+                )
+
+        if not context.get("adb_host_public_key"):
+            key_files = [
+                file_path
+                for file_path in self.__files
+                if file_path.replace("\\", "/").rsplit("/", 1)[-1] == "adb_host_key.pub"
+            ]
+            for file_path in key_files:
+                try:
+                    context["adb_host_public_key"] = self._get_file_content(
+                        file_path
+                    ).decode("utf-8")
+                    break
+                except (OSError, UnicodeDecodeError):
+                    self.log.warning(
+                        'Unable to read AndroidQF ADB host key "%s"', file_path
+                    )
+
+        self.module_options["androidqf_acquisition"] = context
 
     def module_init(self, module: AndroidQFModule) -> None:  # type: ignore[override]
         if self.__format == "zip" and self.__zip:
@@ -136,7 +189,57 @@ class CmdAndroidCheckAndroidQF(Command):
 
         raise NoAndroidQFBackup
 
+    def _read_device_timezone(self) -> Optional[str]:
+        getprop_files = [
+            f for f in self.__files if f.replace("\\", "/").endswith("getprop.txt")
+        ]
+        if not getprop_files:
+            self.log.warning(
+                "Could not find getprop.txt; intrusion log timestamps will use UTC."
+            )
+            return None
+
+        try:
+            content = self._get_file_content(getprop_files[0]).decode(
+                "utf-8", errors="ignore"
+            )
+        except Exception as exc:
+            self.log.warning("Could not read getprop.txt: %s", exc)
+            return None
+
+        props = GetProp()
+        props.parse(content)
+        timezone = props.get_device_timezone()
+        if timezone:
+            self.log.info(
+                "Device timezone identified from getprop.txt: %s",
+                timezone,
+            )
+        else:
+            self.log.warning(
+                "persist.sys.timezone not found in getprop.txt; "
+                "intrusion log timestamps will use UTC."
+            )
+
+        return timezone
+
+    def _get_file_content(self, file_path: str) -> bytes:
+        if self.__format == "zip" and self.__zip:
+            handle = self.__zip.open(file_path)
+            try:
+                return handle.read()
+            finally:
+                handle.close()
+
+        if self.__format == "dir" and self.target_path:
+            parent_path = Path(self.target_path).absolute().parent.as_posix()
+            with open(os.path.join(parent_path, file_path), "rb") as handle:
+                return handle.read()
+
+        raise FileNotFoundError(file_path)
+
     def run_bugreport_cmd(self) -> bool:
+        bugreport = None
         try:
             bugreport = self.load_bugreport()
         except NoAndroidQFBugReport:
@@ -153,13 +256,19 @@ class CmdAndroidCheckAndroidQF(Command):
                 module_options=self.module_options,
                 hashes=self.hashes,
                 sub_command=True,
+                custom_modules=self.custom_modules,
             )
             cmd.from_zip(bugreport)
             cmd.run()
 
-            self.detected_count += cmd.detected_count
             self.timeline.extend(cmd.timeline)
-            self.timeline_detected.extend(cmd.timeline_detected)
+            self.url_results.extend(cmd.url_results)
+            self.alertstore.extend(cmd.alertstore.alerts)
+        finally:
+            if bugreport:
+                bugreport.close()
+
+        return True
 
     def run_backup_cmd(self) -> bool:
         try:
@@ -169,26 +278,120 @@ class CmdAndroidCheckAndroidQF(Command):
                 "Skipping backup modules as no backup.ab found in AndroidQF data."
             )
             return False
-        else:
-            cmd = CmdAndroidCheckBackup(
-                target_path=None,
+
+        cmd = CmdAndroidCheckBackup(
+            target_path=None,
+            results_path=self.results_path,
+            ioc_files=self.ioc_files,
+            iocs=self.iocs,
+            module_options=self.module_options,
+            hashes=self.hashes,
+            sub_command=True,
+            custom_modules=self.custom_modules,
+        )
+        try:
+            cmd.from_ab(backup)
+        except InvalidAndroidBackup as exc:
+            self.log.warning(
+                "Skipping backup modules as backup.ab is malformed: %s", exc
+            )
+            return False
+
+        cmd.run()
+
+        self.timeline.extend(cmd.timeline)
+        self.url_results.extend(cmd.url_results)
+        self.alertstore.extend(cmd.alertstore.alerts)
+        return True
+
+    def run_intrusion_logs_cmd(self) -> bool:
+        intrusion_log_files = [
+            f
+            for f in self.__files
+            if "/intrusion_logs/" in f.replace("\\", "/")
+            or f.replace("\\", "/").startswith("intrusion_logs/")
+        ]
+
+        if not intrusion_log_files:
+            self.log.info(
+                "No intrusion_logs folder found in AndroidQF data, "
+                "skipping intrusion logs analysis."
+            )
+            return False
+
+        self.log.info(
+            "Found intrusion_logs folder in AndroidQF data, running intrusion logs analysis."
+        )
+
+        intrusion_logs_path = None
+        temp_dir = None
+
+        try:
+            if self.__format == "dir" and self.target_path:
+                intrusion_logs_path = os.path.join(
+                    os.path.abspath(self.target_path), "intrusion_logs"
+                )
+                if not os.path.isdir(intrusion_logs_path):
+                    self.log.warning(
+                        "intrusion_logs directory not found at %s",
+                        intrusion_logs_path,
+                    )
+                    return False
+
+            elif self.__format == "zip" and self.__zip:
+                temp_dir = tempfile.mkdtemp(prefix="mvt_intrusion_logs_")
+                temp_root = Path(temp_dir).resolve()
+                for entry in intrusion_log_files:
+                    normalized = entry.replace("\\", "/")
+                    idx = normalized.find("intrusion_logs/")
+                    relative = normalized[idx + len("intrusion_logs/") :]
+                    if not relative or relative.endswith("/"):
+                        continue
+
+                    target = (temp_root / relative).resolve()
+                    if not target.is_relative_to(temp_root):
+                        self.log.warning(
+                            "Skipping unsafe intrusion log archive entry: %s", entry
+                        )
+                        continue
+
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with self.__zip.open(entry) as src, target.open("wb") as dst:
+                        dst.write(src.read())
+
+                intrusion_logs_path = temp_dir
+            else:
+                return False
+
+            adv_module_options = dict(self.module_options or {})
+            if device_timezone := self._read_device_timezone():
+                adv_module_options["device_timezone"] = device_timezone
+
+            cmd = CmdAndroidCheckIntrusionLogs(
+                target_path=intrusion_logs_path,
                 results_path=self.results_path,
                 ioc_files=self.ioc_files,
                 iocs=self.iocs,
-                module_options=self.module_options,
+                module_options=adv_module_options,
                 hashes=self.hashes,
                 sub_command=True,
+                custom_modules=self.custom_modules,
             )
-            cmd.from_ab(backup)
             cmd.run()
 
-            self.detected_count += cmd.detected_count
             self.timeline.extend(cmd.timeline)
-            self.timeline_detected.extend(cmd.timeline_detected)
+            self.url_results.extend(cmd.url_results)
+            self.alertstore.extend(cmd.alertstore.alerts)
+            return True
+
+        finally:
+            if temp_dir:
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
     def finish(self) -> None:
         """
-        Run the bugreport and backup modules if the respective files are found in the AndroidQF data.
+        Run nested modules if their respective files are found in AndroidQF data.
         """
         self.run_bugreport_cmd()
         self.run_backup_cmd()
+        self.run_intrusion_logs_cmd()

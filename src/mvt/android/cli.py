@@ -4,47 +4,59 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+from zipfile import BadZipFile
 
 import click
 
+from mvt.common.cli_plugins import (
+    ANDROID_CLI_PLUGIN_GROUP,
+    MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    load_cli_commands_option,
+    register_cli_plugins,
+)
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
+from mvt.common.completion import (
+    SUPPORTED_SHELLS,
+    completion_instructions,
+    generate_completion_script,
+    install_completion_script,
+)
 from mvt.common.help import (
     HELP_MSG_ANDROID_BACKUP_PASSWORD,
-    HELP_MSG_APK_OUTPUT,
-    HELP_MSG_APKS_FROM_FILE,
-    HELP_MSG_CHECK_ADB,
+    HELP_MSG_CHECK_ADB_REMOVED,
+    HELP_MSG_CHECK_ADB_REMOVED_DESCRIPTION,
     HELP_MSG_CHECK_ANDROID_BACKUP,
     HELP_MSG_CHECK_ANDROIDQF,
     HELP_MSG_CHECK_BUGREPORT,
     HELP_MSG_CHECK_IOCS,
+    HELP_MSG_CHECK_INTRUSION_LOGS,
+    HELP_MSG_DELAY_CHECKS,
+    HELP_MSG_COMPLETION,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
-    HELP_MSG_DOWNLOAD_ALL_APKS,
-    HELP_MSG_DOWNLOAD_APKS,
-    HELP_MSG_FAST,
     HELP_MSG_HASHES,
     HELP_MSG_IOC,
     HELP_MSG_LIST_MODULES,
+    HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
     HELP_MSG_NONINTERACTIVE,
     HELP_MSG_OUTPUT,
-    HELP_MSG_SERIAL,
     HELP_MSG_STIX2,
     HELP_MSG_VERBOSE,
     HELP_MSG_VERSION,
     HELP_MSG_VIRUS_TOTAL,
 )
 from mvt.common.logo import logo
+from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
 from mvt.common.updates import IndicatorsUpdates
 from mvt.common.utils import init_logging, set_verbose_logging
 
-from .cmd_check_adb import CmdAndroidCheckADB
 from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
 from .cmd_check_backup import CmdAndroidCheckBackup
 from .cmd_check_bugreport import CmdAndroidCheckBugreport
-from .cmd_download_apks import DownloadAPKs
-from .modules.adb import ADB_MODULES
-from .modules.adb.packages import Packages
+from .cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
+from .modules.intrusion_logs import INTRUSION_LOGS_MODULES
+from .modules.androidqf import ANDROIDQF_MODULES
 from .modules.backup import BACKUP_MODULES
 from .modules.backup.helpers import cli_load_android_backup_password
 from .modules.bugreport import BUGREPORT_MODULES
@@ -65,10 +77,18 @@ def _get_disable_flags(ctx):
     )
 
 
+def _load_custom_modules(load_module):
+    try:
+        return load_custom_modules(load_module)
+    except CustomModuleLoadError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 # ==============================================================================
 # Main
 # ==============================================================================
 @click.group(invoke_without_command=False)
+@load_cli_commands_option
 @click.option(
     "--disable-update-check", is_flag=True, help=HELP_MSG_DISABLE_UPDATE_CHECK
 )
@@ -82,10 +102,11 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    logo(
-        disable_version_check=disable_update_check,
-        disable_indicator_check=disable_indicator_update_check,
-    )
+    if ctx.invoked_subcommand != "completion":
+        logo(
+            disable_version_check=disable_update_check,
+            disable_indicator_check=disable_indicator_update_check,
+        )
 
 
 # ==============================================================================
@@ -97,124 +118,49 @@ def version():
 
 
 # ==============================================================================
-# Command: download-apks
+# Command: completion
 # ==============================================================================
-@cli.command(
-    "download-apks", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_DOWNLOAD_APKS
-)
-@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option("--all-apks", "-a", is_flag=True, help=HELP_MSG_DOWNLOAD_ALL_APKS)
-@click.option("--virustotal", "-V", is_flag=True, help=HELP_MSG_VIRUS_TOTAL)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_APK_OUTPUT)
+@cli.command("completion", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_COMPLETION)
+@click.argument("shell", required=False, type=click.Choice(SUPPORTED_SHELLS))
 @click.option(
-    "--from-file", "-f", type=click.Path(exists=True), help=HELP_MSG_APKS_FROM_FILE
+    "--install",
+    is_flag=True,
+    help="Write completion files and update shell configuration.",
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def download_apks(ctx, all_apks, virustotal, output, from_file, serial, verbose):
-    set_verbose_logging(verbose)
-    try:
-        if from_file:
-            download = DownloadAPKs.from_json(from_file)
-        else:
-            # TODO: Do we actually want to be able to run without storing any
-            #       file?
-            if not output:
-                log.critical("You need to specify an output folder with --output!")
-                ctx.exit(1)
+def completion(ctx, shell, install):
+    program_name = "mvt-android"
 
-            download = DownloadAPKs(results_path=output, all_apks=all_apks)
-            if serial:
-                download.serial = serial
-            download.run()
-
-        packages_to_lookup = []
-        if all_apks:
-            packages_to_lookup = download.packages
-        else:
-            for package in download.packages:
-                if not package.get("system", False):
-                    packages_to_lookup.append(package)
-
-            if len(packages_to_lookup) == 0:
-                return
-
-        if virustotal:
-            m = Packages()
-            m.check_virustotal(packages_to_lookup)
-    except KeyboardInterrupt:
-        print("")
-        ctx.exit(1)
-
-
-# ==============================================================================
-# Command: check-adb
-# ==============================================================================
-@cli.command("check-adb", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_ADB)
-@click.option("--serial", "-s", type=str, help=HELP_MSG_SERIAL)
-@click.option(
-    "--iocs",
-    "-i",
-    type=click.Path(exists=True),
-    multiple=True,
-    default=[],
-    help=HELP_MSG_IOC,
-)
-@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
-@click.option("--fast", "-f", is_flag=True, help=HELP_MSG_FAST)
-@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
-@click.option("--module", "-m", help=HELP_MSG_MODULE)
-@click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
-@click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
-@click.pass_context
-def check_adb(
-    ctx,
-    serial,
-    iocs,
-    output,
-    fast,
-    list_modules,
-    module,
-    non_interactive,
-    backup_password,
-    verbose,
-):
-    set_verbose_logging(verbose)
-    module_options = {
-        "fast_mode": fast,
-        "interactive": not non_interactive,
-        "backup_password": cli_load_android_backup_password(log, backup_password),
-    }
-
-    cmd = CmdAndroidCheckADB(
-        results_path=output,
-        ioc_files=iocs,
-        module_name=module,
-        serial=serial,
-        module_options=module_options,
-        disable_version_check=_get_disable_flags(ctx)[0],
-        disable_indicator_check=_get_disable_flags(ctx)[1],
-    )
-
-    if list_modules:
-        cmd.list_modules()
+    if shell is None:
+        if install:
+            raise click.UsageError("A shell is required when using --install.")
+        click.echo(completion_instructions(program_name))
         return
 
-    log.warning(
-        "DEPRECATION: The 'check-adb' command is deprecated and may be removed in a future release. "
-        "Prefer acquiring device data using the AndroidQF project (https://github.com/mvt-project/androidqf/) and analyzing that acquisition with MVT."
-    )
+    root_cli = ctx.find_root().command
 
-    log.info("Checking Android device over debug bridge")
+    if install:
+        script_path = install_completion_script(root_cli, program_name, shell)
+        click.echo(f"Installed {shell} completion to {script_path}")
+        if shell in ("bash", "zsh"):
+            click.echo(f"Updated ~/.{shell}rc")
+        else:
+            click.echo("Fish loads completion files automatically.")
+        return
 
-    cmd.run()
+    click.echo(generate_completion_script(root_cli, program_name, shell))
 
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the Android device produced %d detections!",
-            cmd.detected_count,
-        )
+
+# ==============================================================================
+# Command: check-adb (removed)
+# ==============================================================================
+@cli.command(
+    "check-adb", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_ADB_REMOVED
+)
+@click.pass_context
+def check_adb(ctx):
+    log.error(HELP_MSG_CHECK_ADB_REMOVED_DESCRIPTION)
+    ctx.exit(1)
 
 
 # ==============================================================================
@@ -234,11 +180,28 @@ def check_adb(
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
-def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_path):
+def check_bugreport(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    load_module,
+    verbose,
+    bugreport_path,
+):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(
         target_path=bugreport_path,
@@ -248,6 +211,7 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
         hashes=True,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -256,13 +220,12 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 
     log.info("Checking Android bug report at path: %s", bugreport_path)
 
-    cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the Android bug report produced %d detections!",
-            cmd.detected_count,
-        )
+    try:
+        cmd.run()
+    except BadZipFile as exc:
+        raise click.ClickException(f"Invalid bugreport archive: {exc}") from exc
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -283,6 +246,13 @@ def check_bugreport(ctx, iocs, output, list_modules, module, verbose, bugreport_
 )
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
@@ -293,12 +263,14 @@ def check_backup(
     iocs,
     output,
     list_modules,
+    load_module,
     non_interactive,
     backup_password,
     verbose,
     backup_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     # Always generate hashes as backups are generally small.
     cmd = CmdAndroidCheckBackup(
@@ -312,6 +284,7 @@ def check_backup(
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -321,12 +294,8 @@ def check_backup(
     log.info("Checking Android backup at path: %s", backup_path)
 
     cmd.run()
-
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the Android backup produced %d detections!",
-            cmd.detected_count,
-        )
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -346,7 +315,18 @@ def check_backup(
 @click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--virustotal", "-V", is_flag=True, help=HELP_MSG_VIRUS_TOTAL)
+@click.option(
+    "--delay", "-d", type=click.IntRange(min=0), default=16, help=HELP_MSG_DELAY_CHECKS
+)
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
@@ -358,13 +338,17 @@ def check_androidqf(
     output,
     list_modules,
     module,
+    load_module,
     hashes,
+    virustotal,
+    delay,
     non_interactive,
     backup_password,
     verbose,
     androidqf_path,
 ):
     set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdAndroidCheckAndroidQF(
         target_path=androidqf_path,
@@ -375,9 +359,12 @@ def check_androidqf(
         module_options={
             "interactive": not non_interactive,
             "backup_password": cli_load_android_backup_password(log, backup_password),
+            "virustotal": virustotal,
+            "virustotal_delay": delay,
         },
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
     )
 
     if list_modules:
@@ -387,12 +374,88 @@ def check_androidqf(
     log.info("Checking AndroidQF acquisition at path: %s", androidqf_path)
 
     cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_disable_adb_warning()
+    cmd.show_support_message()
 
-    if cmd.detected_count > 0:
-        log.warning(
-            "The analysis of the AndroidQF acquisition produced %d detections!",
-            cmd.detected_count,
-        )
+
+# ==============================================================================
+# Command: check-intrusion-logs
+# ==============================================================================
+@cli.command(
+    "check-intrusion-logs",
+    context_settings=CONTEXT_SETTINGS,
+    help=HELP_MSG_CHECK_INTRUSION_LOGS,
+)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
+@click.option(
+    "--timezone",
+    "-t",
+    default=None,
+    help=(
+        "IANA timezone name for the device, for example 'Europe/Paris'. "
+        "When provided, event timestamps are expressed in the device's local "
+        "time instead of UTC."
+    ),
+)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.argument("LOGS_PATH", type=click.Path(exists=True))
+@click.pass_context
+def check_intrusion_logs(
+    ctx,
+    iocs,
+    output,
+    list_modules,
+    module,
+    load_module,
+    timezone,
+    verbose,
+    logs_path,
+):
+    set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
+
+    module_options = {}
+    if timezone:
+        module_options["device_timezone"] = timezone
+
+    cmd = CmdAndroidCheckIntrusionLogs(
+        target_path=logs_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        module_options=module_options if module_options else None,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+    )
+
+    if list_modules:
+        cmd.list_modules()
+        return
+
+    log.info("Checking intrusion logs at path: %s", logs_path)
+
+    cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -409,23 +472,37 @@ def check_androidqf(
 )
 @click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
 @click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
-def check_iocs(ctx, iocs, list_modules, module, folder):
+def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
+    custom_modules = _load_custom_modules(load_module)
     cmd = CmdCheckIOCS(
         target_path=folder,
         ioc_files=iocs,
         module_name=module,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+        platform="android",
     )
-    cmd.modules = BACKUP_MODULES + ADB_MODULES + BUGREPORT_MODULES
+    cmd.modules = (
+        BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES + INTRUSION_LOGS_MODULES
+    )
 
     if list_modules:
         cmd.list_modules()
         return
 
     cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
 
 
 # ==============================================================================
@@ -435,3 +512,10 @@ def check_iocs(ctx, iocs, list_modules, module, folder):
 def download_indicators():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
+
+
+register_cli_plugins(
+    cli,
+    entry_point_group=ANDROID_CLI_PLUGIN_GROUP,
+    environment_variable=MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+)

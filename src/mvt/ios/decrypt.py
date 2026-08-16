@@ -12,10 +12,12 @@ import plistlib
 import shutil
 import sqlite3
 import tempfile
+from pathlib import Path
 from typing import Optional
 
 from iphone_backup_decrypt import EncryptedBackup
 from iphone_backup_decrypt import google_iphone_dataprotection
+from iphone_backup_decrypt.utils import FilePlist
 
 log = logging.getLogger(__name__)
 
@@ -106,6 +108,28 @@ class MVTEncryptedBackup(EncryptedBackup):
             raise ValueError("No derived key available")
         return self._derived_key.hex()
 
+    def extract_file_by_id(self, *, file_id, file_bplist, output_filename):
+        """Extract one manifest entry without loading the whole file into memory."""
+        self._read_and_unlock_keybag()
+        file_plist = FilePlist(file_bplist)
+
+        if file_plist.encryption_key is None:
+            source_filename = os.path.join(
+                self._backup_directory, file_id[:2], file_id
+            )
+            shutil.copy2(source_filename, output_filename)
+            return
+
+        inner_key = self._keybag.unwrapKeyForClass(
+            file_plist.protection_class, file_plist.encryption_key
+        )
+        self._decrypt_file_to_disk(
+            file_id=file_id,
+            key=inner_key,
+            file_plist=file_plist,
+            output_filepath=output_filename,
+        )
+
 
 def _unlock_keybag_with_derived_key(keybag, passphrase_key):
     """Unlock keybag class keys using a pre-derived passphrase_key,
@@ -161,8 +185,8 @@ class DecryptBackup:
         """
         self.backup_path = os.path.abspath(backup_path)
         self.dest_path = dest_path
-        self._backup = None
-        self._decryption_key = None
+        self._backup: Optional[MVTEncryptedBackup] = None
+        self._decryption_key: Optional[str] = None
 
     def can_process(self) -> bool:
         return self._backup is not None
@@ -175,16 +199,21 @@ class DecryptBackup:
 
         """
         conn = sqlite3.connect(os.path.join(backup_path, "Manifest.db"))
-        cur = conn.cursor()
         try:
+            cur = conn.cursor()
             cur.execute("SELECT fileID FROM Files LIMIT 1;")
         except sqlite3.DatabaseError:
             return True
         else:
             log.critical("The backup does not seem encrypted!")
             return False
+        finally:
+            conn.close()
 
     def process_backup(self) -> None:
+        assert self._backup is not None
+        assert self.dest_path is not None
+
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
 
@@ -195,6 +224,8 @@ class DecryptBackup:
         # Iterate over all files in the backup and decrypt them,
         # preserving the XX/file_id directory structure that downstream
         # modules expect.
+        backup_root = Path(self.backup_path).resolve()
+        dest_root = Path(self.dest_path).resolve()
         with self._backup.manifest_db_cursor() as cur:
             cur.execute(
                 "SELECT fileID, domain, relativePath, file FROM Files WHERE flags=1"
@@ -202,9 +233,10 @@ class DecryptBackup:
             for file_id, domain, relative_path, file_bplist in cur:
                 # This may be a partial backup. Skip files from the manifest
                 # which do not exist locally.
-                source_file_path = os.path.join(
-                    self.backup_path, file_id[:2], file_id
-                )
+                source_file_path = backup_root / file_id[:2] / file_id
+                if not source_file_path.resolve().is_relative_to(backup_root):
+                    log.warning("Skipping unsafe file_id: %r", file_id)
+                    continue
                 if not os.path.exists(source_file_path):
                     log.debug(
                         "Skipping file %s. File not found in encrypted backup directory.",
@@ -212,22 +244,23 @@ class DecryptBackup:
                     )
                     continue
 
-                item_folder = os.path.join(self.dest_path, file_id[:2])
-                os.makedirs(item_folder, exist_ok=True)
+                output_path = dest_root / file_id[:2] / file_id
+                if not output_path.resolve().is_relative_to(dest_root):
+                    log.warning("Skipping unsafe file_id: %r", file_id)
+                    continue
+                output_path.parent.mkdir(parents=True, exist_ok=True)
 
                 try:
-                    decrypted = self._backup._decrypt_inner_file(
-                        file_id=file_id, file_bplist=file_bplist
+                    self._backup.extract_file_by_id(
+                        file_id=file_id,
+                        file_bplist=file_bplist,
+                        output_filename=str(output_path),
                     )
-                    with open(
-                        os.path.join(item_folder, file_id), "wb"
-                    ) as handle:
-                        handle.write(decrypted)
                     log.info(
                         "Decrypted file %s [%s] to %s/%s",
                         relative_path,
                         domain,
-                        item_folder,
+                        output_path.parent,
                         file_id,
                     )
                 except Exception as exc:

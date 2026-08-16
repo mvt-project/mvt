@@ -6,8 +6,13 @@
 import logging
 import sqlite3
 from base64 import b64encode
-from typing import Optional, Union
+from typing import Optional
 
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.utils import check_for_links, convert_mactime_to_iso
 
 from ..base import IOSExtraction
@@ -30,7 +35,7 @@ class SMS(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -41,7 +46,7 @@ class SMS(IOSExtraction):
             results=results,
         )
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         text = record["text"].replace("\n", "\\n")
         sms_data = f'{record["service"]}: {record["guid"]} "{text}" from {record["phone_number"]} ({record["account"]})'
         records = [
@@ -71,27 +76,42 @@ class SMS(IOSExtraction):
             if message.get("text", "").startswith(alert_old) or message.get(
                 "text", ""
             ).startswith(alert_new):
-                self.log.warning(
-                    "Apple warning about state-sponsored attack received on the %s",
+                self.alertstore.high(
+                    f"Apple warning about state-sponsored attack received on {message['isodate']}",
                     message["isodate"],
+                    message,
                 )
 
         if not self.indicators:
             return
 
+        url_batches = []
         for result in self.results:
             message_links = result.get("links", [])
             # Making sure not link was ignored
             if message_links == []:
                 message_links = check_for_links(result.get("text", ""))
-            ioc = self.indicators.check_urls(message_links)
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            url_batches.append(message_links)
+
+        for result, ioc_match in zip(
+            self.results, self.indicators.check_url_batches(url_batches)
+        ):
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
+
+    def collect_url_results(self) -> None:
+        for message in self.results:
+            for url in message.get("links", []):
+                self.add_url_result(url, message.get("isodate"), "sms")
 
     def run(self) -> None:
         self._find_ios_database(backup_ids=SMS_BACKUP_IDS, root_paths=SMS_ROOT_PATHS)
         self.log.info("Found SMS database at path: %s", self.file_path)
+
+        if not self.file_path:
+            return
 
         try:
             conn = self._open_sqlite_db(self.file_path)
@@ -110,6 +130,7 @@ class SMS(IOSExtraction):
         except sqlite3.DatabaseError as exc:
             conn.close()
             if "database disk image is malformed" in str(exc):
+                assert self.file_path is not None
                 self._recover_sqlite_db_if_needed(self.file_path, forced=True)
                 conn = self._open_sqlite_db(self.file_path)
                 cur = conn.cursor()

@@ -26,7 +26,7 @@ class TestAndroidqfGetpropAnalysis:
         assert m.results[0]["name"] == "dalvik.vm.appimageformat"
         assert m.results[0]["value"] == "lz4"
         assert len(m.timeline) == 0
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
 
     def test_getprop_parsing_zip(self):
         fpath = get_artifact("androidqf.zip")
@@ -38,7 +38,7 @@ class TestAndroidqfGetpropAnalysis:
         assert m.results[0]["name"] == "dalvik.vm.appimageformat"
         assert m.results[0]["value"] == "lz4"
         assert len(m.timeline) == 0
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
 
     def test_androidqf_getprop_detection(self, indicator_file):
         data_path = get_android_androidqf()
@@ -52,5 +52,5 @@ class TestAndroidqfGetpropAnalysis:
         m.indicators = ind
         run_module(m)
         assert len(m.results) == 10
-        assert len(m.detected) == 1
-        assert m.detected[0]["name"] == "dalvik.vm.heapmaxfree"
+        assert len(m.alertstore.alerts) == 1
+        assert m.alertstore.alerts[0].event["name"] == "dalvik.vm.heapmaxfree"

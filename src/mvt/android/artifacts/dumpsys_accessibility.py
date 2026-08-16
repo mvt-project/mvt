@@ -10,15 +10,20 @@ from .artifact import AndroidArtifact
 
 class DumpsysAccessibilityArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
         for result in self.results:
-            ioc = self.indicators.check_app_id(result["package_name"])
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
-                continue
+            if self.indicators:
+                ioc_match = self.indicators.check_app_id(result["package_name"])
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
+                    continue
+
+            self.alertstore.medium(
+                f'Found accessibility service: "{result["service"]}"',
+                "",
+                result,
+                )
 
     def parse(self, content: str) -> None:
         """

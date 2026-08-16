@@ -312,6 +312,15 @@ If indicators are provided through the command-line, they are checked against th
 
 ---
 
+### `urls.json`
+
+This JSON file collects URLs extracted from SMS, iMessage, and WhatsApp
+messages. Each entry contains the original URL, its expanded destination when
+MVT resolved a shortened URL during indicator checking, the message timestamp,
+and its `sms` or `whatsapp` source.
+
+---
+
 ### `sms_attachments.json`
 
 !!! info "Availability"

@@ -39,6 +39,25 @@ class TestDumpsysBatteryHistoryArtifact:
         ind.parse_stix2(indicator_file)
         ind.ioc_collections[0]["app_ids"].append("com.samsung.android.app.reminder")
         dba.indicators = ind
-        assert len(dba.detected) == 0
+        assert len(dba.alertstore.alerts) == 0
         dba.check_indicators()
-        assert len(dba.detected) == 2
+        assert len(dba.alertstore.alerts) == 2
+
+    def test_parsing_absolute_timestamps(self):
+        dba = DumpsysBatteryHistoryArtifact()
+        dba.parse(
+            """07-15 20:27:39.431 (2) 100 +job=u0a123:"com.example/.ExampleJob"
+07-15 20:27:40.431 (2) 100 -job=u0a123:"com.example/.ExampleJob"
+"""
+        )
+
+        assert len(dba.results) == 2
+        assert dba.results[0] == {
+            "time_elapsed": "07-15 20:27:39.431",
+            "event": "start_job",
+            "uid": "u0a123",
+            "package_name": "com.example",
+            "service": "com.example/.ExampleJob",
+        }
+        assert dba.results[1]["event"] == "end_job"
+        assert dba.results[1]["uid"] == "u0a123"

@@ -1,39 +1,39 @@
 PWD = $(shell pwd)
+UV ?= uv
 
 check: ruff mypy
 
 ruff:
-	ruff check .
+	$(UV) run ruff check .
 
 mypy:
-	mypy
+	$(UV) run mypy
 
 test:
-	python3 -m pytest
+	$(UV) run pytest
 
 test-ci:
-	python3 -m pytest -v
+	$(UV) run pytest -v
 
 install:
-	python3 -m pip install --upgrade -e .
+	$(UV) sync
 
 test-requirements:
-	python3 -m pip install --upgrade --group dev
+	$(UV) sync --group dev
 
 generate-proto-parsers:
 	# Generate python parsers for protobuf files
 	PROTO_FILES=$$(find src/mvt/android/parsers/proto/ -iname "*.proto"); \
-	protoc -Isrc/mvt/android/parsers/proto/ --python_betterproto2_out=src/mvt/android/parsers/proto/ $$PROTO_FILES
+	$(UV) run protoc -Isrc/mvt/android/parsers/proto/ --python_betterproto2_out=src/mvt/android/parsers/proto/ $$PROTO_FILES
 
 clean:
 	rm -rf $(PWD)/build $(PWD)/dist $(PWD)/src/mvt.egg-info
 
 dist:
-	python3 -m pip install --upgrade build
-	python3 -m build
+	$(UV) build
 
 upload:
-	python3 -m twine upload dist/*
+	$(UV) tool run twine upload dist/*
 
 test-upload:
-	python3 -m twine upload --repository testpypi dist/*
+	$(UV) tool run twine upload --repository testpypi dist/*
