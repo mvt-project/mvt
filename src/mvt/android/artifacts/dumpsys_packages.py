@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from mvt.android.utils import ROOT_PACKAGES
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
@@ -74,6 +74,8 @@ class DumpsysPackagesArtifact(AndroidArtifact):
             "timestamp": "",
             "first_install_time": "",
             "last_update_time": "",
+            "installer": "",
+            "system": False,
             "permissions": list(),
             "requested_permissions": list(),
         }
@@ -81,7 +83,14 @@ class DumpsysPackagesArtifact(AndroidArtifact):
         in_runtime_permissions = False
         in_declared_permissions = False
         in_requested_permissions = True
+        current_user: Optional[int] = None
+        first_install_times: Dict[Optional[int], str] = {}
+        runtime_permissions: Dict[Optional[int], List[Dict[str, Any]]] = {}
         for line in output.splitlines():
+            user_match = re.match(r"User (\d+):", line.strip())
+            if user_match:
+                current_user = int(user_match.group(1))
+
             if in_install_permissions:
                 if line.startswith(" " * 4) and not line.startswith(" " * 6):
                     in_install_permissions = False
@@ -105,7 +114,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
                     if "granted=" in lineinfo[1]:
                         granted = "granted=true" in lineinfo[1]
 
-                    details["permissions"].append(
+                    runtime_permissions.setdefault(current_user, []).append(
                         {"name": permission, "granted": granted, "type": "runtime"}
                     )
             if in_declared_permissions:
@@ -129,8 +138,12 @@ class DumpsysPackagesArtifact(AndroidArtifact):
                 details["version_code"] = line.split("=", 1)[1].strip()
             elif line.strip().startswith("timeStamp="):
                 details["timestamp"] = line.split("=")[1].strip()
+            elif line.strip().startswith("installerPackageName="):
+                details["installer"] = line.split("=", 1)[1].strip()
+            elif line.strip().startswith("pkgFlags="):
+                details["system"] = "SYSTEM" in line.split("=", 1)[1].split()
             elif line.strip().startswith("firstInstallTime="):
-                details["first_install_time"] = line.split("=")[1].strip()
+                first_install_times[current_user] = line.split("=", 1)[1].strip()
             elif line.strip().startswith("lastUpdateTime="):
                 details["last_update_time"] = line.split("=")[1].strip()
             elif line.strip() == "install permissions:":
@@ -142,6 +155,19 @@ class DumpsysPackagesArtifact(AndroidArtifact):
             elif line.strip() == "requested permissions:":
                 in_requested_permissions = True
 
+        if 0 in first_install_times:
+            details["first_install_time"] = first_install_times[0]
+        elif None in first_install_times:
+            details["first_install_time"] = first_install_times[None]
+        elif first_install_times:
+            details["first_install_time"] = next(iter(first_install_times.values()))
+
+        if 0 in runtime_permissions:
+            details["permissions"].extend(runtime_permissions[0])
+        elif None in runtime_permissions:
+            details["permissions"].extend(runtime_permissions[None])
+        elif runtime_permissions:
+            details["permissions"].extend(next(iter(runtime_permissions.values())))
         return details
 
     def parse_dumpsys_packages(self, output: str) -> List[Dict[str, Any]]:

@@ -32,3 +32,17 @@ docker run -it mvt
 ```
 
 If a prompt is spawned successfully, you can close it with `exit`.
+
+## Access an iOS device from Docker
+
+On the Linux host, install and start [usbmuxd](https://github.com/libimobiledevice/usbmuxd), then connect and unlock the iOS device. The daemon exposes the device through the `/var/run/usbmuxd` socket.
+
+Bind that socket into the container to let MVT communicate with the device:
+
+```bash
+docker run -it \
+    --mount type=bind,source=/var/run/usbmuxd,target=/var/run/usbmuxd \
+    ghcr.io/mvt-project/mvt
+```
+
+If you built the image from source, replace `ghcr.io/mvt-project/mvt` with `mvt`. 
