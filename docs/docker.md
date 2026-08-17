@@ -45,4 +45,4 @@ docker run -it \
     ghcr.io/mvt-project/mvt
 ```
 
-If you built the image from source, replace `ghcr.io/mvt-project/mvt` with `mvt`. You do not need to mount the entire `/var/run` directory.
+If you built the image from source, replace `ghcr.io/mvt-project/mvt` with `mvt`. 
