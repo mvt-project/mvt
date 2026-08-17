@@ -42,6 +42,8 @@ class DumpsysAppopsArtifact(AndroidArtifact):
 
     def check_indicators(self) -> None:
         for result in self.results:
+            # A package IOC match is not tied to one AppOps entry. Use the latest
+            # recorded access or rejection to place the package-level alert in time.
             event_time = max(
                 (
                     entry["timestamp"]
