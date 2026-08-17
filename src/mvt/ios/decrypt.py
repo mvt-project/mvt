@@ -12,6 +12,13 @@ import plistlib
 import shutil
 import sqlite3
 import tempfile
+from concurrent.futures import (
+    ALL_COMPLETED,
+    FIRST_COMPLETED,
+    Future,
+    ThreadPoolExecutor,
+    wait,
+)
 from pathlib import Path
 from typing import Optional
 
@@ -20,6 +27,9 @@ from iphone_backup_decrypt import google_iphone_dataprotection
 from iphone_backup_decrypt.utils import FilePlist
 
 log = logging.getLogger(__name__)
+
+DEFAULT_DECRYPT_WORKERS = 4
+MAX_DECRYPT_WORKERS = 32
 
 # Import pbkdf2_hmac from the same source iphone_backup_decrypt uses internally,
 # so our key derivation is consistent with theirs.
@@ -178,18 +188,67 @@ class DecryptBackup:
 
     """
 
-    def __init__(self, backup_path: str, dest_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        backup_path: str,
+        dest_path: Optional[str] = None,
+        max_workers: int = DEFAULT_DECRYPT_WORKERS,
+    ) -> None:
         """Decrypts an encrypted iOS backup.
         :param backup_path: Path to the encrypted backup folder
         :param dest_path: Path to the folder where to store the decrypted backup
         """
         self.backup_path = os.path.abspath(backup_path)
         self.dest_path = dest_path
+        if not 1 <= max_workers <= MAX_DECRYPT_WORKERS:
+            raise ValueError(f"max_workers must be between 1 and {MAX_DECRYPT_WORKERS}")
+        self.max_workers = max_workers
         self._backup: Optional[MVTEncryptedBackup] = None
         self._decryption_key: Optional[str] = None
 
     def can_process(self) -> bool:
         return self._backup is not None
+
+    def _process_file(
+        self,
+        *,
+        file_id: str,
+        file_bplist: bytes,
+        output_path: Path,
+        relative_path: str,
+        domain: str,
+    ) -> None:
+        assert self._backup is not None
+        self._backup.extract_file_by_id(
+            file_id=file_id,
+            file_bplist=file_bplist,
+            output_filename=str(output_path),
+        )
+        log.info(
+            "Decrypted file %s [%s] to %s/%s",
+            relative_path,
+            domain,
+            output_path.parent,
+            file_id,
+        )
+
+    @staticmethod
+    def _wait_for_files(
+        pending: dict[Future[None], str], *, all_files: bool = False
+    ) -> None:
+        if not pending:
+            return
+
+        done, _ = wait(
+            pending,
+            return_when=ALL_COMPLETED if all_files else FIRST_COMPLETED,
+        )
+        for future in done:
+            relative_path = pending.pop(future)
+            try:
+                future.result()
+            except Exception as exc:
+                log.error("Failed to decrypt file %s: %s", relative_path, exc)
 
     @staticmethod
     def is_encrypted(backup_path: str) -> bool:
@@ -226,45 +285,63 @@ class DecryptBackup:
         # modules expect.
         backup_root = Path(self.backup_path).resolve()
         dest_root = Path(self.dest_path).resolve()
-        with self._backup.manifest_db_cursor() as cur:
-            cur.execute(
-                "SELECT fileID, domain, relativePath, file FROM Files WHERE flags=1"
-            )
-            for file_id, domain, relative_path, file_bplist in cur:
-                # This may be a partial backup. Skip files from the manifest
-                # which do not exist locally.
-                source_file_path = backup_root / file_id[:2] / file_id
-                if not source_file_path.resolve().is_relative_to(backup_root):
-                    log.warning("Skipping unsafe file_id: %r", file_id)
-                    continue
-                if not os.path.exists(source_file_path):
-                    log.debug(
-                        "Skipping file %s. File not found in encrypted backup directory.",
-                        source_file_path,
-                    )
-                    continue
+        pending: dict[Future[None], str] = {}
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            with self._backup.manifest_db_cursor() as cur:
+                cur.execute(
+                    "SELECT fileID, domain, relativePath, file FROM Files WHERE flags=1"
+                )
+                for file_id, domain, relative_path, file_bplist in cur:
+                    # This may be a partial backup. Skip files from the manifest
+                    # which do not exist locally.
+                    source_file_path = backup_root / file_id[:2] / file_id
+                    if not source_file_path.resolve().is_relative_to(backup_root):
+                        log.warning("Skipping unsafe file_id: %r", file_id)
+                        continue
+                    if not os.path.exists(source_file_path):
+                        log.debug(
+                            "Skipping file %s. File not found in encrypted "
+                            "backup directory.",
+                            source_file_path,
+                        )
+                        continue
 
-                output_path = dest_root / file_id[:2] / file_id
-                if not output_path.resolve().is_relative_to(dest_root):
-                    log.warning("Skipping unsafe file_id: %r", file_id)
-                    continue
-                output_path.parent.mkdir(parents=True, exist_ok=True)
+                    output_path = dest_root / file_id[:2] / file_id
+                    if not output_path.resolve().is_relative_to(dest_root):
+                        log.warning("Skipping unsafe file_id: %r", file_id)
+                        continue
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-                try:
-                    self._backup.extract_file_by_id(
+                    if self.max_workers == 1:
+                        try:
+                            self._process_file(
+                                file_id=file_id,
+                                file_bplist=file_bplist,
+                                output_path=output_path,
+                                relative_path=relative_path,
+                                domain=domain,
+                            )
+                        except Exception as exc:
+                            log.error(
+                                "Failed to decrypt file %s: %s",
+                                relative_path,
+                                exc,
+                            )
+                        continue
+
+                    future = executor.submit(
+                        self._process_file,
                         file_id=file_id,
                         file_bplist=file_bplist,
-                        output_filename=str(output_path),
+                        output_path=output_path,
+                        relative_path=relative_path,
+                        domain=domain,
                     )
-                    log.info(
-                        "Decrypted file %s [%s] to %s/%s",
-                        relative_path,
-                        domain,
-                        output_path.parent,
-                        file_id,
-                    )
-                except Exception as exc:
-                    log.error("Failed to decrypt file %s: %s", relative_path, exc)
+                    pending[future] = relative_path
+                    if len(pending) >= self.max_workers:
+                        self._wait_for_files(pending)
+
+            self._wait_for_files(pending, all_files=True)
 
         # Copying over the root plist files as well.
         for file_name in os.listdir(self.backup_path):

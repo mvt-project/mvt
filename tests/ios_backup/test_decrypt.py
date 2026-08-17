@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import logging
+import threading
 from pathlib import Path
 
 from Crypto.Cipher import AES
@@ -114,7 +116,9 @@ def test_process_backup_rejects_unsafe_file_ids_and_destinations(mocker, tmp_pat
         Path(output_filename).write_bytes(b"decrypted")
 
     backup.extract_file_by_id.side_effect = extract_file_by_id
-    decryptor = DecryptBackup(str(backup_path), str(destination))
+    decryptor = DecryptBackup(
+        str(backup_path), str(destination), max_workers=1
+    )
     decryptor._backup = backup
 
     decryptor.process_backup()
@@ -123,3 +127,65 @@ def test_process_backup_rejects_unsafe_file_ids_and_destinations(mocker, tmp_pat
     assert not (outside / symlink_file_id).exists()
     backup.extract_file_by_id.assert_called_once()
     assert backup.extract_file_by_id.call_args.kwargs["file_id"] == safe_file_id
+
+
+def test_process_backup_decrypts_files_concurrently(mocker, tmp_path):
+    backup_path = tmp_path / "backup"
+    destination = tmp_path / "destination"
+    backup_path.mkdir()
+
+    file_ids = ["ab" + "1" * 38, "cd" + "2" * 38]
+    for file_id in file_ids:
+        source_path = backup_path / file_id[:2] / file_id
+        source_path.parent.mkdir()
+        source_path.write_bytes(b"encrypted")
+
+    cursor = mocker.MagicMock()
+    cursor.__iter__.return_value = iter(
+        (file_id, "Domain", file_id, b"plist") for file_id in file_ids
+    )
+    cursor_context = mocker.MagicMock()
+    cursor_context.__enter__.return_value = cursor
+
+    barrier = threading.Barrier(2)
+    backup = mocker.MagicMock()
+    backup.manifest_db_cursor.return_value = cursor_context
+
+    def extract_file_by_id(*, file_id, output_filename, **kwargs):
+        barrier.wait(timeout=5)
+        Path(output_filename).write_bytes(file_id.encode())
+
+    backup.extract_file_by_id.side_effect = extract_file_by_id
+    decryptor = DecryptBackup(str(backup_path), str(destination), max_workers=2)
+    decryptor._backup = backup
+
+    decryptor.process_backup()
+
+    for file_id in file_ids:
+        assert (destination / file_id[:2] / file_id).read_bytes() == file_id.encode()
+
+
+def test_process_backup_logs_worker_errors(mocker, tmp_path, caplog):
+    backup_path = tmp_path / "backup"
+    destination = tmp_path / "destination"
+    backup_path.mkdir()
+    file_id = "ef" + "3" * 38
+    source_path = backup_path / file_id[:2] / file_id
+    source_path.parent.mkdir()
+    source_path.write_bytes(b"encrypted")
+
+    cursor = mocker.MagicMock()
+    cursor.__iter__.return_value = iter([(file_id, "Domain", "failing-file", b"plist")])
+    cursor_context = mocker.MagicMock()
+    cursor_context.__enter__.return_value = cursor
+
+    backup = mocker.MagicMock()
+    backup.manifest_db_cursor.return_value = cursor_context
+    backup.extract_file_by_id.side_effect = ValueError("broken file")
+    decryptor = DecryptBackup(str(backup_path), str(destination))
+    decryptor._backup = backup
+
+    with caplog.at_level(logging.ERROR, logger="mvt.ios.decrypt"):
+        decryptor.process_backup()
+
+    assert "Failed to decrypt file failing-file: broken file" in caplog.text
