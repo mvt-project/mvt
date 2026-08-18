@@ -26,6 +26,7 @@ from .tcc import TCC
 from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
+from .whatsapp_contacts import WhatsappContacts
 
 MIXED_MODULES = [
     Calls,
@@ -47,6 +48,7 @@ MIXED_MODULES = [
     WebkitResourceLoadStatistics,
     WebkitSessionResourceLog,
     Whatsapp,
+    WhatsappContacts,
     Shortcuts,
     Applications,
     Calendar,

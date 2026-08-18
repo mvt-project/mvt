@@ -421,3 +421,15 @@ This JSON file is created by mvt-ios' `WhatsApp` module. The module extracts a l
 
 If indicators are provided through the command-line, they are checked against the extracted HTTP links. Any matches are stored in *whatsapp_detected.json*.
 
+---
+
+### `whatsapp_contacts.json`
+
+!!! info "Availability"
+    Backup: :material-check:
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `WhatsappContacts` module. The module extracts WhatsApp contact records from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ContactsV2.sqlite*, including each contact's phone number, WhatsApp and LID identifiers, and the per-contact disappearing messages timer, which is not recorded in *ChatStorage.sqlite*. Contacts with a disappearing messages timer set produce a `disappearing_mode_set` event in the timeline.
+
+This database is often missing from incremental backups. When it cannot be found, the module logs a warning and produces no results, in which case the disappearing messages state of chats cannot be determined from the backup.
+
