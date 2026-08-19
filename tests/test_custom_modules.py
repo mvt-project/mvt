@@ -1,4 +1,6 @@
+import hashlib
 import importlib.metadata
+import json
 
 from click.testing import CliRunner
 
@@ -9,6 +11,7 @@ from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
 from mvt.common import module_loader
 from mvt.common.module import MVTModule
+from mvt.common.version import MVT_VERSION
 from mvt.ios.cli import check_backup, check_fs
 
 
@@ -163,6 +166,94 @@ def test_entry_point_module_deduplicated_against_paths(monkeypatch, tmp_path):
         "InstalledPackageModule",
         "PathLoadedModule",
     ]
+
+
+def test_list_modules_shows_module_sources(tmp_path, caplog):
+    module_path = _write_custom_module(
+        tmp_path / "custom.py",
+        "SourcedBackupModule",
+        (("ios", "check-backup"),),
+    )
+    file_sha256 = hashlib.sha256(module_path.read_bytes()).hexdigest()
+    custom_modules = module_loader.load_custom_modules([str(module_path)])
+
+    from mvt.ios.cmd_check_backup import CmdIOSCheckBackup
+
+    cmd = CmdIOSCheckBackup(target_path=str(tmp_path), custom_modules=custom_modules)
+    cmd.list_modules()
+
+    assert f" - Modules from 'mvt@{MVT_VERSION}':" in caplog.text
+    assert (
+        f" - Modules from '{module_path}' (sha256: {file_sha256}): SourcedBackupModule"
+        in caplog.text
+    )
+
+
+def test_builtin_module_origin():
+    from mvt.ios.modules.backup import BACKUP_MODULES
+
+    origin = module_loader.get_module_origin(BACKUP_MODULES[0])
+
+    assert origin.kind == "builtin"
+    assert origin.name == "mvt"
+    assert origin.version == MVT_VERSION
+
+
+def test_installed_module_origin(monkeypatch):
+    _fake_entry_points(monkeypatch, f"{__name__}:get_installed_package_modules")
+
+    modules = module_loader.load_custom_modules()
+
+    origin = module_loader.get_module_origin(modules[0])
+    assert origin.kind == "package"
+    assert origin.name == "test-modules"
+
+
+def test_distribution_commit_read_from_direct_url():
+    class FakeDistribution:
+        def read_text(self, filename):
+            assert filename == "direct_url.json"
+            return json.dumps(
+                {
+                    "url": "https://github.com/example/example-modules",
+                    "vcs_info": {"commit_id": "abc1234", "vcs": "git"},
+                }
+            )
+
+    assert module_loader._distribution_commit(FakeDistribution()) == "abc1234"
+
+
+def test_command_log_records_loaded_modules(tmp_path):
+    (tmp_path / "Manifest.db").touch()
+    (tmp_path / "Info.plist").touch()
+    module_path = _write_custom_module(
+        tmp_path / "custom.py",
+        "AuditedRunModule",
+        (("ios", "check-backup"),),
+        slug="audited_run_module",
+    )
+    file_sha256 = hashlib.sha256(module_path.read_bytes()).hexdigest()
+    output_path = tmp_path / "out"
+
+    result = CliRunner().invoke(
+        check_backup,
+        [
+            "--module",
+            "AuditedRunModule",
+            "--load-module",
+            str(module_path),
+            "--output",
+            str(output_path),
+            str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    command_log = (output_path / "command.log").read_text(encoding="utf-8")
+    assert (
+        f"Loaded 1 check-backup modules from '{module_path}' "
+        f"(sha256: {file_sha256}): AuditedRunModule" in command_log
+    )
 
 
 class NestedBugreportModule(MVTModule):

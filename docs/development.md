@@ -160,6 +160,20 @@ For a `pipx` installation of MVT, inject the package into MVT's environment:
 pipx inject mvt my-mvt-modules
 ```
 
+## Auditing loaded modules
+
+Because installed module packages load automatically, MVT records where every
+module came from:
+
+- `--list-modules` groups the available modules by source: MVT itself
+  (with its version), each installed package (with its version and, when
+  installed directly from a repository, the commit), and each file loaded
+  with `--load-module` or `MVT_CUSTOM_MODULES` (with the SHA-256 hash of the
+  file).
+- When a command runs with an `--output` folder, the `command.log` file
+  records one line per module source with the source's version or hash and
+  the list of modules loaded from it.
+
 ## Profiling
 
 Some MVT modules extract and process significant amounts of data during the analysis process or while checking results against known indicators. Care must be
