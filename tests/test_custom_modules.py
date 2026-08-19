@@ -1,3 +1,5 @@
+import importlib.metadata
+
 from click.testing import CliRunner
 
 from mvt.android.cli import check_bugreport
@@ -5,6 +7,7 @@ from mvt.android.cmd_check_androidqf import CmdAndroidCheckAndroidQF
 from mvt.android.cmd_check_backup import CmdAndroidCheckBackup
 from mvt.android.cmd_check_bugreport import CmdAndroidCheckBugreport
 from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
+from mvt.common import module_loader
 from mvt.common.module import MVTModule
 from mvt.ios.cli import check_backup, check_fs
 
@@ -104,6 +107,62 @@ def test_custom_modules_load_from_environment_without_cli_flag(tmp_path, monkeyp
 
     assert result.exit_code == 0
     assert "EnvBugreportModule" in result.output
+
+
+class InstalledPackageModule(MVTModule):
+    supported_commands = (("ios", "check-backup"),)
+
+
+def get_installed_package_modules():
+    return [InstalledPackageModule]
+
+
+def _fake_entry_points(monkeypatch, value, name="test-modules"):
+    entry_point = importlib.metadata.EntryPoint(
+        name=name, value=value, group=module_loader.MODULES_ENTRY_POINT_GROUP
+    )
+
+    def fake_entry_points(*, group):
+        assert group == module_loader.MODULES_ENTRY_POINT_GROUP
+        return [entry_point]
+
+    monkeypatch.setattr(
+        module_loader.importlib.metadata, "entry_points", fake_entry_points
+    )
+
+
+def test_installed_module_package_loads_from_entry_point(monkeypatch):
+    _fake_entry_points(monkeypatch, f"{__name__}:get_installed_package_modules")
+
+    modules = module_loader.load_custom_modules()
+
+    assert modules == [InstalledPackageModule]
+
+
+def test_broken_module_entry_point_is_skipped(monkeypatch, caplog):
+    _fake_entry_points(monkeypatch, "nonexistent_module_xyz:get_modules")
+
+    with caplog.at_level("WARNING"):
+        modules = module_loader.load_custom_modules()
+
+    assert modules == []
+    assert "Unable to load modules from entry point" in caplog.text
+
+
+def test_entry_point_module_deduplicated_against_paths(monkeypatch, tmp_path):
+    _fake_entry_points(monkeypatch, f"{__name__}:get_installed_package_modules")
+    module_path = _write_custom_module(
+        tmp_path / "custom.py",
+        "PathLoadedModule",
+        (("ios", "check-backup"),),
+    )
+
+    modules = module_loader.load_custom_modules([str(module_path)])
+
+    assert [module.__name__ for module in modules] == [
+        "InstalledPackageModule",
+        "PathLoadedModule",
+    ]
 
 
 class NestedBugreportModule(MVTModule):

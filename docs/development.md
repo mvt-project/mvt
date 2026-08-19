@@ -117,6 +117,49 @@ class DependentCustomModule(MVTModule):
         self.results = [{"manifest_entries": len(manifest_results)}]
 ```
 
+## Installed module packages
+
+Python packages can register modules so they load automatically in every
+module-running `check-*` command, without `--load-module` or
+`MVT_CUSTOM_MODULES`. Register an entry point in the `mvt.modules` group in
+the package's `pyproject.toml`:
+
+```toml
+[project.entry-points."mvt.modules"]
+my-mvt-modules = "my_mvt_modules:get_modules"
+```
+
+The entry point must resolve to an iterable of `MVTModule` subclasses, or to
+a callable returning one:
+
+```python
+from mvt.common.module import MVTModule
+
+
+class PackagedModule(MVTModule):
+    supported_commands = (("ios", "check-backup"),)
+
+    def run(self):
+        self.results = [{"message": "packaged module ran"}]
+
+
+def get_modules() -> list[type[MVTModule]]:
+    return [PackagedModule]
+```
+
+Installed modules follow the same rules as other custom modules: each module
+must declare `supported_commands`, and dependencies are resolved with the
+standard ordering logic. A broken entry point is skipped with a warning and
+does not prevent MVT from running. As with custom commands, installed module
+packages run as trusted code inside the MVT process, so install only packages
+from sources you trust.
+
+For a `pipx` installation of MVT, inject the package into MVT's environment:
+
+```bash
+pipx inject mvt my-mvt-modules
+```
+
 ## Profiling
 
 Some MVT modules extract and process significant amounts of data during the analysis process or while checking results against known indicators. Care must be

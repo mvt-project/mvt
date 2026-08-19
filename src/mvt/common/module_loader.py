@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import hashlib
+import importlib.metadata
 import importlib.util
 import inspect
 import logging
@@ -16,6 +17,7 @@ from typing import Iterable, Optional
 from .module import MVTModule
 
 MVT_CUSTOM_MODULES_ENV = "MVT_CUSTOM_MODULES"
+MODULES_ENTRY_POINT_GROUP = "mvt.modules"
 log = logging.getLogger(__name__)
 
 
@@ -31,7 +33,9 @@ def _module_name_for_path(path: Path) -> str:
 def _iter_module_files(path: Path) -> Iterable[Path]:
     if path.is_file():
         if path.suffix != ".py":
-            raise CustomModuleLoadError(f"Custom module file is not a Python file: {path}")
+            raise CustomModuleLoadError(
+                f"Custom module file is not a Python file: {path}"
+            )
         yield path
         return
 
@@ -59,7 +63,9 @@ def _load_python_file(path: Path) -> ModuleType:
     try:
         spec.loader.exec_module(module)
     except Exception as exc:
-        raise CustomModuleLoadError(f"Unable to import custom module {path}: {exc}") from exc
+        raise CustomModuleLoadError(
+            f"Unable to import custom module {path}: {exc}"
+        ) from exc
 
     return module
 
@@ -95,6 +101,68 @@ def load_custom_modules_from_path(path: str) -> list[type[MVTModule]]:
     return custom_modules
 
 
+def _module_key(module_class: type[MVTModule]) -> tuple[str, str]:
+    try:
+        source = str(Path(inspect.getfile(module_class)).resolve())
+    except (OSError, TypeError):
+        source = module_class.__module__
+    return (source, module_class.__qualname__)
+
+
+def load_installed_modules() -> list[type[MVTModule]]:
+    """Load MVT modules registered by installed packages.
+
+    Packages register modules in the ``mvt.modules`` entry-point group. Each
+    entry point must resolve to an iterable of MVTModule subclasses, or to a
+    callable which returns one. A broken entry point is skipped with a
+    warning so that a faulty plugin package cannot break MVT.
+    """
+    try:
+        entry_points = importlib.metadata.entry_points(group=MODULES_ENTRY_POINT_GROUP)
+    except Exception as exc:
+        log.warning(
+            "Unable to discover installed module packages in entry-point group %s: %s",
+            MODULES_ENTRY_POINT_GROUP,
+            exc,
+        )
+        return []
+
+    installed_modules: list[type[MVTModule]] = []
+    ordered_entry_points = sorted(
+        entry_points, key=lambda entry_point: (entry_point.name, entry_point.value)
+    )
+    for entry_point in ordered_entry_points:
+        try:
+            loaded = entry_point.load()
+            if callable(loaded) and not isinstance(loaded, type):
+                loaded = loaded()
+            module_classes = list(loaded)
+        except (Exception, SystemExit) as exc:
+            log.warning(
+                "Unable to load modules from entry point %s (%s): %s",
+                entry_point.name,
+                entry_point.value,
+                exc,
+            )
+            continue
+
+        for module_class in module_classes:
+            if not (
+                isinstance(module_class, type) and issubclass(module_class, MVTModule)
+            ):
+                log.warning(
+                    "Entry point %s (%s) provided %r which is not an "
+                    "MVTModule subclass",
+                    entry_point.name,
+                    entry_point.value,
+                    module_class,
+                )
+                continue
+            installed_modules.append(module_class)
+
+    return installed_modules
+
+
 def load_custom_modules(paths: Optional[Iterable[str]] = None) -> list[type[MVTModule]]:
     search_paths: list[str] = []
     env_path = os.environ.get(MVT_CUSTOM_MODULES_ENV)
@@ -105,10 +173,17 @@ def load_custom_modules(paths: Optional[Iterable[str]] = None) -> list[type[MVTM
 
     custom_modules: list[type[MVTModule]] = []
     seen: set[tuple[str, str]] = set()
+
+    for module_class in load_installed_modules():
+        key = _module_key(module_class)
+        if key in seen:
+            continue
+        seen.add(key)
+        custom_modules.append(module_class)
+
     for path in search_paths:
         for module_class in load_custom_modules_from_path(path):
-            source = Path(inspect.getfile(module_class)).resolve()
-            key = (str(source), module_class.__qualname__)
+            key = _module_key(module_class)
             if key in seen:
                 continue
             seen.add(key)
