@@ -9,6 +9,7 @@ from typing import Optional
 
 from mvt.common.command import Command
 from mvt.common.module import MVTModule
+from mvt.common.module_loader import get_module_logger
 from mvt.common.utils import exec_or_profile
 
 log = logging.getLogger(__name__)
@@ -76,7 +77,7 @@ class CmdCheckIOCS(Command):
                 )
 
                 m = iocs_module.from_json(
-                    file_path, log=logging.getLogger(iocs_module.__module__)
+                    file_path, log=get_module_logger(iocs_module)
                 )
                 if not m:
                     log.warning("No result from this module, skipping it")

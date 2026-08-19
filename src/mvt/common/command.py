@@ -19,7 +19,12 @@ from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
-from .module_loader import module_supports_command
+from .module_loader import (
+    ModuleOrigin,
+    get_module_logger,
+    get_module_origin,
+    module_supports_command,
+)
 from .module_types import ModuleTimeline, URLResult
 from .utils import (
     CustomJSONEncoder,
@@ -210,10 +215,34 @@ class Command:
         for file in generate_hashes_from_path(self.target_path, self.log):
             self.hash_values.append(file)
 
+    @staticmethod
+    def _modules_by_origin(
+        modules: list[type[MVTModule]],
+    ) -> dict[ModuleOrigin, list[str]]:
+        origins: dict[ModuleOrigin, list[str]] = {}
+        for module in modules:
+            origins.setdefault(get_module_origin(module), []).append(module.__name__)
+        return origins
+
     def list_modules(self) -> None:
         self.log.info("Following is the list of available %s modules:", self.name)
-        for module in self._available_modules():
-            self.log.info(" - %s", module.__name__)
+        for origin, module_names in self._modules_by_origin(
+            self._available_modules()
+        ).items():
+            self.log.info(
+                " - Modules from %s: %s", origin.label, ", ".join(module_names)
+            )
+
+    def _log_loaded_modules(self, modules: list[type[MVTModule]]) -> None:
+        """Record the loaded modules and their origins for auditability."""
+        for origin, module_names in self._modules_by_origin(modules).items():
+            self.log.info(
+                "Loaded %d %s modules from %s: %s",
+                len(module_names),
+                self.name,
+                origin.label,
+                ", ".join(module_names),
+            )
 
     def _available_modules(self) -> list[type[MVTModule]]:
         modules = list(self.modules)
@@ -360,6 +389,8 @@ class Command:
         if ordered_modules is None:
             return
 
+        self._log_loaded_modules(ordered_modules)
+
         try:
             self.init()
         except NotImplementedError:
@@ -368,7 +399,7 @@ class Command:
         executed_by_type: dict[type[MVTModule], MVTModule] = {}
         for module in ordered_modules:
 
-            module_logger = logging.getLogger(module.__module__)
+            module_logger = get_module_logger(module)
 
             m = module(
                 target_path=self.target_path,

@@ -8,7 +8,7 @@ HELP_MSG_VERSION = "Show the currently installed version of MVT"
 HELP_MSG_OUTPUT = "Specify a path to a folder where you want to store JSON results"
 HELP_MSG_IOC = "Path to indicators file (can be invoked multiple time)"
 HELP_MSG_FAST = "Avoid running time/resource consuming features"
-HELP_MSG_LIST_MODULES = "Print list of available modules and exit"
+HELP_MSG_LIST_MODULES = "Print list of available modules and their source, then exit"
 HELP_MSG_MODULE = "Name of a single module you would like to run instead of all"
 HELP_MSG_LOAD_MODULE = (
     "Load custom MVT module(s) from a Python file or folder "

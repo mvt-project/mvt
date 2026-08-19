@@ -239,6 +239,13 @@ def init_logging(verbose: bool = False):
     """
     log = logging.getLogger("mvt")
     log.setLevel(logging.DEBUG)
+
+    # Importing an MVT CLI module calls init_logging() at import time, and
+    # loaded module packages may import one indirectly. Keep this idempotent
+    # so console log lines are not duplicated by a second handler.
+    if any(isinstance(handler, MVTLogHandler) for handler in log.handlers):
+        return
+
     consoleHandler = MVTLogHandler()
     consoleHandler.setFormatter(logging.Formatter("%(message)s"))
     if verbose:

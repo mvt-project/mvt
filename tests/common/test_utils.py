@@ -8,6 +8,7 @@ import logging
 import os
 from datetime import datetime
 
+from mvt.common.log import MVTLogHandler
 from mvt.common.utils import (
     CustomJSONEncoder,
     convert_datetime_to_iso,
@@ -16,6 +17,7 @@ from mvt.common.utils import (
     convert_unix_to_utc_datetime,
     generate_hashes_from_path,
     get_sha256_from_file_path,
+    init_logging,
 )
 
 from ..utils import get_artifact_folder
@@ -102,4 +104,21 @@ class TestCustomJSONEncoder:
         assert (
             json.dumps({"name": "家".encode()}, cls=CustomJSONEncoder)
             == '{"name": "\\u5bb6"}'
+        )
+
+
+class TestInitLogging:
+    def test__init_logging_is_idempotent(self):
+        # Loaded module packages may import an MVT CLI module, which calls
+        # init_logging() again at import time. A second call must not add
+        # a duplicate console handler.
+        log = logging.getLogger("mvt")
+        init_logging()
+        handler_count = sum(
+            isinstance(handler, MVTLogHandler) for handler in log.handlers
+        )
+        init_logging()
+        assert (
+            sum(isinstance(handler, MVTLogHandler) for handler in log.handlers)
+            == handler_count
         )
