@@ -417,7 +417,21 @@ If indicators are provided through the command-line, they are checked against th
     Backup: :material-check:
     Full filesystem dump: :material-check:
 
-This JSON file is created by mvt-ios' `WhatsApp` module. The module extracts a list of WhatsApp messages from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ChatStorage.sqlite*.
+This JSON file is created by mvt-ios' `WhatsApp` module. The module extracts a list of WhatsApp messages from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ChatStorage.sqlite*, along with one record per chat session (marked with `"record_type": "chat_session"`) containing the first and last interaction dates of each conversation. Chat sessions produce `chat_first_message` and `chat_last_message` timeline events, and group chats additionally produce a `group_created` event. A chat session's last-message date can postdate its newest stored message when the most recent messages in the chat were deleted.
+
+Recent WhatsApp versions key 1:1 chat sessions by an opaque LID identifier rather than the contact's phone number. The module resolves these using the `ZWAPHONENUMBERLIDPAIR` table from the *LID.sqlite* database in the same app group (or from *ChatStorage.sqlite* itself in versions that store it there), populating `partner_resolved_phone_number` on chat session records and using the phone number in timeline events. Each LID-phone number pair is also extracted as a record (`"record_type": "lid_phone_number_pair"`) and produces a `lid_pair_recorded` timeline event marking when WhatsApp learned the association.
 
 If indicators are provided through the command-line, they are checked against the extracted HTTP links. Any matches are stored in *whatsapp_detected.json*.
+
+---
+
+### `whatsapp_contacts.json`
+
+!!! info "Availability"
+    Backup: :material-check:
+    Full filesystem dump: :material-check:
+
+This JSON file is created by mvt-ios' `WhatsappContacts` module. The module extracts WhatsApp contact records from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ContactsV2.sqlite*, including each contact's phone number, WhatsApp and LID identifiers, and the per-contact disappearing messages timer, which is not recorded in *ChatStorage.sqlite*. Each timestamp stored on a contact record produces a timeline event: `disappearing_mode_set` (when the disappearing messages timer was last changed), `about_changed` (when the contact last changed their "about" text), `about_expiration` (when a timed "about" is scheduled to expire) and `contact_last_updated` (when the contact record was last updated).
+
+This database is often missing from incremental backups. When it cannot be found, the module logs a warning and produces no results, in which case the disappearing messages state of chats cannot be determined from the backup.
 
