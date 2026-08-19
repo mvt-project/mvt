@@ -59,6 +59,9 @@ jobs:
             type=raw,enable=${{ github.ref_type == 'tag' }},value=${{ github.ref_name }},suffix=${{ matrix.platform.tag-suffix }}
             type=sha,suffix=${{ matrix.platform.tag-suffix }}
             type=sha,format=long,suffix=${{ matrix.platform.tag-suffix }}
+      # Register emulators so Buildx can build the ARM64 images on the AMD64 runner.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
       # This step sets up some additional capabilities to generate the provenance and sbom attestations
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -71,6 +74,7 @@ jobs:
         with:
           file: ${{ matrix.platform.dockerfile }}
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
