@@ -56,6 +56,37 @@ class TestInteractionCModule:
             "Bob Example (+14155550101) to local user" in events
         )
 
+        # The creation date is only serialized when it diverges from the
+        # start date; the SMS record was created 90 days after the event.
+        creation_events = [
+            entry
+            for entry in m.timeline
+            if entry["event"] == "interactions_creation_date"
+        ]
+        assert len(creation_events) == 1
+        assert creation_events[0]["timestamp"] == "2025-12-09 12:26:40.000000"
+        assert creation_events[0]["data"] == (
+            "Interaction record created 90 days after the event: "
+            "[com.apple.MobileSMS] INCOMING from "
+            "Bob Example (+14155550101) to local user"
+        )
+
+        # Per-contact aggregate dates use contact-centric data strings.
+        first_seen = [
+            entry
+            for entry in m.timeline
+            if entry["event"] == "first_incoming_sender_date"
+        ]
+        assert len(first_seen) == 1
+        assert first_seen[0]["timestamp"] == "2025-09-03 13:46:40.000000"
+        assert first_seen[0]["data"] == (
+            "First incoming interaction from Bob Example (+14155550101)"
+        )
+        assert (
+            "Last incoming interaction from Bob Example (+14155550101)"
+            in events
+        )
+
     def test_extraction_without_whatsapp_contacts(self):
         # Without the WhatsappContacts dependency the module still runs, and
         # unresolvable LIDs are shown as-is.

@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import datetime
 import logging
 import re
 import sqlite3
@@ -24,6 +25,49 @@ INTERACTIONC_BACKUP_IDS = [
 INTERACTIONC_ROOT_PATHS = [
     "private/var/mobile/Library/CoreDuet/People/interactionC.db",
 ]
+
+# The interaction record's creation date normally trails its start date by
+# milliseconds: emitting it as a timeline event only duplicates the start
+# date event. A large divergence, however, indicates the record was
+# backfilled (sync, restore, or tampering) and is worth surfacing.
+CREATION_DATE_DIVERGENCE_THRESHOLD = 3600.0
+
+# Per-contact aggregate dates from ZCONTACTS are repeated on every
+# interaction row of the same contact. They are serialized with a
+# contact-centric data string so that timeline de-duplication collapses
+# them into one event per contact.
+CONTACT_EVENT_TEMPLATES = {
+    "contacts_creation_date": "Contact {party} first recorded in interactionC",
+    "first_incoming_sender_date": "First incoming interaction from {party}",
+    "last_incoming_sender_date": "Last incoming interaction from {party}",
+    "first_incoming_recipient_date": (
+        "First incoming interaction where {party} was a recipient"
+    ),
+    "last_incoming_recipient_date": (
+        "Last incoming interaction where {party} was a recipient"
+    ),
+    "first_outgoing_recipient_date": (
+        "First outgoing interaction to {party}"
+    ),
+    "last_outgoing_recipient_date": (
+        "Last outgoing interaction to {party}"
+    ),
+}
+
+
+def _parse_iso(timestamp) -> Optional[datetime.datetime]:
+    try:
+        return datetime.datetime.strptime(
+            timestamp, "%Y-%m-%d %H:%M:%S.%f"
+        )
+    except (TypeError, ValueError):
+        return None
+
+
+def _describe_delta(seconds: float) -> str:
+    if seconds >= 86400:
+        return f"{seconds / 86400:.0f} days"
+    return f"{seconds / 3600:.0f} hours"
 # Taken from APOLLO
 # https://github.com/mac4n6/APOLLO/blob/master/modules/interaction_contact_interactions.txt
 QUERIES = [
@@ -305,7 +349,7 @@ class InteractionC(IOSExtraction):
 
         records = []
         processed = []
-        for timestamp in self.timestamps:
+        for timestamp in ("start_date", "end_date"):
             # Check if the record has the current timestamp.
             if timestamp not in record or not record[timestamp]:
                 continue
@@ -324,7 +368,60 @@ class InteractionC(IOSExtraction):
             )
             processed.append(record[timestamp])
 
+        creation_event = self._serialize_creation_date(record, data)
+        if creation_event:
+            records.append(creation_event)
+
+        # Contact-level aggregates describe the sender's contact record.
+        party = self._describe_party(record, "sender")
+        if party:
+            for field, template in CONTACT_EVENT_TEMPLATES.items():
+                if not record.get(field):
+                    continue
+                records.append(
+                    {
+                        "timestamp": record[field],
+                        "module": self.__class__.__name__,
+                        "event": field,
+                        "data": template.format(party=party),
+                    }
+                )
+
         return records
+
+    def _serialize_creation_date(
+        self, record: ModuleAtomicResult, data: str
+    ) -> Optional[dict]:
+        """Serialize the interaction record's creation date only when it
+        diverges from the start date enough to indicate the record was
+        backfilled."""
+        creation = record.get("interactions_creation_date")
+        if not creation:
+            return None
+
+        event = {
+            "timestamp": creation,
+            "module": self.__class__.__name__,
+            "event": "interactions_creation_date",
+            "data": data,
+        }
+
+        start = _parse_iso(record.get("start_date"))
+        creation_parsed = _parse_iso(creation)
+        if not start or not creation_parsed:
+            # Without a start date the creation date is the only anchor.
+            return event
+
+        delta = (creation_parsed - start).total_seconds()
+        if abs(delta) < CREATION_DATE_DIVERGENCE_THRESHOLD:
+            return None
+
+        direction = "after" if delta > 0 else "before"
+        event["data"] = (
+            f"Interaction record created {_describe_delta(abs(delta))} "
+            f"{direction} the event: {data}"
+        )
+        return event
 
     def _whatsapp_contact_maps(self) -> Tuple[dict, dict]:
         """Build LID and phone-digit lookup maps from the WhatsappContacts
