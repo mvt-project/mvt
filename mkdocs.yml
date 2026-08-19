@@ -31,7 +31,6 @@ nav:
     - Introduction: "introduction.md"
     - Installation: "install.md"
     - Command Completion: "command_completion.md"
-    - Custom CLI Commands: "custom_commands.md"
     - Using Docker: "docker.md"
     - MVT for iOS:
         - iOS Forensic Methodology: "ios/methodology.md"
@@ -50,5 +49,7 @@ nav:
         - Check an Android Backup (SMS messages): "android/backup.md"
         - Check Android Intrusion Logs: "android/intrusion_logs.md"
     - Indicators of Compromise: "iocs.md"
-    - Development: "development.md"
+    - Development:
+        - Development Instructions: "development.md"
+        - Custom CLI Commands: "custom_commands.md"
     - License: "license.md"
