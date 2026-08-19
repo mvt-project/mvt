@@ -53,6 +53,7 @@ COLUMN_CANDIDATES = {
     "disappearing_mode_duration": ["ZDISAPPEARINGMODEDURATION"],
     "disappearing_mode_timestamp": ["ZDISAPPEARINGMODETIMESTAMP"],
     "about_timestamp": ["ZABOUTTIMESTAMP"],
+    "about_expiration_timestamp": ["ZABOUTEXPIRATIONTIMESTAMP"],
     "last_updated": ["ZLASTUPDATED"],
     "phone_status": ["ZPHONESTATUS", "ZPHONENUMBERSTATUS"],
     "sync_policy": ["ZSYNCPOLICY"],
@@ -76,6 +77,7 @@ STRING_FIELDS = [
 DATE_FIELDS = [
     "disappearing_mode_timestamp",
     "about_timestamp",
+    "about_expiration_timestamp",
     "last_updated",
 ]
 
@@ -96,6 +98,19 @@ def _label_duration(duration) -> str:
     return DISAPPEARING_DURATION_LABELS.get(
         int(duration), f"{int(duration)} seconds"
     )
+
+
+def _describe_contact(record: ModuleAtomicResult) -> str:
+    contact = (
+        record.get("whatsapp_id")
+        or record.get("lid")
+        or record.get("phone_number")
+        or "unknown"
+    )
+    full_name = record.get("full_name")
+    if full_name:
+        contact = f"{contact} ({full_name})"
+    return contact
 
 
 class WhatsappContacts(IOSExtraction):
@@ -127,30 +142,61 @@ class WhatsappContacts(IOSExtraction):
         )
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
-        timestamp = record.get("disappearing_mode_timestamp")
-        if not timestamp:
-            return {}
+        records = []
+        contact = _describe_contact(record)
 
-        contact = (
-            record.get("whatsapp_id")
-            or record.get("lid")
-            or record.get("phone_number")
-            or "unknown"
-        )
-        data = (
-            f"WhatsApp disappearing messages timer set to "
-            f"'{record.get('disappearing_mode_label')}' for {contact}"
-        )
-        full_name = record.get("full_name")
-        if full_name:
-            data += f" ({full_name})"
+        if record.get("disappearing_mode_timestamp"):
+            records.append(
+                {
+                    "timestamp": record["disappearing_mode_timestamp"],
+                    "module": self.__class__.__name__,
+                    "event": "disappearing_mode_set",
+                    "data": (
+                        f"WhatsApp disappearing messages timer set to "
+                        f"'{record.get('disappearing_mode_label')}' "
+                        f"for {contact}"
+                    ),
+                }
+            )
 
-        return {
-            "timestamp": timestamp,
-            "module": self.__class__.__name__,
-            "event": "disappearing_mode_set",
-            "data": data,
-        }
+        if record.get("about_timestamp"):
+            data = f"WhatsApp about text of {contact} changed"
+            about_text = record.get("about_text")
+            if about_text:
+                data += f' to "{about_text}"'
+            records.append(
+                {
+                    "timestamp": record["about_timestamp"],
+                    "module": self.__class__.__name__,
+                    "event": "about_changed",
+                    "data": data,
+                }
+            )
+
+        if record.get("about_expiration_timestamp"):
+            records.append(
+                {
+                    "timestamp": record["about_expiration_timestamp"],
+                    "module": self.__class__.__name__,
+                    "event": "about_expiration",
+                    "data": (
+                        f"WhatsApp about text of {contact} scheduled "
+                        f"to expire"
+                    ),
+                }
+            )
+
+        if record.get("last_updated"):
+            records.append(
+                {
+                    "timestamp": record["last_updated"],
+                    "module": self.__class__.__name__,
+                    "event": "contact_last_updated",
+                    "data": f"WhatsApp contact record for {contact} updated",
+                }
+            )
+
+        return records
 
     def run(self) -> None:
         try:

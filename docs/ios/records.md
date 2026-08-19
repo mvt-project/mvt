@@ -429,7 +429,7 @@ If indicators are provided through the command-line, they are checked against th
     Backup: :material-check:
     Full filesystem dump: :material-check:
 
-This JSON file is created by mvt-ios' `WhatsappContacts` module. The module extracts WhatsApp contact records from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ContactsV2.sqlite*, including each contact's phone number, WhatsApp and LID identifiers, and the per-contact disappearing messages timer, which is not recorded in *ChatStorage.sqlite*. Contacts with a disappearing messages timer set produce a `disappearing_mode_set` event in the timeline.
+This JSON file is created by mvt-ios' `WhatsappContacts` module. The module extracts WhatsApp contact records from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ContactsV2.sqlite*, including each contact's phone number, WhatsApp and LID identifiers, and the per-contact disappearing messages timer, which is not recorded in *ChatStorage.sqlite*. Each timestamp stored on a contact record produces a timeline event: `disappearing_mode_set` (when the disappearing messages timer was last changed), `about_changed` (when the contact last changed their "about" text), `about_expiration` (when a timed "about" is scheduled to expire) and `contact_last_updated` (when the contact record was last updated).
 
 This database is often missing from incremental backups. When it cannot be found, the module logs a warning and produces no results, in which case the disappearing messages state of chats cannot be determined from the backup.
 
