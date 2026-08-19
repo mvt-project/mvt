@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+import sqlite3
 from typing import Optional
 
 from mvt.common.module_types import (
@@ -22,9 +23,50 @@ WHATSAPP_ROOT_PATHS = [
     "private/var/mobile/Containers/Shared/AppGroup/*/ChatStorage.sqlite",
 ]
 
+CHAT_SESSIONS_QUERY = """
+    SELECT
+        ZWACHATSESSION.Z_PK AS "session_pk",
+        ZWACHATSESSION.ZCONTACTJID AS "contact_jid",
+        ZWACHATSESSION.ZPARTNERNAME AS "partner_name",
+        ZWACHATSESSION.ZSESSIONTYPE AS "session_type",
+        ZWACHATSESSION.ZARCHIVED AS "archived",
+        ZWACHATSESSION.ZREMOVED AS "removed",
+        ZWACHATSESSION.ZMESSAGECOUNTER AS "message_counter",
+        ZWACHATSESSION.ZLASTMESSAGEDATE AS "last_message_date",
+        ZWAGROUPINFO.ZCREATIONDATE AS "group_creation_date",
+        MIN(ZWAMESSAGE.ZMESSAGEDATE) AS "first_stored_message_date",
+        MAX(ZWAMESSAGE.ZMESSAGEDATE) AS "last_stored_message_date",
+        COUNT(ZWAMESSAGE.Z_PK) AS "stored_message_count"
+    FROM ZWACHATSESSION
+    LEFT JOIN ZWAGROUPINFO
+        ON ZWACHATSESSION.ZGROUPINFO = ZWAGROUPINFO.Z_PK
+    LEFT JOIN ZWAMESSAGE
+        ON ZWAMESSAGE.ZCHATSESSION = ZWACHATSESSION.Z_PK
+    GROUP BY ZWACHATSESSION.Z_PK;
+"""
+
+CHAT_SESSION_DATE_FIELDS = [
+    "last_message_date",
+    "group_creation_date",
+    "first_stored_message_date",
+    "last_stored_message_date",
+]
+
+
+def _describe_chat(record: ModuleAtomicResult) -> str:
+    jid = record.get("contact_jid") or "unknown"
+    name = record.get("partner_name")
+    label = f"'{name}' ({jid})" if name else jid
+    is_group = jid.endswith("@g.us") or record.get("group_creation_date")
+    if is_group:
+        return f"WhatsApp group chat {label}"
+    return f"WhatsApp chat with {label}"
+
 
 class Whatsapp(IOSExtraction):
-    """This module extracts all WhatsApp messages containing links."""
+    """This module extracts all WhatsApp messages containing links, as well
+    as per-chat records with the first and last interaction dates of each
+    conversation."""
 
     def __init__(
         self,
@@ -45,6 +87,9 @@ class Whatsapp(IOSExtraction):
         )
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
+        if record.get("record_type") == "chat_session":
+            return self._serialize_chat_session(record)
+
         text = record.get("ZTEXT", "").replace("\n", "\\n")
         links_text = ""
         if record.get("links"):
@@ -56,6 +101,49 @@ class Whatsapp(IOSExtraction):
             "event": "message",
             "data": f"'{text}' from {record.get('ZFROMJID', 'Unknown')}{links_text}",
         }
+
+    def _serialize_chat_session(
+        self, record: ModuleAtomicResult
+    ) -> ModuleSerializedResult:
+        records = []
+        chat = _describe_chat(record)
+
+        if record.get("group_creation_date"):
+            records.append(
+                {
+                    "timestamp": record["group_creation_date"],
+                    "module": self.__class__.__name__,
+                    "event": "group_created",
+                    "data": f"{chat} was created",
+                }
+            )
+
+        if record.get("first_stored_message_date"):
+            records.append(
+                {
+                    "timestamp": record["first_stored_message_date"],
+                    "module": self.__class__.__name__,
+                    "event": "chat_first_message",
+                    "data": f"First stored message in {chat}",
+                }
+            )
+
+        # The chat session's own last-message date is authoritative: it can
+        # postdate the newest stored message if that message was deleted.
+        last_message_date = record.get("last_message_date") or record.get(
+            "last_stored_message_date"
+        )
+        if last_message_date:
+            records.append(
+                {
+                    "timestamp": last_message_date,
+                    "module": self.__class__.__name__,
+                    "event": "chat_last_message",
+                    "data": f"Last message in {chat}",
+                }
+            )
+
+        return records
 
     def check_indicators(self) -> None:
         if not self.indicators:
@@ -146,7 +234,45 @@ class Whatsapp(IOSExtraction):
                 message["links"] = list(set(filtered_links))
             self.results.append(message)
 
+        total_messages = len(self.results)
+        total_sessions = self._extract_chat_sessions(cur)
+
         cur.close()
         conn.close()
 
-        self.log.info("Extracted a total of %d WhatsApp messages", len(self.results))
+        self.log.info(
+            "Extracted a total of %d WhatsApp messages and %d chat sessions",
+            total_messages,
+            total_sessions,
+        )
+
+    def _extract_chat_sessions(self, cur: sqlite3.Cursor) -> int:
+        """Extract one record per chat session with the first and last
+        interaction dates of each conversation."""
+        try:
+            cur.execute(CHAT_SESSIONS_QUERY)
+        except sqlite3.OperationalError as exc:
+            self.log.warning(
+                "Unable to extract WhatsApp chat sessions: %s", exc
+            )
+            return 0
+
+        names = [description[0] for description in cur.description]
+
+        total_sessions = 0
+        for row in cur:
+            session = dict(zip(names, row))
+            session["record_type"] = "chat_session"
+
+            for field in CHAT_SESSION_DATE_FIELDS:
+                if session.get(field):
+                    session[field] = (
+                        convert_mactime_to_iso(session[field]) or None
+                    )
+                else:
+                    session[field] = None
+
+            self.results.append(session)
+            total_sessions += 1
+
+        return total_sessions

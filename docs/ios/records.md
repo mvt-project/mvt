@@ -417,7 +417,7 @@ If indicators are provided through the command-line, they are checked against th
     Backup: :material-check:
     Full filesystem dump: :material-check:
 
-This JSON file is created by mvt-ios' `WhatsApp` module. The module extracts a list of WhatsApp messages from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ChatStorage.sqlite*.
+This JSON file is created by mvt-ios' `WhatsApp` module. The module extracts a list of WhatsApp messages from the SQLite database located at *private/var/mobile/Containers/Shared/AppGroup/\*/ChatStorage.sqlite*, along with one record per chat session (marked with `"record_type": "chat_session"`) containing the first and last interaction dates of each conversation. Chat sessions produce `chat_first_message` and `chat_last_message` timeline events, and group chats additionally produce a `group_created` event. A chat session's last-message date can postdate its newest stored message when the most recent messages in the chat were deleted.
 
 If indicators are provided through the command-line, they are checked against the extracted HTTP links. Any matches are stored in *whatsapp_detected.json*.
 
