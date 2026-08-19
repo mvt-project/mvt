@@ -22,7 +22,10 @@ from .version import MVT_VERSION
 
 MVT_CUSTOM_MODULES_ENV = "MVT_CUSTOM_MODULES"
 MODULES_ENTRY_POINT_GROUP = "mvt.modules"
+EXTERNAL_LOGGER_NAMESPACE = "mvt.ext"
+PLUGIN_PACKAGE_PREFIX = "mvt_plugin_"
 _ORIGIN_ATTRIBUTE = "_mvt_module_origin"
+_PATH_MODULE_PREFIX = "_mvt_custom_module_"
 log = logging.getLogger(__name__)
 
 
@@ -60,7 +63,36 @@ class ModuleOrigin:
 
 def _module_name_for_path(path: Path) -> str:
     digest = hashlib.sha256(str(path).encode("utf-8")).hexdigest()[:16]
-    return f"_mvt_custom_module_{path.stem}_{digest}"
+    return f"{_PATH_MODULE_PREFIX}{path.stem}_{digest}"
+
+
+def get_module_logger(module_class: type[MVTModule]) -> logging.Logger:
+    """Return the logger a module's records should be emitted through.
+
+    Modules loaded from installed packages or file paths live outside the
+    "mvt" logger hierarchy, so their records would never reach the handlers
+    attached to the "mvt" logger and instead fall through to
+    logging.lastResort (which prints bare messages and drops anything below
+    WARNING). Their loggers are parented under the "mvt.ext" namespace,
+    keeping external module names from colliding with MVT's own logger
+    tree. File-path modules are named after their file instead of the
+    mangled internal import name, and packages following the recommended
+    "mvt_plugin_<name>" naming convention log under "mvt.ext.<name>".
+    """
+    name = module_class.__module__
+    if name == "mvt" or name.startswith("mvt."):
+        return logging.getLogger(name)
+
+    if name.startswith(_PATH_MODULE_PREFIX):
+        name = Path(get_module_origin(module_class).name).stem
+    else:
+        top_level, separator, rest = name.partition(".")
+        if top_level.startswith(PLUGIN_PACKAGE_PREFIX) and len(top_level) > len(
+            PLUGIN_PACKAGE_PREFIX
+        ):
+            name = top_level[len(PLUGIN_PACKAGE_PREFIX) :] + separator + rest
+
+    return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{name}")
 
 
 def _iter_module_files(path: Path) -> Iterable[Path]:

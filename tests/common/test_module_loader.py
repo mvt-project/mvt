@@ -3,10 +3,12 @@ import pytest
 from mvt.common.module import MVTModule
 from mvt.common.module_loader import (
     CustomModuleLoadError,
+    get_module_logger,
     load_custom_modules,
     load_custom_modules_from_path,
     module_supports_command,
 )
+from mvt.ios.modules.mixed.whatsapp import Whatsapp
 
 
 MODULE_TEMPLATE = """
@@ -144,3 +146,44 @@ def test_module_supports_command_honors_supported_commands(tmp_path):
 
     assert module_supports_command(module, "ios", "check-backup")
     assert not module_supports_command(module, "ios", "check-fs")
+
+
+def test_get_module_logger_keeps_builtin_names():
+    assert get_module_logger(Whatsapp).name == "mvt.ios.modules.mixed.whatsapp"
+
+
+def test_get_module_logger_parents_package_modules_under_mvt_ext():
+    class PackageModule(MVTModule):
+        pass
+
+    PackageModule.__module__ = "some_plugin_package.ios.custom"
+
+    assert (
+        get_module_logger(PackageModule).name
+        == "mvt.ext.some_plugin_package.ios.custom"
+    )
+
+
+def test_get_module_logger_strips_the_plugin_package_prefix():
+    class PluginModule(MVTModule):
+        pass
+
+    PluginModule.__module__ = "mvt_plugin_amnesty_custom.ios.custom"
+
+    assert get_module_logger(PluginModule).name == "mvt.ext.amnesty_custom.ios.custom"
+
+
+def test_get_module_logger_only_strips_the_prefix_from_the_top_level():
+    class NestedModule(MVTModule):
+        pass
+
+    NestedModule.__module__ = "other_package.mvt_plugin_sub"
+
+    assert get_module_logger(NestedModule).name == "mvt.ext.other_package.mvt_plugin_sub"
+
+
+def test_get_module_logger_names_path_modules_after_their_file(tmp_path):
+    module_path = _write_module(tmp_path / "my_custom_module.py", "PathModule")
+    module = load_custom_modules_from_path(str(module_path))[0]
+
+    assert get_module_logger(module).name == "mvt.ext.my_custom_module"

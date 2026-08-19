@@ -19,7 +19,12 @@ from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
-from .module_loader import ModuleOrigin, get_module_origin, module_supports_command
+from .module_loader import (
+    ModuleOrigin,
+    get_module_logger,
+    get_module_origin,
+    module_supports_command,
+)
 from .module_types import ModuleTimeline, URLResult
 from .utils import (
     CustomJSONEncoder,
@@ -394,7 +399,7 @@ class Command:
         executed_by_type: dict[type[MVTModule], MVTModule] = {}
         for module in ordered_modules:
 
-            module_logger = logging.getLogger(module.__module__)
+            module_logger = get_module_logger(module)
 
             m = module(
                 target_path=self.target_path,

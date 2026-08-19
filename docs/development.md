@@ -126,7 +126,7 @@ the package's `pyproject.toml`:
 
 ```toml
 [project.entry-points."mvt.modules"]
-my-mvt-modules = "my_mvt_modules:get_modules"
+mvt-plugin-amnesty-custom = "mvt_plugin_amnesty_custom:get_modules"
 ```
 
 The entry point must resolve to an iterable of `MVTModule` subclasses, or to
@@ -157,8 +157,38 @@ from sources you trust.
 For a `pipx` installation of MVT, inject the package into MVT's environment:
 
 ```bash
-pipx inject mvt my-mvt-modules
+pipx inject mvt mvt-plugin-amnesty-custom
 ```
+
+### Naming module packages
+
+Name module packages `mvt-plugin-<name>` (import package `mvt_plugin_<name>`),
+and include the name of the publishing organization or author so packages from
+different groups do not collide: for example, Amnesty International's custom
+modules would be distributed as `mvt-plugin-amnesty-custom` with the import
+package `mvt_plugin_amnesty_custom`.
+
+The prefix makes module packages easy to find on PyPI and keeps their import
+names from clashing with unrelated Python packages. It is a convention, not a
+technical requirement: modules load through the `mvt.modules` entry point
+regardless of what the package is called, and existing packages with other
+names keep working. Note that the prefix is also not a mark of authenticity —
+anyone can publish a package with any available name, so vet a module package
+and its publisher before installing it, whatever it is called.
+
+### Module logging
+
+Modules log through `self.log`, and MVT names the logger for where the module
+came from. MVT's own modules log under their dotted path (for example
+`mvt.ios.modules.mixed.whatsapp`). Everything external is namespaced under
+`mvt.ext` to keep it visually distinct from built-in modules and isolated from
+MVT's internal logger tree:
+
+- Installed packages log under `mvt.ext.<package>`, with the `mvt_plugin_`
+  prefix stripped: modules in `mvt_plugin_amnesty_custom` log as
+  `mvt.ext.amnesty_custom.*`.
+- Files loaded with `--load-module` or `MVT_CUSTOM_MODULES` log as
+  `mvt.ext.<file name>`.
 
 ## Auditing loaded modules
 
