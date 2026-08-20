@@ -105,7 +105,12 @@ class WebkitSessionResourceLog(IOSExtraction):
             if ioc_match:
                 entry, source_domains, destination_domains = record
                 self.alertstore.critical(
-                    ioc_match.message, "", entry, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    entry.get("last_seen")
+                    or entry.get("most_recent_interaction")
+                    or "",
+                    entry,
+                    matched_indicator=ioc_match.ioc,
                 )
 
                 redirect_path = ""
@@ -129,7 +134,9 @@ class WebkitSessionResourceLog(IOSExtraction):
 
                 self.alertstore.high(
                     f"Found HTTP redirect between suspicious domains: {redirect_path}",
-                    "",
+                    entry.get("last_seen")
+                    or entry.get("most_recent_interaction")
+                    or "",
                     entry,
                 )
 

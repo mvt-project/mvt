@@ -63,4 +63,10 @@ class TestDumpsysAppopsArtifact:
         assert len(da.alertstore.alerts) == 3
         assert len(detected_by_ioc) == 1
         assert detected_by_ioc[0].matched_indicator is not None
+        assert detected_by_ioc[0].event_time == max(
+            entry["timestamp"]
+            for permission in detected_by_ioc[0].event["permissions"]
+            for entry in permission.get("entries", [])
+            if entry.get("timestamp")
+        )
         assert len(detected_by_permission_heuristic) == 2
