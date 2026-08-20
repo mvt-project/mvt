@@ -33,6 +33,7 @@ from mvt.common.help import (
     HELP_MSG_VERSION,
     HELP_MSG_DECRYPT_BACKUP,
     HELP_MSG_BACKUP_DESTINATION,
+    HELP_MSG_DECRYPT_JOBS,
     HELP_MSG_IOS_BACKUP_PASSWORD,
     HELP_MSG_BACKUP_KEYFILE,
     HELP_MSG_HASHES,
@@ -58,7 +59,11 @@ from mvt.common.password import prompt_password
 from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
 from .cmd_check_sysdiagnose import CmdIOSCheckSysdiagnose
-from .decrypt import DecryptBackup
+from .decrypt import (
+    DEFAULT_DECRYPT_WORKERS,
+    MAX_DECRYPT_WORKERS,
+    DecryptBackup,
+)
 from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
@@ -163,6 +168,13 @@ def completion(ctx, shell, install):
 )
 @click.option("--destination", "-d", required=True, help=HELP_MSG_BACKUP_DESTINATION)
 @click.option(
+    "--jobs",
+    type=click.IntRange(1, MAX_DECRYPT_WORKERS),
+    default=DEFAULT_DECRYPT_WORKERS,
+    show_default=True,
+    help=HELP_MSG_DECRYPT_JOBS,
+)
+@click.option(
     "--password",
     "-p",
     cls=MutuallyExclusiveOption,
@@ -180,8 +192,8 @@ def completion(ctx, shell, install):
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
-    backup = DecryptBackup(backup_path, destination)
+def decrypt_backup(ctx, destination, jobs, password, key_file, hashes, backup_path):
+    backup = DecryptBackup(backup_path, destination, max_workers=jobs)
 
     if key_file:
         if MVT_IOS_BACKUP_PASSWORD in os.environ:

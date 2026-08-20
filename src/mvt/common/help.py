@@ -28,6 +28,7 @@ HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"
 HELP_MSG_BACKUP_DESTINATION = (
     "Path to the folder where the decrypted backup should be stored"
 )
+HELP_MSG_DECRYPT_JOBS = "Number of files to decrypt concurrently"
 HELP_MSG_IOS_BACKUP_PASSWORD = (
     "Password to use to decrypt the backup (or, set the {MVT_IOS_BACKUP_PASSWORD} "
     "environment variable)"
