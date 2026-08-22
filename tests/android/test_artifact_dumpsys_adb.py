@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import base64
+
 from mvt.android.artifacts.dumpsys_adb import DumpsysADBArtifact
 from mvt.android.modules.bugreport.dumpsys_adb_state import DumpsysADBState
 from mvt.common.alerts import AlertLevel
@@ -11,6 +13,17 @@ from ..utils import get_artifact
 
 
 class TestDumpsysADBArtifact:
+    def test_parsing_binary_xml_recovers_key(self):
+        public_key = base64.b64encode(bytes(range(256)))
+        keystore = DumpsysADBArtifact().parse_binary_xml(
+            b"ABX\x00binary-key=" + public_key + b" user@host\x00lastConnection"
+        )
+
+        assert len(keystore) == 1
+        assert keystore[0]["key"] == public_key.decode()
+        assert keystore[0]["user"] == "user@host"
+        assert keystore[0]["last_connected"] is None
+
     def test_parsing(self):
         da_adb = DumpsysADBArtifact()
         file = get_artifact("android_data/dumpsys_adb.txt")

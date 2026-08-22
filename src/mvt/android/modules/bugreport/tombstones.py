@@ -43,21 +43,76 @@ class Tombstones(TombstoneCrashArtifact, BugReportModule):
             )
             return
 
-        for tombstone_file in sorted(tombstone_files):
-            tombstone_filename = tombstone_file.split("/")[-1]
-            modification_time = self._get_file_modification_time(tombstone_file)
-            tombstone_data = self._get_file_content(tombstone_file)
+        grouped: dict[str, dict[str, str]] = {}
+        for file_path in tombstone_files:
+            file_name = file_path.rsplit("/", 1)[-1]
+            source = "protobuf" if file_name.endswith(".pb") else "text"
+            crash_id = file_name.removesuffix(".pb")
+            grouped.setdefault(crash_id, {})[source] = file_path
 
-            try:
-                if tombstone_file.endswith(".pb"):
-                    self.parse_protobuf(
-                        tombstone_filename, modification_time, tombstone_data
+        for crash_id, paths in sorted(grouped.items()):
+            parsed_sources: dict[str, dict] = {}
+            source_records: dict[str, dict] = {}
+            for source in ("text", "protobuf"):
+                file_path = paths.get(source)
+                if file_path is None:
+                    continue
+                file_name = file_path.rsplit("/", 1)[-1]
+                file_timestamp = self._get_file_modification_time(file_path)
+                source_info = {
+                    "file_name": file_name,
+                    "file_timestamp": file_timestamp.isoformat(),
+                    "parsed": False,
+                    "error": None,
+                    "record": None,
+                }
+                try:
+                    data = self._get_file_content(file_path)
+                    if source == "protobuf":
+                        record = self.parse_protobuf_record(
+                            file_name, file_timestamp, data
+                        )
+                    else:
+                        record = self.parse_text_record(file_name, file_timestamp, data)
+                    source_info["parsed"] = True
+                    source_info["record"] = record
+                    source_records[source] = record
+                except Exception as exc:
+                    source_info["error"] = str(exc)
+                    self.log.error(
+                        "Error parsing tombstone file %s: %s", file_path, exc
                     )
-                else:
-                    self.parse(tombstone_filename, modification_time, tombstone_data)
-            except ValueError as e:
-                # Catch any exceptions raised during parsing or validation.
-                self.log.error(f"Error parsing tombstone file {tombstone_file}: {e}")
+                parsed_sources[source] = source_info
+
+            if not source_records:
+                continue
+            preferred = source_records.get("protobuf") or source_records["text"]
+            canonical = dict(preferred)
+            text_record = source_records.get("text")
+            if text_record:
+                for key, value in text_record.items():
+                    if canonical.get(key) in (None, "", [], {}):
+                        canonical[key] = value
+
+            differences = {}
+            protobuf_record = source_records.get("protobuf")
+            if text_record and protobuf_record:
+                for key in text_record.keys() & protobuf_record.keys():
+                    if key in ("file_name", "file_timestamp"):
+                        continue
+                    if text_record[key] != protobuf_record[key]:
+                        differences[key] = {
+                            "text": text_record[key],
+                            "protobuf": protobuf_record[key],
+                        }
+            canonical.update(
+                {
+                    "crash_id": crash_id,
+                    "sources": parsed_sources,
+                    "differences": differences,
+                }
+            )
+            self.results.append(canonical)
 
         self.log.info(
             "Extracted a total of %d tombstone files",

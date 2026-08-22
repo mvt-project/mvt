@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import re
+
 from .artifact import AndroidArtifact
 
 ANDROID_DANGEROUS_SETTINGS = [
@@ -60,6 +62,28 @@ ANDROID_DANGEROUS_SETTINGS = [
 
 
 class Settings(AndroidArtifact):
+    def parse(self, content: str) -> None:
+        self.results: dict[str, dict[str, str]] = {}
+        namespace: str | None = None
+        for line in content.splitlines():
+            heading = re.match(
+                r"^(CONFIG|GLOBAL|SECURE|SYSTEM) SETTINGS \(user (\d+)\)$",
+                line.strip(),
+            )
+            if heading:
+                namespace = f"{heading.group(1).lower()}:user_{heading.group(2)}"
+                self.results[namespace] = {}
+                continue
+            if namespace is None or not line.startswith("_id:"):
+                continue
+            setting = re.match(
+                r"^_id:\S+\s+name:(.*?)\s+pkg:.*?\s+value:(.*?)"
+                r"(?:\s+default:.*\s+defaultSystemSet:(?:true|false))?$",
+                line,
+            )
+            if setting:
+                self.results[namespace][setting.group(1)] = setting.group(2)
+
     def check_indicators(self) -> None:
         for namespace, settings in self.results.items():
             for key, value in settings.items():

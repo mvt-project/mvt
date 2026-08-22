@@ -21,12 +21,16 @@ class TestDumpsysPackageActivitiesArtifact:
 
         assert len(dpa.results) == 0
         dpa.parse(data)
-        assert len(dpa.results) == 4
-        assert dpa.results[0]["package_name"] == "com.samsung.android.app.social"
+        assert len(dpa.results) == 10
+        assert dpa.results[0]["package_name"] == "com.samsung.android.messaging"
         assert (
-            dpa.results[0]["activity"]
-            == "com.samsung.android.app.social/.feed.FeedsActivity"
+            dpa.results[0]["component"]
+            == "com.samsung.android.messaging/.ui.RcsTransferContent"
         )
+        assert {result["resolver_type"] for result in dpa.results} == {
+            "full_mime_type",
+            "non_data_action",
+        }
 
     def test_ioc_check(self, indicator_file):
         dpa = DumpsysPackageActivitiesArtifact()
@@ -41,4 +45,4 @@ class TestDumpsysPackageActivitiesArtifact:
         dpa.indicators = ind
         assert len(dpa.alertstore.alerts) == 0
         dpa.check_indicators()
-        assert len(dpa.alertstore.alerts) == 1
+        assert len(dpa.alertstore.alerts) == 2

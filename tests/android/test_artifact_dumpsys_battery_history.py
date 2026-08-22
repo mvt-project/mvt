@@ -54,6 +54,7 @@ class TestDumpsysBatteryHistoryArtifact:
         assert len(dba.results) == 2
         assert dba.results[0] == {
             "time_elapsed": "07-15 20:27:39.431",
+            "timestamp": "1900-07-15 20:27:39.431000",
             "event": "start_job",
             "uid": "u0a123",
             "package_name": "com.example",
@@ -61,3 +62,23 @@ class TestDumpsysBatteryHistoryArtifact:
         }
         assert dba.results[1]["event"] == "end_job"
         assert dba.results[1]["uid"] == "u0a123"
+
+    def test_wake_lock_without_component_is_retained(self):
+        dba = DumpsysBatteryHistoryArtifact()
+        dba.parse(
+            "Battery History:\n"
+            "  0 (2) 100 RESET:TIME: 2025-09-05-01-04-52-139\n"
+            '  +1s (2) 100 +running +wake_lock=1000:"*alarm*:TIME_TICK"\n'
+            '  +2s (2) 100 +running +wake_lock=u0a1:"*walarm*:com.whatsapp.MessageHandler.LOGOUT_ACTION"\n'
+            "\n"
+        )
+
+        assert [record["event"] for record in dba.results] == ["wake", "wake"]
+        assert dba.results[0]["package_name"] is None
+        assert dba.results[1]["package_name"] == "com.whatsapp"
+
+    def test_decorated_sync_job_uses_component_package(self):
+        dba = DumpsysBatteryHistoryArtifact()
+        dba.parse('+1s (2) 100 +job=u0a1:"@SyncManager@gmail-ls/com.google:android"\n')
+
+        assert dba.results[0]["package_name"] == "com.google"
