@@ -6,6 +6,7 @@
 import base64
 import binascii
 import hashlib
+import re
 
 from .artifact import AndroidArtifact
 
@@ -98,6 +99,34 @@ class DumpsysADBArtifact(AndroidArtifact):
 
         return keystore
 
+    def parse_binary_xml(self, data: bytes) -> list[dict]:
+        """Recover ADB key records from Android binary XML (ABX).
+
+        Some dumpstate implementations embed ABX in a text stream and replace
+        binary token bytes. The public key remains intact, while unavailable
+        numeric metadata is represented as ``None`` rather than corrupt text.
+        """
+        keystore = []
+        seen = set()
+        for match in re.finditer(
+            rb"(?<![A-Za-z0-9+/])([A-Za-z0-9+/]{300,}={0,2})"
+            rb"(?: ([A-Za-z0-9_.@-]+))?",
+            data,
+        ):
+            key = match.group(1)
+            try:
+                base64.b64decode(key, validate=True)
+            except (binascii.Error, ValueError):
+                continue
+            if key in seen:
+                continue
+            seen.add(key)
+            full_key = key + (b" " + match.group(2) if match.group(2) else b"")
+            key_info = self.calculate_key_info(full_key)
+            key_info["last_connected"] = None
+            keystore.append(key_info)
+        return keystore
+
     @staticmethod
     def calculate_key_info(user_key: bytes) -> dict:
         if b" " in user_key:
@@ -118,7 +147,7 @@ class DumpsysADBArtifact(AndroidArtifact):
         return {
             "user": user.decode("utf-8"),
             "fingerprint": key_fingerprint_colon,
-            "key": key_base64,
+            "key": key_base64.decode("ascii", errors="replace"),
         }
 
     def check_indicators(self) -> None:
@@ -175,11 +204,22 @@ class DumpsysADBArtifact(AndroidArtifact):
         # Keystore is in XML format on some devices and we need to parse it
         if keystore_data and keystore_data.startswith(b"<?xml"):
             parsed["debugging_manager"]["keystore"] = self.parse_xml(keystore_data)
+        elif keystore_data and keystore_data.startswith(b"ABX\x00"):
+            parsed["debugging_manager"]["keystore"] = self.parse_binary_xml(
+                keystore_data
+            )
         else:
             # Keystore is not XML format
             parsed["debugging_manager"]["keystore"] = keystore_data
 
         parsed = parsed["debugging_manager"]
+
+        for key, value in list(parsed.items()):
+            if isinstance(value, bytes):
+                decoded = value.decode("utf-8", errors="replace")
+                parsed[key] = (
+                    decoded == "true" if decoded in ("true", "false") else decoded
+                )
 
         # Calculate key fingerprints for better readability
         key_info = []
