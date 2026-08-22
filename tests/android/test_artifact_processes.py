@@ -20,7 +20,7 @@ class TestProcessesArtifact:
         assert len(p.results) == 0
         p.parse(data)
         assert len(p.results) == 17
-        assert p.results[0]["proc_name"] == "init"
+        assert p.results[0]["command"] == "init"
 
     def test_ioc_check(self, indicator_file):
         p = Processes()
@@ -36,3 +36,14 @@ class TestProcessesArtifact:
         assert len(p.alertstore.alerts) == 0
         p.check_indicators()
         assert len(p.alertstore.alerts) == 1
+
+    def test_bugreport_thread_columns(self):
+        p = Processes()
+        p.parse(
+            "LABEL USER PID TID PPID VSZ RSS WCHAN ADDR S PRI NI RTPRIO SCH PCY TIME CMD\n"
+            "u:r:init:s0 root 1 2 0 100 20 0 0 S 19 0 - 0 fg 00:00:01 init\n"
+        )
+
+        assert p.results[0]["label"] == "u:r:init:s0"
+        assert p.results[0]["tid"] == 2
+        assert p.results[0]["command"] == "init"
