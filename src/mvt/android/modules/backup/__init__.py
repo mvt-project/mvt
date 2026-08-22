@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .sms import SMS
 
-BACKUP_MODULES = [SMS]
+BACKUP_MODULES: list[type[MVTModule]] = [SMS]
