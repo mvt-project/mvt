@@ -28,18 +28,18 @@ INTERESTING_PROPERTIES = [
 class GetProp(AndroidArtifact):
     def parse(self, entry: str) -> None:
         self.results: List[Dict[str, str]] = []
-        rxp = re.compile(r"\[(.+?)\]: \[(.+?)\]")
+        rxp = re.compile(r"^\[([^]]+)\]: \[(.*)\]$")
 
         for line in entry.splitlines():
             line = line.strip()
             if line == "":
                 continue
 
-            matches = re.findall(rxp, line)
-            if not matches or len(matches[0]) != 2:
+            match = rxp.match(line)
+            if not match:
                 continue
 
-            prop_entry = {"name": matches[0][0], "value": matches[0][1]}
+            prop_entry = {"name": match.group(1), "value": match.group(2)}
             self.results.append(prop_entry)
 
     def get_device_timezone(self) -> str | None:
