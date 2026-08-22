@@ -13,6 +13,19 @@ from ..utils import get_android_androidqf, list_files
 
 
 class TestAndroidqfMountsArtifact:
+    def test_parse_proc_mountinfo(self):
+        from mvt.android.artifacts.mounts import Mounts as MountsArtifact
+
+        results = MountsArtifact.parse_mountinfo(
+            "41 40 254:13 / / ro,relatime shared:1 - erofs /dev/block/dm-13 ro,seclabel\n",
+            123,
+        )
+
+        assert results[0]["mount_id"] == 41
+        assert results[0]["mount_point"] == "/"
+        assert results[0]["filesystem_type"] == "erofs"
+        assert results[0]["process_ids"] == [123]
+
     def test_parse_mounts_token_checks(self):
         """
         Test the artifact-level `parse` method using tolerant token checks.
