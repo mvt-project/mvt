@@ -131,6 +131,13 @@ class TombstoneCrashArtifact(AndroidArtifact):
         self, file_name: str, file_timestamp: datetime.datetime, data: bytes
     ) -> None:
         """Parse Android tombstone crash files from a protobuf object."""
+        self.results.append(self.parse_protobuf_record(file_name, file_timestamp, data))
+
+    def parse_protobuf_record(
+        self, file_name: str, file_timestamp: datetime.datetime, data: bytes
+    ) -> dict:
+        if not data:
+            raise ValueError("empty protobuf tombstone")
         tombstone_pb = Tombstone().parse(data)
         tombstone_dict = tombstone_pb.to_dict(
             casing=betterproto2.Casing.SNAKE, include_default_values=True
@@ -143,20 +150,31 @@ class TombstoneCrashArtifact(AndroidArtifact):
         tombstone_dict["file_name"] = file_name
         tombstone_dict["file_timestamp"] = convert_datetime_to_iso(file_timestamp)
         tombstone_dict["process_name"] = self._proccess_name_from_thread(tombstone_dict)
+        if isinstance(tombstone_dict.get("selinux_label"), str):
+            tombstone_dict["selinux_label"] = tombstone_dict["selinux_label"].rstrip(
+                "\x00"
+            )
 
         # Confirm the tombstone is valid, and matches the output model
         tombstone = TombstoneCrashResult.model_validate(tombstone_dict)
-        self.results.append(tombstone.model_dump())
+        return tombstone.model_dump()
 
     def parse(
         self, file_name: str, file_timestamp: datetime.datetime, content: bytes
     ) -> None:
         """Parse text Android tombstone crash files."""
+        self.results.append(self.parse_text_record(file_name, file_timestamp, content))
+
+    def parse_text_record(
+        self, file_name: str, file_timestamp: datetime.datetime, content: bytes
+    ) -> dict:
+        if not content:
+            raise ValueError("empty plaintext tombstone")
         tombstone_dict = {
             "file_name": file_name,
             "file_timestamp": convert_datetime_to_iso(file_timestamp),
         }
-        lines = content.decode("utf-8").splitlines()
+        lines = content.decode("utf-8", errors="replace").splitlines()
         for line_num, line in enumerate(lines, 1):
             if not line.strip() or TOMBSTONE_DELIMITER in line:
                 continue
@@ -171,7 +189,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
 
         # Validate the tombstone and add it to the results
         tombstone = TombstoneCrashResult.model_validate(tombstone_dict)
-        self.results.append(tombstone.model_dump())
+        return tombstone.model_dump()
 
     def _parse_tombstone_line(
         self, line: str, key: str, destination_key: str, tombstone: dict
@@ -195,7 +213,9 @@ class TombstoneCrashArtifact(AndroidArtifact):
         if line_key != key:
             raise ValueError(f"Expected key {key}, got {line_key}")
 
-        value_clean = value.strip().strip("'")
+        value_clean = value.strip()
+        if len(value_clean) >= 2 and value_clean[0] == value_clean[-1] == "'":
+            value_clean = value_clean[1:-1]
         if destination_key == "uid":
             tombstone[destination_key] = int(value_clean)
         elif destination_key == "process_uptime":
@@ -269,9 +289,7 @@ class TombstoneCrashArtifact(AndroidArtifact):
     @staticmethod
     def _parse_timestamp_string(timestamp: str) -> str:
         timestamp_parsed = parser.parse(timestamp)
-        # Preserve the source wall-clock time while returning the project-wide ISO format.
-        local_timestamp = timestamp_parsed.replace(tzinfo=datetime.timezone.utc)
-        return convert_datetime_to_iso(local_timestamp)
+        return convert_datetime_to_iso(timestamp_parsed)
 
     @staticmethod
     def _proccess_name_from_thread(tombstone_dict: dict) -> str:
