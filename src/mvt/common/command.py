@@ -54,6 +54,7 @@ class Command:
     ) -> None:
         self.name = ""
         self.platform = ""
+        self.output_schema_version: Optional[int] = None
         self.modules: list[type[MVTModule]] = []
         self.custom_modules = custom_modules if custom_modules else []
 
@@ -186,6 +187,8 @@ class Command:
             "ioc_files": [],
             "hashes": [],
         }
+        if self.output_schema_version is not None:
+            info["output_schema_version"] = self.output_schema_version
 
         for coll in self.iocs.ioc_collections:
             ioc_file_path = coll.get("stix2_file_path", "")
