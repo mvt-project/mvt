@@ -14,8 +14,9 @@ from .version_history import IOSVersionHistory
 from .webkit_indexeddb import WebkitIndexedDB
 from .webkit_localstorage import WebkitLocalStorage
 from .webkit_safariviewservice import WebkitSafariViewService
+from mvt.common.module import MVTModule
 
-FS_MODULES = [
+FS_MODULES: list[type[MVTModule]] = [
     CacheFiles,
     Filesystem,
     Netusage,

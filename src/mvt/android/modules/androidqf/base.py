@@ -7,14 +7,17 @@ import fnmatch
 import logging
 import os
 import zipfile
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from mvt.common.module import MVTModule
 from mvt.common.module_types import ModuleResults
+from mvt.schemas import OutputModel, RecordListOutput
 
 
 class AndroidQFModule(MVTModule):
     """This class provides a base for all Android Data analysis modules."""
+
+    output_model: ClassVar[OutputModel] = RecordListOutput
 
     def __init__(
         self,

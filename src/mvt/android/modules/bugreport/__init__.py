@@ -16,8 +16,9 @@ from .dumpsys_receivers import DumpsysReceivers
 from .dumpsys_adb_state import DumpsysADBState
 from .fs_timestamps import BugReportTimestamps
 from .tombstones import Tombstones
+from mvt.common.module import MVTModule
 
-BUGREPORT_MODULES = [
+BUGREPORT_MODULES: list[type[MVTModule]] = [
     DumpsysAccessibility,
     DumpsysActivities,
     DumpsysAppops,

@@ -6,8 +6,9 @@
 from .connect_event import ConnectEvent
 from .dns_event import DnsEvent
 from .security_event import SecurityEvent
+from mvt.common.module import MVTModule
 
-INTRUSION_LOGS_MODULES = [
+INTRUSION_LOGS_MODULES: list[type[MVTModule]] = [
     DnsEvent,
     ConnectEvent,
     SecurityEvent,

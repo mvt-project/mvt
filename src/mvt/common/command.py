@@ -33,6 +33,13 @@ from .utils import (
     get_sha256_from_file_path,
 )
 from .version import MVT_VERSION
+from mvt.schemas import (
+    OUTPUT_SCHEMA_VERSION,
+    AlertResults,
+    RunInfo,
+    URLResults,
+    validate_output,
+)
 
 
 class Command:
@@ -152,6 +159,8 @@ class Command:
         if not alerts:
             return
 
+        alerts = validate_output(AlertResults, alerts)
+
         alerts_path = os.path.join(self.results_path, "alerts.json")
         with open(alerts_path, "w+", encoding="utf-8") as handle:
             json.dump(alerts, handle, indent=4, cls=CustomJSONEncoder)
@@ -160,9 +169,10 @@ class Command:
         if not self.results_path or not self.url_results:
             return
 
+        urls = validate_output(URLResults, self.url_results)
         urls_path = os.path.join(self.results_path, "urls.json")
         with open(urls_path, "w", encoding="utf-8") as handle:
-            json.dump(self.url_results, handle, indent=4, cls=CustomJSONEncoder)
+            json.dump(urls, handle, indent=4, cls=CustomJSONEncoder)
 
     def _store_alerts_timeline(self) -> None:
         if not self.results_path:
@@ -185,6 +195,7 @@ class Command:
             "date": convert_datetime_to_iso(datetime.now()),
             "ioc_files": [],
             "hashes": [],
+            "output_schema_version": OUTPUT_SCHEMA_VERSION,
         }
 
         for coll in self.iocs.ioc_collections:
@@ -197,6 +208,7 @@ class Command:
 
         info["hashes"] = self.hash_values
 
+        info = validate_output(RunInfo, info)
         info_path = os.path.join(self.results_path, "info.json")
         with open(info_path, "w+", encoding="utf-8") as handle:
             json.dump(info, handle, indent=4)

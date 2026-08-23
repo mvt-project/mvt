@@ -15,6 +15,7 @@ from mvt.common.cli_plugins import (
     register_cli_plugins,
 )
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
+from mvt.common.cmd_schemas import emit_schemas
 from mvt.common.completion import (
     SUPPORTED_SHELLS,
     completion_instructions,
@@ -102,7 +103,7 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    if ctx.invoked_subcommand != "completion":
+    if ctx.invoked_subcommand not in ("completion", "schemas"):
         logo(
             disable_version_check=disable_update_check,
             disable_indicator_check=disable_indicator_update_check,
@@ -115,6 +116,20 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
 @cli.command("version", help=HELP_MSG_VERSION)
 def version():
     return
+
+
+# ==============================================================================
+# Command: schemas
+# ==============================================================================
+@cli.command("schemas", help="Print or export the JSON Schemas for MVT outputs.")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(file_okay=False, dir_okay=True),
+    help="Write one JSON Schema file per output to this directory.",
+)
+def schemas(output):
+    emit_schemas("android", output)
 
 
 # ==============================================================================
