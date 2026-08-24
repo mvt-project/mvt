@@ -35,9 +35,16 @@ class DependentModule(MVTModule):
         prerequisite_results = self.get_dependency_results(PrerequisiteModule)
 ```
 
-Selecting a single module also runs its transitive dependencies. If a dependency
-is unavailable or the dependency graph contains a cycle, the command logs a
-warning and does not run any modules.
+Selecting a single module also runs its transitive dependencies.
+
+A module can only depend on modules the command it runs in also has. When a
+declared dependency is not among them, the command logs a warning naming the
+module and the missing dependency, skips that module and everything depending
+on it, and runs the rest of the analysis. Selecting such a module with
+`--module` therefore leaves nothing to run, which the warning explains.
+
+A cycle in the dependency graph is a programming error rather than a
+configuration problem: the command logs a warning and runs no modules at all.
 
 ## Custom modules
 

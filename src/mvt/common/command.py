@@ -317,6 +317,81 @@ class Command:
         console.print("")
         console.print(panel)
 
+    def _skipped_modules(
+        self,
+        required: list[type[MVTModule]],
+        module_indexes: dict[type[MVTModule], int],
+    ) -> dict[type[MVTModule], tuple[type[MVTModule], type[MVTModule]]]:
+        """Return the modules to drop because a dependency is unavailable.
+
+        A module declaring a dependency this command cannot provide is unable
+        to run, and so is every module depending on it. Dropping only those
+        keeps a single wrong declaration - in a module scoped to several
+        commands, for example - from silencing an entire analysis.
+
+        The returned mapping gives, for each skipped module, the module which
+        is missing a dependency and the dependency it is missing.
+        """
+        skipped: dict[type[MVTModule], tuple[type[MVTModule], type[MVTModule]]] = {}
+        # Skipping the one module a run was asked for leaves nothing to run,
+        # which the caller reports instead.
+        remainder = (
+            "" if self.module_name else " The rest of the analysis will still run."
+        )
+
+        # Skipping one module can skip the modules depending on it, which the
+        # pass over the module list may already have gone past, so repeat the
+        # pass until nothing changes.
+        changed = True
+        while changed:
+            changed = False
+            for module in required:
+                if module in skipped:
+                    continue
+
+                for dependency in module.dependencies:
+                    if dependency not in module_indexes:
+                        skipped[module] = (module, dependency)
+                        changed = True
+                        self.log.warning(
+                            "Module %s will be SKIPPED: it depends on module "
+                            "%s, which is not available in this command.%s",
+                            module.__name__,
+                            dependency.__name__,
+                            remainder,
+                        )
+                        break
+
+                    if dependency in skipped:
+                        root, missing = skipped[dependency]
+                        skipped[module] = (root, missing)
+                        changed = True
+                        if dependency is root:
+                            self.log.warning(
+                                "Module %s will be SKIPPED: it depends on "
+                                "module %s, itself skipped for depending on "
+                                "unavailable module %s.%s",
+                                module.__name__,
+                                dependency.__name__,
+                                missing.__name__,
+                                remainder,
+                            )
+                        else:
+                            self.log.warning(
+                                "Module %s will be SKIPPED: it depends on "
+                                "skipped module %s, in a chain starting at "
+                                "module %s, which depends on unavailable "
+                                "module %s.%s",
+                                module.__name__,
+                                dependency.__name__,
+                                root.__name__,
+                                missing.__name__,
+                                remainder,
+                            )
+                        break
+
+        return skipped
+
     def _ordered_modules(self) -> Optional[list[type[MVTModule]]]:
         """Return enabled modules in stable topological order."""
         modules = self._available_modules()
@@ -329,30 +404,34 @@ class Command:
         else:
             selected = [module for module in modules if module.enabled]
 
-        required = set(selected)
+        required: set[type[MVTModule]] = set()
         pending = list(selected)
         while pending:
             module = pending.pop()
+            if module in required:
+                continue
+            required.add(module)
             for dependency in module.dependencies:
-                if dependency not in module_indexes:
-                    self.log.warning(
-                        "Module %s depends on unavailable module %s. "
-                        "No modules will be run.",
-                        module.__name__,
-                        dependency.__name__,
-                    )
-                    return None
-                if dependency not in required:
-                    required.add(dependency)
+                # Unavailable dependencies are reported by _skipped_modules().
+                if dependency in module_indexes:
                     pending.append(dependency)
 
+        ordered_required = sorted(required, key=lambda module: module_indexes[module])
+        skipped = self._skipped_modules(ordered_required, module_indexes)
+        runnable = [module for module in ordered_required if module not in skipped]
+        if skipped and not runnable:
+            self.log.warning(
+                "Every selected module was skipped for an unavailable "
+                "dependency. No modules will be run."
+            )
+
         dependents: dict[type[MVTModule], list[type[MVTModule]]] = {
-            module: [] for module in required
+            module: [] for module in runnable
         }
-        indegree = {module: 0 for module in required}
-        for module in required:
+        indegree = {module: 0 for module in runnable}
+        for module in runnable:
             for dependency in module.dependencies:
-                if dependency not in required:
+                if dependency not in indegree:
                     continue
                 dependents[dependency].append(module)
                 indegree[module] += 1
@@ -371,7 +450,7 @@ class Command:
                 if indegree[dependent] == 0:
                     heappush(ready, (module_indexes[dependent], dependent))
 
-        if len(ordered) != len(required):
+        if len(ordered) != len(runnable):
             cyclic_modules = sorted(
                 (module.__name__ for module, count in indegree.items() if count > 0)
             )
