@@ -50,6 +50,6 @@ nav:
         - Check Android Intrusion Logs: "android/intrusion_logs.md"
     - Indicators of Compromise: "iocs.md"
     - Development:
-        - Development Instructions: "development.md"
-        - Custom CLI Commands: "custom_commands.md"
+        - Development Instructions: "development/index.md"
+        - Custom CLI Commands: "development/custom_commands.md"
     - License: "license.md"

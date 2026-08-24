@@ -1,7 +1,7 @@
 # Custom CLI Commands
 
 MVT can load additional top-level commands into `mvt-ios` and `mvt-android`.
-Custom commands are different from [custom forensic modules](development.md#custom-modules):
+Custom commands are different from [custom forensic modules](index.md#custom-modules):
 commands add new CLI operations, while modules add analysis steps to existing
 `check-*` commands.
 
