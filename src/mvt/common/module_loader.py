@@ -179,20 +179,35 @@ def _module_key(module_class: type[MVTModule]) -> tuple[str, str]:
     return (source, module_class.__qualname__)
 
 
+def distribution_direct_url(dist: importlib.metadata.Distribution) -> Optional[dict]:
+    """Return the PEP 610 direct URL metadata of a distribution, if recorded.
+
+    Packages installed from an index have no direct URL metadata, while
+    packages installed directly from a repository or from a local folder
+    record where they were installed from in ``direct_url.json``.
+    """
+    try:
+        direct_url_text = dist.read_text("direct_url.json")
+        if not direct_url_text:
+            return None
+        direct_url = json.loads(direct_url_text)
+        return direct_url if isinstance(direct_url, dict) else None
+    except Exception:
+        return None
+
+
 def _distribution_commit(dist: importlib.metadata.Distribution) -> Optional[str]:
     """Return the VCS commit a distribution was installed from, if recorded.
 
     Packages installed directly from a repository (``pip install git+...``)
     record the commit in ``direct_url.json`` (PEP 610).
     """
-    try:
-        direct_url_text = dist.read_text("direct_url.json")
-        if not direct_url_text:
-            return None
-        commit = json.loads(direct_url_text).get("vcs_info", {}).get("commit_id")
-        return commit if isinstance(commit, str) else None
-    except Exception:
+    vcs_info = (distribution_direct_url(dist) or {}).get("vcs_info")
+    if not isinstance(vcs_info, dict):
         return None
+
+    commit = vcs_info.get("commit_id")
+    return commit if isinstance(commit, str) else None
 
 
 def _entry_point_origin(entry_point: importlib.metadata.EntryPoint) -> ModuleOrigin:
