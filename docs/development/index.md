@@ -160,6 +160,10 @@ For a `pipx` installation of MVT, inject the package into MVT's environment:
 pipx inject mvt mvt-plugin-amnesty-custom
 ```
 
+Module packages that need their own settings, such as an API key, should store
+them in a namespaced [plugin configuration file](plugin_configuration.md)
+rather than in MVT's own `config.yaml`.
+
 ### Naming module packages
 
 Name module packages `mvt-plugin-<name>` (import package `mvt_plugin_<name>`),

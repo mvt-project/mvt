@@ -56,6 +56,10 @@ pipx inject mvt my-mvt-plugin
 When MVT is installed in an active virtual environment, install the plugin with
 `pip` in that environment.
 
+Command packages that need their own settings, such as an API key, should store
+them in a namespaced [plugin configuration file](plugin_configuration.md)
+rather than in MVT's own `config.yaml`.
+
 ## Load a Command File
 
 For local commands that are not packaged, create a Python file that exports one
