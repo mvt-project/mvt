@@ -176,6 +176,59 @@ not, MVT skips the module with a warning.
 They are the same records it writes to `<slug>.json`. Typed results per module
 are planned.
 
+### Replacing a built-in module
+
+A custom module which extends a built-in one runs alongside it, and when the
+two share a slug they write to the same results file. MVT warns about that
+collision, naming both modules, where each came from and the file the later one
+overwrites, but it runs them both. Set `replaces` to the class the module
+supersedes to take that module's place instead: when both are available to a
+command, the named module is dropped from the run.
+
+```python
+from mvt.ios.modules.backup import Manifest as BuiltinManifest
+
+
+class Manifest(BuiltinManifest):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = BuiltinManifest
+```
+
+Keeping the class name of the replaced module, as above, keeps the name
+`--module` selects the module by and the slug its results file is named after.
+A replacement with a different class name writes to a file named after its own
+slug, unless it sets `slug` to the slug of the module it replaces, and
+`--module` still selects it by the name of the replaced module, which MVT logs.
+Taking over the slug of a replaced module is not a collision and is not warned
+about, because that module is no longer part of the run.
+
+Modules which depend on the replaced module receive the replacement instead, so
+`get_dependency_results(BuiltinManifest)` returns the replacement's results. A
+module must not depend on the module it replaces: that module does not run, so
+the replacement has to produce the data itself, and MVT logs a warning when a
+module declares both.
+
+A replacement takes on the obligations of the module it replaces. If it
+declares a dependency the command does not provide, it is skipped like any
+other module with an unavailable dependency, and the module it replaced stays
+out of the run: neither of them produces results, and the modules depending on
+the replaced module are skipped as well.
+
+Subclassing the replaced module is not required, but a replacement which is not
+a subclass is logged with a warning, because its results may not be what the
+modules depending on the replaced module expect. Naming a module the command
+does not run has no effect, and modules which replace each other in a cycle all
+keep running and replace nothing. Every applied substitution is logged, so it
+is recorded in `command.log` when the command runs with an `--output` folder.
+
+Every command resolves replacements on its own. `check-iocs` matches stored
+results files against the slugs of the modules available for that command, so a
+replacement checks the indicators of its own results only if it also declares
+the `("ios", "check-iocs")` pair; otherwise the built-in module it replaced
+re-checks the file. It also matches `--module` on the class name only, so pass
+a differently named replacement's own name there, not the name of the module
+it replaces.
+
 ### Importing from MVT
 
 Import from `mvt.plugin` if it has what you need. The names it exports are

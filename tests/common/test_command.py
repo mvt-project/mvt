@@ -68,6 +68,123 @@ class CustomDependsOnBuiltin(RecordingModule):
     dependencies = (FirstModule,)
 
 
+class ReplacementModule(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+
+    def run(self):
+        super().run()
+        self.results = ["replacement"]
+
+
+class OtherReplacementModule(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+
+
+class UnrelatedReplacementModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = IndependentModule
+
+
+class ReplacementOfReplacementModule(ReplacementModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = ReplacementModule
+
+    def run(self):
+        super().run()
+        self.results = ["replacement of replacement"]
+
+
+class ReplacesOwnDependencyModule(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+    dependencies = (FirstModule,)
+
+
+class DisabledReplacementModule(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+    enabled = False
+
+
+class MutualReplacementOne(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+
+
+class MutualReplacementTwo(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = MutualReplacementOne
+
+
+MutualReplacementOne.replaces = MutualReplacementTwo
+
+
+class CycleOneModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+
+
+class CycleTwoModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = CycleOneModule
+
+
+class CycleThreeModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = CycleTwoModule
+
+
+CycleOneModule.replaces = CycleThreeModule
+
+
+class UnavailableDependencyModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+
+
+class ReplacementMissingDependency(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+    dependencies = (UnavailableDependencyModule,)
+
+
+class SharedSlugModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    slug = "shared_slug"
+
+
+class OtherSharedSlugModule(RecordingModule):
+    supported_commands = (("ios", "check-backup"),)
+    slug = "shared_slug"
+
+
+class ReplacementKeepingTheSlug(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+    slug = "first_module"
+
+
+class SameNameReplacementModule(FirstModule):
+    supported_commands = (("ios", "check-backup"),)
+    replaces = FirstModule
+
+    def run(self):
+        super().run()
+        self.results = ["replacement"]
+
+
+# Modules replacing a built-in one usually keep its class name, which is the
+# name `--module` matches on.
+SameNameReplacementModule.__name__ = "FirstModule"
+
+
+def logged_substitutions(caplog) -> list[str]:
+    return [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno == logging.INFO and "replaces module" in record.getMessage()
+    ]
+
+
 class RecordingCommand(Command):
     def init(self):
         self.initialized = True
@@ -303,3 +420,376 @@ class TestCommand:
         cmd.run()
 
         assert RecordingModule.run_order == ["FirstModule", "CustomDependsOnBuiltin"]
+
+    def test_custom_module_replaces_builtin(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule, IndependentModule]
+        cmd.custom_modules = [ReplacementModule]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == ["IndependentModule", "ReplacementModule"]
+        assert cmd.module_replacements == {FirstModule: ReplacementModule}
+        assert (
+            "Module ReplacementModule from" in caplog.text
+            and "replaces module FirstModule" in caplog.text
+        )
+
+    def test_modules_without_replaces_all_run(self):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [CustomIOSBackupModule]
+
+        cmd.run()
+
+        assert RecordingModule.run_order == ["FirstModule", "CustomIOSBackupModule"]
+        assert cmd.module_replacements == {}
+
+    def test_unavailable_replaced_module_is_ignored(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [IndependentModule]
+        cmd.custom_modules = [ReplacementModule]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == ["IndependentModule", "ReplacementModule"]
+        assert cmd.module_replacements == {}
+        assert "replaces module FirstModule" not in caplog.text
+
+    def test_dependencies_are_resolved_to_the_replacement(self):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [SecondModule, FirstModule]
+        cmd.custom_modules = [ReplacementModule]
+
+        cmd.run()
+
+        assert RecordingModule.run_order == ["ReplacementModule", "SecondModule"]
+        second = next(
+            module for module in cmd.executed if isinstance(module, SecondModule)
+        )
+        assert isinstance(second.dependency_modules[FirstModule], ReplacementModule)
+        assert second.results == ["replacement", "second"]
+
+    def test_replacement_with_unavailable_dependency_skips_its_dependents(
+        self, caplog
+    ):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule, SecondModule, IndependentModule]
+        cmd.custom_modules = [ReplacementMissingDependency]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        # The replacement cannot run, and the module it replaced was dropped
+        # from the run by the replacement, so neither of them produces
+        # results and the module depending on the replaced one is skipped.
+        assert RecordingModule.run_order == ["IndependentModule"]
+        assert (
+            "Module ReplacementMissingDependency will be SKIPPED: it depends "
+            "on module UnavailableDependencyModule, which is not available in "
+            "this command." in caplog.text
+        )
+        # The skipped dependent is told which module it actually depends on,
+        # and the module class its author declared.
+        assert (
+            "Module SecondModule will be SKIPPED: it depends on module "
+            "ReplacementMissingDependency (replacing module FirstModule), "
+            "itself skipped for depending on unavailable module "
+            "UnavailableDependencyModule." in caplog.text
+        )
+
+    def test_selected_replacement_with_unavailable_dependency_runs_nothing(
+        self, caplog, tmp_path
+    ):
+        cmd = RecordingCommand(module_name="FirstModule", results_path=str(tmp_path))
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule, IndependentModule]
+        cmd.custom_modules = [ReplacementMissingDependency]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == []
+        assert not hasattr(cmd, "initialized")
+        assert (
+            "Module FirstModule was replaced by module "
+            "ReplacementMissingDependency, which is run in its place."
+            in caplog.text
+        )
+        assert "Module ReplacementMissingDependency will be SKIPPED" in caplog.text
+        assert "No modules will be run" in caplog.text
+        # Nothing else was selected, so the warnings must not promise that the
+        # analysis continues right before saying that it does not.
+        assert "The rest of the analysis will still run" not in caplog.text
+        # No module ran, so no results were stored next to the command log.
+        assert [path.name for path in tmp_path.iterdir()] == ["command.log"]
+
+    def test_chained_replacements_are_resolved(self):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [SecondModule, FirstModule]
+        cmd.custom_modules = [ReplacementModule, ReplacementOfReplacementModule]
+
+        cmd.run()
+
+        assert RecordingModule.run_order == [
+            "ReplacementOfReplacementModule",
+            "SecondModule",
+        ]
+        second = next(
+            module for module in cmd.executed if isinstance(module, SecondModule)
+        )
+        assert second.results == ["replacement of replacement", "second"]
+
+    def test_replacement_which_is_not_a_subclass_warns(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [IndependentModule]
+        cmd.custom_modules = [UnrelatedReplacementModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert RecordingModule.run_order == ["UnrelatedReplacementModule"]
+        assert "is not a subclass of it" in caplog.text
+
+    def test_multiple_modules_replacing_the_same_module_warn(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [ReplacementModule, OtherReplacementModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert RecordingModule.run_order == [
+            "ReplacementModule",
+            "OtherReplacementModule",
+        ]
+        assert cmd.module_replacements == {FirstModule: ReplacementModule}
+        assert (
+            "Modules ReplacementModule and OtherReplacementModule both replace "
+            "module FirstModule. Both of them will run, FirstModule will not, "
+            "and modules depending on FirstModule will use the results of "
+            "ReplacementModule." in caplog.text
+        )
+        assert "overwrite each other's results file" in caplog.text
+
+    def test_module_replacing_its_own_dependency_runs(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [ReplacesOwnDependencyModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert RecordingModule.run_order == ["ReplacesOwnDependencyModule"]
+        assert (
+            "Module ReplacesOwnDependencyModule depends on module FirstModule, "
+            "which it also replaces" in caplog.text
+        )
+
+    def test_literal_self_dependency_is_still_circular(self, caplog):
+        class SelfDependentModule(RecordingModule):
+            pass
+
+        SelfDependentModule.dependencies = (SelfDependentModule,)
+
+        cmd = RecordingCommand()
+        cmd.modules = [SelfDependentModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert RecordingModule.run_order == []
+        assert not hasattr(cmd, "initialized")
+        assert "Circular module dependency detected" in caplog.text
+
+    def test_disabled_replacement_keeps_the_replaced_module(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [DisabledReplacementModule]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == ["FirstModule"]
+        assert cmd.module_replacements == {}
+        assert logged_substitutions(caplog) == []
+
+    def test_modules_replacing_each_other_all_run(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.custom_modules = [MutualReplacementOne, MutualReplacementTwo]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == [
+            "MutualReplacementOne",
+            "MutualReplacementTwo",
+        ]
+        assert cmd.module_replacements == {}
+        assert (
+            "Modules MutualReplacementOne, MutualReplacementTwo replace each "
+            "other in a cycle" in caplog.text
+        )
+        assert logged_substitutions(caplog) == []
+
+    def test_replacement_cycle_of_three_modules_all_run(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.custom_modules = [CycleOneModule, CycleTwoModule, CycleThreeModule]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == [
+            "CycleOneModule",
+            "CycleTwoModule",
+            "CycleThreeModule",
+        ]
+        assert cmd.module_replacements == {}
+        assert (
+            "Modules CycleOneModule, CycleThreeModule, CycleTwoModule replace "
+            "each other in a cycle" in caplog.text
+        )
+        assert logged_substitutions(caplog) == []
+
+    def test_selected_replaced_module_name_runs_the_replacement(self, caplog):
+        cmd = RecordingCommand(module_name="FirstModule")
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [ReplacementModule]
+
+        with caplog.at_level(logging.INFO):
+            cmd.run()
+
+        assert RecordingModule.run_order == ["ReplacementModule"]
+        assert (
+            "Module FirstModule was replaced by module ReplacementModule"
+            in caplog.text
+        )
+
+    def test_unknown_selected_module_warns_and_stops(self, caplog):
+        cmd = RecordingCommand(module_name="NoSuchModule")
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert RecordingModule.run_order == []
+        assert not hasattr(cmd, "initialized")
+        assert (
+            "No module named NoSuchModule is available for the check-backup "
+            "command" in caplog.text
+        )
+
+    def test_selected_module_name_matches_the_replacement(self):
+        cmd = RecordingCommand(module_name="FirstModule")
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [SameNameReplacementModule]
+
+        cmd.run()
+
+        assert len(cmd.executed) == 1
+        assert isinstance(cmd.executed[0], SameNameReplacementModule)
+        assert cmd.executed[0].results == ["replacement"]
+
+    def test_list_modules_reflects_replacements(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule, IndependentModule]
+        cmd.custom_modules = [ReplacementModule]
+
+        with caplog.at_level(logging.INFO):
+            cmd.list_modules()
+
+        listed = [
+            record.getMessage()
+            for record in caplog.records
+            if "Modules from" in record.getMessage()
+        ]
+        assert any("ReplacementModule" in message for message in listed)
+        assert not any("FirstModule" in message for message in listed)
+
+    def test_modules_sharing_a_slug_are_reported(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.custom_modules = [SharedSlugModule, OtherSharedSlugModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert RecordingModule.run_order == [
+            "SharedSlugModule",
+            "OtherSharedSlugModule",
+        ]
+        collisions = [
+            record.getMessage()
+            for record in caplog.records
+            if "both use the slug" in record.getMessage()
+        ]
+        assert len(collisions) == 1
+        assert "Modules SharedSlugModule from" in collisions[0]
+        assert "and OtherSharedSlugModule from" in collisions[0]
+        assert "both use the slug shared_slug" in collisions[0]
+        assert "overwrites the results of the other in shared_slug.json" in (
+            collisions[0]
+        )
+
+    def test_replacement_keeping_the_replaced_slug_is_not_reported(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule]
+        cmd.custom_modules = [ReplacementKeepingTheSlug]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        # The replaced module is no longer part of the run, so taking over its
+        # slug is what the replacement is for, not a collision.
+        assert RecordingModule.run_order == ["ReplacementKeepingTheSlug"]
+        assert ReplacementKeepingTheSlug.get_slug() == FirstModule.get_slug()
+        assert "both use the slug" not in caplog.text
+
+    def test_modules_with_distinct_slugs_are_not_reported(self, caplog):
+        cmd = RecordingCommand()
+        cmd.platform = "ios"
+        cmd.name = "check-backup"
+        cmd.modules = [FirstModule, IndependentModule]
+        cmd.custom_modules = [CustomIOSBackupModule]
+
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert "both use the slug" not in caplog.text
