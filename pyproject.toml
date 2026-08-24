@@ -44,8 +44,8 @@ homepage = "https://docs.mvt.re/en/latest/"
 repository = "https://github.com/mvt-project/mvt"
 
 [project.scripts]
-mvt-ios = "mvt.ios:cli"
-mvt-android = "mvt.android:cli"
+mvt-ios = "mvt.ios:main"
+mvt-android = "mvt.android:main"
 
 [dependency-groups]
 dev = [

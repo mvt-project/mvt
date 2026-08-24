@@ -514,8 +514,19 @@ def download_indicators():
     ioc_updates.update()
 
 
-register_cli_plugins(
-    cli,
-    entry_point_group=ANDROID_CLI_PLUGIN_GROUP,
-    environment_variable=MVT_ANDROID_CUSTOM_COMMANDS_ENV,
-)
+# ==============================================================================
+# Entry point of the mvt-android console script
+# ==============================================================================
+def main() -> None:
+    """Register the external commands and run the mvt-android CLI.
+
+    External commands are registered here rather than when this module is
+    imported, so that importing MVT never runs third-party code and a plugin
+    importing from MVT cannot re-enter a module that is still initializing.
+    """
+    register_cli_plugins(
+        cli,
+        entry_point_group=ANDROID_CLI_PLUGIN_GROUP,
+        environment_variable=MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    )
+    cli()

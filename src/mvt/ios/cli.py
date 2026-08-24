@@ -532,8 +532,19 @@ def download_iocs():
     ioc_updates.update()
 
 
-register_cli_plugins(
-    cli,
-    entry_point_group=IOS_CLI_PLUGIN_GROUP,
-    environment_variable=MVT_IOS_CUSTOM_COMMANDS_ENV,
-)
+# ==============================================================================
+# Entry point of the mvt-ios console script
+# ==============================================================================
+def main() -> None:
+    """Register the external commands and run the mvt-ios CLI.
+
+    External commands are registered here rather than when this module is
+    imported, so that importing MVT never runs third-party code and a plugin
+    importing from MVT cannot re-enter a module that is still initializing.
+    """
+    register_cli_plugins(
+        cli,
+        entry_point_group=IOS_CLI_PLUGIN_GROUP,
+        environment_variable=MVT_IOS_CUSTOM_COMMANDS_ENV,
+    )
+    cli()
