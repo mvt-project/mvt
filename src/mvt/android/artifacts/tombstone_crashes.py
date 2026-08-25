@@ -191,9 +191,14 @@ class TombstoneCrashArtifact(AndroidArtifact):
     def _load_key_value_line(
         self, line: str, key: str, destination_key: str, tombstone: dict
     ) -> bool:
-        line_key, value = line.split(":", 1)
-        if line_key != key:
-            raise ValueError(f"Expected key {key}, got {line_key}")
+        # The caller matched the key as a bare prefix, so a longer word starting
+        # with it arrives here: `Caused by: …` inside an abort message reaches
+        # the `Cause` key. That is a different line, not a broken file — say so
+        # by declining it, and let the remaining keys have their turn. Raising
+        # here discarded the whole tombstone, crash and stack trace included.
+        line_key, separator, value = line.partition(":")
+        if not separator or line_key != key:
+            return False
 
         value_clean = value.strip().strip("'")
         if destination_key == "uid":
