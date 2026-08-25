@@ -49,11 +49,8 @@ from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
 from .cmd_check_backup import CmdAndroidCheckBackup
 from .cmd_check_bugreport import CmdAndroidCheckBugreport
 from .cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
-from .modules.intrusion_logs import INTRUSION_LOGS_MODULES
-from .modules.androidqf import ANDROIDQF_MODULES
-from .modules.backup import BACKUP_MODULES
+from .command_modules import ANDROID_CHECK_IOCS_MODULES
 from .modules.backup.helpers import cli_load_android_backup_password
-from .modules.bugreport import BUGREPORT_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")
@@ -459,9 +456,7 @@ def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
         custom_modules=custom_modules,
         platform="android",
     )
-    cmd.modules = (
-        BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES + INTRUSION_LOGS_MODULES
-    )
+    cmd.modules = ANDROID_CHECK_IOCS_MODULES
 
     if list_modules:
         cmd.list_modules()

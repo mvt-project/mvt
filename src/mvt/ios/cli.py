@@ -53,9 +53,7 @@ from .cmd_check_backup import CmdIOSCheckBackup
 from .cmd_check_fs import CmdIOSCheckFS
 from .cmd_check_sysdiagnose import CmdIOSCheckSysdiagnose
 from .decrypt import DecryptBackup
-from .modules.backup import BACKUP_MODULES
-from .modules.fs import FS_MODULES
-from .modules.mixed import MIXED_MODULES
+from .command_modules import IOS_CHECK_IOCS_MODULES
 
 init_logging()
 log = logging.getLogger("mvt")
@@ -479,7 +477,7 @@ def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
         custom_modules=custom_modules,
         platform="ios",
     )
-    cmd.modules = BACKUP_MODULES + FS_MODULES + MIXED_MODULES
+    cmd.modules = IOS_CHECK_IOCS_MODULES
 
     if list_modules:
         cmd.list_modules()
