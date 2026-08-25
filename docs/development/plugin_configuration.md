@@ -2,9 +2,10 @@
 
 Plugin packages that add [custom CLI commands](custom_commands.md) or
 [modules](index.md#installed-module-packages) often need to store their
-own settings, such as an API key, a cache folder or the timestamp of the last
+own settings, such as an API key, a server URL or the timestamp of the last
 synchronization. MVT provides a namespaced settings base class so each plugin
-keeps its configuration in its own file.
+keeps its configuration in its own file, and a data folder for anything else a
+plugin needs to keep on disk.
 
 !!! warning
 
@@ -33,6 +34,35 @@ matching the `mvt-plugin-<name>` package naming convention. MVT creates the
 through a temporary file and moved into place, so an interrupted save never
 leaves a partially written settings file behind.
 
+## Plugin Data Folder
+
+Everything else a plugin keeps on disk, such as a cache, a downloaded artifact
+or synchronization state, belongs in the folder returned by
+`mvt.common.plugin_config.plugin_data_folder()`:
+
+```
+~/.local/share/mvt/plugin-data/<plugin name>/                # Linux
+~/Library/Application Support/mvt/plugin-data/<plugin name>/ # macOS
+```
+
+The folder sits beside MVT's own data, such as the downloaded indicators.
+`plugin_data_folder()` creates it if it is missing, with `0700` permissions,
+and returns its path. Calling it again returns the same path and leaves the
+contents alone, so a plugin can call it every time it needs the folder:
+
+```python
+import os
+
+from mvt.common.plugin_config import plugin_data_folder
+
+
+def cache_path() -> str:
+    return os.path.join(plugin_data_folder("example-plugin"), "results.json")
+```
+
+Do not fall back on a path of your own such as `~/.cache/example-plugin`: it
+is a Linux-only convention, and MVT will not create it for you.
+
 ## Defining Plugin Settings
 
 Subclass `MVTPluginSettings`, set `plugin_name` and declare typed fields with
@@ -48,7 +78,7 @@ class ExamplePluginSettings(MVTPluginSettings):
     plugin_name = "example-plugin"
 
     API_KEY: Optional[str] = None
-    CACHE_FOLDER: str = "~/.cache/example-plugin"
+    MAX_RESULTS: int = 25
     LAST_SYNC: Optional[str] = None
 ```
 
@@ -91,7 +121,7 @@ underscores, followed by the field name. For the example above:
 
 ```bash
 export MVT_PLUGIN_EXAMPLE_PLUGIN_API_KEY=...
-export MVT_PLUGIN_EXAMPLE_PLUGIN_CACHE_FOLDER=/tmp/example-cache
+export MVT_PLUGIN_EXAMPLE_PLUGIN_MAX_RESULTS=50
 ```
 
 Settings resolve in this order, from highest to lowest priority:

@@ -16,6 +16,7 @@ from mvt.common.plugin_config import (
     PluginConfigLoadError,
     plugin_config_folder,
     plugin_config_path,
+    plugin_data_folder,
     plugin_env_prefix,
 )
 
@@ -41,6 +42,16 @@ def config_folder(tmp_path, monkeypatch):
         lambda *args, **kwargs: str(tmp_path),
     )
     return tmp_path
+
+
+@pytest.fixture
+def data_folder(tmp_path, monkeypatch):
+    folder = tmp_path / "data"
+    monkeypatch.setattr(
+        "mvt.common.plugin_config.user_data_dir",
+        lambda *args, **kwargs: str(folder),
+    )
+    return folder
 
 
 def _write_plugin_file(plugin_name, values):
@@ -301,3 +312,59 @@ def test_underscores_are_not_allowed_in_plugin_names():
 def test_unsafe_plugin_names_have_no_configuration_path(plugin_name):
     with pytest.raises(ValueError, match="Invalid plugin name"):
         plugin_config_path(plugin_name)
+
+
+def test_data_folder_is_namespaced_and_created(data_folder):
+    folder = plugin_data_folder("example-plugin")
+
+    assert folder == str(data_folder / "plugin-data" / "example-plugin")
+    assert os.path.isdir(folder)
+
+
+def test_data_folder_can_be_requested_repeatedly(data_folder):
+    folder = plugin_data_folder("example-plugin")
+    with open(os.path.join(folder, "kept.json"), "w") as data_file:
+        data_file.write("{}")
+
+    assert plugin_data_folder("example-plugin") == folder
+    assert os.listdir(folder) == ["kept.json"]
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="POSIX file permissions are not available"
+)
+def test_data_folder_is_only_accessible_by_the_user(data_folder):
+    folder = plugin_data_folder("example-plugin")
+
+    assert stat.S_IMODE(os.stat(folder).st_mode) & 0o077 == 0
+    parent_mode = stat.S_IMODE(os.stat(os.path.dirname(folder)).st_mode)
+    assert parent_mode & 0o077 == 0
+
+
+def test_plugins_get_their_own_data_folder(data_folder):
+    example_folder = plugin_data_folder("example-plugin")
+    other_folder = plugin_data_folder("other-plugin")
+
+    assert example_folder != other_folder
+    assert sorted(os.listdir(data_folder / "plugin-data")) == [
+        "example-plugin",
+        "other-plugin",
+    ]
+
+
+def test_data_folder_does_not_touch_the_configuration_folder(
+    config_folder, data_folder
+):
+    plugin_data_folder("example-plugin")
+
+    assert not os.path.exists(plugin_config_folder())
+
+
+@pytest.mark.parametrize(
+    "plugin_name", ["../escape", "folder/name", "UPPER", "-dash", ""]
+)
+def test_unsafe_plugin_names_have_no_data_folder(data_folder, plugin_name):
+    with pytest.raises(ValueError, match="Invalid plugin name"):
+        plugin_data_folder(plugin_name)
+
+    assert not os.path.exists(data_folder)

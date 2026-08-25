@@ -11,7 +11,7 @@ import tempfile
 from typing import Any, ClassVar, Dict, List, Tuple, Type, TypeVar
 
 import yaml
-from appdirs import user_config_dir
+from appdirs import user_config_dir, user_data_dir
 from pydantic import ValidationError
 from pydantic_settings import (
     BaseSettings,
@@ -22,6 +22,9 @@ from pydantic_settings import (
 )
 
 PLUGIN_CONFIG_FOLDER_NAME = "plugins"
+# Not "plugins": on macOS the configuration and data folders are the same
+# directory, and that name already holds the settings files.
+PLUGIN_DATA_FOLDER_NAME = "plugin-data"
 PLUGIN_ENV_PREFIX = "MVT_PLUGIN_"
 
 PLUGIN_NAME_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]*")
@@ -72,6 +75,33 @@ def plugin_config_path(plugin_name: str) -> str:
     return os.path.join(
         plugin_config_folder(), f"{validate_plugin_name(plugin_name)}.yaml"
     )
+
+
+def plugin_data_folder(plugin_name: str) -> str:
+    """
+    Return the folder where a given plugin stores its data, creating it.
+
+    Plugins should keep whatever they persist, such as caches or downloaded
+    artifacts, in this folder. It is created with owner-only permissions. The
+    path is resolved on every call so it always reflects the current
+    environment.
+
+    :param plugin_name: Name of the plugin.
+    :returns: The path of the data folder of the plugin.
+    """
+    # Validate the name before anything is created, so an unsafe name cannot
+    # leave a folder behind.
+    name = validate_plugin_name(plugin_name)
+
+    # makedirs() applies its mode only to the last folder of the path, so
+    # MVT's own data folder keeps the default permissions while the two
+    # plugin folders are private.
+    data_folder = os.path.join(user_data_dir("mvt"), PLUGIN_DATA_FOLDER_NAME)
+    os.makedirs(data_folder, mode=0o700, exist_ok=True)
+
+    folder = os.path.join(data_folder, name)
+    os.makedirs(folder, mode=0o700, exist_ok=True)
+    return folder
 
 
 def plugin_env_prefix(plugin_name: str) -> str:
