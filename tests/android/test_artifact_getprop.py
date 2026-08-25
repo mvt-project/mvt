@@ -19,9 +19,24 @@ class TestGetPropArtifact:
 
         assert len(gp.results) == 0
         gp.parse(data)
-        assert len(gp.results) == 13
+        assert len(gp.results) == 14
         assert gp.results[0]["name"] == "af.fast_track_multiplier"
         assert gp.results[0]["value"] == "1"
+
+    def test_parsing_multiline_value(self):
+        gp = GetProp()
+        file = get_artifact("android_data/getprop.txt")
+        with open(file) as f:
+            data = f.read()
+
+        gp.parse(data)
+        properties = {entry["name"]: entry["value"] for entry in gp.results}
+
+        assert properties["persist.sys.boot.reason.history"] == (
+            "reboot,userrequested,mainline_update,1782907395\n"
+            "reboot,userrequested,1782582256\n"
+            "shutdown,userrequested,1781742871"
+        )
 
     def test_ioc_check(self, indicator_file):
         gp = GetProp()

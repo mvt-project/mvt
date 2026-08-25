@@ -12,3 +12,6 @@
 [dalvik.vm.dex2oat-resolve-startup-strings]: [true]
 [dalvik.vm.dexopt.secondary]: [true]
 [dalvik.vm.heapgrowthlimit]: [192m]
+[persist.sys.boot.reason.history]: [reboot,userrequested,mainline_update,1782907395
+reboot,userrequested,1782582256
+shutdown,userrequested,1781742871]
