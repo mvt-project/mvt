@@ -155,7 +155,7 @@ class TestCheckAndroidqfCommand:
             result = runner.invoke(check_androidqf, [str(path)])
 
         assert result.exit_code == 0
-        assert "Skipping backup modules as backup.ab is malformed" in caplog.text
+        assert "Skipping backup modules: Invalid backup format" in caplog.text
         assert not any(
             record.levelname in {"CRITICAL", "FATAL"} for record in caplog.records
         )

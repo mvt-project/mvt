@@ -87,11 +87,15 @@ class CmdAndroidCheckBackup(Command):
         if header["encryption"] != "none":
             password = prompt_or_load_android_backup_password(log, self.module_options)
             if not password:
+                if self.sub_command:
+                    raise InvalidAndroidBackup("No backup password provided")
                 log.critical("No backup password provided.")
                 sys.exit(1)
         try:
             tardata = parse_backup_file(ab_file_bytes, password=password)
         except InvalidBackupPassword:
+            if self.sub_command:
+                raise InvalidAndroidBackup("Invalid backup password")
             log.critical("Invalid backup password")
             sys.exit(1)
         except AndroidBackupParsingError as exc:
