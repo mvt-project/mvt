@@ -58,7 +58,7 @@ For alternative installation options and known issues, please refer to the [docu
 
 ## Usage
 
-MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version` and `download-iocs` (both remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
 ### Shell completion
 
@@ -82,8 +82,8 @@ Module-running `check-*` commands can load custom Python modules with
 [development documentation](https://docs.mvt.re/en/latest/development/) for
 details.
 
-Users can also add top-level commands to `mvt-ios` and `mvt-android` from
-installed Python packages or local files and folders. See the
+Users can also add top-level commands to `mvt`, `mvt-ios` and `mvt-android`
+from installed Python packages or local files and folders. See the
 [custom CLI command documentation](https://docs.mvt.re/en/latest/development/custom_commands/)
 for the plugin entry points and `--load-command` interface.
 

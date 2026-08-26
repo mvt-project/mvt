@@ -116,7 +116,7 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
 # ==============================================================================
 # Command: version
 # ==============================================================================
-@cli.command("version", help=HELP_MSG_VERSION)
+@cli.command("version", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_VERSION)
 def version():
     return
 

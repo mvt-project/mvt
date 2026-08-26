@@ -10,10 +10,20 @@ import click
 import pytest
 
 import mvt.android
+import mvt.cli
 import mvt.ios
 from mvt.android.cli import cli as android_cli
 from mvt.android.cli import main as android_main
-from mvt.common.cli_plugins import ANDROID_CLI_PLUGIN_GROUP, IOS_CLI_PLUGIN_GROUP
+from mvt.cli import cli as mvt_cli
+from mvt.cli import main as mvt_main
+from mvt.common.cli_plugins import (
+    ANDROID_CLI_PLUGIN_GROUP,
+    IOS_CLI_PLUGIN_GROUP,
+    MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    MVT_CUSTOM_COMMANDS_ENV,
+    MVT_IOS_CUSTOM_COMMANDS_ENV,
+    NEUTRAL_CLI_PLUGIN_GROUP,
+)
 from mvt.ios.cli import cli as ios_cli
 from mvt.ios.cli import main as ios_main
 
@@ -39,23 +49,32 @@ def cli():
 """
 
 PROGRAMS = {
-    "mvt-ios": (mvt.ios, ios_cli, IOS_CLI_PLUGIN_GROUP),
-    "mvt-android": (mvt.android, android_cli, ANDROID_CLI_PLUGIN_GROUP),
+    "mvt": (mvt.cli, mvt_cli, NEUTRAL_CLI_PLUGIN_GROUP, MVT_CUSTOM_COMMANDS_ENV),
+    "mvt-ios": (mvt.ios, ios_cli, IOS_CLI_PLUGIN_GROUP, MVT_IOS_CUSTOM_COMMANDS_ENV),
+    "mvt-android": (
+        mvt.android,
+        android_cli,
+        ANDROID_CLI_PLUGIN_GROUP,
+        MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    ),
 }
 
+CASE_SUMMARY_COMMAND = """
+import click
 
-@pytest.fixture
-def restore_cli_commands():
-    """Undo the plugin registration main() performs on the shared CLI groups."""
-    originals = {
-        program: dict(group.commands) for program, (_, group, _) in PROGRAMS.items()
-    }
-    yield
-    for program, (_, group, _) in PROGRAMS.items():
-        group.commands.clear()
-        group.commands.update(originals[program])
-        if hasattr(group, "_mvt_external_command_sources"):
-            delattr(group, "_mvt_external_command_sources")
+
+@click.command("case-summary")
+def cli():
+    click.echo("case summary ran")
+"""
+
+# The entry-point group of another program, for each program: no group may add
+# its commands to a CLI other than its own.
+OTHER_PROGRAMS_GROUP = {
+    "mvt": IOS_CLI_PLUGIN_GROUP,
+    "mvt-ios": NEUTRAL_CLI_PLUGIN_GROUP,
+    "mvt-android": NEUTRAL_CLI_PLUGIN_GROUP,
+}
 
 
 def _install_fixture_entry_point(monkeypatch, entry_point_group, command):
@@ -92,7 +111,7 @@ def _offline_argv(program, *arguments):
 def test_main_registers_installed_plugins_before_running_the_cli(
     program, monkeypatch, capsys, restore_cli_commands
 ):
-    package, group, entry_point_group = PROGRAMS[program]
+    package, group, entry_point_group, _ = PROGRAMS[program]
 
     @click.command()
     def fixture_command():
@@ -113,7 +132,7 @@ def test_main_registers_installed_plugins_before_running_the_cli(
 def test_main_completes_plugin_command_names(
     program, monkeypatch, capsys, restore_cli_commands
 ):
-    package, _, entry_point_group = PROGRAMS[program]
+    package, _, entry_point_group, _ = PROGRAMS[program]
 
     @click.command()
     def fixture_command():
@@ -136,17 +155,9 @@ def test_main_completes_plugin_command_names(
 def test_main_still_loads_commands_from_a_file(
     program, monkeypatch, capsys, tmp_path, restore_cli_commands
 ):
-    package, _, entry_point_group = PROGRAMS[program]
+    package, _, entry_point_group, _ = PROGRAMS[program]
     command_path = tmp_path / "case_summary.py"
-    command_path.write_text(
-        "import click\n"
-        "\n"
-        "\n"
-        '@click.command("case-summary")\n'
-        "def cli():\n"
-        '    click.echo("case summary ran")\n',
-        encoding="utf-8",
-    )
+    command_path.write_text(CASE_SUMMARY_COMMAND, encoding="utf-8")
     _install_fixture_entry_point(
         monkeypatch, entry_point_group, click.Command("unused")
     )
@@ -163,10 +174,64 @@ def test_main_still_loads_commands_from_a_file(
     assert "case summary ran" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize("program", sorted(PROGRAMS))
+def test_main_loads_commands_from_the_environment_variable(
+    program, monkeypatch, capsys, tmp_path, restore_cli_commands
+):
+    # Each CLI reads its own variable, so a main() reading another CLI's would
+    # go unnoticed without this.
+    package, _, _, environment_variable = PROGRAMS[program]
+    command_path = tmp_path / "case_summary.py"
+    command_path.write_text(CASE_SUMMARY_COMMAND, encoding="utf-8")
+    monkeypatch.setenv(environment_variable, str(command_path))
+    monkeypatch.setattr(sys, "argv", _offline_argv(program, "case-summary"))
+
+    with pytest.raises(SystemExit) as exit_info:
+        package.main()
+
+    assert exit_info.value.code == 0
+    assert "case summary ran" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("program", sorted(PROGRAMS))
+def test_main_ignores_the_entry_point_groups_of_the_other_programs(
+    program, monkeypatch, capsys, restore_cli_commands
+):
+    package, group, _, _ = PROGRAMS[program]
+    _install_fixture_entry_point(
+        monkeypatch,
+        OTHER_PROGRAMS_GROUP[program],
+        click.Command(FIXTURE_COMMAND_NAME),
+    )
+    monkeypatch.setattr(sys, "argv", _offline_argv(program, "--help"))
+
+    with pytest.raises(SystemExit) as exit_info:
+        package.main()
+
+    assert exit_info.value.code == 0
+    assert FIXTURE_COMMAND_NAME not in group.commands
+    assert FIXTURE_COMMAND_NAME not in capsys.readouterr().out
+
+
 def test_the_console_script_targets_are_importable():
-    # [project.scripts] points at these, so they must stay on the packages.
+    # [project.scripts] points at these, so they must stay where they are.
+    assert mvt.cli.main is mvt_main
     assert mvt.ios.main is ios_main
     assert mvt.android.main is android_main
+
+
+def test_importing_mvt_does_not_import_a_cli(tmp_path):
+    # The mvt package deliberately re-exports nothing of mvt.cli, so that
+    # importing MVT stays cheap and free of side effects.
+    result = run_isolated_python(
+        "import sys\n"
+        "import mvt\n"
+        "print('imported a cli' if 'mvt.cli' in sys.modules else 'imported mvt')\n",
+        home=tmp_path / "home",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "imported mvt"
 
 
 def test_importing_mvt_does_not_run_installed_plugins(tmp_path):

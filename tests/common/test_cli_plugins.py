@@ -3,9 +3,12 @@ from types import SimpleNamespace
 import click
 from click.testing import CliRunner
 
+from mvt.cli import cli as mvt_cli
 from mvt.common.cli_plugins import (
     ANDROID_CLI_PLUGIN_GROUP,
     IOS_CLI_PLUGIN_GROUP,
+    MVT_CUSTOM_COMMANDS_ENV,
+    NEUTRAL_CLI_PLUGIN_GROUP,
     BrokenPluginCommand,
     load_cli_commands_option,
     register_cli_commands_from_path,
@@ -13,6 +16,9 @@ from mvt.common.cli_plugins import (
     register_installed_cli_commands,
 )
 
+
+# Keep the banner of the mvt group callback from checking for updates online.
+OFFLINE = ["--disable-update-check", "--disable-indicator-update-check"]
 
 COMMAND_TEMPLATE = """
 import click
@@ -345,7 +351,11 @@ def test_platform_entry_point_groups_and_environment_paths_are_separate(
     def entry_points(*, group):
         if group == IOS_CLI_PLUGIN_GROUP:
             return [_entry_point("ios-package", "ios_plugin:cli", ios_package)]
-        return [_entry_point("android-package", "android_plugin:cli", android_package)]
+        if group == ANDROID_CLI_PLUGIN_GROUP:
+            return [
+                _entry_point("android-package", "android_plugin:cli", android_package)
+            ]
+        return []
 
     monkeypatch.setattr(
         "mvt.common.cli_plugins.importlib.metadata.entry_points",
@@ -369,3 +379,187 @@ def test_platform_entry_point_groups_and_environment_paths_are_separate(
 
     assert set(ios_group.commands) == {"ios-file", "ios-package"}
     assert set(android_group.commands) == {"android-file", "android-package"}
+
+
+def test_neutral_entry_point_group_is_not_registered_on_the_platform_clis(
+    monkeypatch,
+):
+    @click.command()
+    def neutral_package():
+        pass
+
+    def entry_points(*, group):
+        if group == NEUTRAL_CLI_PLUGIN_GROUP:
+            return [
+                _entry_point("neutral-package", "neutral_plugin:cli", neutral_package)
+            ]
+        return []
+
+    monkeypatch.setattr(
+        "mvt.common.cli_plugins.importlib.metadata.entry_points",
+        entry_points,
+    )
+    ios_group = click.Group()
+    android_group = click.Group()
+
+    register_cli_plugins(
+        ios_group,
+        entry_point_group=IOS_CLI_PLUGIN_GROUP,
+        environment_variable="TEST_IOS_COMMANDS",
+    )
+    register_cli_plugins(
+        android_group,
+        entry_point_group=ANDROID_CLI_PLUGIN_GROUP,
+        environment_variable="TEST_ANDROID_COMMANDS",
+    )
+
+    assert not ios_group.commands
+    assert not android_group.commands
+
+
+def test_environment_command_wins_collision_with_installed_command(
+    tmp_path, monkeypatch, caplog
+):
+    command_path = _write_command(
+        tmp_path / "duplicate.py",
+        "duplicate",
+        message="environment command ran",
+    )
+
+    @click.command()
+    def installed_command():
+        pass
+
+    def entry_points(*, group):
+        if group == IOS_CLI_PLUGIN_GROUP:
+            return [
+                _entry_point(
+                    "duplicate",
+                    "ios_plugin:cli",
+                    installed_command,
+                    distribution="ios-plugin",
+                )
+            ]
+        return []
+
+    monkeypatch.setattr(
+        "mvt.common.cli_plugins.importlib.metadata.entry_points",
+        entry_points,
+    )
+    monkeypatch.setenv("TEST_IOS_COMMANDS", str(command_path))
+    group = click.Group()
+
+    register_cli_plugins(
+        group,
+        entry_point_group=IOS_CLI_PLUGIN_GROUP,
+        environment_variable="TEST_IOS_COMMANDS",
+    )
+
+    assert group.commands["duplicate"] is not installed_command
+    result = CliRunner().invoke(group, ["duplicate"])
+    assert result.exit_code == 0
+    assert "environment command ran" in result.output
+    assert "the command name is already registered" in caplog.text
+    assert "ios-plugin 1.0 (ios_plugin:cli)" in caplog.text
+
+
+def test_the_mvt_cli_gets_the_neutral_commands_and_no_platform_command(
+    monkeypatch, restore_cli_commands
+):
+    @click.command()
+    def shared_package():
+        click.echo("shared command ran")
+
+    @click.command()
+    def ios_package():
+        pass
+
+    def entry_points(*, group):
+        if group == NEUTRAL_CLI_PLUGIN_GROUP:
+            return [_entry_point("shared-package", "shared_plugin:cli", shared_package)]
+        if group == IOS_CLI_PLUGIN_GROUP:
+            return [_entry_point("ios-package", "ios_plugin:cli", ios_package)]
+        return []
+
+    monkeypatch.setattr(
+        "mvt.common.cli_plugins.importlib.metadata.entry_points",
+        entry_points,
+    )
+
+    register_cli_plugins(
+        mvt_cli,
+        entry_point_group=NEUTRAL_CLI_PLUGIN_GROUP,
+        environment_variable=MVT_CUSTOM_COMMANDS_ENV,
+    )
+
+    assert "ios-package" not in mvt_cli.commands
+    result = CliRunner().invoke(mvt_cli, [*OFFLINE, "shared-package"])
+    assert result.exit_code == 0
+    assert "shared command ran" in result.output
+
+
+def test_builtin_mvt_command_wins_collision_with_neutral_command(
+    monkeypatch, caplog, restore_cli_commands
+):
+    @click.command()
+    def neutral_version():
+        pass
+
+    def entry_points(*, group):
+        if group == NEUTRAL_CLI_PLUGIN_GROUP:
+            return [
+                _entry_point(
+                    "version",
+                    "neutral_plugin:cli",
+                    neutral_version,
+                    distribution="neutral-plugin",
+                )
+            ]
+        return []
+
+    monkeypatch.setattr(
+        "mvt.common.cli_plugins.importlib.metadata.entry_points",
+        entry_points,
+    )
+    builtin_version = mvt_cli.commands["version"]
+
+    register_cli_plugins(
+        mvt_cli,
+        entry_point_group=NEUTRAL_CLI_PLUGIN_GROUP,
+        environment_variable=MVT_CUSTOM_COMMANDS_ENV,
+    )
+
+    assert mvt_cli.commands["version"] is builtin_version
+    assert "the command name is already registered" in caplog.text
+    assert "neutral-plugin 1.0 (neutral_plugin:cli)" in caplog.text
+
+
+def test_broken_neutral_plugin_does_not_break_the_mvt_cli(
+    monkeypatch, restore_cli_commands
+):
+    def entry_points(*, group):
+        if group == NEUTRAL_CLI_PLUGIN_GROUP:
+            return [
+                _entry_point(
+                    "broken",
+                    "broken_plugin:cli",
+                    exception=RuntimeError("missing dependency"),
+                    distribution="broken-plugin",
+                )
+            ]
+        return []
+
+    monkeypatch.setattr(
+        "mvt.common.cli_plugins.importlib.metadata.entry_points",
+        entry_points,
+    )
+
+    register_cli_plugins(
+        mvt_cli,
+        entry_point_group=NEUTRAL_CLI_PLUGIN_GROUP,
+        environment_variable=MVT_CUSTOM_COMMANDS_ENV,
+    )
+
+    assert isinstance(mvt_cli.commands["broken"], BrokenPluginCommand)
+    result = CliRunner().invoke(mvt_cli, [*OFFLINE, "version"])
+    assert result.exit_code == 0

@@ -17,6 +17,9 @@ import click
 
 IOS_CLI_PLUGIN_GROUP = "mvt.ios.cli_plugins"
 ANDROID_CLI_PLUGIN_GROUP = "mvt.android.cli_plugins"
+# Commands in this group are registered on the platform-neutral mvt command only.
+NEUTRAL_CLI_PLUGIN_GROUP = "mvt.cli_plugins"
+MVT_CUSTOM_COMMANDS_ENV = "MVT_CUSTOM_COMMANDS"
 MVT_IOS_CUSTOM_COMMANDS_ENV = "MVT_IOS_CUSTOM_COMMANDS"
 MVT_ANDROID_CUSTOM_COMMANDS_ENV = "MVT_ANDROID_CUSTOM_COMMANDS"
 
@@ -255,6 +258,16 @@ def register_cli_plugins(
     entry_point_group: str,
     environment_variable: str,
 ) -> None:
+    """Register the external commands of one CLI on its group.
+
+    Each CLI has one entry-point group and one environment variable of its
+    own, so a command package chooses the CLIs its commands are added to.
+
+    :param group: CLI group to register the external commands on.
+    :param entry_point_group: Entry-point group of the CLI.
+    :param environment_variable: Name of the environment variable holding a
+                                 path to load commands from.
+    """
     environment_path = os.environ.get(environment_variable)
     if environment_path:
         register_cli_commands_from_path(group, environment_path)

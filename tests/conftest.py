@@ -8,6 +8,11 @@ import os
 
 import pytest
 
+from mvt.common.cli_plugins import (
+    MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    MVT_CUSTOM_COMMANDS_ENV,
+    MVT_IOS_CUSTOM_COMMANDS_ENV,
+)
 from mvt.common.indicators import Indicators
 
 from .artifacts.generate_stix import generate_test_stix_file
@@ -58,3 +63,33 @@ def indicators_factory(indicator_file):
         return ind
 
     return f
+
+
+@pytest.fixture()
+def restore_cli_commands(monkeypatch):
+    """Keep the external commands a test registers out of the next test.
+
+    Each CLI group is a module-level object shared by every test, so a test
+    registering plugin or environment commands on one has to put it back. The
+    groups are imported here rather than at the top of the file, so that
+    collecting the tests does not import three CLIs for the sake of one
+    fixture.
+    """
+    from mvt.android.cli import cli as android_cli
+    from mvt.cli import cli as neutral_cli
+    from mvt.ios.cli import cli as ios_cli
+
+    groups = (neutral_cli, ios_cli, android_cli)
+    for variable in (
+        MVT_CUSTOM_COMMANDS_ENV,
+        MVT_IOS_CUSTOM_COMMANDS_ENV,
+        MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    ):
+        monkeypatch.delenv(variable, raising=False)
+    originals = [dict(group.commands) for group in groups]
+    yield
+    for group, commands in zip(groups, originals):
+        group.commands.clear()
+        group.commands.update(commands)
+        if hasattr(group, "_mvt_external_command_sources"):
+            delattr(group, "_mvt_external_command_sources")
