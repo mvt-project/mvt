@@ -60,7 +60,8 @@ pipx inject mvt my-mvt-plugin
 ```
 
 When MVT is installed in an active virtual environment, install the plugin with
-`pip` in that environment.
+`pip` in that environment. `mvt plugins list` shows the installed packages and
+the commands they add, see [Managing Plugins](plugins.md).
 
 Command packages that need their own settings, such as an API key, should store
 them in a namespaced [plugin configuration file](plugin_configuration.md)
@@ -69,9 +70,9 @@ rather than in MVT's own `config.yaml`.
 ### Commands on `mvt`
 
 The `mvt` command hosts what belongs to neither platform: `version`,
-`completion` and `download-iocs`. A plugin command which is not about the
-acquisition of one platform, such as one which configures the plugin or
-synchronizes the indicators it uses, belongs there too, in the
+`completion`, `plugins` and `download-iocs`. A plugin command which is not
+about the acquisition of one platform, such as one which configures the plugin
+or synchronizes the indicators it uses, belongs there too, in the
 `mvt.cli_plugins` group:
 
 ```toml

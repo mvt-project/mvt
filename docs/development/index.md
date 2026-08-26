@@ -214,6 +214,9 @@ module came from:
 - When a command runs with an `--output` folder, the `command.log` file
   records one line per module source with the source's version or hash and
   the list of modules loaded from it.
+- `mvt plugins list` lists the installed packages, where each of them
+  was installed from and how many modules it contributes, see
+  [Managing Plugins](plugins.md).
 
 ## Profiling
 

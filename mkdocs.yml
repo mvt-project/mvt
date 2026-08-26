@@ -53,4 +53,5 @@ nav:
         - Development Instructions: "development/index.md"
         - Custom CLI Commands: "development/custom_commands.md"
         - Plugin Configuration: "development/plugin_configuration.md"
+        - Managing Plugins: "development/plugins.md"
     - License: "license.md"

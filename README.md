@@ -58,7 +58,7 @@ For alternative installation options and known issues, please refer to the [docu
 
 ## Usage
 
-MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version`, `completion` and `download-iocs` (`version` and `download-iocs` remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version`, `completion`, `plugins` and `download-iocs` (`version` and `download-iocs` remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
 ### Shell completion
 

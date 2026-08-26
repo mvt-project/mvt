@@ -24,6 +24,11 @@ HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
 HELP_MSG_COMPLETION = (
     "Generate or install shell completion for mvt, mvt-ios and mvt-android"
 )
+HELP_MSG_PLUGINS = "Inspect the installed MVT plugin packages"
+HELP_MSG_PLUGINS_LIST = "List the installed plugins and what they contribute to MVT"
+HELP_MSG_PLUGINS_CHECK_UPDATES = (
+    "Check the installed plugins for updates without installing them"
+)
 
 # IOS Specific
 HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"

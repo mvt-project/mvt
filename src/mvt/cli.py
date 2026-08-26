@@ -11,6 +11,7 @@ from mvt.common.cli_plugins import (
     load_cli_commands_option,
     register_cli_plugins,
 )
+from mvt.common.cmd_plugins import plugins
 from mvt.common.completion import completion
 from mvt.common.help import (
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
@@ -82,6 +83,11 @@ cli.add_command(completion)
 @cli.command("version", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_VERSION)
 def version():
     return
+
+
+# The plugins command is registered as a built-in command, before any external
+# command, so that an installed package can never replace it.
+cli.add_command(plugins)
 
 
 # ==============================================================================
