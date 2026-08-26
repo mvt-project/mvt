@@ -73,6 +73,7 @@ def run_isolated_python(
     }
     isolated_environment["HOME"] = str(home)
     isolated_environment["XDG_CONFIG_HOME"] = str(home / "config")
+    isolated_environment["XDG_DATA_HOME"] = str(home / "data")
     if site_path is not None:
         isolated_environment["PYTHONPATH"] = str(site_path)
     isolated_environment.update(environment)

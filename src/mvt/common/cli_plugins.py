@@ -15,6 +15,8 @@ from typing import Iterable
 
 import click
 
+from .module_loader import CUSTOM_COMMAND_MODULE_PREFIX
+
 IOS_CLI_PLUGIN_GROUP = "mvt.ios.cli_plugins"
 ANDROID_CLI_PLUGIN_GROUP = "mvt.android.cli_plugins"
 # Commands in this group are registered on the platform-neutral mvt command only.
@@ -57,7 +59,7 @@ class BrokenPluginCommand(click.Command):
 
 def _module_name_for_path(path: Path) -> str:
     digest = hashlib.sha256(str(path).encode("utf-8")).hexdigest()[:16]
-    return f"_mvt_custom_command_{path.stem}_{digest}"
+    return f"{CUSTOM_COMMAND_MODULE_PREFIX}{path.stem}_{digest}"
 
 
 def _iter_command_files(path: Path) -> Iterable[Path]:

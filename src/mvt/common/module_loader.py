@@ -10,6 +10,7 @@ import inspect
 import json
 import logging
 import os
+import re
 import sys
 from dataclasses import dataclass
 from functools import lru_cache
@@ -26,6 +27,9 @@ EXTERNAL_LOGGER_NAMESPACE = "mvt.ext"
 PLUGIN_PACKAGE_PREFIX = "mvt_plugin_"
 _ORIGIN_ATTRIBUTE = "_mvt_module_origin"
 _PATH_MODULE_PREFIX = "_mvt_custom_module_"
+# Shared with cli_plugins, which names a loaded command file this way.
+CUSTOM_COMMAND_MODULE_PREFIX = "_mvt_custom_command_"
+_LOADED_FILE_DIGEST = re.compile(r"_[0-9a-f]{16}$")
 log = logging.getLogger(__name__)
 
 
@@ -66,6 +70,25 @@ def _module_name_for_path(path: Path) -> str:
     return f"{_PATH_MODULE_PREFIX}{path.stem}_{digest}"
 
 
+def _is_builtin_logger_name(name: str) -> bool:
+    return name == "mvt" or name.startswith("mvt.")
+
+
+def _loaded_file_stem(name: str, prefix: str) -> str:
+    """Recover a loaded file's name from the import name MVT gave it."""
+    return _LOADED_FILE_DIGEST.sub("", name[len(prefix) :])
+
+
+def _external_logger_name(name: str) -> str:
+    """Return the "mvt.ext" logger name external code logs under."""
+    top_level, separator, rest = name.partition(".")
+    if top_level.startswith(PLUGIN_PACKAGE_PREFIX) and len(top_level) > len(
+        PLUGIN_PACKAGE_PREFIX
+    ):
+        name = top_level[len(PLUGIN_PACKAGE_PREFIX) :] + separator + rest
+    return f"{EXTERNAL_LOGGER_NAMESPACE}.{name}"
+
+
 def get_module_logger(module_class: type[MVTModule]) -> logging.Logger:
     """Return the logger a module's records should be emitted through.
 
@@ -80,19 +103,35 @@ def get_module_logger(module_class: type[MVTModule]) -> logging.Logger:
     "mvt_plugin_<name>" naming convention log under "mvt.ext.<name>".
     """
     name = module_class.__module__
-    if name == "mvt" or name.startswith("mvt."):
+    if _is_builtin_logger_name(name):
         return logging.getLogger(name)
 
     if name.startswith(_PATH_MODULE_PREFIX):
-        name = Path(get_module_origin(module_class).name).stem
-    else:
-        top_level, separator, rest = name.partition(".")
-        if top_level.startswith(PLUGIN_PACKAGE_PREFIX) and len(top_level) > len(
-            PLUGIN_PACKAGE_PREFIX
-        ):
-            name = top_level[len(PLUGIN_PACKAGE_PREFIX) :] + separator + rest
+        file_name = Path(get_module_origin(module_class).name).stem
+        return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{file_name}")
 
-    return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{name}")
+    return logging.getLogger(_external_logger_name(name))
+
+
+def get_plugin_logger(name: str) -> logging.Logger:
+    """Return a general logger for use in custom MVT plugins.
+
+    Call it with ``__name__``. The logger sits under "mvt.ext". That is
+    where get_module_logger() puts module classes. A file loaded with
+    --load-module or --load-command is named after the file.
+    """
+    if _is_builtin_logger_name(name):
+        return logging.getLogger(name)
+
+    # A file loaded with --load-module or --load-command is imported under a
+    # mangled name. Log it under the file it came from. get_module_logger()
+    # does the same for the module classes such a file defines.
+    for prefix in (_PATH_MODULE_PREFIX, CUSTOM_COMMAND_MODULE_PREFIX):
+        if name.startswith(prefix):
+            stem = _loaded_file_stem(name, prefix)
+            return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{stem}")
+
+    return logging.getLogger(_external_logger_name(name))
 
 
 def _iter_module_files(path: Path) -> Iterable[Path]:
