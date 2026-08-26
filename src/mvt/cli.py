@@ -11,6 +11,7 @@ from mvt.common.cli_plugins import (
     load_cli_commands_option,
     register_cli_plugins,
 )
+from mvt.common.completion import completion
 from mvt.common.help import (
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
@@ -51,10 +52,11 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    logo(
-        disable_version_check=disable_update_check,
-        disable_indicator_check=disable_indicator_update_check,
-    )
+    if ctx.invoked_subcommand != "completion":
+        logo(
+            disable_version_check=disable_update_check,
+            disable_indicator_check=disable_indicator_update_check,
+        )
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
@@ -66,6 +68,12 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
 def download_iocs():
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
+
+
+# ==============================================================================
+# Command: completion
+# ==============================================================================
+cli.add_command(completion)
 
 
 # ==============================================================================

@@ -68,10 +68,11 @@ rather than in MVT's own `config.yaml`.
 
 ### Commands on `mvt`
 
-The `mvt` command hosts what belongs to neither platform: `version` and
-`download-iocs`. A plugin command which is not about the acquisition of one
-platform, such as one which configures the plugin or synchronizes the
-indicators it uses, belongs there too, in the `mvt.cli_plugins` group:
+The `mvt` command hosts what belongs to neither platform: `version`,
+`completion` and `download-iocs`. A plugin command which is not about the
+acquisition of one platform, such as one which configures the plugin or
+synchronizes the indicators it uses, belongs there too, in the
+`mvt.cli_plugins` group:
 
 ```toml
 [project.entry-points."mvt.cli_plugins"]

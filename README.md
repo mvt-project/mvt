@@ -58,22 +58,20 @@ For alternative installation options and known issues, please refer to the [docu
 
 ## Usage
 
-MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version` and `download-iocs` (both remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version`, `completion` and `download-iocs` (`version` and `download-iocs` remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
 ### Shell completion
 
-MVT can generate shell completion scripts for Bash, Zsh, and Fish:
+MVT can generate a shell completion script for Bash, Zsh, and Fish which covers `mvt`, `mvt-ios` and `mvt-android`:
 
 ```bash
-mvt-ios completion
-mvt-android completion
+mvt completion
 ```
 
-The commands print setup instructions by default. To generate a completion script directly, pass the shell name:
+The command prints setup instructions by default. To generate the completion script directly, pass the shell name:
 
 ```bash
-mvt-ios completion bash
-mvt-android completion zsh
+mvt completion bash
 ```
 
 MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
