@@ -24,7 +24,7 @@ def check_updates(
             latest_version = mvt_updates.check()
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             rich_print(
-                "\t\t[bold]Note: Could not check for MVT updates.[/bold] "
+                "\t[bold]Note: Could not check for MVT updates.[/bold] "
                 "You may be working offline. Please update MVT regularly."
             )
         except Exception as e:
@@ -34,7 +34,7 @@ def check_updates(
         else:
             if latest_version:
                 rich_print(
-                    f"\t\t[bold]Version {latest_version} is available! "
+                    f"\t[bold]Version {latest_version} is available! "
                     "Upgrade mvt with `pip3 install -U mvt` or with `pipx upgrade mvt`[/bold]"
                 )
 
@@ -46,7 +46,7 @@ def check_updates(
         # If not, there's no point in proceeding with the updates check.
         if ioc_updates.get_latest_update() == 0:
             rich_print(
-                "\t\t[bold]You have not yet downloaded any indicators, check "
+                "\t[bold]You have not yet downloaded any indicators, check "
                 "the `download-iocs` command![/bold]"
             )
             return
@@ -57,7 +57,7 @@ def check_updates(
         should_check, hours = ioc_updates.should_check()
         if not should_check:
             rich_print(
-                f"\t\tIndicators updates checked recently, next automatic check "
+                f"\tIndicators updates checked recently, next automatic check "
                 f"in {int(hours)} hours"
             )
             return
@@ -66,7 +66,7 @@ def check_updates(
             ioc_to_update = ioc_updates.check()
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             rich_print(
-                "\t\t[bold]Note: Could not check for indicator updates.[/bold] "
+                "\t[bold]Note: Could not check for indicator updates.[/bold] "
                 "You may be working offline. Please update MVT indicators regularly."
             )
         except Exception as e:
@@ -76,20 +76,20 @@ def check_updates(
         else:
             if ioc_to_update:
                 rich_print(
-                    "\t\t[bold]There are updates to your indicators files! "
+                    "\t[bold]There are updates to your indicators files! "
                     "Run the `download-iocs` command to update![/bold]"
                 )
             else:
-                rich_print("\t\tYour indicators files seem to be up to date.")
+                rich_print("\tYour indicators files seem to be up to date.")
 
 
 def logo(
     disable_version_check: bool = False, disable_indicator_check: bool = False
 ) -> None:
     rich_print("\n")
-    rich_print("\t[bold]MVT[/bold] - Mobile Verification Toolkit")
-    rich_print("\t\thttps://mvt.re")
-    rich_print(f"\t\tVersion: {MVT_VERSION}")
+    rich_print("\t[bold]MVT - Mobile Verification Toolkit[/bold]\n")
+    rich_print("\thttps://mvt.re")
+    rich_print(f"\tVersion: {MVT_VERSION}\n")
 
     check_updates(disable_version_check, disable_indicator_check)
 
