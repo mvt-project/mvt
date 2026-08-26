@@ -7,5 +7,11 @@ from .backup_info import BackupInfo
 from .configuration_profiles import ConfigurationProfiles
 from .manifest import Manifest
 from .profile_events import ProfileEvents
+from mvt.common.module import MVTModule
 
-BACKUP_MODULES = [BackupInfo, ConfigurationProfiles, Manifest, ProfileEvents]
+BACKUP_MODULES: list[type[MVTModule]] = [
+    BackupInfo,
+    ConfigurationProfiles,
+    Manifest,
+    ProfileEvents,
+]

@@ -9,7 +9,12 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, ClassVar, Dict, Optional, Sequence
+
+from pydantic import BaseModel, ValidationError
+
+from mvt.schemas.models import AlertResults, GenericModuleOutput, TimelineResults
+from mvt.schemas.serialization import validate_output
 
 from .alerts import AlertStore
 from .indicators import Indicators
@@ -46,6 +51,7 @@ class MVTModule:
     slug: Optional[str] = None
     dependencies: Sequence[type["MVTModule"]] = ()
     supported_commands: Sequence[tuple[str, str]] = ()
+    output_model: ClassVar[type[BaseModel]] = GenericModuleOutput
 
     def __init__(
         self,
@@ -95,7 +101,7 @@ class MVTModule:
     @classmethod
     def from_json(cls, json_path: str, log: logging.Logger):
         with open(json_path, "r", encoding="utf-8") as handle:
-            results = json.load(handle)
+            results = validate_output(cls.output_model, json.load(handle))
             if log:
                 log.info('Loaded %d results from "%s"', len(results), json_path)
 
@@ -136,38 +142,35 @@ class MVTModule:
         name = self.get_slug()
 
         if self.results:
-            converted_results: Any
-            if isinstance(self.results, dict):
-                converted_results = self.results
-            else:
-                converted_results = [
-                    asdict(result)
-                    if is_dataclass(result) and not isinstance(result, type)
-                    else result
-                    for result in self.results
-                ]
             results_file_name = f"{name}.json"
             results_json_path = os.path.join(self.results_path, results_file_name)
-            with open(results_json_path, "w", encoding="utf-8") as handle:
-                try:
+            if self.output_model is GenericModuleOutput:
+                self.log.warning(
+                    "Module %s does not declare an output_model; using the "
+                    "generic compatibility schema",
+                    self.__class__.__name__,
+                )
+            try:
+                converted_results = validate_output(self.output_model, self.results)
+            except (TypeError, ValueError, ValidationError) as exc:
+                self.log.error(
+                    "Output from module %s does not match schema %s: %s",
+                    self.__class__.__name__,
+                    self.output_model.__name__,
+                    exc,
+                )
+            else:
+                with open(results_json_path, "w", encoding="utf-8") as handle:
                     json.dump(
                         converted_results, handle, indent=4, cls=CustomJSONEncoder
-                    )
-                except Exception as exc:
-                    self.log.error(
-                        "Unable to store results of module %s to file %s: %s",
-                        self.__class__.__name__,
-                        results_file_name,
-                        exc,
                     )
 
         if self.alertstore.alerts:
             detected_file_name = f"{name}_detected.json"
             detected_json_path = os.path.join(self.results_path, detected_file_name)
+            alerts = validate_output(AlertResults, self.alertstore.as_json())
             with open(detected_json_path, "w", encoding="utf-8") as handle:
-                json.dump(
-                    self.alertstore.as_json(), handle, indent=4, cls=CustomJSONEncoder
-                )
+                json.dump(alerts, handle, indent=4, cls=CustomJSONEncoder)
 
     def serialize(self, result: ModuleAtomicResult) -> ModuleSerializedResult:
         raise NotImplementedError
@@ -298,6 +301,7 @@ def save_timeline(timeline: list, timeline_path: str, is_utc: bool = True) -> No
     :param timeline_path: Path to the csv file to store the timeline to
 
     """
+    timeline = validate_output(TimelineResults, timeline)
     with open(timeline_path, "w", encoding="utf-8") as handle:
         csvoutput = csv.writer(
             handle, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL, escapechar="\\"

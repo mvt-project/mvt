@@ -8,12 +8,15 @@ from typing import Optional
 
 from mvt.android.artifacts.settings import Settings as SettingsArtifact
 from mvt.common.module_types import ModuleResults
+from mvt.schemas import MappingOutput
 
 from .base import AndroidQFModule
 
 
 class AQFSettings(SettingsArtifact, AndroidQFModule):
     """This module analyse setting files"""
+
+    output_model = MappingOutput
 
     def __init__(
         self,

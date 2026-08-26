@@ -11,8 +11,9 @@ from .aqf_processes import AQFProcesses
 from .aqf_settings import AQFSettings
 from .mounts import Mounts
 from .root_binaries import RootBinaries
+from mvt.common.module import MVTModule
 
-ANDROIDQF_MODULES = [
+ANDROIDQF_MODULES: list[type[MVTModule]] = [
     AQFPackages,
     AQFProcesses,
     AQFGetProp,

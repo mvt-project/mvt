@@ -27,8 +27,9 @@ from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
 from .whatsapp_contacts import WhatsappContacts
+from mvt.common.module import MVTModule
 
-MIXED_MODULES = [
+MIXED_MODULES: list[type[MVTModule]] = [
     Calls,
     ChromeFavicon,
     ChromeHistory,

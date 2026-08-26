@@ -4,5 +4,6 @@
 #   https://license.mvt.re/1.1/
 
 from .sms import SMS
+from mvt.common.module import MVTModule
 
-BACKUP_MODULES = [SMS]
+BACKUP_MODULES: list[type[MVTModule]] = [SMS]

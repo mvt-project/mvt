@@ -82,6 +82,10 @@ class ExampleCustomModule(MVTModule):
         return None
 ```
 
+Custom modules should declare an `output_model` using a Pydantic `RootModel`.
+This validates saved results and lets consumers obtain the module's JSON Schema.
+See [Output schemas](output-schemas.md#custom-modules) for a complete example.
+
 Use `supported_commands` to declare the platform/command pairs a module
 supports. Empty `supported_commands` means the module will not run and MVT logs
 a warning. This explicit declaration is required for every command. Supported

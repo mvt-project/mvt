@@ -11,7 +11,7 @@ import sqlite3
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Iterator, Optional, Union
+from typing import ClassVar, Iterator, Optional, Union
 
 from mvt.common.module import (
     DatabaseCorruptedError,
@@ -19,6 +19,7 @@ from mvt.common.module import (
     ModuleResults,
     MVTModule,
 )
+from mvt.schemas import OutputModel, RecordListOutput
 
 
 class TemporarySQLiteConnection(sqlite3.Connection):
@@ -38,6 +39,8 @@ class TemporarySQLiteConnection(sqlite3.Connection):
 class IOSExtraction(MVTModule):
     """This class provides a base for all iOS filesystem/backup extraction
     modules."""
+
+    output_model: ClassVar[OutputModel] = RecordListOutput
 
     def __init__(
         self,

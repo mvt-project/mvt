@@ -7,14 +7,17 @@ import fnmatch
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 from zipfile import ZipFile
 
 from mvt.common.module import ModuleResults, MVTModule
+from mvt.schemas import OutputModel, RecordListOutput
 
 
 class BugReportModule(MVTModule):
     """This class provides a base for all Android Bug Report modules."""
+
+    output_model: ClassVar[OutputModel] = RecordListOutput
 
     def __init__(
         self,

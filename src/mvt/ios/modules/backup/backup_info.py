@@ -10,6 +10,7 @@ from typing import Optional
 
 from mvt.common.module import DatabaseNotFoundError
 from mvt.common.module_types import ModuleResults
+from mvt.schemas import MappingOutput
 from mvt.ios.versions import get_device_desc_from_id, is_ios_version_outdated
 
 from ..base import IOSExtraction
@@ -17,6 +18,8 @@ from ..base import IOSExtraction
 
 class BackupInfo(IOSExtraction):
     """This module extracts information about the device and the backup."""
+
+    output_model = MappingOutput
 
     def __init__(
         self,
