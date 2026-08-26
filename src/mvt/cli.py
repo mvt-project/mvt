@@ -17,11 +17,12 @@ from mvt.common.help import (
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_STIX2,
+    HELP_MSG_VERBOSE,
     HELP_MSG_VERSION,
 )
 from mvt.common.logo import logo
 from mvt.common.updates import IndicatorsUpdates
-from mvt.common.utils import init_logging
+from mvt.common.utils import init_logging, set_verbose_logging
 
 init_logging()
 
@@ -41,8 +42,9 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     is_flag=True,
     help=HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
 )
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def cli(ctx, disable_update_check, disable_indicator_update_check):
+def cli(ctx, disable_update_check, disable_indicator_update_check, verbose):
     """Mobile Verification Toolkit.
 
     mvt-ios and mvt-android run the forensic analysis of an acquisition: each
@@ -53,6 +55,8 @@ def cli(ctx, disable_update_check, disable_indicator_update_check):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
+    ctx.obj["verbose"] = verbose
+    set_verbose_logging(verbose)
     if ctx.invoked_subcommand != "completion":
         logo(
             disable_version_check=disable_update_check,

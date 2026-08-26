@@ -60,6 +60,8 @@ For alternative installation options and known issues, please refer to the [docu
 
 MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version`, `completion`, `plugins` and `download-iocs` (`version` and `download-iocs` remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
 
+Pass `--verbose` to any of the three commands, before the command name (`mvt-ios --verbose check-backup ...`), for debug output. The `--verbose` option the `check-*` commands accept after their name still works but is kept for compatibility only and will be removed in a future release.
+
 ### Shell completion
 
 MVT can generate a shell completion script for Bash, Zsh, and Fish which covers `mvt`, `mvt-ios` and `mvt-android`:

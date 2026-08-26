@@ -36,6 +36,7 @@ from mvt.common.help import (
     HELP_MSG_OUTPUT,
     HELP_MSG_STIX2,
     HELP_MSG_VERBOSE,
+    HELP_MSG_VERBOSE_COMMAND,
     HELP_MSG_VERSION,
     HELP_MSG_VIRUS_TOTAL,
 )
@@ -70,6 +71,11 @@ def _get_disable_flags(ctx):
     )
 
 
+def _get_verbose(ctx):
+    """Return whether --verbose was passed to the CLI itself."""
+    return bool(ctx.obj and ctx.obj.get("verbose", False))
+
+
 def _load_custom_modules(load_module):
     try:
         return load_custom_modules(load_module)
@@ -90,11 +96,14 @@ def _load_custom_modules(load_module):
     is_flag=True,
     help=HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
 )
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def cli(ctx, disable_update_check, disable_indicator_update_check):
+def cli(ctx, disable_update_check, disable_indicator_update_check, verbose):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
+    ctx.obj["verbose"] = verbose
+    set_verbose_logging(verbose)
     logo(
         disable_version_check=disable_update_check,
         disable_indicator_check=disable_indicator_update_check,
@@ -145,7 +154,7 @@ def check_adb(ctx):
     default=[],
     help=HELP_MSG_LOAD_MODULE,
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_bugreport(
@@ -158,7 +167,7 @@ def check_bugreport(
     verbose,
     bugreport_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(
@@ -213,7 +222,7 @@ def check_bugreport(
 )
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -227,7 +236,7 @@ def check_backup(
     verbose,
     backup_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
 
     # Always generate hashes as backups are generally small.
@@ -287,7 +296,7 @@ def check_backup(
 )
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
@@ -305,7 +314,7 @@ def check_androidqf(
     verbose,
     androidqf_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdAndroidCheckAndroidQF(
@@ -373,7 +382,7 @@ def check_androidqf(
         "time instead of UTC."
     ),
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("LOGS_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_intrusion_logs(
@@ -387,7 +396,7 @@ def check_intrusion_logs(
     verbose,
     logs_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
 
     module_options = {}

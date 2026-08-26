@@ -38,6 +38,7 @@ from mvt.common.help import (
     HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
     HELP_MSG_VERBOSE,
+    HELP_MSG_VERBOSE_COMMAND,
     HELP_MSG_CHECK_FS,
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_STIX2,
@@ -74,6 +75,11 @@ def _get_disable_flags(ctx):
     )
 
 
+def _get_verbose(ctx):
+    """Return whether --verbose was passed to the CLI itself."""
+    return bool(ctx.obj and ctx.obj.get("verbose", False))
+
+
 def _load_custom_modules(load_module):
     try:
         return load_custom_modules(load_module)
@@ -94,11 +100,14 @@ def _load_custom_modules(load_module):
     is_flag=True,
     help=HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
 )
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def cli(ctx, disable_update_check, disable_indicator_update_check):
+def cli(ctx, disable_update_check, disable_indicator_update_check, verbose):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
+    ctx.obj["verbose"] = verbose
+    set_verbose_logging(verbose)
     logo(
         disable_version_check=disable_update_check,
         disable_indicator_check=disable_indicator_update_check,
@@ -254,7 +263,7 @@ def extract_key(password, key_file, backup_path):
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -269,7 +278,7 @@ def check_backup(
     verbose,
     backup_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     module_options = {"fast_mode": fast}
     custom_modules = _load_custom_modules(load_module)
 
@@ -323,7 +332,7 @@ def check_backup(
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_fs(
@@ -338,7 +347,7 @@ def check_fs(
     verbose,
     dump_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     module_options = {"fast_mode": fast}
     custom_modules = _load_custom_modules(load_module)
 
@@ -392,7 +401,7 @@ def check_fs(
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("SYSDIAGNOSE_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_sysdiagnose(
@@ -406,7 +415,7 @@ def check_sysdiagnose(
     verbose,
     sysdiagnose_path,
 ):
-    set_verbose_logging(verbose)
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
     cmd = CmdIOSCheckSysdiagnose(
         target_path=sysdiagnose_path,

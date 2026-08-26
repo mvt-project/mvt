@@ -17,6 +17,10 @@ HELP_MSG_LOAD_MODULE = (
 HELP_MSG_NONINTERACTIVE = "Don't ask interactive questions during processing"
 HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"
+HELP_MSG_VERBOSE_COMMAND = (
+    "Verbose mode (kept for compatibility, pass --verbose before the command "
+    "name instead)"
+)
 HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
 HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
