@@ -75,15 +75,14 @@ mvt completion bash
 ```
 
 MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
-Module-running `check-*` commands can load custom Python modules with
-`--load-module PATH` or from a folder set in `MVT_CUSTOM_MODULES`. See the
-[development documentation](https://docs.mvt.re/en/latest/development/) for
-details.
 
-Users can also add top-level commands to `mvt`, `mvt-ios` and `mvt-android`
-from installed Python packages or local files and folders. See the
+Plugin packages extend MVT with additional forensic modules, which run inside
+the `check-*` commands, and with top-level commands on `mvt`, `mvt-ios` and
+`mvt-android`. See the
+[development documentation](https://docs.mvt.re/en/latest/development/) for
+writing and installing them, and the
 [custom CLI command documentation](https://docs.mvt.re/en/latest/development/custom_commands/)
-for the plugin entry points and `--load-command` interface.
+for the entry points a package registers commands in.
 
 
 ## License

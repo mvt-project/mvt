@@ -85,10 +85,13 @@ plugin it belongs to, so name it after the plugin, and make it a Click group
 when the plugin has several operations to offer, such as
 `mvt my-plugin configure`.
 
-## Load a Command File
+## Developing a Command Locally
 
-For local commands that are not packaged, create a Python file that exports one
-Click command or group named `cli`:
+A package is how a command is distributed. While a command is being written,
+MVT can load it straight from its file instead, so the package need not be
+reinstalled after every change; an editable install of the package does the
+same through its entry points. Create a Python file that exports one Click
+command or group named `cli`:
 
 ```python
 import click
