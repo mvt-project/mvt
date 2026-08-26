@@ -24,8 +24,7 @@ configuration:
 
 The exact parent folder follows the platform convention used for MVT's
 `config.yaml` (for example `~/Library/Application Support/mvt` on macOS). Use
-`mvt.common.plugin_config.plugin_config_path()` instead of building the path by
-hand.
+`plugin_config_path()` from `mvt.plugin` instead of building the path by hand.
 
 Plugin names must be lowercase and may only contain letters, digits and dashes,
 matching the `mvt-plugin-<name>` package naming convention. MVT creates the
@@ -38,9 +37,8 @@ leaves a partially written settings file behind.
 
 Everything else a plugin keeps on disk, such as a cache, a downloaded artifact
 or synchronization state, belongs in the folder returned by the `data_folder()`
-class method of the plugin's settings class, or by
-`mvt.common.plugin_config.plugin_data_folder()` called with the plugin name if
-the plugin has no settings class:
+class method of the plugin's settings class, or by `plugin_data_folder()` from
+`mvt.plugin`, called with the plugin name if the plugin has no settings class:
 
 ```
 ~/.local/share/mvt/plugin-data/<plugin name>/                # Linux
@@ -76,7 +74,7 @@ defaults:
 ```python
 from typing import Optional
 
-from mvt.common.plugin_config import MVTPluginSettings
+from mvt.plugin import MVTPluginSettings
 
 
 class ExamplePluginSettings(MVTPluginSettings):
@@ -94,18 +92,24 @@ from datetime import datetime, timezone
 
 import click
 
+from mvt.plugin import plugin_env_prefix
+
 
 def sync():
     settings = ExamplePluginSettings.load()
     if not settings.API_KEY:
+        prefix = plugin_env_prefix(settings.plugin_name)
         raise click.ClickException(
-            "No API key configured. Set MVT_PLUGIN_EXAMPLE_PLUGIN_API_KEY or "
+            f"No API key configured. Set {prefix}API_KEY or "
             "run 'example-plugin configure'."
         )
 
     settings.LAST_SYNC = datetime.now(timezone.utc).isoformat()
     settings.save()
 ```
+
+The message builds the variable name with `plugin_env_prefix()`, see
+[Environment Variables](#environment-variables).
 
 A missing settings file is not an error: the plugin then runs on the field
 defaults and on whatever the environment provides. `save()` only persists the
@@ -128,6 +132,10 @@ underscores, followed by the field name. For the example above:
 export MVT_PLUGIN_EXAMPLE_PLUGIN_API_KEY=...
 export MVT_PLUGIN_EXAMPLE_PLUGIN_MAX_RESULTS=50
 ```
+
+Do not repeat the plugin name in a field name: a plugin named `example-scanner`
+with a `SCANNER_API_KEY` field asks the user for
+`MVT_PLUGIN_EXAMPLE_SCANNER_SCANNER_API_KEY`. Name the field `API_KEY`.
 
 Settings resolve in this order, from highest to lowest priority:
 

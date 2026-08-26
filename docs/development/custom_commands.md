@@ -29,6 +29,10 @@ def summarize(path):
     click.echo(f"Summarizing {path}")
 ```
 
+Log through `get_plugin_logger(__name__)` from `mvt.plugin`. Records logged
+through `logging.getLogger(__name__)` do not reach `command.log`, and MVT's
+console handler does not show them.
+
 Register the object in the package's `pyproject.toml`. The entry-point name is
 the command users invoke:
 
@@ -124,6 +128,64 @@ export MVT_CUSTOM_COMMANDS=./commands
 export MVT_IOS_CUSTOM_COMMANDS=./ios_commands
 export MVT_ANDROID_CUSTOM_COMMANDS=./android_commands
 ```
+
+## Building a Module-Running Command
+
+A command which runs forensic modules over an acquisition subclasses `Command`.
+`Command` creates the output folder and writes `command.log`. It orders the
+modules, resolves their dependencies and runs them. It writes the result files,
+`alerts.json` and `info.json`. The subclass sets `platform`, `name` and
+`modules`:
+
+```python
+from mvt.plugin import Command, MVTModule, convert_unix_to_iso, get_plugin_logger
+
+log = get_plugin_logger(__name__)
+
+
+class APKManifest(MVTModule):
+    supported_commands = (("android", "check-apks"),)
+
+    def run(self):
+        self.results = [{"checked_at": convert_unix_to_iso(0)}]
+
+
+class CmdCheckAPKs(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.platform = "android"
+        self.name = "check-apks"
+        self.modules = [APKManifest]
+```
+
+`platform` and `name` are the pair the modules declare in
+`supported_commands`. `modules` lists the module classes the command runs,
+imported directly. A command which runs modules of another plugin depends on
+that package in `pyproject.toml` and imports them the same way. `init()`,
+`module_init(module)` and `finish()` are optional hooks. `run()` calls them
+before the run, before each module and after the run.
+
+Wrap the command in a Click command with an `--output` option. Run it, then
+print the alert summary:
+
+```python
+import click
+
+
+@click.command("check-apks")
+@click.option("--output", "-o", type=click.Path(exists=False))
+@click.argument("TARGET_PATH", type=click.Path(exists=True))
+def cli(output, target_path):
+    cmd = CmdCheckAPKs(target_path=target_path, results_path=output)
+    log.info("Checking APK files at path: %s", target_path)
+    cmd.run()
+    cmd.show_alerts_brief()
+```
+
+The `--verbose` option of `mvt`, `mvt-ios` and `mvt-android` applies to the
+command. The command defines no `--verbose` option of its own. The pair a
+plugin command adds is not listed anywhere in MVT. Name it in the plugin's
+README.
 
 ## Naming and Errors
 
