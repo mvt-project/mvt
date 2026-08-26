@@ -368,3 +368,24 @@ def test_unsafe_plugin_names_have_no_data_folder(data_folder, plugin_name):
         plugin_data_folder(plugin_name)
 
     assert not os.path.exists(data_folder)
+
+
+def test_settings_class_knows_its_data_folder(data_folder):
+    folder = ExamplePluginSettings.data_folder()
+
+    assert folder == plugin_data_folder("example-plugin")
+    assert os.path.isdir(folder)
+    assert OtherPluginSettings.data_folder() != folder
+
+
+def test_settings_instance_uses_the_same_data_folder(config_folder, data_folder):
+    settings = ExamplePluginSettings.load()
+
+    assert settings.data_folder() == ExamplePluginSettings.data_folder()
+
+
+def test_subclass_without_its_own_name_shares_the_data_folder(data_folder):
+    class InheritingSettings(ExamplePluginSettings):
+        pass
+
+    assert InheritingSettings.data_folder() == ExamplePluginSettings.data_folder()

@@ -84,7 +84,8 @@ def plugin_data_folder(plugin_name: str) -> str:
     Plugins should keep whatever they persist, such as caches or downloaded
     artifacts, in this folder. It is created with owner-only permissions. The
     path is resolved on every call so it always reflects the current
-    environment.
+    environment. A plugin with a settings class calls
+    `MVTPluginSettings.data_folder()` instead, which passes `plugin_name` here.
 
     :param plugin_name: Name of the plugin.
     :returns: The path of the data folder of the plugin.
@@ -160,6 +161,8 @@ class MVTPluginSettings(BaseSettings):
 
     Plugins must not store their settings in MVT's own configuration file: MVT
     rewrites it with the fields it knows about, dropping anything else.
+
+    `data_folder()` returns the folder the plugin keeps its data in.
     """
 
     model_config = SettingsConfigDict(extra="ignore")
@@ -198,6 +201,16 @@ class MVTPluginSettings(BaseSettings):
         from the environment and from the field defaults.
         """
         return cls()
+
+    @classmethod
+    def data_folder(cls) -> str:
+        """
+        Return the data folder of the plugin, creating it.
+
+        The folder is the one plugin_data_folder() returns for `plugin_name`,
+        so a plugin with a settings class does not repeat its name.
+        """
+        return plugin_data_folder(_settings_plugin_name(cls))
 
     def _environment_values(self) -> Dict[str, Any]:
         """

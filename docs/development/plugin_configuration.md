@@ -37,28 +37,33 @@ leaves a partially written settings file behind.
 ## Plugin Data Folder
 
 Everything else a plugin keeps on disk, such as a cache, a downloaded artifact
-or synchronization state, belongs in the folder returned by
-`mvt.common.plugin_config.plugin_data_folder()`:
+or synchronization state, belongs in the folder returned by the `data_folder()`
+class method of the plugin's settings class, or by
+`mvt.common.plugin_config.plugin_data_folder()` called with the plugin name if
+the plugin has no settings class:
 
 ```
 ~/.local/share/mvt/plugin-data/<plugin name>/                # Linux
 ~/Library/Application Support/mvt/plugin-data/<plugin name>/ # macOS
 ```
 
-The folder sits beside MVT's own data, such as the downloaded indicators.
-`plugin_data_folder()` creates it if it is missing, with `0700` permissions,
-and returns its path. Calling it again returns the same path and leaves the
-contents alone, so a plugin can call it every time it needs the folder:
+The folder sits beside MVT's own data, such as the downloaded indicators. It is
+created if it is missing, with `0700` permissions. Asking for it again returns
+the same path and leaves the contents alone, so a plugin can ask for it every
+time it needs the folder. `ExamplePluginSettings` below is the settings class
+defined in the next section:
 
 ```python
 import os
 
-from mvt.common.plugin_config import plugin_data_folder
-
 
 def cache_path() -> str:
-    return os.path.join(plugin_data_folder("example-plugin"), "results.json")
+    folder = ExamplePluginSettings.data_folder()
+    return os.path.join(folder, "virustotal_lookups_cache.json")
 ```
+
+A plugin which has no settings class calls
+`plugin_data_folder("example-plugin")` instead.
 
 Do not fall back on a path of your own such as `~/.cache/example-plugin`: it
 is a Linux-only convention, and MVT will not create it for you.
