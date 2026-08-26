@@ -62,6 +62,27 @@ AndroidQF will prompt the user to download, decrypt and collect device intrusion
 
 For cases where intrusion logs were collected outside of an AndroidQF acquisition, the standalone `mvt-android check-intrusion-logs` command can analyse them directly. See [Check Android Intrusion Logs](intrusion_logs.md) for details, and the [feature announcment from Amnesty International's Security Lab](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/) for background on the data source.
 
+## Browser history
+
+AndroidQF can optionally collect browser `History` databases when a device
+already has working root access. When its acquisition contains the
+`browser_history/manifest.json` file, `mvt-android check-androidqf` parses every
+listed database, including any collected SQLite WAL and SHM sidecars. Browser
+visits are added to the module results, timeline, URL output, and indicator
+checks.
+
+MVT can also inspect the supported database locations in a full Android
+filesystem dump, or inspect one explicitly supplied Chromium `History` file:
+
+```bash
+mvt-android check-fs --output /path/to/results /path/to/filesystem-dump
+mvt-android check-fs --output /path/to/results /path/to/History
+```
+
+The built-in locations cover Chrome, Brave, Microsoft Edge, and Samsung
+Internet. Other Chromium-compatible databases can be supplied explicitly as a
+file without assigning an unverified browser identity.
+
 ## Android Debug Bridge analysis removed
 
 The ability to analyze Android devices directly over ADB has been removed from MVT. Direct extraction of data from ADB was error-prone and frequently resulted in inconsistent data collection between ADB and AndroidQF acquisitions. Use AndroidQF for device acquisition and `mvt-android check-androidqf` for analysis.
