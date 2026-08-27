@@ -402,4 +402,14 @@ def module_supports_command(
         )
         return False
 
-    return (platform, command) in {tuple(entry) for entry in supported_commands}
+    pairs = {tuple(entry) for entry in supported_commands}
+    if (platform, command) in pairs:
+        return True
+
+    # A module which implements check_indicators() is re-checked by check-iocs
+    # for its platform. It does not need to declare the check-iocs pair.
+    return (
+        command == "check-iocs"
+        and platform in {entry[0] for entry in pairs if entry}
+        and module_class.check_indicators is not MVTModule.check_indicators
+    )

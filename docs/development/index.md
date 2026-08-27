@@ -78,7 +78,9 @@ MVT logs a warning. The nine pairs are:
 
 `check-iocs` re-checks stored results rather than an acquisition. It matches
 every `<slug>.json` file in the results folder to the module with that slug.
-It then runs that module's `check_indicators()` again.
+It then runs that module's `check_indicators()` again. A module which
+implements `check_indicators()` is included in `check-iocs` for its platform.
+It does not need to declare the `check-iocs` pair.
 
 ### Writing a module
 
@@ -222,12 +224,14 @@ keep running and replace nothing. Every applied substitution is logged, so it
 is recorded in `command.log` when the command runs with an `--output` folder.
 
 Every command resolves replacements on its own. `check-iocs` matches stored
-results files against the slugs of the modules available for that command, so a
-replacement checks the indicators of its own results only if it also declares
-the `("ios", "check-iocs")` pair; otherwise the built-in module it replaced
-re-checks the file. It also matches `--module` on the class name only, so pass
-a differently named replacement's own name there, not the name of the module
-it replaces.
+results files against the slugs of the modules available for that command. A
+replacement which subclasses the module it replaces inherits its
+`check_indicators()`. It is then part of `check-iocs` for its platform and
+re-checks the results file named after its slug. A replacement with no
+`check_indicators()` is not part of `check-iocs`. The built-in module it
+replaced re-checks the file. `check-iocs` matches `--module` on the class name
+only. Pass a differently named replacement's own name there, not the name of
+the module it replaces.
 
 ### Importing from MVT
 
