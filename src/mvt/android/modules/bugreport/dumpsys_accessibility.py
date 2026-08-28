@@ -50,9 +50,14 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
 
         for result in self.results:
             self.log.info(
-                'Found installed accessibility service "%s"', result.get("service")
+                'Found installed accessibility service "%s" (enabled: %s)',
+                result.get("service"),
+                result.get("enabled", False),
             )
 
+        enabled_count = sum(1 for r in self.results if r.get("enabled"))
         self.log.info(
-            "Identified a total of %d accessibility services", len(self.results)
+            "Identified a total of %d accessibility services, %d enabled",
+            len(self.results),
+            enabled_count,
         )
