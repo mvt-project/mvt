@@ -7,6 +7,7 @@ import glob
 import json
 import logging
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import lru_cache
@@ -24,6 +25,9 @@ MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
 logger = logging.getLogger(__name__)
 
 URL_CHECK_MAX_WORKERS = 20
+STIX_EQUALITY_PATTERN = re.compile(
+    r"^\[\s*(?P<key>[^=\s]+)\s*=\s*'(?P<value>(?:\\.|[^'])*)'\s*\]$"
+)
 
 
 @dataclass
@@ -109,15 +113,24 @@ class Indicators:
         }
 
     def _add_indicator(self, ioc: str, ioc_coll: dict, ioc_coll_list: list) -> None:
-        ioc = ioc.replace("'", "").strip()
+        ioc = ioc.strip()
         if ioc not in ioc_coll_list:
             ioc_coll_list.append(ioc)
             ioc_coll["count"] += 1
             self.total_ioc_count += 1
 
     def _process_indicator(self, indicator: dict, collection: dict) -> None:
-        key, value = indicator.get("pattern", "").strip("[]").split("=")
-        key = key.strip()
+        pattern = indicator.get("pattern", "")
+        match = STIX_EQUALITY_PATTERN.fullmatch(pattern) if isinstance(pattern, str) else None
+        if not match:
+            self.log.warning(
+                "Skipping indicator %s with unsupported or malformed pattern",
+                indicator.get("id", "<unknown>"),
+            )
+            return
+
+        key = match.group("key")
+        value = re.sub(r"\\(['\\])", r"\1", match.group("value"))
 
         # Normalize hash algorithm keys so that both the STIX2-spec-compliant
         # form (e.g. file:hashes.'SHA-256', which requires quotes around
