@@ -57,18 +57,19 @@ class TestDumpsysBatteryDailyArtifact:
         assert uninstall_alert.message == (
             "Detected uninstall of package com.example.removed (vers 0)"
         )
-        assert uninstall_alert.event_time == "2022-08-16"
+        assert uninstall_alert.event_time == "2022-08-16 15:56:39"
         assert uninstall_alert.event["package_name"] == "com.example.removed"
-        assert uninstall_alert.event["vers"] == "0"
+        assert uninstall_alert.event["version_code"] == 0
+        assert uninstall_alert.event["action"] == "uninstall"
 
         assert downgrade_alert.level == AlertLevel.MEDIUM
         assert downgrade_alert.message == (
             "Detected downgrade of package com.example.app from vers 10 to vers 9"
         )
-        assert downgrade_alert.event_time == "2022-08-17"
+        assert downgrade_alert.event_time == "2022-08-17 15:56:39"
         assert downgrade_alert.event["package_name"] == "com.example.app"
         assert downgrade_alert.event["action"] == "downgrade"
-        assert downgrade_alert.event["previous_vers"] == "10"
+        assert downgrade_alert.event["previous_version_code"] == 10
 
     def test_newest_first_update_is_not_reported_as_downgrade(self):
         dba = DumpsysBatteryDailyArtifact()
@@ -107,7 +108,19 @@ class TestDumpsysBatteryDailyArtifact:
         assert downgrade_alert.event_time == "2026-01-10"
         assert downgrade_alert.event["package_name"] == "com.example.app"
         assert downgrade_alert.event["action"] == "downgrade"
-        assert downgrade_alert.event["previous_vers"] == "102"
+        assert downgrade_alert.event["previous_version_code"] == 102
+
+    def test_duplicate_updates_retain_occurrence_count(self):
+        dba = DumpsysBatteryDailyArtifact()
+        dba.parse(
+            """  Daily from 2026-01-10-01-02-03 to 2026-01-11-04-05-06:
+      Update com.example.app vers=12
+      Update com.example.app vers=12
+"""
+        )
+
+        assert dba.results[0]["occurrences"] == 2
+        assert dba.results[0]["period_start"] == "2026-01-10 01:02:03"
 
     def test_reinstall_after_uninstall_is_not_reported_as_downgrade(self):
         dba = DumpsysBatteryDailyArtifact()

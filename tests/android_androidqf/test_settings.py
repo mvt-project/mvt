@@ -6,12 +6,27 @@
 from pathlib import Path
 
 from mvt.android.modules.androidqf.aqf_settings import AQFSettings
+from mvt.android.artifacts.settings import Settings
 from mvt.common.module import run_module
 
 from ..utils import get_android_androidqf, list_files
 
 
 class TestSettingsModule:
+    def test_bugreport_settings_format(self):
+        settings = Settings()
+        settings.parse(
+            "GLOBAL SETTINGS (user 0)\n"
+            "_id:1 name:adb_wifi_enabled pkg:android value:0 default:0 defaultSystemSet:true\n"
+            "SECURE SETTINGS (user 10)\n"
+            "_id:2 name:accessibility_enabled pkg:android value:1\n"
+        )
+
+        assert settings.results == {
+            "global:user_0": {"adb_wifi_enabled": "0"},
+            "secure:user_10": {"accessibility_enabled": "1"},
+        }
+
     def test_parsing(self):
         data_path = get_android_androidqf()
         m = AQFSettings(target_path=data_path)

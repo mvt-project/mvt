@@ -49,9 +49,7 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
         self.parse(content)
 
         for result in self.results:
-            self.log.info(
-                'Found installed accessibility service "%s"', result.get("service")
-            )
+            self.log.info('Found accessibility service "%s"', result.get("component"))
 
         self.log.info(
             "Identified a total of %d accessibility services", len(self.results)

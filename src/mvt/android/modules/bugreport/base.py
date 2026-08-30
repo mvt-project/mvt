@@ -72,7 +72,11 @@ class BugReportModule(MVTModule):
             if not self.extract_path:
                 raise ValueError("extract_path is not set")
             joined = os.path.join(self.extract_path, file_path)
-            if not Path(joined).resolve().is_relative_to(Path(self.extract_path).resolve()):
+            if (
+                not Path(joined)
+                .resolve()
+                .is_relative_to(Path(self.extract_path).resolve())
+            ):
                 raise ValueError("unsafe file_path")
             handle = open(joined, "rb")
 
@@ -99,6 +103,27 @@ class BugReportModule(MVTModule):
             return self._get_file_content(dumpsys_files[0])
 
         return None
+
+    @staticmethod
+    def extract_command_section(content: str, heading: str) -> str:
+        """Return a bugreport command section without consuming the next one.
+
+        Bugreport separators include timing text, so looking for a line equal to
+        ``------`` is not sufficient and can accidentally feed the remainder of
+        dumpstate to a parser.
+        """
+        lines: list[str] = []
+        in_section = False
+        for line in content.splitlines():
+            stripped = line.strip()
+            if not in_section:
+                if stripped.startswith(heading):
+                    in_section = True
+                continue
+            if stripped.startswith("------"):
+                break
+            lines.append(line)
+        return "\n".join(lines)
 
     def _get_file_modification_time(self, file_path: str) -> datetime.datetime:
         if self.zip_archive:

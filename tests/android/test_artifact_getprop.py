@@ -39,3 +39,29 @@ class TestGetPropArtifact:
         assert len(gp.alertstore.alerts) == 0
         gp.check_indicators()
         assert len(gp.alertstore.alerts) == 1
+
+    def test_empty_values_and_invalid_lines(self):
+        gp = GetProp()
+        gp.parse("[empty]: []\n[valid]: [value]\n0\n[broken]: [value")
+
+        assert gp.results == [
+            {"name": "empty", "value": ""},
+            {"name": "valid", "value": "value"},
+        ]
+
+    def test_multiline_value(self):
+        gp = GetProp()
+        gp.parse(
+            "[persist.sys.boot.reason.history]: ["
+            "reboot,ota,1697044974\n"
+            "reboot,watchdog,1696958574]\n"
+            "[ro.build.version.sdk]: [35]\n"
+        )
+
+        assert gp.results == [
+            {
+                "name": "persist.sys.boot.reason.history",
+                "value": "reboot,ota,1697044974\nreboot,watchdog,1696958574",
+            },
+            {"name": "ro.build.version.sdk", "value": "35"},
+        ]

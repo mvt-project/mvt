@@ -54,10 +54,11 @@ class TestBugreportAnalysis:
             == "com.samsung.android.provider.filterprovider"
         )
         assert m.results[1]["package_name"] == "com.instagram.android"
-        assert m.results[0]["installer"] == ""
+        assert m.results[0]["installer"] is None
         assert m.results[1]["installer"] == "com.android.vending"
         assert len(m.results[0]["permissions"]) == 4
-        assert len(m.results[1]["permissions"]) == 32
+        assert len(m.results[1]["permissions"]) == 20
+        assert len(m.results[1]["users"][0]["permissions"]) == 19
 
     def test_getprop_module(self):
         m = self.launch_bug_report_module(DumpsysGetProp)
@@ -66,29 +67,34 @@ class TestBugreportAnalysis:
     def test_receivers_match_exact_package_name(self, indicators_factory):
         intent = "android.intent.action.PHONE_STATE"
         false_positive = {
+            "resolver_type": "non_data_action",
+            "key": intent,
             "package_name": "com.android.phone",
-            "receiver": (
+            "component": (
                 "com.android.phone/"
                 "com.android.services.telephony.sip.SipIncomingCallReceiver"
             ),
+            "filter_count": 1,
         }
         malicious_receiver = {
+            "resolver_type": "non_data_action",
+            "key": intent,
             "package_name": "com.android.services",
-            "receiver": "com.android.services/com.example.SomeReceiver",
+            "component": "com.android.services/com.example.SomeReceiver",
+            "filter_count": 1,
         }
-        module = DumpsysReceivers(
-            results={intent: [false_positive, malicious_receiver]}
-        )
+        module = DumpsysReceivers(results=[false_positive, malicious_receiver])
         module.indicators = indicators_factory(app_ids=["com.android.services"])
 
         module.check_indicators()
 
         assert len(module.alertstore.alerts) == 1
         alert = module.alertstore.alerts[0]
-        assert alert.event == {intent: malicious_receiver}
+        assert alert.event == malicious_receiver
         assert alert.matched_indicator.value == "com.android.services"
 
     def test_tombstones_modules(self):
         m = self.launch_bug_report_module(Tombstones)
         assert len(m.results) == 2
         assert m.results[1]["pid"] == 3559
+        assert m.results[0]["sources"]["text"]["parsed"] is True

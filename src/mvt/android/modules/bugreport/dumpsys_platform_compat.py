@@ -13,7 +13,7 @@ from mvt.common.module_types import ModuleResults
 
 
 class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
-    """This module extracts details on uninstalled apps."""
+    """This module extracts raw per-package compatibility overrides."""
 
     def __init__(
         self,
@@ -48,4 +48,4 @@ class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
         )
         self.parse(content)
 
-        self.log.info("Found %d uninstalled apps", len(self.results))
+        self.log.info("Found %d package compatibility overrides", len(self.results))
