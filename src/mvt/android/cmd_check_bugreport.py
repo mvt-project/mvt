@@ -53,6 +53,7 @@ class CmdAndroidCheckBugreport(Command):
 
         self.platform = "android"
         self.name = "check-bugreport"
+        self.output_schema_version = 2
         self.modules = BUGREPORT_MODULES
 
         self.__format: str = ""
