@@ -19,7 +19,12 @@ from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
-from .module_loader import module_supports_command
+from .module_loader import (
+    ModuleOrigin,
+    get_module_logger,
+    get_module_origin,
+    module_supports_command,
+)
 from .module_types import ModuleTimeline, URLResult
 from .utils import (
     CustomJSONEncoder,
@@ -66,6 +71,10 @@ class Command:
         # the Command to all modules. This can for example be used to pass
         # down a password to decrypt a backup or flags which are need by some modules.
         self.module_options = module_options if module_options else {}
+
+        # This dictionary maps the modules which were replaced by a module
+        # declaring `replaces` to the module which took their place.
+        self.module_replacements: dict[type[MVTModule], type[MVTModule]] = {}
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
@@ -210,10 +219,34 @@ class Command:
         for file in generate_hashes_from_path(self.target_path, self.log):
             self.hash_values.append(file)
 
+    @staticmethod
+    def _modules_by_origin(
+        modules: list[type[MVTModule]],
+    ) -> dict[ModuleOrigin, list[str]]:
+        origins: dict[ModuleOrigin, list[str]] = {}
+        for module in modules:
+            origins.setdefault(get_module_origin(module), []).append(module.__name__)
+        return origins
+
     def list_modules(self) -> None:
         self.log.info("Following is the list of available %s modules:", self.name)
-        for module in self._available_modules():
-            self.log.info(" - %s", module.__name__)
+        for origin, module_names in self._modules_by_origin(
+            self._available_modules()
+        ).items():
+            self.log.info(
+                " - Modules from %s: %s", origin.label, ", ".join(module_names)
+            )
+
+    def _log_loaded_modules(self, modules: list[type[MVTModule]]) -> None:
+        """Record the loaded modules and their origins for auditability."""
+        for origin, module_names in self._modules_by_origin(modules).items():
+            self.log.info(
+                "Loaded %d %s modules from %s: %s",
+                len(module_names),
+                self.name,
+                origin.label,
+                ", ".join(module_names),
+            )
 
     def _available_modules(self) -> list[type[MVTModule]]:
         modules = list(self.modules)
@@ -228,7 +261,174 @@ class Command:
             if module not in deduplicated:
                 deduplicated.append(module)
 
-        return deduplicated
+        available = self._apply_replacements(deduplicated)
+        self._warn_about_slug_collisions(available)
+
+        return available
+
+    def _warn_about_slug_collisions(self, modules: list[type[MVTModule]]) -> None:
+        """Report modules writing their results to the same file.
+
+        Results are stored in a file named after the module slug, so two
+        modules sharing one silently overwrite each other. Replacements are
+        already resolved here, so a module deliberately taking over the slug
+        of the module it replaces is not reported: the module it replaced is
+        no longer part of the run.
+        """
+        modules_by_slug: dict[str, type[MVTModule]] = {}
+        for module in modules:
+            slug = module.get_slug()
+            first = modules_by_slug.setdefault(slug, module)
+            if first is module:
+                continue
+
+            self.log.warning(
+                "Modules %s from %s and %s from %s both use the slug %s. If "
+                "both run, whichever runs last overwrites the results of the "
+                "other in %s.json.",
+                first.__name__,
+                get_module_origin(first).label,
+                module.__name__,
+                get_module_origin(module).label,
+                slug,
+                slug,
+            )
+
+    def _declared_replacements(
+        self, modules: list[type[MVTModule]]
+    ) -> dict[type[MVTModule], type[MVTModule]]:
+        """Return the replacements declared by the given modules."""
+        replacements: dict[type[MVTModule], type[MVTModule]] = {}
+        for module in modules:
+            replaced = module.replaces
+            if replaced is None or replaced is module:
+                continue
+
+            if not module.enabled:
+                # Replacing a module must not disable it, as a disabled
+                # replacement never runs in its place.
+                self.log.debug(
+                    "Module %s is disabled and does not replace module %s.",
+                    module.__name__,
+                    replaced.__name__,
+                )
+                continue
+
+            if replaced not in modules:
+                # A module can support several commands while the module it
+                # replaces is only available in some of them.
+                self.log.debug(
+                    "Module %s replaces module %s, which is not available "
+                    "for the %s command.",
+                    module.__name__,
+                    replaced.__name__,
+                    self.name,
+                )
+                continue
+
+            if replaced in replacements:
+                self.log.warning(
+                    "Modules %s and %s both replace module %s. Both of them "
+                    "will run, %s will not, and modules depending on %s will "
+                    "use the results of %s. Replacements which share the slug "
+                    "of %s overwrite each other's results file.",
+                    replacements[replaced].__name__,
+                    module.__name__,
+                    replaced.__name__,
+                    replaced.__name__,
+                    replaced.__name__,
+                    replacements[replaced].__name__,
+                    replaced.__name__,
+                )
+                continue
+
+            replacements[replaced] = module
+
+        return replacements
+
+    def _drop_replacement_cycles(
+        self, replacements: dict[type[MVTModule], type[MVTModule]]
+    ) -> None:
+        """Undo the replacements between modules which replace each other."""
+        cyclic: set[type[MVTModule]] = set()
+        for replaced in replacements:
+            walked: list[type[MVTModule]] = []
+            module = replaced
+            while module in replacements and module not in cyclic:
+                if module in walked:
+                    cyclic.update(walked[walked.index(module) :])
+                    break
+                walked.append(module)
+                module = replacements[module]
+
+        if not cyclic:
+            return
+
+        self.log.warning(
+            "Modules %s replace each other in a cycle. None of them replaces "
+            "anything and all of them will run.",
+            ", ".join(sorted(module.__name__ for module in cyclic)),
+        )
+        for module in cyclic:
+            replacements.pop(module, None)
+
+    def _log_replacement(
+        self,
+        replaced: type[MVTModule],
+        module: type[MVTModule],
+        replacement: type[MVTModule],
+    ) -> None:
+        """Report an applied replacement, and any problem with it."""
+        if not issubclass(module, replaced):
+            self.log.warning(
+                "Module %s replaces module %s but is not a subclass of it. "
+                "Its results might not be compatible with what modules "
+                "depending on %s expect.",
+                module.__name__,
+                replaced.__name__,
+                replaced.__name__,
+            )
+
+        if replaced in module.dependencies:
+            self.log.warning(
+                "Module %s depends on module %s, which it also replaces. The "
+                "dependency cannot be satisfied: a replacement has to produce "
+                "that data itself.",
+                module.__name__,
+                replaced.__name__,
+            )
+
+        self.log.info(
+            "Module %s from %s replaces module %s from %s.",
+            replacement.__name__,
+            get_module_origin(replacement).label,
+            replaced.__name__,
+            get_module_origin(replaced).label,
+        )
+
+    def _apply_replacements(
+        self, modules: list[type[MVTModule]]
+    ) -> list[type[MVTModule]]:
+        """Drop the modules superseded by a module declaring `replaces`."""
+        declared = self._declared_replacements(modules)
+        self._drop_replacement_cycles(declared)
+
+        replacements: dict[type[MVTModule], type[MVTModule]] = {}
+        for replaced, module in declared.items():
+            # Follow chains of replacements, so that a dependency on a
+            # replaced module always resolves to a module which is part of
+            # the run.
+            replacement = module
+            while replacement in declared:
+                replacement = declared[replacement]
+
+            # Only the replacements which are applied are reported, so that
+            # the record matches the modules which actually run.
+            self._log_replacement(replaced, module, replacement)
+            replacements[replaced] = replacement
+
+        self.module_replacements = replacements
+        return [module for module in modules if module not in replacements]
 
     def init(self) -> None:
         raise NotImplementedError
@@ -288,42 +488,196 @@ class Command:
         console.print("")
         console.print(panel)
 
+    def _module_dependencies(
+        self, module: type[MVTModule]
+    ) -> list[tuple[type[MVTModule], type[MVTModule]]]:
+        """Return the (declared, resolved) dependencies of a module.
+
+        A dependency on a module which was replaced is resolved to the module
+        which took its place. A module which replaces one of its own
+        dependencies is not made to depend on itself, while a module which
+        declares itself as a dependency is left alone and still fails the
+        circular dependency check.
+        """
+        dependencies = []
+        for dependency in module.dependencies:
+            resolved = self.module_replacements.get(dependency, dependency)
+            if resolved is module and dependency is not module:
+                continue
+            dependencies.append((dependency, resolved))
+
+        return dependencies
+
+    @staticmethod
+    def _dependency_name(
+        declared: type[MVTModule], resolved: type[MVTModule]
+    ) -> str:
+        """Return how a dependency is named in the messages about it.
+
+        A dependency is named as the module which declared it wrote it, and,
+        when that module was replaced, as the module which runs in its place.
+        """
+        if declared is resolved:
+            return declared.__name__
+
+        return f"{resolved.__name__} (replacing module {declared.__name__})"
+
+    def _selected_modules(
+        self, modules: list[type[MVTModule]]
+    ) -> Optional[list[type[MVTModule]]]:
+        """Return the modules explicitly requested, or all the enabled ones.
+
+        Returns None when a module was requested by name and no module of
+        that name can be run.
+        """
+        if not self.module_name:
+            return [module for module in modules if module.enabled]
+
+        selected = [
+            module for module in modules if module.__name__ == self.module_name
+        ]
+
+        # A module replacing another one does not have to keep its name, so
+        # the name of a replaced module selects its replacement.
+        if not selected:
+            for replaced, replacement in self.module_replacements.items():
+                if replaced.__name__ != self.module_name or replacement in selected:
+                    continue
+                self.log.info(
+                    "Module %s was replaced by module %s, which is run "
+                    "in its place.",
+                    replaced.__name__,
+                    replacement.__name__,
+                )
+                selected.append(replacement)
+
+        if not selected:
+            self.log.warning(
+                "No module named %s is available for the %s command. "
+                "No modules will be run.",
+                self.module_name,
+                self.name,
+            )
+            return None
+
+        return selected
+
+    def _skipped_modules(
+        self,
+        required: list[type[MVTModule]],
+        module_indexes: dict[type[MVTModule], int],
+    ) -> dict[type[MVTModule], tuple[type[MVTModule], type[MVTModule]]]:
+        """Return the modules to drop because a dependency is unavailable.
+
+        A module declaring a dependency this command cannot provide is unable
+        to run, and so is every module depending on it. Dropping only those
+        keeps a single wrong declaration - in a module scoped to several
+        commands, for example - from silencing an entire analysis.
+
+        The returned mapping gives, for each skipped module, the module which
+        is missing a dependency and the dependency it is missing.
+        """
+        skipped: dict[type[MVTModule], tuple[type[MVTModule], type[MVTModule]]] = {}
+        # Skipping the one module a run was asked for leaves nothing to run,
+        # which the caller reports instead.
+        remainder = (
+            "" if self.module_name else " The rest of the analysis will still run."
+        )
+
+        # Skipping one module can skip the modules depending on it, which the
+        # pass over the module list may already have gone past, so repeat the
+        # pass until nothing changes.
+        changed = True
+        while changed:
+            changed = False
+            for module in required:
+                if module in skipped:
+                    continue
+
+                for declared, dependency in self._module_dependencies(module):
+                    if dependency not in module_indexes:
+                        # A replaced dependency always resolves to a module of
+                        # this command, so an unavailable one is always the
+                        # module class the author declared.
+                        skipped[module] = (module, declared)
+                        changed = True
+                        self.log.warning(
+                            "Module %s will be SKIPPED: it depends on module "
+                            "%s, which is not available in this command.%s",
+                            module.__name__,
+                            declared.__name__,
+                            remainder,
+                        )
+                        break
+
+                    if dependency in skipped:
+                        root, missing = skipped[dependency]
+                        skipped[module] = (root, missing)
+                        changed = True
+                        if dependency is root:
+                            self.log.warning(
+                                "Module %s will be SKIPPED: it depends on "
+                                "module %s, itself skipped for depending on "
+                                "unavailable module %s.%s",
+                                module.__name__,
+                                self._dependency_name(declared, dependency),
+                                missing.__name__,
+                                remainder,
+                            )
+                        else:
+                            self.log.warning(
+                                "Module %s will be SKIPPED: it depends on "
+                                "skipped module %s, in a chain starting at "
+                                "module %s, which depends on unavailable "
+                                "module %s.%s",
+                                module.__name__,
+                                self._dependency_name(declared, dependency),
+                                root.__name__,
+                                missing.__name__,
+                                remainder,
+                            )
+                        break
+
+        return skipped
+
     def _ordered_modules(self) -> Optional[list[type[MVTModule]]]:
         """Return enabled modules in stable topological order."""
         modules = self._available_modules()
         module_indexes = {module: index for index, module in enumerate(modules)}
 
-        if self.module_name:
-            selected = [
-                module for module in modules if module.__name__ == self.module_name
-            ]
-        else:
-            selected = [module for module in modules if module.enabled]
+        selected = self._selected_modules(modules)
+        if selected is None:
+            return None
 
-        required = set(selected)
+        required: set[type[MVTModule]] = set()
         pending = list(selected)
         while pending:
             module = pending.pop()
-            for dependency in module.dependencies:
-                if dependency not in module_indexes:
-                    self.log.warning(
-                        "Module %s depends on unavailable module %s. "
-                        "No modules will be run.",
-                        module.__name__,
-                        dependency.__name__,
-                    )
-                    return None
-                if dependency not in required:
-                    required.add(dependency)
+            if module in required:
+                continue
+            required.add(module)
+            for _, dependency in self._module_dependencies(module):
+                # Unavailable dependencies are reported by _skipped_modules().
+                if dependency in module_indexes:
                     pending.append(dependency)
 
+        ordered_required = sorted(required, key=lambda module: module_indexes[module])
+        skipped = self._skipped_modules(ordered_required, module_indexes)
+        runnable = [module for module in ordered_required if module not in skipped]
+        if skipped and not runnable:
+            self.log.warning(
+                "Every selected module was skipped for an unavailable "
+                "dependency. No modules will be run."
+            )
+            return None
+
         dependents: dict[type[MVTModule], list[type[MVTModule]]] = {
-            module: [] for module in required
+            module: [] for module in runnable
         }
-        indegree = {module: 0 for module in required}
-        for module in required:
-            for dependency in module.dependencies:
-                if dependency not in required:
+        indegree = {module: 0 for module in runnable}
+        for module in runnable:
+            for _, dependency in self._module_dependencies(module):
+                if dependency not in indegree:
                     continue
                 dependents[dependency].append(module)
                 indegree[module] += 1
@@ -342,7 +696,7 @@ class Command:
                 if indegree[dependent] == 0:
                     heappush(ready, (module_indexes[dependent], dependent))
 
-        if len(ordered) != len(required):
+        if len(ordered) != len(runnable):
             cyclic_modules = sorted(
                 (module.__name__ for module, count in indegree.items() if count > 0)
             )
@@ -360,6 +714,8 @@ class Command:
         if ordered_modules is None:
             return
 
+        self._log_loaded_modules(ordered_modules)
+
         try:
             self.init()
         except NotImplementedError:
@@ -368,7 +724,7 @@ class Command:
         executed_by_type: dict[type[MVTModule], MVTModule] = {}
         for module in ordered_modules:
 
-            module_logger = logging.getLogger(module.__module__)
+            module_logger = get_module_logger(module)
 
             m = module(
                 target_path=self.target_path,
@@ -376,9 +732,12 @@ class Command:
                 module_options=self.module_options,
                 log=module_logger,
             )
+            # Dependencies are keyed by the module class they declare, even
+            # when it was replaced, so that a module asking for the results
+            # of a replaced module receives those of its replacement.
             m.dependency_modules = {
-                dependency: executed_by_type[dependency]
-                for dependency in module.dependencies
+                dependency: executed_by_type[resolved]
+                for dependency, resolved in self._module_dependencies(module)
             }
 
             if self.iocs.total_ioc_count:

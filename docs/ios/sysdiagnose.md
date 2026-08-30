@@ -1,30 +1,32 @@
 # Check an iOS Sysdiagnose
 
 `mvt-ios check-sysdiagnose` prepares an iOS sysdiagnose archive for analysis by
-custom MVT modules. MVT does not include built-in sysdiagnose modules. You must
-load at least one custom module that explicitly supports this command.
+custom MVT modules. MVT does not include built-in sysdiagnose modules. The
+command runs the modules of the installed
+[plugin packages](../development/index.md#installed-module-packages) which
+declare support for it. Install at least one such package first.
 
 The command accepts either an extracted sysdiagnose directory or the original
 gzip-compressed tar archive.
 
 ```bash
-mvt-ios check-sysdiagnose \
-    --load-module ./sysdiagnose_modules.py \
-    --output ./results \
+mvt-ios check-sysdiagnose --output ./results \
     ./sysdiagnose_2024.01.02_03-04-05+0200.tar.gz
 ```
 
 Use `--hashes` to include hashes for analyzed files in `info.json`, and
-`--list-modules` to display the eligible custom modules without running them.
+`--list-modules` to display the eligible modules without running them.
 
 ## Writing a custom module
 
-Extend `SysdiagnoseExtraction` to access the archive contents consistently for
-both directory and tar inputs. Each module must declare the command explicitly
-in `supported_commands`.
+Extend `SysdiagnoseExtraction` from `mvt.plugin`, see
+[Writing a module](../development/index.md#writing-a-module). The module reads
+the archive the same way whether MVT was given a folder or a tar archive. It
+declares the command in `supported_commands`. While writing one,
+[load it from its file](../development/index.md#developing-modules-locally).
 
 ```python
-from mvt.ios.modules.sysdiagnose import SysdiagnoseExtraction
+from mvt.plugin import SysdiagnoseExtraction
 
 
 class ExampleSysdiagnoseModule(SysdiagnoseExtraction):
@@ -44,7 +46,9 @@ class ExampleSysdiagnoseModule(SysdiagnoseExtraction):
         return None
 ```
 
-The base class provides `from_sysdiagnose_folder()` and
-`from_sysdiagnose_tar()` setup hooks, as well as protected file lookup, file
-reading, and timezone extraction helpers. IPS crash-report metadata is exposed
-on `ips_files`.
+MVT extracts a tar archive first. It calls `from_sysdiagnose_folder()` on each
+module before `run()`. `ips_files` lists the IPS crash reports.
+
+`_get_files_by_pattern()` and `_get_file_content()` are internal helpers of the
+base class. Use them to read the archive. Their names and signatures can change
+between releases. See `src/mvt/ios/modules/sysdiagnose/base.py`.

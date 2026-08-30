@@ -119,12 +119,23 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
   && apt-get install -y \
   adb \
+  binutils \
   default-jre-headless \
+  file \
+  jq \
+  less \
   libcurl4 \
+  libimage-exiftool-perl \
   libssl3 \
   libusb-1.0-0 \
+  moreutils \
+  p7zip-full \
   python3 \
-  sqlite3
+  ripgrep \
+  sqlite3 \
+  tree \
+  unzip \
+  xxd
 COPY --from=build-libplist /build /
 COPY --from=build-libimobiledevice-glue /build /
 COPY --from=build-libtatsu /build /
@@ -144,7 +155,7 @@ ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2
 RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
 # Generate adb key folder
-RUN echo 'if [ ! -f /root/.android/adbkey ]; then adb keygen /root/.android/adbkey 2&>1 > /dev/null; fi' >> ~/.bashrc
+RUN echo 'if [ ! -f /root/.android/adbkey ]; then adb keygen /root/.android/adbkey > /dev/null 2>&1; fi' >> ~/.bashrc
 RUN mkdir /root/.android
 
 # Setup investigations environment

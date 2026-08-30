@@ -46,6 +46,11 @@ class MVTModule:
     slug: Optional[str] = None
     dependencies: Sequence[type["MVTModule"]] = ()
     supported_commands: Sequence[tuple[str, str]] = ()
+    # A custom module can name a module class it supersedes, usually a
+    # built-in one. When both are available to a command, the named module is
+    # dropped from the run and this module takes its place, including in the
+    # dependencies of any other module.
+    replaces: Optional[type["MVTModule"]] = None
 
     def __init__(
         self,

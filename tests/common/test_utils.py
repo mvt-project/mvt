@@ -8,6 +8,7 @@ import logging
 import os
 from datetime import datetime
 
+from mvt.common.log import MVTLogHandler
 from mvt.common.utils import (
     CustomJSONEncoder,
     convert_datetime_to_iso,
@@ -16,6 +17,8 @@ from mvt.common.utils import (
     convert_unix_to_utc_datetime,
     generate_hashes_from_path,
     get_sha256_from_file_path,
+    init_logging,
+    set_verbose_logging,
 )
 
 from ..utils import get_artifact_folder
@@ -103,3 +106,46 @@ class TestCustomJSONEncoder:
             json.dumps({"name": "家".encode()}, cls=CustomJSONEncoder)
             == '{"name": "\\u5bb6"}'
         )
+
+
+class TestInitLogging:
+    def test__init_logging_is_idempotent(self):
+        # Loaded module packages may import an MVT CLI module, which calls
+        # init_logging() again at import time. A second call must not add
+        # a duplicate console handler.
+        log = logging.getLogger("mvt")
+        init_logging()
+        handler_count = sum(
+            isinstance(handler, MVTLogHandler) for handler in log.handlers
+        )
+        init_logging()
+        assert (
+            sum(isinstance(handler, MVTLogHandler) for handler in log.handlers)
+            == handler_count
+        )
+
+    def test_verbose_logging_finds_the_console_handler_among_others(self):
+        # Something else may have attached a handler to the "mvt" logger
+        # before MVT did, so the console handler is not always the first.
+        log = logging.getLogger("mvt")
+        init_logging()
+        foreign_handler = logging.NullHandler()
+        foreign_handler.setLevel(logging.CRITICAL)
+        log.handlers.insert(0, foreign_handler)
+
+        try:
+            set_verbose_logging(True)
+            console_handlers = [
+                handler
+                for handler in log.handlers
+                if isinstance(handler, MVTLogHandler)
+            ]
+            assert console_handlers
+            assert all(handler.level == logging.DEBUG for handler in console_handlers)
+            assert foreign_handler.level == logging.CRITICAL
+
+            set_verbose_logging(False)
+            assert all(handler.level == logging.INFO for handler in console_handlers)
+            assert foreign_handler.level == logging.CRITICAL
+        finally:
+            log.handlers.remove(foreign_handler)

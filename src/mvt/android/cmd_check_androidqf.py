@@ -292,9 +292,7 @@ class CmdAndroidCheckAndroidQF(Command):
         try:
             cmd.from_ab(backup)
         except InvalidAndroidBackup as exc:
-            self.log.warning(
-                "Skipping backup modules as backup.ab is malformed: %s", exc
-            )
+            self.log.warning("Skipping backup modules: %s", exc)
             return False
 
         cmd.run()

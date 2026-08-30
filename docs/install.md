@@ -64,7 +64,7 @@ It is recommended to try installing and running MVT from [Windows Subsystem Linu
    pipx install mvt
    ```
 
-You now should have the `mvt-ios` and `mvt-android` utilities installed. If you run into problems with these commands not being found, ensure you have run `pipx ensurepath` and opened a new terminal window.
+You now should have the `mvt`, `mvt-ios` and `mvt-android` utilities installed. If you run into problems with these commands not being found, ensure you have run `pipx ensurepath` and opened a new terminal window.
 
 ### Installing from PyPI directly into a virtual environment
 You can use `pipenv`, `poetry` etc. for your virtual environment, but the provided example is with the built-in `venv` tool:
@@ -84,7 +84,7 @@ source env/bin/activate
 pip install mvt
 ```
 
-The `mvt-ios` and `mvt-android` utilities should now be available as commands whenever the virtual environment is active.
+The `mvt`, `mvt-ios` and `mvt-android` utilities should now be available as commands whenever the virtual environment is active.
 
 ### Installing from git source with pipx
 If you want to have the latest features in development, you can install MVT directly from the source code in git.
@@ -93,7 +93,7 @@ If you want to have the latest features in development, you can install MVT dire
 pipx install --force git+https://github.com/mvt-project/mvt.git
 ```
 
-You now should have the `mvt-ios` and `mvt-android` utilities installed.
+You now should have the `mvt`, `mvt-ios` and `mvt-android` utilities installed.
 
 **Notes:**
 1. The `--force` flag is necessary to force the reinstallation of the package.

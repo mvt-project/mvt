@@ -8,7 +8,7 @@ HELP_MSG_VERSION = "Show the currently installed version of MVT"
 HELP_MSG_OUTPUT = "Specify a path to a folder where you want to store JSON results"
 HELP_MSG_IOC = "Path to indicators file (can be invoked multiple time)"
 HELP_MSG_FAST = "Avoid running time/resource consuming features"
-HELP_MSG_LIST_MODULES = "Print list of available modules and exit"
+HELP_MSG_LIST_MODULES = "Print list of available modules and their source, then exit"
 HELP_MSG_MODULE = "Name of a single module you would like to run instead of all"
 HELP_MSG_LOAD_MODULE = (
     "Load custom MVT module(s) from a Python file or folder "
@@ -17,11 +17,22 @@ HELP_MSG_LOAD_MODULE = (
 HELP_MSG_NONINTERACTIVE = "Don't ask interactive questions during processing"
 HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"
+HELP_MSG_VERBOSE_COMMAND = (
+    "Verbose mode (kept for compatibility, pass --verbose before the command "
+    "name instead)"
+)
 HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
 HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
 HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
-HELP_MSG_COMPLETION = "Generate or install shell completion"
+HELP_MSG_COMPLETION = (
+    "Generate or install shell completion for mvt, mvt-ios and mvt-android"
+)
+HELP_MSG_PLUGINS = "Inspect the installed MVT plugin packages"
+HELP_MSG_PLUGINS_LIST = "List the installed plugins and what they contribute to MVT"
+HELP_MSG_PLUGINS_CHECK_UPDATES = (
+    "Check the installed plugins for updates without installing them"
+)
 
 # IOS Specific
 HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"

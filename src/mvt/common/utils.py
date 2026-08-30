@@ -14,7 +14,6 @@ from dataclasses import asdict, is_dataclass
 from typing import Any, Iterator, Union
 
 from .log import MVTLogHandler
-from mvt.common.config import settings
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -239,6 +238,13 @@ def init_logging(verbose: bool = False):
     """
     log = logging.getLogger("mvt")
     log.setLevel(logging.DEBUG)
+
+    # Importing an MVT CLI module calls init_logging() at import time, and
+    # loaded module packages may import one indirectly. Keep this idempotent
+    # so console log lines are not duplicated by a second handler.
+    if any(isinstance(handler, MVTLogHandler) for handler in log.handlers):
+        return
+
     consoleHandler = MVTLogHandler()
     consoleHandler.setFormatter(logging.Formatter("%(message)s"))
     if verbose:
@@ -249,16 +255,26 @@ def init_logging(verbose: bool = False):
 
 
 def set_verbose_logging(verbose: bool = False):
+    """Raise or lower the verbosity of MVT's console output.
+
+    Only MVT's own console handler is adjusted, wherever it sits in the list.
+    The file handler a command attaches to its output folder keeps recording
+    everything, so the command.log of a run does not depend on how the run was
+    invoked, and a handler attached to the "mvt" logger by anything else is
+    left alone.
+    """
     log = logging.getLogger("mvt")
-    handler = log.handlers[0]
-    if verbose:
-        handler.setLevel(logging.DEBUG)
-    else:
-        handler.setLevel(logging.INFO)
+    for handler in log.handlers:
+        if isinstance(handler, MVTLogHandler):
+            handler.setLevel(logging.DEBUG if verbose else logging.INFO)
 
 
 def exec_or_profile(module, globals, locals):
     """Hook for profiling MVT modules"""
+    # Imported here so that the CLI modules, which import this one at start-up,
+    # do not load the settings (and pydantic) before a command runs.
+    from .config import settings
+
     if settings.PROFILE:
         cProfile.runctx(module, globals, locals)
     else:
