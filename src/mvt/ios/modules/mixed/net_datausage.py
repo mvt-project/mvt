@@ -7,6 +7,8 @@ import logging
 from typing import Optional
 
 from mvt.common.module_types import ModuleResults
+from mvt.common.utils import convert_mactime_to_iso, sanitize_json_data
+
 from ..net_base import NetBase
 
 DATAUSAGE_BACKUP_IDS = [
@@ -41,6 +43,77 @@ class Datausage(NetBase):
             log=log,
             results=results,
         )
+
+    def _extract_net_data(self):
+        assert self.file_path is not None
+        conn = self._open_sqlite_db(self.file_path)
+        cur = conn.cursor()
+        try:
+            cur.execute("PRAGMA table_info(ZPROCESS);")
+            process_columns = [row[1] for row in cur]
+            cur.execute("PRAGMA table_info(ZLIVEUSAGE);")
+            live_columns = [row[1] for row in cur]
+            selected = [
+                f'p."{column}" AS "process_{column}"' for column in process_columns
+            ] + [f'l."{column}" AS "live_{column}"' for column in live_columns]
+            cur.execute(
+                f"SELECT {', '.join(selected)} FROM ZLIVEUSAGE l "
+                "LEFT JOIN ZPROCESS p ON l.ZHASPROCESS = p.Z_PK;"
+            )
+            names = [description[0] for description in cur.description]
+            rows = [dict(zip(names, row)) for row in cur]
+
+            process_only = [
+                f'p."{column}" AS "process_{column}"' for column in process_columns
+            ] + [f'NULL AS "live_{column}"' for column in live_columns]
+            cur.execute(
+                f"SELECT {', '.join(process_only)} FROM ZPROCESS p "
+                "WHERE NOT EXISTS ("
+                "SELECT 1 FROM ZLIVEUSAGE l WHERE l.ZHASPROCESS = p.Z_PK);"
+            )
+            names = [description[0] for description in cur.description]
+            rows.extend(dict(zip(names, row)) for row in cur)
+        finally:
+            cur.close()
+            conn.close()
+
+        for raw_row in rows:
+            first_timestamp = raw_row.get("process_ZFIRSTTIMESTAMP")
+            process_timestamp = raw_row.get("process_ZTIMESTAMP")
+            live_timestamp = raw_row.get("live_ZTIMESTAMP")
+            first_isodate = (
+                convert_mactime_to_iso(first_timestamp)
+                if first_timestamp
+                else first_timestamp
+            )
+            isodate = (
+                convert_mactime_to_iso(process_timestamp)
+                if process_timestamp
+                else process_timestamp
+            )
+            live_isodate = (
+                convert_mactime_to_iso(live_timestamp)
+                if live_timestamp
+                else first_isodate
+            )
+            self.results.append(
+                {
+                    "first_isodate": first_isodate,
+                    "isodate": isodate,
+                    "proc_name": raw_row.get("process_ZPROCNAME"),
+                    "bundle_id": raw_row.get("process_ZBUNDLENAME"),
+                    "proc_id": raw_row.get("process_Z_PK"),
+                    "wifi_in": raw_row.get("live_ZWIFIIN"),
+                    "wifi_out": raw_row.get("live_ZWIFIOUT"),
+                    "wwan_in": raw_row.get("live_ZWWANIN"),
+                    "wwan_out": raw_row.get("live_ZWWANOUT"),
+                    "live_id": raw_row.get("live_Z_PK"),
+                    "live_proc_id": raw_row.get("live_ZHASPROCESS"),
+                    "live_isodate": live_isodate,
+                    "record": sanitize_json_data(raw_row),
+                }
+            )
+        self.log.info("Extracted information on %d processes", len(self.results))
 
     def run(self) -> None:
         self._find_ios_database(

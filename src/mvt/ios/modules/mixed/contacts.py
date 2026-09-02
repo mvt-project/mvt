@@ -8,6 +8,7 @@ import sqlite3
 from typing import Optional
 
 from mvt.common.module_types import ModuleResults
+from mvt.common.utils import sanitize_json_data
 
 from ..base import IOSExtraction
 
@@ -51,28 +52,45 @@ class Contacts(IOSExtraction):
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         try:
-            try:
-                cur.execute(
-                    """
-                    SELECT
-                        multi.value, person.first, person.middle, person.last,
-                        person.organization
-                    FROM ABPerson person, ABMultiValue multi
-                    WHERE person.rowid = multi.record_id and multi.value not null
-                    ORDER by person.rowid ASC;
-                """
-                )
-            except sqlite3.OperationalError as e:
-                self.log.info("Error while reading the contact table: %s", e)
-                return None
+            cur.execute("PRAGMA table_info(ABPerson);")
+            person_columns = [row[1] for row in cur]
+            cur.execute("PRAGMA table_info(ABMultiValue);")
+            multivalue_columns = [row[1] for row in cur]
+            if not person_columns or not multivalue_columns:
+                return
+
+            select_columns = [
+                f'p."{column}" AS "person_{column}"' for column in person_columns
+            ] + [
+                f'm."{column}" AS "multivalue_{column}"'
+                for column in multivalue_columns
+            ]
+            cur.execute(
+                f"SELECT {', '.join(select_columns)} "
+                "FROM ABPerson p LEFT JOIN ABMultiValue m "
+                "ON p.ROWID = m.record_id ORDER BY p.ROWID, m.ROWID;"
+            )
             names = [description[0] for description in cur.description]
-
             for row in cur:
-                new_contact = {}
-                for index, value in enumerate(row):
-                    new_contact[names[index]] = value
-
-                self.results.append(new_contact)
+                raw = sanitize_json_data(dict(zip(names, row)))
+                self.results.append(
+                    {
+                        "value": raw.get("multivalue_value"),
+                        "first": raw.get("person_First"),
+                        "middle": raw.get("person_Middle"),
+                        "last": raw.get("person_Last"),
+                        "organization": raw.get("person_Organization"),
+                        # Keep the capitalization returned by the previous
+                        # query for consumers of existing JSON output.
+                        "First": raw.get("person_First"),
+                        "Middle": raw.get("person_Middle"),
+                        "Last": raw.get("person_Last"),
+                        "Organization": raw.get("person_Organization"),
+                        "contact": raw,
+                    }
+                )
+        except sqlite3.OperationalError as exc:
+            self.log.info("Error while reading the contact table: %s", exc)
         finally:
             cur.close()
             conn.close()
