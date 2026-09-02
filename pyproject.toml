@@ -72,7 +72,7 @@ docs = [
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.coverage.run]
@@ -121,5 +121,6 @@ where = ["src"]
 [tool.setuptools.package-data]
 mvt = ["ios/data/*.json"]
 
-[tool.setuptools.dynamic]
-version = { attr = "mvt.common.version.MVT_VERSION" }
+[tool.setuptools_scm]
+# The version is the latest v* tag; ignore the archive/* tags.
+git_describe_command = "git describe --dirty --tags --long --match 'v*'"
