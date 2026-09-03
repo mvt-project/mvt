@@ -7,6 +7,15 @@ import re
 
 from .artifact import AndroidArtifact
 
+# The row's own metadata follows the value ("value:1 default:1
+# defaultSystemSet:true isValuePreservedInRestore:true"). It starts at the
+# FIRST of these keys, not the last: a metadata value can itself contain
+# spaces ("value:Galaxy Z Flip6 default:Galaxy Z Flip6 ...").
+TRAILING_META_RXP = re.compile(
+    r"\s+(?:default|defaultSystemSet|tag|isValuePreservedInRestore):"
+    r"|\s+(?:not)?[Pp]reservedInRestore\b"
+)
+
 ANDROID_DANGEROUS_SETTINGS = [
     {
         "description": "disabled Google Play Services apps verification",
@@ -77,12 +86,15 @@ class Settings(AndroidArtifact):
             if namespace is None or not line.startswith("_id:"):
                 continue
             setting = re.match(
-                r"^_id:\S+\s+name:(.*?)\s+pkg:.*?\s+value:(.*?)"
-                r"(?:\s+default:.*\s+defaultSystemSet:(?:true|false))?$",
+                r"^_id:\S+\s+name:(.*?)\s+pkg:.*?\s+value:(.*)$",
                 line,
             )
             if setting:
-                self.results[namespace][setting.group(1)] = setting.group(2)
+                # Metadata left inside the value is compared to `safe_value`
+                # literally by check_indicators(), which flags safe settings.
+                self.results[namespace][setting.group(1)] = TRAILING_META_RXP.split(
+                    setting.group(2)
+                )[0].strip()
 
     def check_indicators(self) -> None:
         for namespace, settings in self.results.items():
