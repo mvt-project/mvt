@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write # coverage comment
+
 jobs:
   build:
     name: Run Python Tests
@@ -13,6 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+    env:
+      # Takes precedence over .python-version, which otherwise makes `uv run`
+      # rebuild the venv with 3.10 and test every matrix entry on 3.10.
+      UV_PYTHON: ${{ matrix.python-version }}
 
     steps:
       - uses: actions/checkout@v7
@@ -26,16 +34,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Python dependencies
         run: |
-          uv sync --locked --group dev --python ${{ matrix.python-version }}
+          uv sync --locked --group dev
       - name: Test with pytest
         run: |
           set -o pipefail
           make test-ci | tee pytest-coverage.txt
+      - name: Coverage job summary
+        run: uv run coverage report --format=markdown --show-missing --skip-covered >> "$GITHUB_STEP_SUMMARY"
 
       - name: Pytest coverage comment
-        continue-on-error: true # Workflows running on a fork can't post comments
-        uses: MishaKav/pytest-coverage-comment@main
-        if: github.event_name == 'pull_request'
+        # One comment per PR, not one per matrix entry. PRs from forks get a
+        # read-only token and can't post; the job summary above still works.
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.13'
+        continue-on-error: true
+        uses: MishaKav/pytest-coverage-comment@v1.12.2
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
+          # The full table with per-line links exceeds GitHub's 65536-char comment limit.
+          report-only-changed-files: true
+          remove-links-to-lines: true

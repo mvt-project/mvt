@@ -624,16 +624,15 @@ wheels = [
 ]
 
 [[package]]
-name = "iosbackup"
-version = "0.9.925"
+name = "iphone-backup-decrypt"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nskeyedunarchiver" },
     { name = "pycryptodome" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/db/b8/4cd52322deceb942b9e18b127d45d112c2f7a3ec7821ab528659d4f04275/iOSbackup-0.9.925.tar.gz", hash = "sha256:33545a9249e5b3faaadf1ee782fe6bdfcdb70fae0defba1acee336a65f93d1ca", size = 25228, upload-time = "2022-10-16T01:02:46.474Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/e7/bcdacdec21d628122ba240e7f742ab2175149e58672be63af55ff37a0f28/iphone_backup_decrypt-0.9.0.tar.gz", hash = "sha256:13b18fef3c8e3af627914f8c1a429bbc5555dfb0505239ba49efe99984cc0c96", size = 16125, upload-time = "2024-09-18T15:50:12.179Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/4e/8da5fdc2df642080c79f128b9412a6f33768a610a58d59fbdb7b4d019364/iOSbackup-0.9.925-py3-none-any.whl", hash = "sha256:348edab2b82499d55c17c4bfe02fc6ae7915a2cc8da2728893ed1e9ae61bcef3", size = 18326, upload-time = "2022-10-16T01:02:44.164Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/94/64a31be93f72e0a254bde68e4cf7d24aef37a0a985754a197fa1b028a665/iphone_backup_decrypt-0.9.0-py3-none-any.whl", hash = "sha256:55b5adfafac757f58aa6444b83a4cc2c20cdd699c6ff1d2f4b549936a5dad92c", size = 15767, upload-time = "2024-09-18T15:50:10.537Z" },
 ]
 
 [[package]]
@@ -1022,11 +1021,12 @@ dependencies = [
     { name = "betterproto2" },
     { name = "click" },
     { name = "cryptography" },
-    { name = "iosbackup" },
+    { name = "iphone-backup-decrypt" },
     { name = "libusb1" },
     { name = "nskeyedunarchiver" },
     { name = "packaging" },
     { name = "pyahocorasick" },
+    { name = "pycryptodome" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dateutil" },
@@ -1068,11 +1068,12 @@ requires-dist = [
     { name = "betterproto2", specifier = "==0.10.0" },
     { name = "click", specifier = "==8.4.2" },
     { name = "cryptography", specifier = "==50.0.0" },
-    { name = "iosbackup", specifier = "==0.9.925" },
+    { name = "iphone-backup-decrypt", specifier = "==0.9.0" },
     { name = "libusb1", specifier = "==3.4.0" },
     { name = "nskeyedunarchiver", specifier = "==1.5.2" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pyahocorasick", specifier = "==2.3.1" },
+    { name = "pycryptodome", specifier = ">=3.20.0" },
     { name = "pydantic", specifier = "==2.13.4" },
     { name = "pydantic-settings", specifier = "==2.15.0" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },

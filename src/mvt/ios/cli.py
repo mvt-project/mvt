@@ -24,6 +24,7 @@ from mvt.common.help import (
     HELP_MSG_VERSION,
     HELP_MSG_DECRYPT_BACKUP,
     HELP_MSG_BACKUP_DESTINATION,
+    HELP_MSG_DECRYPT_JOBS,
     HELP_MSG_IOS_BACKUP_PASSWORD,
     HELP_MSG_BACKUP_KEYFILE,
     HELP_MSG_HASHES,
@@ -45,6 +46,10 @@ from mvt.common.help import (
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
 )
 from mvt.common.password import prompt_password
+from .decrypt_config import (
+    DEFAULT_DECRYPT_WORKERS,
+    MAX_DECRYPT_WORKERS,
+)
 
 # The commands import what they run only when they are invoked. This module is
 # imported at every start of mvt-ios, including by shell completion on every
@@ -129,6 +134,13 @@ def version():
 )
 @click.option("--destination", "-d", required=True, help=HELP_MSG_BACKUP_DESTINATION)
 @click.option(
+    "--jobs",
+    type=click.IntRange(1, MAX_DECRYPT_WORKERS),
+    default=DEFAULT_DECRYPT_WORKERS,
+    show_default=True,
+    help=HELP_MSG_DECRYPT_JOBS,
+)
+@click.option(
     "--password",
     "-p",
     cls=MutuallyExclusiveOption,
@@ -146,10 +158,10 @@ def version():
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
-def decrypt_backup(ctx, destination, password, key_file, hashes, backup_path):
+def decrypt_backup(ctx, destination, jobs, password, key_file, hashes, backup_path):
     from .decrypt import DecryptBackup
 
-    backup = DecryptBackup(backup_path, destination)
+    backup = DecryptBackup(backup_path, destination, max_workers=jobs)
 
     if key_file:
         if MVT_IOS_BACKUP_PASSWORD in os.environ:
