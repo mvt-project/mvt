@@ -5,9 +5,9 @@
 (see [`sysdiagnose_info.json`](records.md#sysdiagnose_infojson)); the checks
 come from the modules of the installed
 [plugin packages](../development/index.md#installed-module-packages) which
-declare support for the command. The command refuses to run until at least
-one such module is available, so that a run with the device details alone
-cannot pass for a clean analysis.
+declare support for the command. Without any such module the command still
+records the device details, and warns that no forensic sysdiagnose modules
+have been loaded so that the run cannot pass for a clean analysis.
 
 The command accepts either an extracted sysdiagnose directory or the original
 gzip-compressed tar archive.
