@@ -48,3 +48,14 @@ def test_check_sysdiagnose_runs_explicitly_scoped_custom_module(tmp_path):
 
     assert result.exit_code == 0
     assert (output_path / "custom_sysdiagnose_module.json").exists()
+
+
+def test_check_sysdiagnose_requires_a_custom_module(tmp_path):
+    # The built-in SysdiagnoseInfo alone performs no check.
+    result = CliRunner().invoke(
+        check_sysdiagnose, [str(_create_sysdiagnose_folder(tmp_path))]
+    )
+
+    assert result.exit_code != 0
+    assert "No custom modules support mvt-ios check-sysdiagnose" in result.output
+    assert "only records the device details" in result.output

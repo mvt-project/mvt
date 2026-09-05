@@ -2,10 +2,12 @@
 
 `mvt-ios check-sysdiagnose` analyzes an iOS sysdiagnose archive. MVT's own
 `SysdiagnoseInfo` module extracts details about the device and the archive
-(see [`sysdiagnose_info.json`](records.md#sysdiagnose_infojson)). The command
-also runs the modules of the installed
+(see [`sysdiagnose_info.json`](records.md#sysdiagnose_infojson)); the checks
+come from the modules of the installed
 [plugin packages](../development/index.md#installed-module-packages) which
-declare support for it.
+declare support for the command. The command refuses to run until at least
+one such module is available, so that a run with the device details alone
+cannot pass for a clean analysis.
 
 The command accepts either an extracted sysdiagnose directory or the original
 gzip-compressed tar archive.

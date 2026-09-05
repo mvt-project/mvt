@@ -449,6 +449,16 @@ def check_sysdiagnose(
         custom_modules=custom_modules,
     )
 
+    # MVT's own module only records the device details; the checks come from
+    # custom modules, so a run without any would look like a clean analysis.
+    if all(module in cmd.modules for module in cmd._available_modules()):
+        raise click.ClickException(
+            "No custom modules support mvt-ios check-sysdiagnose. MVT's own "
+            "SysdiagnoseInfo module only records the device details. Install a "
+            "module package or load a module that declares supported_commands = "
+            '(("ios", "check-sysdiagnose"),) to check the sysdiagnose.'
+        )
+
     if list_modules:
         cmd.list_modules()
         return
