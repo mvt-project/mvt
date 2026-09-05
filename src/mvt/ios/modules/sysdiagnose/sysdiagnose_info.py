@@ -45,6 +45,9 @@ class SysdiagnoseInfo(SysdiagnoseExtraction):
     Properties block), the mobile activation request (UDID, IMEI, MEID and the
     OS build), the App Store daemon database (the Apple account name and email)
     and sysdiagnose.log (the archive's original file name and creation time).
+
+    Newer iOS versions no longer include the App Store daemon database in a
+    sysdiagnose; it is still read for the analysis of older archives.
     """
 
     def __init__(
