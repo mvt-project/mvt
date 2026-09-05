@@ -449,13 +449,6 @@ def check_sysdiagnose(
         custom_modules=custom_modules,
     )
 
-    if not cmd._available_modules():
-        raise click.ClickException(
-            "No custom modules support mvt-ios check-sysdiagnose. "
-            "Load a module that declares supported_commands = "
-            "((\"ios\", \"check-sysdiagnose\"),)."
-        )
-
     if list_modules:
         cmd.list_modules()
         return
