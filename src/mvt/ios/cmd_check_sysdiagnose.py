@@ -16,6 +16,8 @@ from mvt.common.command import Command
 from mvt.common.indicators import Indicators
 from mvt.common.module import MVTModule
 
+from .modules.sysdiagnose import SYSDIAGNOSE_MODULES
+
 log = logging.getLogger(__name__)
 
 
@@ -52,6 +54,7 @@ class CmdIOSCheckSysdiagnose(Command):
         )
         self.platform = "ios"
         self.name = "check-sysdiagnose"
+        self.modules = SYSDIAGNOSE_MODULES
         self.sysdiagnose_format: Optional[str] = None
         self.sysdiagnose_archive: Optional[tarfile.TarFile] = None
         self.sysdiagnose_files: list[str] = []

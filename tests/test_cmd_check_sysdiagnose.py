@@ -45,6 +45,11 @@ def _create_sysdiagnose_archive(tmp_path, folder):
     return archive_path
 
 
+def _test_module(command):
+    (module,) = [m for m in command.executed if isinstance(m, SysdiagnoseTestModule)]
+    return module
+
+
 def _run_command(path):
     command = CmdIOSCheckSysdiagnose(
         target_path=str(path), custom_modules=[SysdiagnoseTestModule]
@@ -56,10 +61,10 @@ def _run_command(path):
 def test_check_sysdiagnose_from_folder(tmp_path):
     command = _run_command(_create_sysdiagnose_folder(tmp_path))
 
-    assert command.executed[0].results == [
+    assert _test_module(command).results == [
         {"content": "artifact", "timezone_offset": timedelta(hours=2).seconds}
     ]
-    assert command.executed[0].ips_files == [
+    assert _test_module(command).ips_files == [
         {"file_path": str(tmp_path / "sysdiagnose" / "report.ips"), "bug_type": 210}
     ]
 
@@ -68,14 +73,12 @@ def test_check_sysdiagnose_from_archive_closes_archive(tmp_path):
     folder = _create_sysdiagnose_folder(tmp_path)
     command = _run_command(_create_sysdiagnose_archive(tmp_path, folder))
 
-    assert command.executed[0].results == [
+    assert _test_module(command).results == [
         {"content": "artifact", "timezone_offset": timedelta(hours=2).seconds}
     ]
-    assert command.executed[0].ips_files == [
+    assert _test_module(command).ips_files == [
         {
-            "file_path": str(
-                Path(command.extracted_sysdiagnose_path) / "report.ips"
-            ),
+            "file_path": str(Path(command.extracted_sysdiagnose_path) / "report.ips"),
             "bug_type": 210,
         }
     ]
