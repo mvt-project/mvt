@@ -7,7 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
-from mvt.common.utils import convert_mactime_to_iso
+from mvt.common.utils import convert_mactime_to_iso, sanitize_json_data
 
 from ..base import IOSExtraction
 
@@ -57,31 +57,30 @@ class Calls(IOSExtraction):
             return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT
-                ZDATE, ZDURATION, ZLOCATION, ZADDRESS, ZSERVICE_PROVIDER
-            FROM ZCALLRECORD;
-        """
-        )
-        # names = [description[0] for description in cur.description]
-
-        for row in cur:
-            self.results.append(
-                {
-                    "isodate": convert_mactime_to_iso(row[0]),
-                    "duration": row[1],
-                    "location": row[2],
-                    "number": (
-                        row[3].decode("utf-8")
-                        if isinstance(row[3], bytes)
-                        else row[3]
-                    ),
-                    "provider": row[4],
-                }
-            )
-
-        cur.close()
-        conn.close()
+        try:
+            cur.execute("SELECT * FROM ZCALLRECORD;")
+            names = [description[0] for description in cur.description]
+            for row in cur:
+                original = dict(zip(names, row))
+                address = original.get("ZADDRESS")
+                if isinstance(address, bytes):
+                    address = address.decode("utf-8", errors="replace")
+                raw = sanitize_json_data(original)
+                date = raw.get("ZDATE")
+                self.results.append(
+                    {
+                        "isodate": (
+                            convert_mactime_to_iso(date) if date is not None else ""
+                        ),
+                        "duration": raw.get("ZDURATION"),
+                        "location": raw.get("ZLOCATION"),
+                        "number": address,
+                        "provider": raw.get("ZSERVICE_PROVIDER"),
+                        "call": raw,
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
         self.log.info("Extracted a total of %d calls", len(self.results))

@@ -22,6 +22,9 @@ class TestTCCModule:
         assert m.results[0]["service"] == "kTCCServiceUbiquity"
         assert m.results[0]["client"] == "com.apple.Preferences"
         assert m.results[0]["auth_value"] == "allowed"
+        assert m.results[0]["auth_value_value"] == 2
+        assert "policy_id" in m.results[0]
+        assert "csreq" in m.results[0]
 
     def test_tcc_detection(self, indicator_file):
         m = TCC(target_path=get_ios_backup_folder())

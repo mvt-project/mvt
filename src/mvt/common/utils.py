@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import base64
 import cProfile
 import datetime
 import hashlib
@@ -182,6 +183,29 @@ def keys_bytes_to_string(obj: Any) -> Any:
         new_obj[key] = value
 
     return new_obj
+
+
+def sanitize_json_data(obj: Any) -> Any:
+    """Recursively convert values to JSON-compatible representations.
+
+    SQLite and plist records can contain binary and date values nested inside
+    dictionaries. Preserve binary data as base64 rather than discarding it or
+    relying on a lossy text decoding during JSON serialization.
+    """
+    if isinstance(obj, datetime.datetime):
+        return convert_datetime_to_iso(obj)
+    if isinstance(obj, datetime.date):
+        return obj.isoformat()
+    if isinstance(obj, bytes):
+        return base64.b64encode(obj).decode("ascii")
+    if isinstance(obj, dict):
+        return {
+            sanitize_json_data(key): sanitize_json_data(value)
+            for key, value in obj.items()
+        }
+    if isinstance(obj, (tuple, list, set)):
+        return [sanitize_json_data(value) for value in obj]
+    return obj
 
 
 def get_sha256_from_file_path(file_path: str) -> str:
