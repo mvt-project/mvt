@@ -84,17 +84,25 @@ class Command:
         self.timeline: ModuleTimeline = []
         self.url_results: list[URLResult] = []
 
-        # Load IOCs
         self._create_storage()
         self._setup_logging()
 
-        if iocs is not None:
-            self.iocs = iocs
-        else:
-            self.iocs = Indicators(self.log)
-            self.iocs.load_indicators_files(self.ioc_files)
+        self._iocs = iocs
 
         self.alertstore = AlertStore()
+
+    @property
+    def iocs(self) -> Indicators:
+        """Load indicators on first use, preserving collections shared by callers."""
+        if self._iocs is None:
+            iocs = Indicators(self.log)
+            iocs.load_indicators_files(self.ioc_files)
+            self._iocs = iocs
+        return self._iocs
+
+    @iocs.setter
+    def iocs(self, value: Indicators) -> None:
+        self._iocs = value
 
     def _create_storage(self) -> None:
         if self.results_path and not os.path.exists(self.results_path):

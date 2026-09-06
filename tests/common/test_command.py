@@ -5,8 +5,13 @@
 
 import json
 import logging
+from unittest.mock import patch
+
+import pytest
+from click.testing import CliRunner
 
 from mvt.common.command import Command
+from mvt.common.indicators import Indicators
 from mvt.common.module import MVTModule
 
 
@@ -197,6 +202,93 @@ class RecordingCommand(Command):
 
 
 class TestCommand:
+    def test_listing_modules_does_not_load_indicators(self):
+        with patch("mvt.common.command.Indicators.load_indicators_files") as load:
+            cmd = RecordingCommand()
+            cmd.list_modules()
+            load.assert_not_called()
+
+    def test_indicators_load_once_and_are_shared(self, indicator_file, monkeypatch):
+        from mvt.common.config import settings
+
+        monkeypatch.setattr(settings, "STIX2", "")
+        monkeypatch.setattr(Indicators, "_load_downloaded_indicators", lambda self: None)
+        original = Indicators.load_indicators_files
+        with patch.object(
+            Indicators, "load_indicators_files", autospec=True, side_effect=original
+        ) as load:
+            cmd = RecordingCommand(ioc_files=[indicator_file])
+            load.assert_not_called()
+            indicators = cmd.iocs
+            assert indicators.total_ioc_count == 9
+            assert len(indicators.ioc_collections) == 1
+            assert cmd.iocs is indicators
+            child = RecordingCommand(iocs=indicators)
+            assert child.iocs is indicators
+            load.assert_called_once_with(indicators, [indicator_file])
+
+    def test_failed_indicator_load_can_be_retried(self):
+        with patch(
+            "mvt.common.command.Indicators.load_indicators_files",
+            side_effect=[ValueError("bad indicators"), None],
+        ) as load:
+            cmd = RecordingCommand()
+            with pytest.raises(ValueError, match="bad indicators"):
+                _ = cmd.iocs
+            assert cmd.iocs is cmd.iocs
+            assert load.call_count == 2
+
+    @pytest.mark.parametrize("assign", [False, True])
+    def test_supplied_empty_indicators_are_not_loaded(self, assign):
+        indicators = Indicators(logging.getLogger(__name__))
+        with patch.object(Indicators, "load_indicators_files") as load:
+            cmd = RecordingCommand(iocs=None if assign else indicators)
+            if assign:
+                cmd.iocs = indicators
+            assert cmd.iocs is indicators
+            assert cmd.iocs.total_ioc_count == 0
+            load.assert_not_called()
+
+    @pytest.mark.parametrize("list_modules", [False, True])
+    def test_backup_cli_does_not_load_indicators_before_analysis(
+        self, tmp_path, list_modules, caplog
+    ):
+        from mvt.ios.cli import check_backup
+
+        args = [str(tmp_path)]
+        if list_modules:
+            args.insert(0, "--list-modules")
+        with patch.object(Indicators, "load_indicators_files") as load:
+            result = CliRunner().invoke(check_backup, args)
+            assert result.exit_code == (0 if list_modules else 1)
+            load.assert_not_called()
+        if not list_modules:
+            assert (
+                f"{tmp_path} does not appear to be an iTunes backup folder. "
+                "Expected Manifest.db and Info.plist."
+            ) in caplog.messages
+
+    def test_run_checks_synthetic_indicators(self, indicator_file, monkeypatch):
+        from mvt.common.config import settings
+
+        monkeypatch.setattr(settings, "STIX2", "")
+        monkeypatch.setattr(Indicators, "_load_downloaded_indicators", lambda self: None)
+
+        class MatchingModule(RecordingModule):
+            def run(self):
+                self.results = ["https://example.org/test"]
+
+            def check_indicators(self):
+                self.detected = [
+                    url for url in self.results if self.indicators.check_domain(url)
+                ]
+
+        cmd = RecordingCommand(ioc_files=[indicator_file])
+        cmd.modules = [MatchingModule]
+        cmd.run()
+        assert cmd.executed[0].detected == ["https://example.org/test"]
+        assert cmd.executed[0].indicators is cmd.iocs
+
     def setup_method(self):
         RecordingModule.run_order = []
 
