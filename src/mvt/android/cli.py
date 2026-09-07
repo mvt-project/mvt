@@ -150,6 +150,16 @@ def check_adb(ctx):
     default=[],
     help=HELP_MSG_LOAD_MODULE,
 )
+@click.option(
+    "--timezone",
+    "-t",
+    default=None,
+    help=(
+        "IANA timezone name for the device, for example 'Europe/Paris'. "
+        "Bugreport file timestamps are the device's wall clock; by default the "
+        "zone is read from persist.sys.timezone in the bugreport itself."
+    ),
+)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
@@ -160,6 +170,7 @@ def check_bugreport(
     list_modules,
     module,
     load_module,
+    timezone,
     verbose,
     bugreport_path,
 ):
@@ -167,12 +178,18 @@ def check_bugreport(
 
     set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
+
+    module_options = {}
+    if timezone:
+        module_options["device_timezone"] = timezone
+
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(
         target_path=bugreport_path,
         results_path=output,
         ioc_files=iocs,
         module_name=module,
+        module_options=module_options if module_options else None,
         hashes=True,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
