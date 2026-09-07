@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from typing import List, Optional
 from zipfile import ZipFile
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from mvt.common.module import ModuleResults, MVTModule
 
@@ -125,12 +126,31 @@ class BugReportModule(MVTModule):
             lines.append(line)
         return "\n".join(lines)
 
+    def _device_timezone(self) -> Optional[datetime.tzinfo]:
+        """The device's timezone named in module_options, or None when unknown."""
+        name = self.module_options.get("device_timezone")
+        if not name:
+            return None
+        try:
+            return ZoneInfo(name)
+        except ZoneInfoNotFoundError:
+            self.log.warning("Unknown device timezone %s", name)
+            return None
+
     def _get_file_modification_time(self, file_path: str) -> datetime.datetime:
+        """When the file was last modified.
+
+        A zip entry carries the device's wall clock, so it is returned in the
+        device's timezone when the bugreport names one and naive otherwise.
+        An unpacked bugreport's mtime is whatever the extraction left, an
+        instant returned in UTC.
+        """
         if self.zip_archive:
             file_timetuple = self.zip_archive.getinfo(file_path).date_time
-            return datetime.datetime(*file_timetuple)
-        else:
-            if not self.extract_path:
-                raise ValueError("extract_path is not set")
-            file_stat = os.stat(os.path.join(self.extract_path, file_path))
-            return datetime.datetime.fromtimestamp(file_stat.st_mtime)
+            return datetime.datetime(*file_timetuple, tzinfo=self._device_timezone())
+        if not self.extract_path:
+            raise ValueError("extract_path is not set")
+        file_stat = os.stat(os.path.join(self.extract_path, file_path))
+        return datetime.datetime.fromtimestamp(
+            file_stat.st_mtime, tz=datetime.timezone.utc
+        )

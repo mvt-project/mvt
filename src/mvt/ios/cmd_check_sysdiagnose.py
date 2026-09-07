@@ -7,7 +7,9 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tarfile
+import zlib
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from typing import Any, Optional
@@ -99,8 +101,19 @@ class CmdIOSCheckSysdiagnose(Command):
 
         self.log.info("Parsing sysdiagnose archive. This might take a while...")
         self.sysdiagnose_format = "tar"
-        self.sysdiagnose_archive = tarfile.open(self.target_path, "r:gz")
-        self._extract_sysdiagnose_archive()
+        try:
+            self.sysdiagnose_archive = tarfile.open(self.target_path, "r:gz")
+            self._extract_sysdiagnose_archive()
+        except (tarfile.ReadError, EOFError, zlib.error, OSError) as exc:
+            # A truncated archive ends in EOFError from gzip, which Click would
+            # otherwise report as a bare "Aborted!" with no reason.
+            self.log.critical(
+                "Unable to read the sysdiagnose archive %s: %s. "
+                "The file may be truncated or not a gzip-compressed tarball.",
+                self.target_path,
+                exc,
+            )
+            sys.exit(1)
 
     def _extract_sysdiagnose_archive(self) -> None:
         archive = self.sysdiagnose_archive
