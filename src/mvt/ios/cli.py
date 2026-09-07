@@ -318,8 +318,6 @@ def check_backup(
     if not cmd.resolve_backup_path():
         ctx.exit(1)
 
-    log.info("Checking iTunes backup located at: %s", cmd.target_path)
-
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()
@@ -385,8 +383,6 @@ def check_fs(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking iOS filesystem located at: %s", dump_path)
 
     cmd.run()
     cmd.show_alerts_brief()
@@ -463,7 +459,6 @@ def check_sysdiagnose(
         cmd.list_modules()
         return
 
-    log.info("Checking iOS sysdiagnose at path: %s", sysdiagnose_path)
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()

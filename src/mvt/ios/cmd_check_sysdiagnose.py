@@ -79,6 +79,8 @@ class CmdIOSCheckSysdiagnose(Command):
         if not self.target_path:
             raise ValueError("A sysdiagnose path is required")
 
+        self.log.info("Checking iOS sysdiagnose at path: %s", self.target_path)
+
         if os.path.isdir(self.target_path):
             self.sysdiagnose_format = "dir"
             parent_path = Path(self.target_path).absolute().parent

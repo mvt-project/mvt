@@ -721,17 +721,19 @@ class Command:
         if ordered_modules is None:
             return
 
-        self._log_loaded_modules(ordered_modules)
-
         # Read the indicators once the run is certain to happen, before
         # init() does any work on the target, so that a missing indicators
         # file is reported first and every module gets the same object.
         iocs = self.iocs
 
+        # Commands announce their target from init(), so it goes before the
+        # module list.
         try:
             self.init()
         except NotImplementedError:
             pass
+
+        self._log_loaded_modules(ordered_modules)
 
         executed_by_type: dict[type[MVTModule], MVTModule] = {}
         for module in ordered_modules:

@@ -183,8 +183,6 @@ def check_bugreport(
         cmd.list_modules()
         return
 
-    log.info("Checking Android bug report at path: %s", bugreport_path)
-
     try:
         cmd.run()
     except BadZipFile as exc:
@@ -258,8 +256,6 @@ def check_backup(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking Android backup at path: %s", backup_path)
 
     cmd.run()
     cmd.show_alerts_brief()
@@ -342,8 +338,6 @@ def check_androidqf(
         cmd.list_modules()
         return
 
-    log.info("Checking AndroidQF acquisition at path: %s", androidqf_path)
-
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_disable_adb_warning()
@@ -423,8 +417,6 @@ def check_intrusion_logs(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking intrusion logs at path: %s", logs_path)
 
     cmd.run()
     cmd.show_alerts_brief()
