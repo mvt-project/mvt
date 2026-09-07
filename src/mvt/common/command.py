@@ -84,9 +84,6 @@ class Command:
         self.timeline: ModuleTimeline = []
         self.url_results: list[URLResult] = []
 
-        self._create_storage()
-        self._setup_logging()
-
         self._iocs = iocs
 
         self.alertstore = AlertStore()
@@ -718,6 +715,12 @@ class Command:
         return ordered
 
     def run(self) -> None:
+        # The output folder and its command.log exist for a run, so that
+        # listing modules or rejecting a target leaves nothing behind.
+        # Resolving the module list can warn, so the log comes first.
+        self._create_storage()
+        self._setup_logging()
+
         ordered_modules = self._ordered_modules()
         if ordered_modules is None:
             return

@@ -208,6 +208,15 @@ class TestCommand:
             cmd.list_modules()
             load.assert_not_called()
 
+    def test_output_folder_is_created_by_a_run_not_by_listing(self, tmp_path):
+        output_path = tmp_path / "out"
+        with patch("mvt.common.command.Indicators.load_indicators_files"):
+            cmd = RecordingCommand(results_path=str(output_path))
+            cmd.list_modules()
+            assert not output_path.exists()
+            cmd.run()
+        assert (output_path / "command.log").is_file()
+
     def test_indicators_load_once_and_are_shared(self, indicator_file, monkeypatch):
         from mvt.common.config import settings
 
