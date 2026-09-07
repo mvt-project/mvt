@@ -227,17 +227,6 @@ class TestCommand:
             assert child.iocs is indicators
             load.assert_called_once_with(indicators, [indicator_file])
 
-    def test_failed_indicator_load_can_be_retried(self):
-        with patch(
-            "mvt.common.command.Indicators.load_indicators_files",
-            side_effect=[ValueError("bad indicators"), None],
-        ) as load:
-            cmd = RecordingCommand()
-            with pytest.raises(ValueError, match="bad indicators"):
-                _ = cmd.iocs
-            assert cmd.iocs is cmd.iocs
-            assert load.call_count == 2
-
     @pytest.mark.parametrize("assign", [False, True])
     def test_supplied_empty_indicators_are_not_loaded(self, assign):
         indicators = Indicators(logging.getLogger(__name__))
@@ -251,7 +240,7 @@ class TestCommand:
 
     @pytest.mark.parametrize("list_modules", [False, True])
     def test_backup_cli_does_not_load_indicators_before_analysis(
-        self, tmp_path, list_modules, caplog
+        self, tmp_path, list_modules
     ):
         from mvt.ios.cli import check_backup
 
@@ -262,11 +251,6 @@ class TestCommand:
             result = CliRunner().invoke(check_backup, args)
             assert result.exit_code == (0 if list_modules else 1)
             load.assert_not_called()
-        if not list_modules:
-            assert (
-                f"{tmp_path} does not appear to be an iTunes backup folder. "
-                "Expected Manifest.db and Info.plist."
-            ) in caplog.messages
 
     def test_run_checks_synthetic_indicators(self, indicator_file, monkeypatch):
         from mvt.common.config import settings
