@@ -724,6 +724,11 @@ class Command:
 
         self._log_loaded_modules(ordered_modules)
 
+        # Read the indicators once the run is certain to happen, before
+        # init() does any work on the target, so that a missing indicators
+        # file is reported first and every module gets the same object.
+        iocs = self.iocs
+
         try:
             self.init()
         except NotImplementedError:
@@ -748,8 +753,8 @@ class Command:
                 for dependency, resolved in self._module_dependencies(module)
             }
 
-            if self.iocs.total_ioc_count:
-                m.indicators = self.iocs
+            if iocs.total_ioc_count:
+                m.indicators = iocs
                 m.indicators.log = m.log
 
             if self.serial:
