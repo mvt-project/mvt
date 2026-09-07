@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from functools import cached_property
 from heapq import heappop, heappush
 from typing import Any, Optional
 
@@ -84,22 +85,17 @@ class Command:
         self.timeline: ModuleTimeline = []
         self.url_results: list[URLResult] = []
 
-        self._iocs = iocs
+        if iocs is not None:
+            self.iocs = iocs
 
         self.alertstore = AlertStore()
 
-    @property
+    @cached_property
     def iocs(self) -> Indicators:
-        """Load indicators on first use, preserving collections shared by callers."""
-        if self._iocs is None:
-            iocs = Indicators(self.log)
-            iocs.load_indicators_files(self.ioc_files)
-            self._iocs = iocs
-        return self._iocs
-
-    @iocs.setter
-    def iocs(self, value: Indicators) -> None:
-        self._iocs = value
+        """Load indicators on first use. Nested commands share their parent's."""
+        iocs = Indicators(self.log)
+        iocs.load_indicators_files(self.ioc_files)
+        return iocs
 
     def _create_storage(self) -> None:
         if self.results_path and not os.path.exists(self.results_path):
