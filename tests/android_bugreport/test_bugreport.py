@@ -10,6 +10,7 @@ from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
 from mvt.android.modules.bugreport.dumpsys_getprop import DumpsysGetProp
 from mvt.android.modules.bugreport.dumpsys_packages import DumpsysPackages
 from mvt.android.modules.bugreport.dumpsys_receivers import DumpsysReceivers
+from mvt.android.modules.bugreport.settings import Settings
 from mvt.android.modules.bugreport.tombstones import Tombstones
 from mvt.common.module import run_module
 
@@ -92,6 +93,25 @@ class TestBugreportAnalysis:
         alert = module.alertstore.alerts[0]
         assert alert.event == malicious_receiver
         assert alert.matched_indicator.value == "com.android.services"
+
+    def test_settings_module(self):
+        m = self.launch_bug_report_module(Settings)
+        assert len(m.results) == 12
+
+        assert len(m.alertstore.alerts) == 1
+        assert "accessibility_enabled = 1" in m.alertstore.alerts[0].message
+
+        assert len(m.timeline) == 3
+        change = [
+            entry
+            for entry in m.timeline
+            if entry["timestamp"] == "2022-03-28 22:41:07.980000"
+        ][0]
+        assert change["event"] == "settings_change"
+        assert change["data"] == (
+            'secure setting "accessibility_enabled" changed from "0" to "1" '
+            "by com.example.helper"
+        )
 
     def test_tombstones_modules(self):
         m = self.launch_bug_report_module(Tombstones)

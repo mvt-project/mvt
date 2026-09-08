@@ -122,6 +122,7 @@ RUN apt-get update \
   binutils \
   default-jre-headless \
   file \
+  git \
   jq \
   less \
   libcurl4 \

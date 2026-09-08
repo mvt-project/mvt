@@ -435,3 +435,11 @@ This JSON file is created by mvt-ios' `WhatsappContacts` module. The module extr
 
 This database is often missing from incremental backups. When it cannot be found, the module logs a warning and produces no results, in which case the disappearing messages state of chats cannot be determined from the backup.
 
+
+---
+
+## Records extracted by `check-sysdiagnose`
+
+### `sysdiagnose_info.json`
+
+This JSON file is created by mvt-ios' `SysdiagnoseInfo` module. The module extracts details about the device and the sysdiagnose itself: the product type and model, iOS version and build, serial number, IMEI, MEID and UDID from the remotectl dump state and the mobile activation request, the Apple account name and email from the App Store daemon database (no longer part of a sysdiagnose on newer iOS versions, still read from older archives), and the original file name and creation time of the archive from *sysdiagnose.log*.

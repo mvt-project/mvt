@@ -24,7 +24,8 @@ dependencies = [
     "simplejson==4.1.1",
     "packaging==26.3",
     "appdirs==1.4.4",
-    "iOSbackup==0.9.925",
+    "iphone_backup_decrypt==0.9.0",
+    "pycryptodome>=3.20.0",
     "adb-shell[usb]==0.4.4",
     "libusb1==3.4.0",
     "cryptography==50.0.0",
@@ -72,7 +73,7 @@ docs = [
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.coverage.run]
@@ -121,5 +122,6 @@ where = ["src"]
 [tool.setuptools.package-data]
 mvt = ["ios/data/*.json"]
 
-[tool.setuptools.dynamic]
-version = { attr = "mvt.common.version.MVT_VERSION" }
+[tool.setuptools_scm]
+# The version is the latest v* tag; ignore the archive/* tags.
+git_describe_command = "git describe --dirty --tags --long --match 'v*'"

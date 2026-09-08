@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays, 09:00 UTC
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  tag:
+    if: github.ref_type != 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - run: |
+          last=$(git describe --tags --abbrev=0 --match 'v*')
+          if [ "$(git rev-list "$last..HEAD" --count)" = 0 ]; then
+            echo "Nothing merged since $last"; exit 0
+          fi
+          tag=v$(date -u +%Y.%-m.%-d)
+          gh release create "$tag" --target "$GITHUB_SHA" --generate-notes
+          # Events made with GITHUB_TOKEN don't start other workflows; run them by hand.
+          gh workflow run release.yml --ref "$tag"
+          gh workflow run publish-release-docker.yml --ref "$tag"
+
+  publish:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # PyPI trusted publishing
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.0.0
+      - run: uv build && uv publish

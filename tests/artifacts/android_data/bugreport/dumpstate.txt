@@ -264,5 +264,53 @@ ChangeId(143539591; name=SELINUX_LATEST_CHANGES; disabled)
 ChangeId(247079863; name=DISALLOW_INVALID_GROUP_REFERENCE; enableSinceTargetSdk=34)
 ChangeId(174227820; name=FORCE_DISABLE_HEVC_SUPPORT; disabled)
 ChangeId(168419799; name=DOWNSCALED; disabled; packageOverrides={com.google.android.apps.tachyon=false, org.torproject.torbrowser=false}; rawOverrides={org.torproject.torbrowser=false, org.article19.circulo.next=false}; overridable)
+-------------------------------------------------------------------------------
+DUMP OF SERVICE settings:
+CONFIG SETTINGS (user 0)
+_id:682 name:namespace_one/blocked_components pkg:com.example.services value:com.android.settings,com.android.vending,
+com.example.dialer,
+com.example.camera default:com.android.settings,
+        com.android.vending,
+        com.example.dialer defaultSystemSet:false
+_id:684 name:namespace_one/streaming_blocked_components pkg:com.example.services value:com.example.dialer,com.example.camera default:com.android.settings,
+        com.android.vending defaultSystemSet:false
+_id:680 name:namespace_one/allowed_packages pkg:com.example.services value:com.example.messaging,
+com.example.chat
 
+GLOBAL SETTINGS (user 0)
+_id:2070 name:adb_wifi_enabled pkg:android value:0 default:0 defaultSystemSet:true
+_id:778 name:hidden_api_blacklist_exemptions value:{null}
+_id:9640 name:send_action_app_error pkg:android value:1 notPreservedInRestore
+_id:9631 name:development_settings_enabled pkg:com.android.settings value:1 default:1 defaultSystemSet:true
+	History (development_settings_enabled)
+		time:11-02 11:21:22.212 mode:update oldValue:null newValue:1 package:com.android.settings
+		time:03-14 09:02:11.100 mode:update oldValue:1 newValue:0 package:com.example.updater
+_id:771 name:widget_instance_data pkg:com.android.systemui value:{
+  "version": 1,
+  "data": [
+    {
+      "number": 10000,
+      "package_name": "com.example.widget"
+    }
+  ]
+} defaultSystemSet:true
+_id:41654 name:widget_instance_data pkg:com.android.systemui value:{
+  "version": 3,
+  "data": []
+} defaultSystemSet:true
 
+SECURE SETTINGS (user 0)
+_id:907 name:lock_screen_show_notifications pkg:com.android.settings value:1 default:1 defaultSystemSet:true isValuePreservedInRestore:true
+_id:240 name:accessibility_enabled pkg:android value:1 default:0 defaultSystemSet:true
+	History (accessibility_enabled)
+		time:03-28 22:41:07.980 mode:update oldValue:0 newValue:1 package:com.example.helper
+
+SECURE SETTINGS (user 10)
+_id:311 name:accessibility_enabled pkg:android value:0 tag:null
+
+GENERATION REGISTRY
+Maximum number of backing stores:8
+Number of backing stores:1
+_Backing store for type:SETTINGS_SECURE user:10 size:1024 cachedEntries:1
+
+--------- 0.019s was the duration of dumpsys settings, ending at: 2022-03-29 23:14:28

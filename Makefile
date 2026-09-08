@@ -32,8 +32,3 @@ clean:
 dist:
 	$(UV) build
 
-upload:
-	$(UV) tool run twine upload dist/*
-
-test-upload:
-	$(UV) tool run twine upload --repository testpypi dist/*

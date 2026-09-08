@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import List, Optional
 from zipfile import ZipFile
 
+from mvt.android.artifacts.getprop import GetProp
 from mvt.android.modules.bugreport.base import BugReportModule
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
@@ -88,13 +89,57 @@ class CmdAndroidCheckBugreport(Command):
             self.__files.append(file_name)
 
     def init(self) -> None:
-        if not self.target_path:
+        if self.target_path:
+            self.log.info("Checking Android bug report at path: %s", self.target_path)
+            if os.path.isfile(self.target_path):
+                self.from_zip(ZipFile(self.target_path))
+            elif os.path.isdir(self.target_path):
+                self.from_dir(self.target_path)
+                self.log.warning(
+                    "Analysing an unpacked bugreport: file timestamps come from "
+                    "the extraction, not from the device. Analyse the original "
+                    "zip to keep the device's file timestamps."
+                )
+        if self.__format:
+            self._resolve_device_timezone()
+
+    def _resolve_device_timezone(self) -> None:
+        """Name the device's timezone in module_options unless it is known already.
+
+        A bugreport's SYSTEM PROPERTIES section carries persist.sys.timezone.
+        Zip entry times are the device's wall clock, and modules read them in
+        this zone; --timezone or check-androidqf's own reading takes precedence.
+        """
+        if self.module_options.get("device_timezone"):
+            self.log.info("Device timezone: %s", self.module_options["device_timezone"])
             return
 
-        if os.path.isfile(self.target_path):
-            self.from_zip(ZipFile(self.target_path))
-        elif os.path.isdir(self.target_path):
-            self.from_dir(self.target_path)
+        probe = BugReportModule(log=self.log)
+        self.module_init(probe)
+        timezone = None
+        try:
+            dumpstate = probe._get_dumpstate_file()
+        except Exception as exc:
+            self.log.warning("Could not read the bugreport's dumpstate: %s", exc)
+            dumpstate = None
+        if dumpstate:
+            properties = GetProp()
+            properties.parse(
+                BugReportModule.extract_command_section(
+                    dumpstate.decode("utf-8", errors="replace"),
+                    "------ SYSTEM PROPERTIES",
+                )
+            )
+            timezone = properties.get_device_timezone()
+        if timezone:
+            self.log.info("Device timezone identified from the bugreport: %s", timezone)
+            self.module_options["device_timezone"] = timezone
+        else:
+            self.log.warning(
+                "persist.sys.timezone not found in the bugreport; file timestamps "
+                "are the device's wall clock without a timezone. Pass --timezone "
+                "to name it."
+            )
 
     def module_init(self, module: BugReportModule) -> None:  # type: ignore[override]
         if self.__format == "zip":

@@ -18,5 +18,4 @@ class Settings(SettingsArtifact, BugReportModule):
             data.decode("utf-8", errors="replace"), "DUMP OF SERVICE settings:"
         )
         self.parse(section)
-        count = sum(len(settings) for settings in self.results.values())
-        self.log.info("Identified %d Android settings", count)
+        self.log.info("Identified %d Android settings", len(self.results))
