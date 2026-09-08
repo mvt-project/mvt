@@ -64,7 +64,10 @@ class FirefoxHistory(IOSExtraction):
             ioc_match = self.indicators.check_url(result["url"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("isodate") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def run(self) -> None:

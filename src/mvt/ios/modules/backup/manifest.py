@@ -104,7 +104,10 @@ class Manifest(IOSExtraction):
             ioc_match = self.indicators.check_file_path("/" + result["relative_path"])
             if ioc_match:
                 self.alertstore.high(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("modified") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
                 continue
 
@@ -120,7 +123,7 @@ class Manifest(IOSExtraction):
                 if ioc_match:
                     self.alertstore.high(
                         f'Found mention of domain "{ioc_match.ioc.value}" in a backup file with path: {rel_path}',
-                        "",
+                        result.get("modified") or "",
                         result,
                         matched_indicator=ioc_match.ioc,
                     )
