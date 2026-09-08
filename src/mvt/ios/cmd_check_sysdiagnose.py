@@ -88,6 +88,8 @@ class CmdIOSCheckSysdiagnose(Command):
             parent_path = Path(self.target_path).absolute().parent
             for root, _, filenames in os.walk(self.target_path):
                 for filename in filenames:
+                    if filename.startswith("._"):
+                        continue
                     absolute_path = os.path.join(root, filename)
                     file_path = os.path.relpath(absolute_path, parent_path)
                     self.sysdiagnose_files.append(file_path)
@@ -136,6 +138,11 @@ class CmdIOSCheckSysdiagnose(Command):
                 continue
 
             if not member_path.parts:
+                continue
+            # AppleDouble sidecars (._name) carry a file's extended attributes,
+            # not sysdiagnose content. Device archives hold hundreds of them;
+            # bsdtar hides them from listings, tarfile does not.
+            if member_path.name.startswith("._"):
                 continue
             archive_roots.add(member_path.parts[0])
 
