@@ -34,6 +34,7 @@ def _create_sysdiagnose_folder(tmp_path):
         "sysdiagnose_2024.01.02_03-04-05+0200.tar.gz", encoding="utf-8"
     )
     (folder / "report.ips").write_text('{"bug_type": 210}\nbody', encoding="utf-8")
+    (folder / "._artifact.txt").write_bytes(b"\x00\x05\x16\x07AppleDouble")
     return folder
 
 
@@ -67,6 +68,7 @@ def test_check_sysdiagnose_from_folder(tmp_path):
     assert _test_module(command).ips_files == [
         {"file_path": str(tmp_path / "sysdiagnose" / "report.ips"), "bug_type": 210}
     ]
+    assert "sysdiagnose/._artifact.txt" not in command.sysdiagnose_files
 
 
 def test_check_sysdiagnose_from_archive_closes_archive(tmp_path):
@@ -83,6 +85,7 @@ def test_check_sysdiagnose_from_archive_closes_archive(tmp_path):
         }
     ]
     assert command.sysdiagnose_archive is None
+    assert "sysdiagnose/._artifact.txt" not in command.sysdiagnose_files
 
 
 def test_archive_is_extracted_once_and_unsafe_members_are_skipped(tmp_path):

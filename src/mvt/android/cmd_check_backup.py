@@ -129,6 +129,7 @@ class CmdAndroidCheckBackup(Command):
         assert self.target_path is not None  # type: ignore[has-type]
         # Use a different local variable name to avoid any scoping issues
         backup_path: str = self.target_path  # type: ignore[has-type]
+        self.log.info("Checking Android backup at path: %s", backup_path)
 
         if os.path.isfile(backup_path):
             self.__type = "ab"
