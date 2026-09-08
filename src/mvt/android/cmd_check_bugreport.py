@@ -90,6 +90,7 @@ class CmdAndroidCheckBugreport(Command):
 
     def init(self) -> None:
         if self.target_path:
+            self.log.info("Checking Android bug report at path: %s", self.target_path)
             if os.path.isfile(self.target_path):
                 self.from_zip(ZipFile(self.target_path))
             elif os.path.isdir(self.target_path):

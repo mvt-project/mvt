@@ -19,6 +19,14 @@ class TestCheckBackupCommand:
         result = runner.invoke(check_backup, [path])
         assert result.exit_code == 0
 
+    def test_check_logs_the_backup_path_to_the_command_log(self, tmp_path):
+        path = get_ios_backup_folder()
+        output_path = tmp_path / "out"
+        result = CliRunner().invoke(check_backup, ["--output", str(output_path), path])
+        assert result.exit_code == 0
+        command_log = (output_path / "command.log").read_text(encoding="utf-8")
+        assert f"Checking iTunes backup located at: {path}" in command_log
+
     def test_check_finds_backup_in_subfolder(self, tmp_path, caplog):
         runner = CliRunner()
         backup_path = tmp_path / "MobileSync" / "Backup" / "device-id"
