@@ -5,6 +5,7 @@ copyright: Copyright &copy; 2021-2023 MVT Project Developers
 site_description: Mobile Verification Toolkit Documentation
 not_in_nav: |
     android/adb.md
+    ios/backup/libimobiledevice.md
 markdown_extensions:
     - attr_list
     - admonition
@@ -34,10 +35,10 @@ nav:
     - Using Docker: "docker.md"
     - MVT for iOS:
         - iOS Forensic Methodology: "ios/methodology.md"
-        - Install libimobiledevice: "ios/install.md"
+        - Install pymobiledevice3: "ios/install.md"
         - Check an iTunes Backup:
             - Backup with iTunes app: "ios/backup/itunes.md"
-            - Backup with libimobiledevice: "ios/backup/libimobiledevice.md"
+            - Backup with pymobiledevice3: "ios/backup/pymobiledevice3.md"
             - Check a Backup with mvt-ios: "ios/backup/check.md"
         - Check a Filesystem Dump:
             - Dumping the filesystem: "ios/filesystem/dump.md"

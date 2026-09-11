@@ -1,4 +1,6 @@
-Using Docker simplifies having all the required dependencies and tools (including most recent versions of [libimobiledevice](https://libimobiledevice.org)) readily installed. Note that this requires a Linux host, as Docker for Windows and Mac [doesn't support passing through USB devices](https://docs.docker.com/desktop/faqs/#can-i-pass-through-a-usb-device-to-a-container).
+Using Docker simplifies running MVT with its dependencies readily installed. Note that this requires a Linux host, as Docker for Windows and Mac [doesn't support passing through USB devices](https://docs.docker.com/desktop/faqs/#can-i-pass-through-a-usb-device-to-a-container).
+
+For iOS acquisition, we recommend [installing pymobiledevice3](ios/install.md) on the host and [creating a backup](ios/backup/pymobiledevice3.md) before analyzing it with MVT. The Docker images currently include libimobiledevice, not pymobiledevice3.
 
 Install Docker following the [official documentation](https://docs.docker.com/get-docker/).
 
