@@ -69,7 +69,10 @@ class WebkitResourceLoadStatistics(IOSExtraction):
             ioc_match = self.indicators.check_url(result["registrable_domain"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("last_seen_isodate") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def _process_observations_db(self, db_path: str, domain: str, path: str) -> None:
