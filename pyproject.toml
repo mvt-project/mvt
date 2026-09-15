@@ -26,8 +26,6 @@ dependencies = [
     "appdirs==1.4.4",
     "iphone_backup_decrypt==0.9.0",
     "pycryptodome>=3.20.0",
-    "adb-shell[usb]==0.4.4",
-    "libusb1==3.4.0",
     "cryptography==50.0.0",
     "PyYAML>=6.0.2",
     "pyahocorasick==2.3.1",
