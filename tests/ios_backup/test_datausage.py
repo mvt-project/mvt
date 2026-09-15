@@ -20,6 +20,8 @@ class TestDatausageModule:
         assert m.results[0]["isodate"][0:19] == "2019-08-27 15:08:09"
         assert len(m.results) == 42
         assert len(m.timeline) == 60
+        assert "live_ZBILLCYCLEEND" in m.results[0]["record"]
+        assert "process_Z_ENT" in m.results[0]["record"]
         assert (
             len(m.alertstore.alerts) == 1
         )  # We now have a detection for missing processes.
