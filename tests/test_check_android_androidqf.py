@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import zipfile
 
+import pytest
 from click.testing import CliRunner
 
 from mvt.android.cli import check_androidqf
@@ -21,6 +22,44 @@ from mvt.common.config import settings
 from .utils import get_artifact_folder
 
 TEST_BACKUP_PASSWORD = "123456"
+
+
+@pytest.mark.parametrize(
+    "layout", ["directory", "", "./", "acquisition/", "outer/acquisition/"]
+)
+def test_androidqf_property_detection_across_layouts(
+    tmp_path, indicators_factory, monkeypatch, layout
+):
+    monkeypatch.setattr(settings, "NETWORK_ACCESS_ALLOWED", False)
+    content = (
+        "[persist.sys.timezone]: [Europe/Berlin]\n"
+        "[test.suspicious.property]: [enabled]\n"
+    )
+    if layout == "directory":
+        target = tmp_path / "acquisition"
+        target.mkdir()
+        (target / "getprop.txt").write_text(content)
+    else:
+        target = tmp_path / "acquisition.zip"
+        with zipfile.ZipFile(target, "w") as archive:
+            archive.writestr(layout + "getprop.txt", content)
+
+    command = CmdAndroidCheckAndroidQF(
+        target_path=str(target),
+        module_name="AQFGetProp",
+        iocs=indicators_factory(android_property_names=["test.suspicious.property"]),
+    )
+    command.run()
+
+    assert len(command.executed) == 1
+    module = command.executed[0]
+    assert module.results == [
+        {"name": "persist.sys.timezone", "value": "Europe/Berlin"},
+        {"name": "test.suspicious.property", "value": "enabled"},
+    ]
+    assert module._get_device_timezone() == "Europe/Berlin"
+    assert len(command.alertstore.alerts) == 1
+    assert command.alertstore.alerts[0].event == module.results[1]
 
 
 class TestCheckAndroidqfCommand:
