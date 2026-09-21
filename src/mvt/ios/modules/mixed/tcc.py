@@ -97,7 +97,10 @@ class TCC(IOSExtraction):
             ioc_match = self.indicators.check_process(result["client"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("last_modified") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def process_db(self, file_path):
