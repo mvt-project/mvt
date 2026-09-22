@@ -6,12 +6,17 @@ import datetime
 import fnmatch
 import logging
 import os
+import re
 from pathlib import Path
 from typing import List, Optional
 from zipfile import ZipFile
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from mvt.common.module import ModuleResults, MVTModule
+
+# `------ 0.101s was the duration of 'SOME SECTION' ------`, printed when that
+# section finishes and not necessarily between two sections.
+SECTION_DURATION = re.compile(r"^-{3,}\s*[0-9.]+s was the duration of", re.IGNORECASE)
 
 
 class BugReportModule(MVTModule):
@@ -122,6 +127,12 @@ class BugReportModule(MVTModule):
                     in_section = True
                 continue
             if stripped.startswith("------"):
+                # dumpstate prints a section's timing line when that section
+                # finishes, which can land in the middle of the one being
+                # written. Treating it as a boundary truncates the section at
+                # an arbitrary point, silently.
+                if SECTION_DURATION.match(stripped):
+                    continue
                 break
             lines.append(line)
         return "\n".join(lines)
