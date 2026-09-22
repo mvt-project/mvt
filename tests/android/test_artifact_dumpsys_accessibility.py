@@ -39,7 +39,10 @@ class TestDumpsysAccessibilityArtifact:
         assert da.results[0]["package_name"] == "com.malware.accessibility"
         assert da.results[0]["service_name"] == "com.malware.service.malwareservice"
         assert da.results[0]["enabled"] is True
-        assert da.results[0]["installed"] is False
+        # This fixture never prints an `installed services:` section, so the
+        # dump does not state the installed status. Reporting False would turn
+        # "not stated" into "not installed", so it reads None here.
+        assert da.results[0]["installed"] is None
 
     def test_accessibility_service_alert(self):
         da = DumpsysAccessibilityArtifact()
@@ -84,7 +87,11 @@ User state[attributes:{id=10
         assert len(da.alertstore.alerts) == 0
         da.check_indicators()
         assert len(da.alertstore.alerts) == len(da.results)
-        assert da.alertstore.count(AlertLevel.MEDIUM) == 3
+        # Every service in this fixture is installed and switched off
+        # (`enabled services:{}` is printed and empty), so the three non-IOC
+        # findings are LOW, not MEDIUM. The IOC match is unaffected by the
+        # state.
+        assert da.alertstore.count(AlertLevel.LOW) == 3
         assert da.alertstore.count(AlertLevel.CRITICAL) == 1
         critical_alert = next(
             alert
