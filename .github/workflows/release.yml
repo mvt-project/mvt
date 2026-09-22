@@ -34,6 +34,7 @@ jobs:
   publish:
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
+    environment: pypi # only tag refs may deploy; the PyPI trusted publisher requires it
     permissions:
       id-token: write # PyPI trusted publishing
     steps:
