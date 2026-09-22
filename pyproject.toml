@@ -24,7 +24,7 @@ dependencies = [
     "simplejson==4.1.1",
     "packaging==26.3",
     "appdirs==1.4.4",
-    "iphone_backup_decrypt==0.9.0",
+    "iphone_backup_decrypt==0.10.0",
     "pycryptodome>=3.20.0",
     "cryptography==50.0.0",
     "PyYAML>=6.0.2",
