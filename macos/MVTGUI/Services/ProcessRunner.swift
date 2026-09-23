@@ -2,8 +2,8 @@ import Foundation
 
 /// Runs one external process at a time and streams its combined
 /// stdout/stderr into `lines` for display. All published state is mutated on
-/// the main queue.
-final class ProcessRunner: ObservableObject {
+/// the main queue, which is what makes the unchecked Sendable conformance safe.
+final class ProcessRunner: ObservableObject, @unchecked Sendable {
     @Published private(set) var lines: [LogLine] = []
     @Published private(set) var isRunning = false
     @Published private(set) var lastExitCode: Int32?
