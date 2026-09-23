@@ -20,6 +20,10 @@ class TestInteractionCModule:
         run_module(m)
 
         assert len(m.results) == 3
+        assert all(
+            result["interaction"]["Z_PK"] == result["table_id"] for result in m.results
+        )
+        assert all("ZMECHANISM" in result["interaction"] for result in m.results)
 
         incoming = next(
             r for r in m.results if r["sender_identifier"] == "100000000000001@lid"

@@ -105,6 +105,7 @@ class TestSafariHistoryModule:
         assert len(m.results) == 2
         assert {result["url"] for result in m.results} == {DEFAULT_URL, PROFILE_URL}
         assert len({result["safari_history_db"] for result in m.results}) == 2
+        assert all("visit_history_item" in result["record"] for result in m.results)
 
     def test_parsing_fs_dump_with_profile(self, fs_dump_with_safari_profile):
         m = SafariHistory(target_path=fs_dump_with_safari_profile)

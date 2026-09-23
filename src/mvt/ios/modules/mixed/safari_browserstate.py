@@ -15,7 +15,11 @@ from mvt.common.module_types import (
     ModuleResults,
     ModuleSerializedResult,
 )
-from mvt.common.utils import convert_mactime_to_iso, keys_bytes_to_string
+from mvt.common.utils import (
+    convert_mactime_to_iso,
+    keys_bytes_to_string,
+    sanitize_json_data,
+)
 
 from ..base import IOSExtraction
 
@@ -94,85 +98,76 @@ class SafariBrowserState(IOSExtraction):
     def _process_browser_state_db(self, db_path):
         self._recover_sqlite_db_if_needed(db_path)
         conn = self._open_sqlite_db(db_path)
-
         cur = conn.cursor()
         try:
             try:
                 cur.execute(
                     """
-                    SELECT
-                        tabs.title,
-                        tabs.url,
-                        tabs.user_visible_url,
-                        tabs.last_viewed_time,
-                        tab_sessions.session_data
+                    SELECT tabs.*, tab_sessions.session_data AS session_data
                     FROM tabs
-                    JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
+                    LEFT JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
                     ORDER BY tabs.last_viewed_time;
-                """
+                    """
                 )
+                names = [description[0] for description in cur.description]
             except sqlite3.OperationalError:
-                # Old version iOS <12 likely
+                # Older databases store session_data directly in tabs.
                 try:
-                    cur.execute(
-                        """
-                        SELECT
-                            title, url, user_visible_url, last_viewed_time, session_data
-                    FROM tabs
-                    ORDER BY last_viewed_time;
-                """
-                    )
-                except sqlite3.OperationalError as e:
-                    self.log.error(f"Error executing query: {e}")
+                    cur.execute("SELECT * FROM tabs ORDER BY last_viewed_time;")
+                    names = [description[0] for description in cur.description]
+                except sqlite3.OperationalError as exc:
+                    self.log.error("Error executing query: %s", exc)
                     return
 
             for row in cur:
+                raw = dict(zip(names, row))
                 session_entries = []
-
-                if row[4]:
+                session_blob = raw.get("session_data")
+                if session_blob:
                     # Skip a 4 byte header before the plist content.
-                    session_plist = row[4][4:]
+                    session_plist = session_blob[4:]
                     session_data = {}
                     try:
                         session_data = plistlib.load(io.BytesIO(session_plist))
                         session_data = keys_bytes_to_string(session_data)
-                    except plistlib.InvalidFileException:
+                    except (plistlib.InvalidFileException, ValueError, TypeError):
                         pass
 
-                    if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
-                        for session_entry in session_data["SessionHistory"].get(
-                            "SessionHistoryEntries"
-                        ):
-                            self._session_history_count += 1
+                    for session_entry in session_data.get("SessionHistory", {}).get(
+                        "SessionHistoryEntries", []
+                    ):
+                        self._session_history_count += 1
+                        entry_data = session_entry.get("SessionHistoryEntryData")
+                        session_entries.append(
+                            {
+                                "entry_title": session_entry.get(
+                                    "SessionHistoryEntryOriginalURL"
+                                ),
+                                "entry_url": session_entry.get(
+                                    "SessionHistoryEntryURL"
+                                ),
+                                "data_length": (
+                                    len(entry_data) if entry_data is not None else 0
+                                ),
+                            }
+                        )
 
-                            data_length = 0
-                            if "SessionHistoryEntryData" in session_entry:
-                                data_length = len(
-                                    session_entry.get("SessionHistoryEntryData")
-                                )
-
-                            session_entries.append(
-                                {
-                                    "entry_title": session_entry.get(
-                                        "SessionHistoryEntryOriginalURL"
-                                    ),
-                                    "entry_url": session_entry.get(
-                                        "SessionHistoryEntryURL"
-                                    ),
-                                    "data_length": data_length,
-                                }
-                            )
-
+                last_viewed = raw.get("last_viewed_time")
                 self.results.append(
                     {
-                        "tab_title": row[0],
-                        "tab_url": row[1],
-                        "tab_visible_url": row[2],
-                        "last_viewed_timestamp": convert_mactime_to_iso(row[3]),
+                        "tab_title": raw.get("title"),
+                        "tab_url": raw.get("url"),
+                        "tab_visible_url": raw.get("user_visible_url"),
+                        "last_viewed_timestamp": (
+                            convert_mactime_to_iso(last_viewed)
+                            if last_viewed is not None
+                            else ""
+                        ),
                         "session_data": session_entries,
                         "safari_browser_state_db": os.path.relpath(
                             db_path, self.target_path
                         ),
+                        "tab": sanitize_json_data(raw),
                     }
                 )
         finally:

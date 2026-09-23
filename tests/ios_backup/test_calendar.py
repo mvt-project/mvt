@@ -21,6 +21,8 @@ class TestCalendarModule:
         assert len(m.timeline) == 4
         assert len(m.alertstore.alerts) == 0
         assert m.results[0]["summary"] == "Super interesting meeting"
+        assert m.results[0]["record"]["calendar_app_link"] is None
+        assert "participant_proposed_start_date" in m.results[0]["record"]
 
     def test_calendar_with_explicit_file_path(self):
         backup_path = get_ios_backup_folder()

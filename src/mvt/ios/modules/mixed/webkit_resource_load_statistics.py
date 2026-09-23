@@ -13,7 +13,7 @@ from mvt.common.module_types import (
     ModuleResults,
     ModuleSerializedResult,
 )
-from mvt.common.utils import convert_unix_to_iso
+from mvt.common.utils import convert_unix_to_iso, sanitize_json_data
 
 from ..base import IOSExtraction
 
@@ -85,52 +85,45 @@ class WebkitResourceLoadStatistics(IOSExtraction):
 
         try:
             try:
-                cur.execute("PRAGMA table_info(ObservedDomains);")
-                available_columns = {row[1] for row in cur}
-                required_columns = [
-                    "domainID",
-                    "registrableDomain",
-                    "lastSeen",
-                    "hadUserInteraction",
-                ]
-                if not set(required_columns).issubset(available_columns):
-                    return
-
-                optional_columns = [
-                    column
-                    for column in [
-                        "mostRecentUserInteractionTime",
-                        "mostRecentWebPushInteractionTime",
-                    ]
-                    if column in available_columns
-                ]
-                selected_columns = required_columns + optional_columns
-                cur.execute(
-                    f"SELECT {', '.join(selected_columns)} FROM ObservedDomains;"
-                )
+                cur.execute("SELECT * FROM ObservedDomains;")
             except sqlite3.OperationalError:
                 return
 
+            names = [description[0] for description in cur.description]
+            required_columns = {
+                "domainID",
+                "registrableDomain",
+                "lastSeen",
+                "hadUserInteraction",
+            }
+            if not required_columns.issubset(names):
+                return
             for row in cur:
+                raw = sanitize_json_data(dict(zip(names, row)))
+                last_seen = raw.get("lastSeen")
                 result = {
-                    "domain_id": row[0],
-                    "registrable_domain": row[1],
-                    "last_seen": row[2],
-                    "had_user_interaction": bool(row[3]),
-                    "last_seen_isodate": convert_unix_to_iso(row[2]),
+                    "domain_id": raw.get("domainID"),
+                    "registrable_domain": raw.get("registrableDomain"),
+                    "last_seen": last_seen,
+                    "had_user_interaction": bool(raw.get("hadUserInteraction")),
+                    "last_seen_isodate": convert_unix_to_iso(last_seen),
                     "domain": domain,
                     "path": path,
+                    "record": raw,
                 }
-                for index, column in enumerate(optional_columns, start=4):
-                    field = {
-                        "mostRecentUserInteractionTime": (
-                            "most_recent_user_interaction_time"
-                        ),
-                        "mostRecentWebPushInteractionTime": (
-                            "most_recent_web_push_interaction_time"
-                        ),
-                    }[column]
-                    timestamp = row[index]
+                for column, field in (
+                    (
+                        "mostRecentUserInteractionTime",
+                        "most_recent_user_interaction_time",
+                    ),
+                    (
+                        "mostRecentWebPushInteractionTime",
+                        "most_recent_web_push_interaction_time",
+                    ),
+                ):
+                    if column not in raw:
+                        continue
+                    timestamp = raw[column]
                     result[field] = timestamp
                     if timestamp is not None and timestamp >= 0:
                         result[f"{field}_isodate"] = convert_unix_to_iso(timestamp)
