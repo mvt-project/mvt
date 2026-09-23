@@ -22,3 +22,18 @@ def test_google_maps_url_is_not_shortened(url):
 
 def test_other_google_short_url_is_shortened():
     assert URL("https://goo.gl/example").check_if_shortened() is True
+
+
+@pytest.mark.parametrize(
+    "url, domain",
+    [
+        ("https://www.example.com/path", "example.com"),
+        # Only the whole "www." prefix comes off, not any leading "w" or "." character.
+        ("https://web.example.com", "web.example.com"),
+        ("https://wow.com", "wow.com"),
+        ("https://wired.com", "wired.com"),
+        ("https://www.wow.com", "wow.com"),
+    ],
+)
+def test_get_domain_strips_only_a_whole_www_prefix(url, domain):
+    assert URL(url).domain == domain
