@@ -29,7 +29,8 @@ class DumpsysADBArtifact(AndroidArtifact):
         stack = [res]
         cur_indent = 0
         in_multiline = False
-        for line in dump_data.strip(b"\n").split(b"\n"):
+        for line in dump_data.strip(b"\r\n").split(b"\n"):
+            line = line.removesuffix(b"\r")
             # Track the level of indentation
             indent = len(line) - len(line.lstrip())
             if indent < cur_indent:
@@ -180,12 +181,19 @@ class DumpsysADBArtifact(AndroidArtifact):
             self.log.error("Unable to find ADB manager state in dumpsys output")
             return
 
+        line_ending_length = 1
         end_of_json = content.rfind(b"}\n")
+        crlf_end_of_json = content.rfind(b"}\r\n")
+        if crlf_end_of_json > end_of_json:
+            line_ending_length = 2
+            end_of_json = crlf_end_of_json
         if end_of_json == -1 or end_of_json <= start_of_json:
             self.log.error("Unable to find complete ADB manager state in dumpsys output")
             return
 
-        json_content = content[start_of_json + 2 : end_of_json - 2].rstrip()
+        json_content = content[
+            start_of_json + 2 : end_of_json - line_ending_length - 1
+        ].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
         if parsed.get("debugging_manager") is None:
