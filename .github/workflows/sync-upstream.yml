@@ -1,0 +1,167 @@
+name: Sync upstream
+# Keeps this fork current with mvt-project/mvt. Once a day, new upstream
+# commits are merged into a `sync/upstream` branch and proposed as a pull
+# request against the default branch, so they get reviewed and built before
+# landing. Conflicts and failures open an issue instead of passing silently.
+#
+# Optional: add a SYNC_TOKEN repository secret (a fine-grained token with
+# Contents, Pull requests and Workflows read/write on this repository). The
+# default GITHUB_TOKEN cannot push upstream changes to .github/workflows/, and
+# pull requests it opens don't trigger the other CI workflows.
+
+on:
+  schedule:
+    - cron: "23 5 * * *" # daily, 05:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write # dispatch the macOS GUI workflow on the sync branch
+
+concurrency:
+  group: sync-upstream
+
+env:
+  UPSTREAM_REPO: mvt-project/mvt
+  UPSTREAM_BRANCH: main
+  SYNC_BRANCH: sync/upstream
+  ISSUE_TITLE: "Upstream sync needs attention"
+
+jobs:
+  sync:
+    if: github.repository != 'mvt-project/mvt'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+      BASE_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+
+      - name: Fetch upstream
+        id: fetch
+        run: |
+          git fetch --no-tags "https://github.com/${UPSTREAM_REPO}.git" \
+            "${UPSTREAM_BRANCH}:refs/remotes/upstream/${UPSTREAM_BRANCH}"
+          behind=$(git rev-list --count "HEAD..upstream/${UPSTREAM_BRANCH}")
+          echo "behind=${behind}" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=$(git rev-parse --short "upstream/${UPSTREAM_BRANCH}")" >> "$GITHUB_OUTPUT"
+          echo "${BASE_BRANCH} is ${behind} commit(s) behind ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}"
+
+      - name: Merge upstream into the sync branch
+        id: merge
+        if: steps.fetch.outputs.behind != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$SYNC_BRANCH"
+          upstream="upstream/${UPSTREAM_BRANCH}"
+
+          # Summary for the pull request (or issue) body.
+          {
+            echo "Merges **${{ steps.fetch.outputs.behind }}** new commit(s) from [${UPSTREAM_REPO}](https://github.com/${UPSTREAM_REPO}) \`${UPSTREAM_BRANCH}\` (up to \`${{ steps.fetch.outputs.upstream_sha }}\`)."
+            echo
+            gui_files=$(git diff --name-only "HEAD...${upstream}" -- \
+              src/mvt/ios/cli.py src/mvt/android/cli.py src/mvt/cli.py \
+              src/mvt/common/log.py src/mvt/common/alerts.py src/mvt/common/command.py \
+              src/mvt/common/config.py src/mvt/common/options.py src/mvt/common/help.py)
+            if [ -n "$gui_files" ]; then
+              echo "### ⚠️ Changes to files the macOS GUI depends on"
+              echo "Check the **macOS GUI** workflow results for this branch, and whether new options should be exposed in the app:"
+              echo "$gui_files" | sed 's/^/- `/; s/$/`/'
+              echo
+            fi
+            echo "### Upstream commits"
+            git log --no-merges --format='- %s (%h)' "HEAD..${upstream}" | head -n 60
+            echo
+            echo "[Full comparison](https://github.com/${UPSTREAM_REPO}/compare/$(git merge-base HEAD "$upstream")...${{ steps.fetch.outputs.upstream_sha }})"
+          } > "$RUNNER_TEMP/summary.md"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+          if git merge --no-ff --no-edit "$upstream" \
+               -m "Merge ${UPSTREAM_REPO}@${{ steps.fetch.outputs.upstream_sha }} into ${BASE_BRANCH}"; then
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            git diff --name-only --diff-filter=U > "$RUNNER_TEMP/conflicts.txt"
+            git merge --abort
+          fi
+
+      - name: Push and open pull request
+        id: pr
+        if: steps.merge.outputs.conflict == 'false'
+        run: |
+          # The sync branch is regenerated from the default branch on every run.
+          if ! git push --force origin "$SYNC_BRANCH" 2> "$RUNNER_TEMP/push.log"; then
+            cat "$RUNNER_TEMP/push.log"
+            echo "failed=push" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          title="Sync with ${UPSTREAM_REPO} (${{ steps.fetch.outputs.upstream_sha }})"
+          number=$(gh pr list --head "$SYNC_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body-file "$RUNNER_TEMP/summary.md"
+          elif ! gh pr create --head "$SYNC_BRANCH" --base "$BASE_BRANCH" \
+                 --title "$title" --body-file "$RUNNER_TEMP/summary.md"; then
+            echo "failed=pr" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Pull requests opened with GITHUB_TOKEN don't trigger CI on their
+          # own; run the GUI build and CLI contract check explicitly.
+          gh workflow run macos-gui.yml --ref "$SYNC_BRANCH" || true
+
+      - name: Report problems in an issue
+        if: steps.merge.outputs.conflict == 'true' || steps.pr.outputs.failed != '' || failure()
+        run: |
+          {
+            if [ "${{ steps.merge.outputs.conflict }}" = "true" ]; then
+              echo "Upstream changes conflict with this fork and need a manual merge. Conflicting files:"
+              echo
+              sed 's/^/- `/; s/$/`/' "$RUNNER_TEMP/conflicts.txt" 2>/dev/null
+              echo
+              echo "Resolve them locally:"
+              echo
+              echo '```bash'
+              echo "git remote add upstream https://github.com/${UPSTREAM_REPO}.git  # once"
+              echo "git fetch upstream"
+              echo "git checkout ${BASE_BRANCH} && git merge upstream/${UPSTREAM_BRANCH}"
+              echo "# fix conflicts, then: git commit && git push"
+              echo '```'
+            elif [ "${{ steps.pr.outputs.failed }}" = "push" ]; then
+              echo "The sync branch could not be pushed. This usually means upstream changed files in \`.github/workflows/\`, which the default GITHUB_TOKEN may not modify."
+              echo
+              echo "Either add a \`SYNC_TOKEN\` secret (see the comment at the top of \`.github/workflows/sync-upstream.yml\`), or press **Sync fork** on the repository page, or merge manually:"
+              echo
+              echo '```bash'
+              echo "git fetch https://github.com/${UPSTREAM_REPO}.git ${UPSTREAM_BRANCH} && git merge FETCH_HEAD && git push"
+              echo '```'
+            elif [ "${{ steps.pr.outputs.failed }}" = "pr" ]; then
+              echo "The \`${SYNC_BRANCH}\` branch was updated but the pull request could not be opened."
+              echo
+              echo "Enable **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests**, or add a \`SYNC_TOKEN\` secret. Meanwhile, open it by hand: https://github.com/${GITHUB_REPOSITORY}/compare/${BASE_BRANCH}...${SYNC_BRANCH}"
+            else
+              echo "The upstream sync workflow failed."
+            fi
+            echo
+            echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat "$RUNNER_TEMP/summary.md" 2>/dev/null
+          } > "$RUNNER_TEMP/issue.md"
+
+          cat "$RUNNER_TEMP/issue.md" >> "$GITHUB_STEP_SUMMARY"
+          number=$(gh issue list --state open --search "\"${ISSUE_TITLE}\" in:title" --json number --jq '.[0].number // empty' || true)
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body-file "$RUNNER_TEMP/issue.md" || true
+          else
+            gh issue create --title "$ISSUE_TITLE" --body-file "$RUNNER_TEMP/issue.md" \
+              || echo "::warning::Could not open an issue. Enable Issues in the repository settings to get these reports."
+          fi
+          # Fail the run so GitHub also notifies by email.
+          exit 1

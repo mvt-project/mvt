@@ -119,6 +119,64 @@ flags in `options`, and map them to arguments in
 The app runs without the App Sandbox because it must launch the MVT
 executables and read acquisitions from anywhere on disk.
 
+## Staying in sync with upstream MVT
+
+This repository is a fork of
+[mvt-project/mvt](https://github.com/mvt-project/mvt). Two workflows keep it
+current:
+
+- **Sync upstream** (`.github/workflows/sync-upstream.yml`) runs daily and
+  merges new upstream commits into a `sync/upstream` branch. It then opens a
+  pull request, or updates the open one, listing the new commits. The pull
+  request flags upstream changes to files the GUI depends on (CLI
+  definitions, log format, alerts, settings). Nothing lands on `main` until
+  you merge that pull request. If upstream conflicts with the fork's changes,
+  or the sync can't push, the run fails and opens an **Upstream sync needs
+  attention** issue with instructions.
+- **macOS GUI** (`.github/workflows/macos-gui.yml`) builds the app and runs
+  `macos/scripts/check_cli_contract.py` on every change to `macos/`, `src/`
+  or `pyproject.toml`, and on every sync branch. The contract check installs
+  MVT from the checkout and verifies what the app relies on: the commands,
+  flags, `MVT_*` environment variables, the `Version:` line, the
+  `<LEVEL> ALERT` log prefixes, and the `alerts.json`/`info.json` format
+  (by running a real check on the test backup). It warns when upstream adds
+  a command the GUI doesn't offer yet.
+
+One-time setup on GitHub:
+
+1. Merge this work into `main`. Scheduled workflows only run from the
+   default branch.
+2. **Actions** tab: enable workflows. Forks have them disabled at first.
+3. **Settings → Actions → General → Workflow permissions**: select *Read and
+   write permissions* and tick *Allow GitHub Actions to create and approve
+   pull requests*.
+4. **Settings → General → Features**: enable **Issues** so conflict reports
+   have somewhere to go. Failed runs also send you an email.
+5. Recommended: add a `SYNC_TOKEN` repository secret. Use a fine-grained
+   personal access token for this repository with *Contents*, *Pull
+   requests* and *Workflows* read/write. Without it, the sync can't push
+   upstream changes to `.github/workflows/`, and its pull requests don't
+   trigger the Tests/Ruff checks (it still runs the macOS GUI workflow on the
+   branch).
+
+You can start a sync at any time from **Actions ▸ Sync upstream ▸ Run
+workflow**, or by hand:
+
+```bash
+git remote add upstream https://github.com/mvt-project/mvt.git   # once
+git fetch upstream --tags   # tags give installs from source the right version number
+git checkout main
+git merge upstream/main
+git push origin main
+```
+
+Upstream's own workflows came with the fork. On the fork they are harmless:
+PyPI publishing needs upstream's trusted-publisher setup, the Docker image
+would go to this fork's own package registry, and `update-ios-data` opens
+pull requests here. You can disable any of them from the Actions tab. Don't
+edit or delete their files, because that would conflict with every future
+sync.
+
 ## License and intended use
 
 This wrapper is part of this MVT fork and falls under the same

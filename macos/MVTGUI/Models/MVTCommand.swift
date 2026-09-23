@@ -17,6 +17,8 @@ enum InputKind {
 
 /// Individual options a command form can expose. Each one maps to a flag of
 /// the underlying MVT command, as printed by `<tool> <command> --help`.
+/// macos/scripts/check_cli_contract.py verifies these against the CLI in CI;
+/// update its EXPECTED_OPTIONS when changing what a command passes.
 enum CommandOption: Hashable {
     case iocs            // -i/--iocs PATH (repeatable)
     case output          // -o/--output PATH

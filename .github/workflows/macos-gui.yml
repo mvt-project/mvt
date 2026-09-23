@@ -3,10 +3,14 @@ on:
   push:
     paths:
       - "macos/**"
+      - "src/**"
+      - "pyproject.toml"
       - ".github/workflows/macos-gui.yml"
   pull_request:
     paths:
       - "macos/**"
+      - "src/**"
+      - "pyproject.toml"
       - ".github/workflows/macos-gui.yml"
   workflow_dispatch:
 
@@ -14,6 +18,21 @@ permissions:
   contents: read
 
 jobs:
+  cli-contract:
+    name: CLI matches GUI expectations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # setuptools-scm derives the version from git history
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install MVT from this checkout
+        run: pip install .
+      - name: Check CLI contract
+        run: python macos/scripts/check_cli_contract.py
+
   build:
     name: Build macOS app
     runs-on: macos-latest
