@@ -1,0 +1,38 @@
+name: macOS GUI
+on:
+  push:
+    paths:
+      - "macos/**"
+      - ".github/workflows/macos-gui.yml"
+  pull_request:
+    paths:
+      - "macos/**"
+      - ".github/workflows/macos-gui.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build macOS app
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        run: |
+          xcodebuild -version
+          xcodebuild \
+            -project macos/MVTGUI.xcodeproj \
+            -scheme MVTGUI \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY=- \
+            build
+      - name: Package
+        run: |
+          ditto -c -k --keepParent build/DerivedData/Build/Products/Release/MVTGUI.app MVTGUI.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MVTGUI
+          path: MVTGUI.zip

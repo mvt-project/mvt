@@ -62,6 +62,10 @@ MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions fr
 
 Pass `--verbose` to any of the three commands, before the command name (`mvt-ios --verbose check-backup ...`), for debug output. The `--verbose` option the `check-*` commands accept after their name still works but is kept for compatibility only and will be removed in a future release.
 
+### macOS app
+
+A native macOS GUI that wraps these commands lives in [`macos/`](macos/README.md). Open `macos/MVTGUI.xcodeproj` in Xcode to build it.
+
 ### Shell completion
 
 MVT can generate a shell completion script for Bash, Zsh, and Fish which covers `mvt`, `mvt-ios` and `mvt-android`:
