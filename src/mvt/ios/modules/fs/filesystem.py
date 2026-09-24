@@ -82,7 +82,9 @@ class Filesystem(IOSExtraction):
                 try:
                     dir_path = os.path.join(root, dir_name)
                     result = {
-                        "path": os.path.relpath(dir_path, self.target_path),
+                        "path": os.path.relpath(dir_path, self.target_path).replace(
+                            os.sep, "/"
+                        ),
                         "modified": convert_unix_to_iso(os.stat(dir_path).st_mtime),
                     }
                 except Exception:
@@ -94,7 +96,9 @@ class Filesystem(IOSExtraction):
                 try:
                     file_path = os.path.join(root, file_name)
                     result = {
-                        "path": os.path.relpath(file_path, self.target_path),
+                        "path": os.path.relpath(file_path, self.target_path).replace(
+                            os.sep, "/"
+                        ),
                         "modified": convert_unix_to_iso(os.stat(file_path).st_mtime),
                     }
                 except Exception:
