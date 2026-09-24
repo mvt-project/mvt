@@ -181,19 +181,18 @@ class DumpsysADBArtifact(AndroidArtifact):
             self.log.error("Unable to find ADB manager state in dumpsys output")
             return
 
-        line_ending_length = 1
-        end_of_json = content.rfind(b"}\n")
-        crlf_end_of_json = content.rfind(b"}\r\n")
-        if crlf_end_of_json > end_of_json:
-            line_ending_length = 2
-            end_of_json = crlf_end_of_json
+        end_of_json = max(content.rfind(b"}\n"), content.rfind(b"}\r\n"))
         if end_of_json == -1 or end_of_json <= start_of_json:
             self.log.error("Unable to find complete ADB manager state in dumpsys output")
             return
 
-        json_content = content[
-            start_of_json + 2 : end_of_json - line_ending_length - 1
-        ].rstrip()
+        # Exclude the final nested closing brace regardless of its line ending.
+        # The indented parser finishes the open debugging_manager at EOF.
+        inner_end = content.rfind(b"}", start_of_json + 2, end_of_json)
+        if inner_end == -1:
+            self.log.error("Unable to find complete ADB manager state in dumpsys output")
+            return
+        json_content = content[start_of_json + 2 : inner_end].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
         if parsed.get("debugging_manager") is None:
