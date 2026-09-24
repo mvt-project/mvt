@@ -122,60 +122,78 @@ executables and read acquisitions from anywhere on disk.
 ## Staying in sync with upstream MVT
 
 This repository is a fork of
-[mvt-project/mvt](https://github.com/mvt-project/mvt). Two workflows keep it
-current:
+[mvt-project/mvt](https://github.com/mvt-project/mvt). Three workflows keep
+it current:
 
-- **Sync upstream** (`.github/workflows/sync-upstream.yml`) runs daily and
-  merges new upstream commits into a `sync/upstream` branch. It then opens a
-  pull request, or updates the open one, listing the new commits. The pull
-  request flags upstream changes to files the GUI depends on (CLI
-  definitions, log format, alerts, settings). Nothing lands on `main` until
-  you merge that pull request. If upstream conflicts with the fork's changes,
-  or the sync can't push, the run fails and opens an **Upstream sync needs
-  attention** issue with instructions.
+- **Sync upstream** (`.github/workflows/sync-upstream.yml`) runs every day
+  at 05:23 UTC. It merges new upstream commits into `main`, but only after
+  the merged code passes three checks: upstream's test suite, the macOS app
+  build, and the CLI contract check described below.
+  - If upstream conflicts with this fork's changes, or a check fails, `main`
+    is left alone and the run fails, so GitHub emails you. The run's summary
+    says what happened and what to do.
+  - When checks fail, the merge stays on the `sync/upstream` branch. Later
+    runs keep any commits you push there, for example changes that adapt the
+    app to an upstream change.
+  - It also copies upstream's new release tags, so installs from source
+    report the right MVT version.
 - **macOS GUI** (`.github/workflows/macos-gui.yml`) builds the app and runs
-  `macos/scripts/check_cli_contract.py` on every change to `macos/`, `src/`
-  or `pyproject.toml`, and on every sync branch. The contract check installs
-  MVT from the checkout and verifies what the app relies on: the commands,
+  `macos/scripts/check_cli_contract.py`. It runs on every change to
+  `macos/`, `src/` or `pyproject.toml`, and inside every sync. The contract
+  check installs MVT and verifies what the app relies on: the commands,
   flags, `MVT_*` environment variables, the `Version:` line, the
   `<LEVEL> ALERT` log prefixes, and the `alerts.json`/`info.json` format
-  (by running a real check on the test backup). It warns when upstream adds
-  a command the GUI doesn't offer yet.
+  (by running a real check on the test backup). It also warns when upstream
+  adds a command the app doesn't offer yet.
+- **Fork setup** (`.github/workflows/fork-setup.yml`) turned off upstream
+  workflows that only make sense in mvt-project/mvt:
+  - the weekly release and PyPI publish
+  - Docker image publishing
+  - the iOS data bot (its updates reach this fork through the sync)
+  - the project-board automation
 
-One-time setup on GitHub:
+  Re-enable any of them from the Actions tab and they stay enabled.
 
-1. Merge this work into `main`. Scheduled workflows only run from the
-   default branch.
-2. **Actions** tab: enable workflows. Forks have them disabled at first.
-3. **Settings → Actions → General → Workflow permissions**: select *Read and
-   write permissions* and tick *Allow GitHub Actions to create and approve
-   pull requests*.
-4. **Settings → General → Features**: enable **Issues** so conflict reports
-   have somewhere to go. Failed runs also send you an email.
-5. Recommended: add a `SYNC_TOKEN` repository secret. Use a fine-grained
-   personal access token for this repository with *Contents*, *Pull
-   requests* and *Workflows* read/write. Without it, the sync can't push
-   upstream changes to `.github/workflows/`, and its pull requests don't
-   trigger the Tests/Ruff checks (it still runs the macOS GUI workflow on the
-   branch).
+### Workflow file changes from upstream
 
-You can start a sync at any time from **Actions ▸ Sync upstream ▸ Run
-workflow**, or by hand:
+The built-in `GITHUB_TOKEN` isn't allowed to push changes to
+`.github/workflows/`. When an upstream update includes such changes, the
+sync stops and tells you. You then have two options:
+
+- Press **Sync fork → Update branch** on the repository page.
+- Add a `SYNC_TOKEN` repository secret once, so that such syncs go through
+  on their own. Create a
+  [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+  for this repository only, with *Contents*, *Workflows* and *Pull requests*
+  set to read and write. Save it under **Settings → Secrets and variables →
+  Actions → New repository secret** with the name `SYNC_TOKEN`.
+
+### Optional settings
+
+- **Settings → General → Features → Issues**: failed syncs also open an
+  issue. Without Issues you still get the failed-run email.
+- **Settings → Actions → General → Allow GitHub Actions to create and
+  approve pull requests**: when checks fail, a pull request from
+  `sync/upstream` is opened for you. A `SYNC_TOKEN` also allows this.
+
+### Running a sync by hand
+
+To start a sync yourself, go to **Actions ▸ Sync upstream ▸ Run workflow**.
+Two options are available:
+
+- **Dry run** merges and runs every check without touching `main`.
+- **Upstream branch** test-merges another upstream branch. This is always a
+  dry run.
+
+To merge manually from a clone:
 
 ```bash
 git remote add upstream https://github.com/mvt-project/mvt.git   # once
-git fetch upstream --tags   # tags give installs from source the right version number
+git fetch upstream --tags
 git checkout main
 git merge upstream/main
 git push origin main
 ```
-
-Upstream's own workflows came with the fork. On the fork they are harmless:
-PyPI publishing needs upstream's trusted-publisher setup, the Docker image
-would go to this fork's own package registry, and `update-ios-data` opens
-pull requests here. You can disable any of them from the Actions tab. Don't
-edit or delete their files, because that would conflict with every future
-sync.
 
 ## License and intended use
 

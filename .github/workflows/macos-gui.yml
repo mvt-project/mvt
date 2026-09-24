@@ -13,6 +13,13 @@ on:
       - "pyproject.toml"
       - ".github/workflows/macos-gui.yml"
   workflow_dispatch:
+  # Also run by sync-upstream.yml against a merge before it lands.
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit to check out (defaults to the commit that triggered the run)
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -24,8 +31,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0 # setuptools-scm derives the version from git history
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install MVT from this checkout
@@ -38,6 +46,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
       - name: Build
         run: |
           xcodebuild -version

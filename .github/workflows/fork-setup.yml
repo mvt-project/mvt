@@ -1,0 +1,56 @@
+name: Fork setup
+# Upstream's release and bot workflows came along with the fork but only make
+# sense in mvt-project/mvt. Here they would tag a release every Monday, push
+# Docker images to this account on every push to main, try to open iOS data
+# pull requests every six hours, and fail on every new issue. This disables
+# them and cancels any run they already started.
+#
+# It only runs when this file changes, or when started from the Actions tab.
+# A workflow you re-enable from the Actions tab stays enabled.
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/fork-setup.yml"]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+env:
+  UPSTREAM_ONLY_WORKFLOWS: >-
+    release.yml
+    publish-release-docker.yml
+    update-ios-data.yml
+    add-issue-to-project.yml
+
+jobs:
+  disable:
+    name: Disable upstream-only workflows
+    if: github.repository != 'mvt-project/mvt'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Disable workflows and cancel their runs
+        run: |
+          api="repos/${GITHUB_REPOSITORY}/actions"
+          # Runs started by the same push need a moment to be registered.
+          sleep 15
+          for workflow in $UPSTREAM_ONLY_WORKFLOWS; do
+            if gh api --method PUT "${api}/workflows/${workflow}/disable" --silent; then
+              echo "Disabled ${workflow}"
+            else
+              echo "::notice::${workflow} isn't registered in this repository (yet)."
+            fi
+            for id in $(gh api "${api}/workflows/${workflow}/runs?per_page=20" \
+                          --jq '.workflow_runs[] | select(.status != "completed") | .id' 2> /dev/null || true); do
+              gh api --method POST "${api}/runs/${id}/cancel" --silent && echo "Cancelled run ${id} of ${workflow}"
+            done
+          done
+          # shellcheck disable=SC2016 # the backticks are Markdown
+          {
+            echo "| Workflow | State |"
+            echo "| --- | --- |"
+            gh api "${api}/workflows" --paginate --jq '.workflows[] | "| `\(.path)` | \(.state) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
