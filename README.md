@@ -1,96 +1,92 @@
-<p align="center">
-     <img src="https://docs.mvt.re/en/latest/mvt.png" width="200" />
-</p>
+# MVT for Mac
 
-# Mobile Verification Toolkit
+Check iPhones and Android phones for traces of known spyware, without the
+Terminal. **MVT for Mac** is a simple app for the
+[Mobile Verification Toolkit (MVT)](https://docs.mvt.re/) by Amnesty
+International's Security Lab.
 
-> [!IMPORTANT]
-> We recently merged the "v3" branch. This introduced breaking changes. If you relied on mvt output in other scripts They might have broken. More details: https://github.com/mvt-project/mvt/issues/757
+![The Setup screen](macos/screenshots/setup.png)
 
-[![](https://img.shields.io/pypi/v/mvt)](https://pypi.org/project/mvt/)
-[![Documentation Status](https://readthedocs.org/projects/mvt/badge/?version=latest)](https://docs.mvt.re/en/latest/?badge=latest)
-[![CI](https://github.com/mvt-project/mvt/actions/workflows/tests.yml/badge.svg)](https://github.com/mvt-project/mvt/actions/workflows/tests.yml)
-[![Downloads](https://pepy.tech/badge/mvt)](https://pepy.tech/project/mvt)
+## Get the app
 
-Mobile Verification Toolkit (MVT) is a collection of utilities to simplify and automate the process of gathering forensic traces helpful to identify a potential compromise of Android and iOS devices.
+1. Download the latest `MVT-GUI-…-macOS.zip` from
+   [Releases](https://github.com/2B-4G10/MVT-GUI/releases).
+2. Unzip it and move **MVTGUI.app** to your **Applications** folder.
+3. The first time only: right-click the app, choose **Open**, then **Open**
+   again. The app isn't notarized by Apple.
 
-It has been developed and released by the [Amnesty International Security Lab](https://securitylab.amnesty.org) in July 2021 in the context of the [Pegasus Project](https://forbiddenstories.org/about-the-pegasus-project/) along with [a technical forensic methodology](https://www.amnesty.org/en/latest/research/2021/07/forensic-methodology-report-how-to-catch-nso-groups-pegasus/). It continues to be maintained by Amnesty International and other contributors.
+You need macOS 13 Ventura or newer, and Python 3.10 or newer
+(`brew install python`).
 
-> **Note**
-> MVT is a forensic research tool intended for technologists and investigators. It requires understanding digital forensics and using command-line tools. This is not intended for end-user self-assessment. If you are concerned with the security of your device please seek reputable expert assistance.
->
+## Set it up (once)
 
-### Indicators of Compromise
+1. Open **Setup** and press **Install MVT**.
+   - If MVT is already installed, the app finds it.
+   - If your MVT is out of date, press **Update MVT**.
+2. Open **Indicators** and press **Download All**.
 
-MVT supports using public [indicators of compromise (IOCs)](https://github.com/mvt-project/mvt-indicators) to scan mobile devices for potential traces of targeting or infection by known spyware campaigns. This includes IOCs published by [Amnesty International](https://github.com/AmnestyTech/investigations/) and other  research groups.
+![The Indicators screen](macos/screenshots/indicators.png)
 
-> **Warning**
-> Public indicators of compromise are insufficient to determine that a device is "clean", and not targeted with a particular spyware tool. Reliance on public indicators alone can miss recent forensic traces and give a false sense of security.
->
-> Reliable and comprehensive digital forensic support and triage requires access to non-public indicators, research and threat intelligence.
->
->Such support is available to civil society through [Amnesty International's Security Lab](https://securitylab.amnesty.org/get-help/?c=mvt_docs) or through our forensic partnership with [Access Now’s Digital Security Helpline](https://www.accessnow.org/help/).
+Indicators are lists of known spyware traces. The app downloads them from
+the official sources:
+[mvt-indicators](https://github.com/mvt-project/mvt-indicators),
+[Amnesty International](https://github.com/AmnestyTech/investigations) and
+[Echap's stalkerware indicators](https://github.com/AssoEchap/stalkerware-indicators).
+Download them again from time to time to stay current.
 
-More information about using indicators of compromise with MVT is available in the [documentation](https://docs.mvt.re/en/latest/iocs/).
+## Check an iPhone
 
-## Installation
+1. Connect the iPhone and open it in **Finder**.
+2. Tick **Encrypt local backup**, set a password and press **Back Up Now**.
+3. In the app, open **Decrypt Backup**:
+   - **Backup folder:** the backup in
+     `~/Library/Application Support/MobileSync/Backup/`
+   - **Destination folder:** any empty folder
+   - **Backup password:** the one from step 2
+4. Press **Decrypt**, then **Check Decrypted Backup**.
+5. Choose a **Results folder** and press **Run Check**.
 
-MVT can be installed from sources or from [PyPI](https://pypi.org/project/mvt/) (you will need some dependencies, check the [documentation](https://docs.mvt.re/en/latest/install/)):
+## Check an Android phone
 
-```
-pip3 install mvt
-```
+1. Collect the phone's data with
+   [AndroidQF](https://github.com/mvt-project/androidqf).
+2. In the app, open **Check AndroidQF** and choose AndroidQF's output
+   folder.
+3. Choose a **Results folder** and press **Run Check**.
 
-You can also install MVT from PyPI with [uv](https://docs.astral.sh/uv/). First, install uv:
+## Read the results
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+1. Press **View Results** when the check finishes, or open **Results** and
+   choose the results folder.
+2. Alerts are sorted by severity: **Critical**, **High**, **Medium**,
+   **Low**, **Info**.
+3. Click an alert to see what triggered it.
 
-Then install MVT as a command-line tool:
+> **No alerts doesn't mean a phone is clean.** Public indicators miss new
+> and targeted attacks. If you're worried, get expert help from
+> [Amnesty International's Security Lab](https://securitylab.amnesty.org/get-help/?c=mvt_docs)
+> or [Access Now's Digital Security Helpline](https://www.accessnow.org/help/).
 
-```bash
-uv tool install mvt
-```
+## Tips
 
-For alternative installation options and known issues, please refer to the [documentation](https://docs.mvt.re/en/latest/install/) as well as [GitHub Issues](https://github.com/mvt-project/mvt/issues).
+- **Choose Indicators…** in any check lets you use all indicators, only the
+  ones you pick, or your own STIX2 files.
+- **Re-check Results** compares old results against newer indicators,
+  without the phone.
+- Passwords go to MVT privately and never appear on the command line.
 
+## Use it responsibly
 
-## Usage
+Only check phones whose owners have agreed. This is a condition of the
+[MVT license](https://docs.mvt.re/en/latest/license/) that this project
+uses (see [LICENSE](LICENSE)).
 
-MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version`, `completion`, `plugins` and `download-iocs` (`version` and `download-iocs` remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+## For developers
 
-Pass `--verbose` to any of the three commands, before the command name (`mvt-ios --verbose check-backup ...`), for debug output. The `--verbose` option the `check-*` commands accept after their name still works but is kept for compatibility only and will be removed in a future release.
-
-### macOS app
-
-A native macOS GUI that wraps these commands lives in [`macos/`](macos/README.md). Open `macos/MVTGUI.xcodeproj` in Xcode to build it.
-
-### Shell completion
-
-MVT can generate a shell completion script for Bash, Zsh, and Fish which covers `mvt`, `mvt-ios` and `mvt-android`:
-
-```bash
-mvt completion
-```
-
-The command prints setup instructions by default. To generate the completion script directly, pass the shell name:
-
-```bash
-mvt completion bash
-```
-
-MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
-
-Plugin packages extend MVT with additional forensic modules, which run inside
-the `check-*` commands, and with top-level commands on `mvt`, `mvt-ios` and
-`mvt-android`. See the
-[development documentation](https://docs.mvt.re/en/latest/development/) for
-writing and installing them, and the
-[custom CLI command documentation](https://docs.mvt.re/en/latest/development/custom_commands/)
-for the entry points a package registers commands in.
-
-
-## License
-
-The purpose of MVT is to facilitate the ***consensual forensic analysis*** of devices of those who might be targets of sophisticated mobile spyware attacks, especially members of civil society and marginalized communities. We do not want MVT to enable privacy violations of non-consenting individuals.  In order to achieve this, MVT is released under its own license. [Read more here.](https://docs.mvt.re/en/latest/license/)
+- **Code:** the app is in [`macos/`](macos/README.md). MVT itself is in
+  `src/`, kept in sync with
+  [mvt-project/mvt](https://github.com/mvt-project/mvt) every day.
+- **Build:** open `macos/MVTGUI.xcodeproj` in Xcode 15 or newer and press ⌘R.
+- **Release:** run **Actions → Release macOS app** with a version such as
+  `2.0.0-beta`.
+- **MVT on the command line:** see the [MVT documentation](https://docs.mvt.re/).

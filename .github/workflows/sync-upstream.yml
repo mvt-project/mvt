@@ -45,6 +45,8 @@ env:
   UPSTREAM_BRANCH: ${{ inputs.upstream_branch || 'main' }}
   BASE_BRANCH: ${{ github.event.repository.default_branch || github.ref_name }}
   BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+  # Files this fork rewrote; upstream changes to them are not merged.
+  FORK_OWNED_FILES: README.md
 
 jobs:
   merge:
@@ -140,14 +142,23 @@ jobs:
           } > "$report/summary.md"
           cat "$report/summary.md" >> "$GITHUB_STEP_SUMMARY"
 
+          # Merges a ref, always keeping this fork's own versions of
+          # FORK_OWNED_FILES (e.g. its README), and commits with the given -m
+          # messages. Returns 1 on a real conflict.
           try_merge() {
-            if git merge --no-ff --no-edit "$@"; then
-              return 0
+            ref=$1; shift
+            git merge --no-ff --no-commit "$ref" || true
+            git rev-parse -q --verify MERGE_HEAD > /dev/null || return 0 # already up to date
+            for path in $FORK_OWNED_FILES; do
+              git checkout HEAD -- "$path" 2> /dev/null || true
+            done
+            if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+              git diff --name-only --diff-filter=U > "$report/conflicts.txt"
+              git merge --abort
+              echo "problem=conflict" >> "$GITHUB_OUTPUT"
+              return 1
             fi
-            git diff --name-only --diff-filter=U > "$report/conflicts.txt"
-            git merge --abort
-            echo "problem=conflict" >> "$GITHUB_OUTPUT"
-            return 1
+            git commit -q --no-edit "$@"
           }
           if [ "$start" != "$base" ]; then
             try_merge "$base" -m "Merge ${BASE_BRANCH} into ${SYNC_BRANCH}" || exit 0

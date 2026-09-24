@@ -61,7 +61,7 @@ jobs:
           3. The app isn't notarized: the first time, right-click it and choose **Open**, then **Open** again.
           4. In the app, open **Setup** to install or update MVT, then **Indicators** to download indicators.
 
-          See [macos/README.md](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/macos/README.md) for instructions. Check files against \`SHA256SUMS.txt\`.
+          See the [README](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/README.md) for instructions. Check files against \`SHA256SUMS.txt\`.
 
           MVT is for the consensual analysis of devices only; public indicators can't prove a device is clean.
           NOTES
