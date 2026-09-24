@@ -245,9 +245,24 @@ jobs:
           git push origin --delete "$SYNC_BRANCH" || true
           echo "Updated \`${BASE_BRANCH}\` to \`${SHA}\`." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Copy upstream release tags
-        # Tags give installs from source the right version number.
-        continue-on-error: true
+  tags:
+    name: Copy upstream release tags
+    # Tags give installs from source the right version number. They are pushed
+    # with GITHUB_TOKEN, even when SYNC_TOKEN is set, so that they don't start
+    # release workflows.
+    needs: [merge, publish]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: write
+    env:
+      SHA: ${{ needs.merge.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.merge.outputs.sha }}
+          fetch-depth: 0
+      - name: Push new upstream release tags
         run: |
           git fetch --no-tags "https://github.com/${UPSTREAM_REPO}.git" "+refs/tags/v*:refs/tags/v*"
           mapfile -t missing < <(comm -23 \
@@ -255,6 +270,8 @@ jobs:
             <(git ls-remote --tags --refs origin 'v*' | sed 's#.*refs/tags/##' | sort))
           if [ "${#missing[@]}" -gt 0 ]; then
             git push origin "${missing[@]/#/refs/tags/}"
+          else
+            echo "No new release tags."
           fi
 
   dry-run-cleanup:

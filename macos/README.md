@@ -145,14 +145,17 @@ it current:
   `<LEVEL> ALERT` log prefixes, and the `alerts.json`/`info.json` format
   (by running a real check on the test backup). It also warns when upstream
   adds a command the app doesn't offer yet.
-- **Fork setup** (`.github/workflows/fork-setup.yml`) turned off upstream
+- **Fork setup** (`.github/workflows/fork-setup.yml`) turns off upstream
   workflows that only make sense in mvt-project/mvt:
   - the weekly release and PyPI publish
   - Docker image publishing
   - the iOS data bot (its updates reach this fork through the sync)
   - the project-board automation
 
-  Re-enable any of them from the Actions tab and they stay enabled.
+  GitHub only lets a workflow be disabled once it has run or its file has
+  changed. So Fork setup also runs on exactly those occasions: a change to one
+  of those files on `main`, a pushed release tag, or a new issue. To keep one
+  of them, remove it from the list at the top of the file.
 
 ### Workflow file changes from upstream
 
