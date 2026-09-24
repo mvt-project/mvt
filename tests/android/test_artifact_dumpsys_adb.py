@@ -142,7 +142,6 @@ class TestDumpsysADBArtifact:
         assert da_adb.results[0]["user_keys"][0]["user"] == "user@laptop"
         assert da_adb.results[0]["keystore"][0]["last_connected"] == "1628501829898"
 
-
     def test_parsing_adb_wifi_with_mixed_line_endings(self):
         da_adb = DumpsysADBArtifact()
         data = (
