@@ -47,6 +47,14 @@ env:
   BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
   # Files this fork rewrote; upstream changes to them are not merged.
   FORK_OWNED_FILES: README.md
+  # Upstream paths this fork doesn't carry (docs site, Docker, project
+  # admin); they're dropped from every merge.
+  FORK_REMOVED_PATHS: >-
+    docs mkdocs.yml .readthedocs.yaml Dockerfile Dockerfile.android Dockerfile.ios
+    CONTRIBUTING.md SECURITY.md MANIFEST.in .safety-policy.yml Makefile .github/dependabot.yml
+  # The only workflows this fork runs; any other workflow upstream adds or
+  # changes is dropped from merges.
+  FORK_WORKFLOWS: macos-gui.yml sync-upstream.yml release-macos-gui.yml screenshots.yml
 
 jobs:
   merge:
@@ -130,27 +138,29 @@ jobs:
               echo "$gui_files" | sed 's/^/- `/; s/$/`/'
               echo
             fi
-            new_workflows=$(git diff --name-only --diff-filter=A "${base}...${upstream}" -- .github/workflows)
-            if [ -n "$new_workflows" ]; then
-              echo "### New upstream workflows"
-              echo "These will run in this fork too. Disable any that only make sense upstream from the Actions tab, and add them to fork-setup.yml."
-              echo "$new_workflows" | sed 's/^/- `/; s/$/`/'
-              echo
-            fi
             echo "### Upstream commits"
             git log --no-merges --format='- %s (%h)' "${base}..${upstream}" | head -n 60
           } > "$report/summary.md"
           cat "$report/summary.md" >> "$GITHUB_STEP_SUMMARY"
 
-          # Merges a ref, always keeping this fork's own versions of
-          # FORK_OWNED_FILES (e.g. its README), and commits with the given -m
-          # messages. Returns 1 on a real conflict.
+          # Merges a ref, keeping this fork's own FORK_OWNED_FILES and dropping
+          # FORK_REMOVED_PATHS and upstream-only workflows, then commits with
+          # the given -m messages. Returns 1 on a real conflict.
           try_merge() {
             ref=$1; shift
             git merge --no-ff --no-commit "$ref" || true
             git rev-parse -q --verify MERGE_HEAD > /dev/null || return 0 # already up to date
             for path in $FORK_OWNED_FILES; do
               git checkout HEAD -- "$path" 2> /dev/null || true
+            done
+            for path in $FORK_REMOVED_PATHS; do
+              git rm -r -q -f --ignore-unmatch -- "$path"
+            done
+            git ls-files -- .github/workflows | sort -u | while read -r file; do
+              case " $FORK_WORKFLOWS " in
+                *" ${file#.github/workflows/} "*) ;;
+                *) git rm -q -f --ignore-unmatch -- "$file" ;;
+              esac
             done
             if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
               git diff --name-only --diff-filter=U > "$report/conflicts.txt"
@@ -233,7 +243,7 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --locked --group dev
-      - run: make test-ci
+      - run: uv run pytest -v
 
   publish:
     name: Update default branch
