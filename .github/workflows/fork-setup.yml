@@ -1,0 +1,81 @@
+name: Fork setup
+# Upstream's release and bot workflows came along with the fork but only make
+# sense in mvt-project/mvt. Here they would tag a release every Monday, push
+# Docker images to this account on every push to main, try to open iOS data
+# pull requests every six hours, and fail on every new issue. This disables
+# them and cancels any run they already started.
+#
+# GitHub can only disable a workflow once it has registered it, which happens
+# the first time the workflow runs or its file changes on main. So this also
+# runs on exactly those occasions: a push to main that changes one of these
+# files, a pushed release tag or a new issue, and once a day as a safety net.
+#
+# To keep one of these workflows enabled, remove it from the list below.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"] # path filters don't apply to tags
+    paths:
+      - ".github/workflows/fork-setup.yml"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/publish-release-docker.yml"
+      - ".github/workflows/update-ios-data.yml"
+      - ".github/workflows/add-issue-to-project.yml"
+  issues:
+    types: [opened, reopened]
+  schedule:
+    - cron: "47 4 * * *" # daily, before Sync upstream
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+env:
+  UPSTREAM_ONLY_WORKFLOWS: >-
+    release.yml
+    publish-release-docker.yml
+    update-ios-data.yml
+    add-issue-to-project.yml
+
+jobs:
+  disable:
+    name: Disable upstream-only workflows
+    if: github.repository != 'mvt-project/mvt'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Disable workflows and cancel their runs
+        run: |
+          api="repos/${GITHUB_REPOSITORY}/actions"
+          # Runs started by the same event need a moment to be registered.
+          sleep 15
+          for workflow in $UPSTREAM_ONLY_WORKFLOWS; do
+            state=$(gh api "${api}/workflows/${workflow}" --jq .state 2> /dev/null) || state=""
+            case "$state" in
+              "")
+                echo "${workflow}: not registered here yet (it has never run), nothing to disable"
+                continue
+                ;;
+              disabled_*)
+                echo "${workflow}: already disabled"
+                ;;
+              *)
+                gh api --method PUT "${api}/workflows/${workflow}/disable" --silent
+                echo "${workflow}: disabled"
+                ;;
+            esac
+            runs=$(gh api "${api}/workflows/${workflow}/runs?per_page=20" \
+                     --jq '.workflow_runs[] | select(.status != "completed") | .id') || runs=""
+            for id in $runs; do
+              gh api --method POST "${api}/runs/${id}/cancel" --silent && echo "${workflow}: cancelled run ${id}"
+            done
+          done
+          # shellcheck disable=SC2016 # the backticks are Markdown
+          {
+            echo "| Workflow | State |"
+            echo "| --- | --- |"
+            gh api "${api}/workflows" --paginate --jq '.workflows[] | "| `\(.path)` | \(.state) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+

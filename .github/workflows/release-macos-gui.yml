@@ -1,0 +1,73 @@
+name: Release macOS app
+# Builds the macOS app and publishes it as a GitHub release, either when a
+# gui-v* tag is pushed (e.g. gui-v2.0.0-alpha) or when started from the
+# Actions tab with a version, which tags the chosen commit. Tags containing alpha, beta or rc
+# are marked as pre-releases. The tags are prefixed so they never mix with
+# MVT's own v* release tags, which set MVT's version number.
+
+on:
+  push:
+    tags: ["gui-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, e.g. 2.0.0-alpha (tagged gui-v<version>)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-latest
+    env:
+      TAG: ${{ inputs.version && format('gui-v{0}', inputs.version) || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project macos/MVTGUI.xcodeproj \
+            -scheme MVTGUI \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY=- \
+            build
+
+      - name: Package
+        run: |
+          version="${TAG#gui-v}"
+          app="build/DerivedData/Build/Products/Release/MVTGUI.app"
+          mkdir -p dist
+          ditto -c -k --keepParent "$app" "dist/MVT-GUI-${version}-macOS.zip"
+          (cd dist && shasum -a 256 ./*.zip > SHA256SUMS.txt)
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
+
+      - name: Publish release
+        run: |
+          prerelease=()
+          case "$TAG" in *alpha*|*beta*|*rc*) prerelease=(--prerelease) ;; esac
+          title="MVT GUI ${VERSION}"
+          case "$VERSION" in 2.0.0-alpha) title="MVT GUI V2-Alpha" ;; esac
+          cat > notes.md <<NOTES
+          A Mac app for the Mobile Verification Toolkit (MVT). Requires macOS 13 or newer.
+
+          **Install**
+          1. Download \`MVT-GUI-${VERSION}-macOS.zip\` below and unzip it.
+          2. Move \`MVTGUI.app\` to Applications.
+          3. The app isn't notarized: the first time, right-click it and choose **Open**, then **Open** again.
+          4. In the app, open **Setup** to install or update MVT, then **Indicators** to download indicators.
+
+          See [macos/README.md](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/macos/README.md) for instructions. Check files against \`SHA256SUMS.txt\`.
+
+          MVT is for the consensual analysis of devices only; public indicators can't prove a device is clean.
+          NOTES
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* "${prerelease[@]}" --target "$GITHUB_SHA" \
+              --title "$title" --notes-file notes.md
+          fi
