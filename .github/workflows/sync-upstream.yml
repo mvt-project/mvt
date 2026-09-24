@@ -163,20 +163,26 @@ jobs:
         env:
           SYNC_BRANCH: ${{ steps.mode.outputs.sync_branch }}
         run: |
-          if git push --force origin "HEAD:refs/heads/${SYNC_BRANCH}" 2> "$RUNNER_TEMP/push.log"; then
-            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          else
-            cat "$RUNNER_TEMP/push.log"
-            if grep -qi 'refusing to allow .* workflow' "$RUNNER_TEMP/push.log"; then
-              echo "problem=workflows" >> "$GITHUB_OUTPUT"
-            else
-              echo "problem=push" >> "$GITHUB_OUTPUT"
+          for attempt in 1 2 3; do
+            if git push --force origin "HEAD:refs/heads/${SYNC_BRANCH}" 2> "$RUNNER_TEMP/push.log"; then
+              echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
+            cat "$RUNNER_TEMP/push.log"
+            [ "$attempt" = 3 ] || sleep $((attempt * 10))
+          done
+          # GitHub refuses workflow file changes pushed with GITHUB_TOKEN, and
+          # doesn't always say so (sometimes it answers "Internal Server Error").
+          if grep -qi 'refusing to allow .* workflow' "$RUNNER_TEMP/push.log" \
+             || [ -n "$(git diff --name-only "origin/${BASE_BRANCH}" HEAD -- .github/workflows)" ]; then
+            echo "problem=workflows" >> "$GITHUB_OUTPUT"
+          else
+            echo "problem=push" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Save the report
         if: always() && steps.merge.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sync-report
           path: ${{ runner.temp }}/report
@@ -311,7 +317,7 @@ jobs:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       ISSUE_TITLE: Upstream sync needs attention
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: sync-report
