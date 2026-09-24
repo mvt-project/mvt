@@ -11,6 +11,28 @@ final class AppState: ObservableObject {
     @Published var selection: SidebarItem? = .setup
     @Published var resultsFolder = ""
 
+    /// Lets the app be opened on a given screen, e.g.
+    /// `open MVTGUI.app --args -startScreen results -resultsFolder /path`.
+    /// Screens: setup, indicators, results, or a command such as iosCheckBackup
+    /// (with optional -inputPath and -outputPath).
+    init(defaults: UserDefaults = .standard) {
+        if let folder = defaults.string(forKey: "resultsFolder") {
+            resultsFolder = folder
+        }
+        switch defaults.string(forKey: "startScreen") {
+        case "indicators": selection = .indicators
+        case "results": selection = .results
+        case let name?:
+            if let command = MVTCommand(rawValue: name) { selection = .command(command) }
+        case nil: break
+        }
+        if case .command(let command) = selection {
+            let form = form(for: command)
+            form.inputPath = defaults.string(forKey: "inputPath") ?? ""
+            form.outputPath = defaults.string(forKey: "outputPath") ?? ""
+        }
+    }
+
     /// A single runner: MVT jobs are run one at a time.
     let runner = ProcessRunner()
 

@@ -1,0 +1,76 @@
+name: Screenshots
+# Builds the app, opens each main screen with real data (the latest MVT from
+# PyPI, downloaded indicators, and results from the test backup) and
+# commits the captures to macos/screenshots/, which the README shows.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        run: |
+          xcodebuild -project macos/MVTGUI.xcodeproj -scheme MVTGUI -configuration Release \
+            -derivedDataPath build/DerivedData CODE_SIGN_IDENTITY=- build -quiet
+
+      - name: Install MVT and prepare data
+        run: |
+          command -v pipx > /dev/null || brew install pipx
+          pipx install mvt
+          export PATH="$HOME/.local/bin:$PATH"
+          mvt-ios --disable-update-check download-iocs
+          # Outside ~/Documents and ~/Desktop, so macOS asks no permission.
+          mkdir -p "$HOME/MVT"
+          cp -R tests/artifacts/ios_backup "$HOME/MVT/iPhone Backup"
+          mvt-ios --disable-update-check --disable-indicator-update-check check-backup \
+            --iocs tests/artifacts/stix2/cytrox.stix2 --output "$HOME/MVT/Results" "$HOME/MVT/iPhone Backup"
+          python3 -m pip install --quiet --break-system-packages pyobjc-framework-Quartz
+
+      - name: Capture screens
+        run: |
+          app="$PWD/build/DerivedData/Build/Products/Release/MVTGUI.app/Contents/MacOS/MVTGUI"
+          out="$PWD/macos/screenshots"
+          mkdir -p "$out"
+          capture() {
+            name=$1; shift
+            "$app" "$@" > /dev/null 2>&1 &
+            pid=$!
+            sleep 15
+            id=$(python3 -c '
+          import Quartz
+          for w in Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID):
+              if w.get("kCGWindowOwnerName") == "MVTGUI" and w.get("kCGWindowLayer") == 0:
+                  print(w["kCGWindowNumber"]); break')
+            screencapture -x -o -l"$id" "$out/$name.png"
+            sips -Z 1600 "$out/$name.png" > /dev/null
+            kill "$pid"
+            wait "$pid" 2> /dev/null || true
+          }
+          capture setup -startScreen setup
+          capture indicators -startScreen indicators
+          capture check-backup -startScreen iosCheckBackup \
+            -inputPath "$HOME/MVT/iPhone Backup" -outputPath "$HOME/MVT/Results"
+          capture check-androidqf -startScreen androidCheckAndroidQF
+          capture results -startScreen results -resultsFolder "$HOME/MVT/Results"
+          ls -la "$out"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: macos/screenshots
+
+      - name: Commit screenshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add macos/screenshots
+          git diff --cached --quiet && exit 0
+          git commit -m "Update app screenshots"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
