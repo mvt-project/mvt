@@ -39,10 +39,14 @@ jobs:
           out="$PWD/macos/screenshots"
           mkdir -p "$out"
           cat > "$RUNNER_TEMP/window.py" <<'PY'
+          import sys
           import Quartz
+          pid = int(sys.argv[1])
           windows = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionAll, Quartz.kCGNullWindowID)
-          ours = [w for w in windows if w.get("kCGWindowOwnerName") == "MVTGUI" and w.get("kCGWindowLayer") == 0
+          ours = [w for w in windows if w.get("kCGWindowOwnerPID") == pid and w.get("kCGWindowLayer") == 0
                   and w.get("kCGWindowBounds", {}).get("Height", 0) > 200]
+          for w in ours:
+              print(w["kCGWindowNumber"], w.get("kCGWindowOwnerName"), dict(w.get("kCGWindowBounds", {})), file=sys.stderr)
           print(ours[0]["kCGWindowNumber"] if ours else "")
           PY
           capture() {
@@ -51,7 +55,7 @@ jobs:
             sleep 20
             osascript -e 'tell application "MVTGUI" to activate' || true
             sleep 2
-            id=$(python3 "$RUNNER_TEMP/window.py")
+            id=$(python3 "$RUNNER_TEMP/window.py" "$(pgrep -nx MVTGUI || echo 0)")
             echo "$name: window ${id:-not found}"
             if [ -n "$id" ]; then
               screencapture -x -o -l"$id" "$out/$name.png"
