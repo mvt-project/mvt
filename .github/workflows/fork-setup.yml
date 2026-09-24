@@ -50,11 +50,20 @@ jobs:
           # Runs started by the same event need a moment to be registered.
           sleep 15
           for workflow in $UPSTREAM_ONLY_WORKFLOWS; do
-            if ! gh api --method PUT "${api}/workflows/${workflow}/disable" --silent 2> /dev/null; then
-              echo "${workflow}: not registered here yet (it has never run), nothing to disable"
-              continue
-            fi
-            echo "${workflow}: disabled"
+            state=$(gh api "${api}/workflows/${workflow}" --jq .state 2> /dev/null) || state=""
+            case "$state" in
+              "")
+                echo "${workflow}: not registered here yet (it has never run), nothing to disable"
+                continue
+                ;;
+              disabled_*)
+                echo "${workflow}: already disabled"
+                ;;
+              *)
+                gh api --method PUT "${api}/workflows/${workflow}/disable" --silent
+                echo "${workflow}: disabled"
+                ;;
+            esac
             runs=$(gh api "${api}/workflows/${workflow}/runs?per_page=20" \
                      --jq '.workflow_runs[] | select(.status != "completed") | .id') || runs=""
             for id in $runs; do

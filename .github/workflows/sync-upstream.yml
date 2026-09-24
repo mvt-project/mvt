@@ -11,11 +11,13 @@ name: Sync upstream
 # repository allows it. Commits pushed to sync/upstream (for example to adapt
 # the app to an upstream change) are kept by later runs.
 #
-# Upstream sometimes changes files in .github/workflows/, which the built-in
-# GITHUB_TOKEN may not push; such syncs stop with instructions. To let them
-# through automatically too, add a repository secret named SYNC_TOKEN: a
+# Merges that bring in upstream changes to .github/workflows/ go through with
+# the built-in GITHUB_TOKEN (tested). If GitHub ever refuses one, the sync
+# stops with instructions. An optional SYNC_TOKEN repository secret, a
 # fine-grained personal access token for this repository with Contents,
-# Workflows and Pull requests set to read and write.
+# Workflows and Pull requests set to read and write, avoids that, lets the
+# sync open a pull request when checks fail, and runs the regular CI on the
+# commits it pushes.
 #
 # Run it by hand from the Actions tab. "Dry run" merges and runs every check
 # without updating the default branch. Naming another upstream branch
@@ -344,7 +346,7 @@ jobs:
                 echo '```'
                 ;;
               workflows)
-                echo "Upstream changed files in \`.github/workflows/\`, which the built-in GITHUB_TOKEN may not push, so nothing was merged."
+                echo "GitHub refused to let the built-in GITHUB_TOKEN push this merge, which changes files in \`.github/workflows/\`, so nothing was merged."
                 echo
                 echo "Either press **Sync fork → Update branch** on ${repo_url} to take these changes in, or add a \`SYNC_TOKEN\` secret (see the top of \`.github/workflows/sync-upstream.yml\`) so that such syncs go through automatically."
                 ;;

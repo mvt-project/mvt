@@ -157,27 +157,26 @@ it current:
   of those files on `main`, a pushed release tag, or a new issue. To keep one
   of them, remove it from the list at the top of the file.
 
-### Workflow file changes from upstream
+### Optional settings
 
-The built-in `GITHUB_TOKEN` isn't allowed to push changes to
-`.github/workflows/`. When an upstream update includes such changes, the
-sync stops and tells you. You then have two options:
+None of these are needed for syncing:
 
-- Press **Sync fork → Update branch** on the repository page.
-- Add a `SYNC_TOKEN` repository secret once, so that such syncs go through
-  on their own. Create a
+- **A `SYNC_TOKEN` repository secret.** Create a
   [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
   for this repository only, with *Contents*, *Workflows* and *Pull requests*
   set to read and write. Save it under **Settings → Secrets and variables →
-  Actions → New repository secret** with the name `SYNC_TOKEN`.
-
-### Optional settings
-
+  Actions** as `SYNC_TOKEN`. With it, the sync:
+  - opens a pull request from `sync/upstream` when checks fail
+  - runs the regular CI on the commits it pushes
+  - can't be blocked should GitHub ever refuse the built-in token a merge
+    that changes `.github/workflows/`. In testing it allowed such a merge.
+    Without the token, that case stops with instructions: press **Sync fork
+    → Update branch** on the repository page.
 - **Settings → General → Features → Issues**: failed syncs also open an
   issue. Without Issues you still get the failed-run email.
 - **Settings → Actions → General → Allow GitHub Actions to create and
-  approve pull requests**: when checks fail, a pull request from
-  `sync/upstream` is opened for you. A `SYNC_TOKEN` also allows this.
+  approve pull requests**: lets the sync open that pull request without a
+  `SYNC_TOKEN`.
 
 ### Running a sync by hand
 
