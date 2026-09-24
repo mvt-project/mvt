@@ -71,10 +71,14 @@ struct ResultsView: View {
                         placeholder: "Choose a folder produced by a check"
                     )
                     if let target = info["target_path"] as? String {
-                        LabeledContent("Analyzed", value: target)
+                        LabeledContent("Analyzed") {
+                            Text(target).lineLimit(1).truncationMode(.middle).help(target)
+                        }
                     }
                     if let version = info["mvt_version"] as? String, let date = info["date"] as? String {
-                        LabeledContent("Run", value: "\(date) · MVT \(version)")
+                        LabeledContent("Run") {
+                            Text("\(date) · MVT \(version)").lineLimit(1).truncationMode(.tail)
+                        }
                     }
                 }
             }
@@ -95,14 +99,13 @@ struct ResultsView: View {
                 Divider()
                 HSplitView {
                     alertTable
-                        .frame(minWidth: 420)
+                        .frame(minWidth: 320)
                     detail
-                        .frame(minWidth: 260, idealWidth: 340)
+                        .frame(minWidth: 220, idealWidth: 300)
                 }
             }
         }
         .navigationTitle("Results")
-        .searchable(text: $searchText, prompt: "Filter alerts")
         .toolbar {
             ToolbarItemGroup {
                 Button {
@@ -141,6 +144,9 @@ struct ResultsView: View {
                     )
                 }
                 Spacer()
+                TextField("Filter alerts", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 200)
                 Menu("Files (\(files.count))") {
                     ForEach(files) { file in
                         Button("\(file.url.lastPathComponent) — \(ByteCountFormatter.string(fromByteCount: Int64(file.size), countStyle: .file))") {

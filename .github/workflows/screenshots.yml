@@ -44,7 +44,9 @@ jobs:
           pid = int(sys.argv[1])
           windows = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionAll, Quartz.kCGNullWindowID)
           ours = [w for w in windows if w.get("kCGWindowOwnerPID") == pid and w.get("kCGWindowLayer") == 0
-                  and w.get("kCGWindowBounds", {}).get("Height", 0) > 200]
+                  and w.get("kCGWindowIsOnscreen") and w.get("kCGWindowBounds", {}).get("Height", 0) > 200]
+          # The main window is the largest one on screen.
+          ours.sort(key=lambda w: w["kCGWindowBounds"]["Width"] * w["kCGWindowBounds"]["Height"], reverse=True)
           for w in ours:
               print(w["kCGWindowNumber"], w.get("kCGWindowOwnerName"), dict(w.get("kCGWindowBounds", {})), file=sys.stderr)
           print(ours[0]["kCGWindowNumber"] if ours else "")
