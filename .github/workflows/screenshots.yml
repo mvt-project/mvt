@@ -35,23 +35,33 @@ jobs:
 
       - name: Capture screens
         run: |
-          app="$PWD/build/DerivedData/Build/Products/Release/MVTGUI.app/Contents/MacOS/MVTGUI"
+          app="$PWD/build/DerivedData/Build/Products/Release/MVTGUI.app"
           out="$PWD/macos/screenshots"
           mkdir -p "$out"
+          cat > "$RUNNER_TEMP/window.py" <<'PY'
+          import Quartz
+          windows = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionAll, Quartz.kCGNullWindowID)
+          ours = [w for w in windows if w.get("kCGWindowOwnerName") == "MVTGUI" and w.get("kCGWindowLayer") == 0
+                  and w.get("kCGWindowBounds", {}).get("Height", 0) > 200]
+          print(ours[0]["kCGWindowNumber"] if ours else "")
+          PY
           capture() {
             name=$1; shift
-            "$app" "$@" > /dev/null 2>&1 &
-            pid=$!
-            sleep 15
-            id=$(python3 -c '
-          import Quartz
-          for w in Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID):
-              if w.get("kCGWindowOwnerName") == "MVTGUI" and w.get("kCGWindowLayer") == 0:
-                  print(w["kCGWindowNumber"]); break')
-            screencapture -x -o -l"$id" "$out/$name.png"
+            open -n "$app" --args "$@"
+            sleep 20
+            osascript -e 'tell application "MVTGUI" to activate' || true
+            sleep 2
+            id=$(python3 "$RUNNER_TEMP/window.py")
+            echo "$name: window ${id:-not found}"
+            if [ -n "$id" ]; then
+              screencapture -x -o -l"$id" "$out/$name.png"
+            else
+              screencapture -x "$out/$name.png"
+              touch "$RUNNER_TEMP/fallback"
+            fi
             sips -Z 1600 "$out/$name.png" > /dev/null
-            kill "$pid"
-            wait "$pid" 2> /dev/null || true
+            pkill -x MVTGUI || true
+            sleep 2
           }
           capture setup -startScreen setup
           capture indicators -startScreen indicators
@@ -68,6 +78,10 @@ jobs:
 
       - name: Commit screenshots
         run: |
+          if [ -e "$RUNNER_TEMP/fallback" ]; then
+            echo "::warning::Some windows weren't found; see the artifact. Not committing."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add macos/screenshots
