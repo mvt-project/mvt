@@ -37,3 +37,8 @@ def test_other_google_short_url_is_shortened():
 )
 def test_get_domain_strips_only_a_whole_www_prefix(url, domain):
     assert URL(url).domain == domain
+
+
+def test_shortener_starting_with_w_is_detected():
+    assert URL("https://w3t.org/example").check_if_shortened() is True
+    assert URL("https://www.w3t.org/example").check_if_shortened() is True
