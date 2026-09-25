@@ -3,6 +3,7 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
 import threading
@@ -28,6 +29,60 @@ class TestIndicators:
         assert len(ind.ioc_collections[0]["files_sha256"]) == 1
         assert len(ind.ioc_collections[0]["files_sha1"]) == 1
         assert len(ind.ioc_collections[0]["urls"]) == 1
+
+    def test_parse_stix2_preserves_equals_in_indicator_value(self, tmp_path):
+        stix_file = tmp_path / "equals.stix2"
+        stix_file.write_text(
+            json.dumps(
+                {
+                    "objects": [
+                        {
+                            "type": "indicator",
+                            "id": "indicator--url",
+                            "pattern": "[url:value='https://example.com/track?id=1']",
+                        },
+                        {
+                            "type": "indicator",
+                            "id": "indicator--path",
+                            "pattern": r"[file:path='C:\\Users\\O\'Brien']",
+                        },
+                    ]
+                }
+            )
+        )
+
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([str(stix_file)], load_default=False)
+
+        assert ind.ioc_collections[0]["urls"] == ["https://example.com/track?id=1"]
+        assert ind.ioc_collections[0]["file_paths"] == [r"C:\Users\O'Brien"]
+
+    def test_parse_stix2_skips_malformed_indicator_pattern(self, tmp_path, caplog):
+        stix_file = tmp_path / "malformed.stix2"
+        stix_file.write_text(
+            json.dumps(
+                {
+                    "objects": [
+                        {
+                            "type": "indicator",
+                            "id": "indicator--malformed",
+                            "pattern": "not a STIX pattern",
+                        },
+                        {
+                            "type": "indicator",
+                            "id": "indicator--domain",
+                            "pattern": "[domain-name:value='example.org']",
+                        },
+                    ]
+                }
+            )
+        )
+
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([str(stix_file)], load_default=False)
+
+        assert ind.ioc_collections[0]["domains"] == ["example.org"]
+        assert "indicator--malformed" in caplog.text
 
     def test_parse_stix2_amnesty(self):
         """
@@ -230,8 +285,6 @@ class TestIndicators:
         """STIX2 spec requires single-quoted algorithm names that contain hyphens,
         e.g. file:hashes.'SHA-256'. Verify MVT accepts both spec-compliant and
         non-standard lowercase spellings for MD5, SHA-1 and SHA-256."""
-        import json
-
         sha256_hash = "570cd76bf49cf52e0cb347a68bdcf0590b2eaece134e1b1eba7e8d66261bdbe6"
         sha1_hash = "da0611a300a9ce9aa7a09d1212f203fca5856794"
         md5_hash = "d41d8cd98f00b204e9800998ecf8427e"
