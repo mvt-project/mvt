@@ -12,6 +12,8 @@ accessibility services" about a dump that said there are five.
 from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
 from mvt.common.alerts import AlertLevel
 
+from ..utils import get_artifact
+
 AOSP_NO_LIST = """\
 ACCESSIBILITY MANAGER (dumpsys accessibility)
 User state[
@@ -41,6 +43,14 @@ User state[attributes:{id=0, installedServiceCount=1}
   }
 User state[attributes:{id=95, installedServiceCount=3}
      Enabled services:{}
+"""
+
+PARTIAL_TWO_USERS = """\
+ACCESSIBILITY MANAGER (dumpsys accessibility)
+User state[attributes:{id=0, installedServiceCount=3}
+     Enabled services:{{com.example.app/com.example.app.Service}}
+User state[attributes:{id=10, installedServiceCount=1}
+     Enabled services:{{com.other.app/.Helper}}
 """
 
 ZERO_COUNT = """\
@@ -98,3 +108,42 @@ class TestAccessibilityInstalledServiceCount:
         # "Zero installed" is a negative result the empty section already
         # states; a record for it would be noise.
         assert _parse(ZERO_COUNT).results == []
+
+    def test_a_partly_named_count_reports_the_unnamed_rest(self):
+        # The Android 14 fixture states `installedServiceCount=2` and names one
+        # enabled component. The listing is incomplete, and must not read as
+        # complete.
+        artifact = DumpsysAccessibilityArtifact()
+        artifact.results = []
+        with open(
+            get_artifact("android_data/dumpsys_accessibility_v14_or_later.txt")
+        ) as handle:
+            artifact.parse(handle.read())
+        unlisted = [record for record in artifact.results if not record["component"]]
+        assert len(unlisted) == 1
+        assert unlisted[0]["installed_service_count"] == 2
+        assert unlisted[0]["unnamed_service_count"] == 1
+
+        artifact.check_indicators()
+        low = [
+            alert
+            for alert in artifact.alertstore.alerts
+            if alert.level == AlertLevel.LOW
+        ]
+        assert len(low) == 1
+        assert "only 1 of them (1 unnamed)" in low[0].message
+
+    def test_the_unnamed_rest_is_counted_per_user(self):
+        # User 0 names one of three, user 10 names its only one: the gap
+        # belongs to user 0 alone.
+        artifact = _parse(PARTIAL_TWO_USERS)
+        unlisted = [record for record in artifact.results if not record["component"]]
+        assert [
+            (record["user_id"], record["unnamed_service_count"]) for record in unlisted
+        ] == [(0, 2)]
+
+    def test_a_fully_named_count_adds_nothing(self):
+        artifact = _parse(ONE_UI_WITH_LIST)
+        assert all(
+            record["unnamed_service_count"] is None for record in artifact.results
+        )

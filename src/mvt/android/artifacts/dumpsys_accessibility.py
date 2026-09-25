@@ -24,18 +24,26 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
         "crashed",
         "accessibility_tool",
         "installed_service_count",
+        "unnamed_service_count",
     )
 
     def check_indicators(self) -> None:
         for result in self.results:
-            # A stated count with no component names is a coverage statement,
-            # not a service: low, but not silent.
+            # A stated count the dump does not back with component names is a
+            # coverage statement, not a service: low, but not silent.
             if not result.get("component"):
+                stated = result["installed_service_count"]
+                unnamed = result["unnamed_service_count"]
+                if unnamed == stated:
+                    detail = "does not list their component names"
+                else:
+                    detail = (
+                        f"lists the component names of only {stated - unnamed} "
+                        f"of them ({unnamed} unnamed)"
+                    )
                 self.alertstore.low(
-                    f"The accessibility dump states "
-                    f"{result['installed_service_count']} installed "
-                    f"service(s) for user {result['user_id']} but does not "
-                    f"list their component names",
+                    f"The accessibility dump states {stated} installed "
+                    f"service(s) for user {result['user_id']} but {detail}",
                     "",
                     result,
                 )
@@ -76,7 +84,9 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
 
         self.results: list[dict[str, Any]] = []
         services: dict[tuple[int | None, str], dict] = {}
-        seen_states: set[str] = set()
+        # Which state sections the dump printed, per user: one user's printed
+        # `enabled services` says nothing about another user's.
+        seen_states: dict[int | None, set[str]] = {}
         # `installedServiceCount=N` from the user's `attributes:{…}` line is on
         # most builds the only statement about installed services in the dump:
         # few print the `installed services: {…}` block.
@@ -100,7 +110,7 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
             )
             if state_match:
                 state = state_match.group(1).lower()
-                seen_states.add(self._state_field(state))
+                seen_states.setdefault(user_id, set()).add(self._state_field(state))
                 inline = state_match.group(2)
                 for component in re.findall(
                     r"\{?([\w.$-]+/[\w.$-]+)(?:\s+\(A11yTool\))?\}?", inline
@@ -133,21 +143,24 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
         # empty: the first says nothing, the second says nothing is enabled.
         # Defaulting every flag to False would turn "not stated" into "not
         # enabled". Flags for sections this dump never printed stay None.
+        named: dict[int | None, int] = {}
         for (service_user, _component), service in services.items():
+            printed = seen_states.get(service_user, set())
             for state in ("installed", "enabled", "binding", "bound", "crashed"):
-                if self._state_field(state) not in seen_states:
+                if self._state_field(state) not in printed:
                     service[self._state_field(state)] = None
             service["installed_service_count"] = installed_counts.get(service_user)
+            named[service_user] = named.get(service_user, 0) + 1
 
         self.results.extend(services.values())
 
-        # A stated count whose services were never listed would leave no trace:
-        # the module would log "a total of 0" about a dump that said five.
-        listed_users = {service_user for service_user, _component in services}
+        # A stated count the named services do not add up to would leave no
+        # trace of the rest: the module would log "a total of 0" about a dump
+        # that said five, or "a total of 1" about one that said two.
         for count_user, count in installed_counts.items():
-            if count_user in listed_users or count == 0:
-                continue
-            self.results.append(self._new_unlisted(count_user, count))
+            unnamed = count - named.get(count_user, 0)
+            if unnamed > 0:
+                self.results.append(self._new_unlisted(count_user, count, unnamed))
 
     @staticmethod
     def _describe_state(result: dict) -> str:
@@ -164,14 +177,16 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
         return {"binding": "binding", "bound": "bound"}.get(state, state)
 
     @staticmethod
-    def _new_unlisted(user_id: int | None, count: int) -> dict:
-        """The dump's own count for a user whose services it did not list.
+    def _new_unlisted(user_id: int | None, count: int, unnamed: int) -> dict:
+        """The dump's own count for a user, and how many of those services it
+        did not name.
 
         Every other field stays unknown: the dump named no service to carry it.
         """
         record: dict[str, Any] = dict.fromkeys(DumpsysAccessibilityArtifact._FIELDS)
         record["user_id"] = user_id
         record["installed_service_count"] = count
+        record["unnamed_service_count"] = unnamed
         return record
 
     @staticmethod
@@ -184,4 +199,5 @@ class DumpsysAccessibilityArtifact(AndroidArtifact):
         record["package_name"], record["service_name"] = component.split("/", 1)
         # Filled in after parsing: the count is per user.
         record["installed_service_count"] = None
+        record["unnamed_service_count"] = None
         return record

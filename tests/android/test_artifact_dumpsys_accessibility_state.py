@@ -42,6 +42,18 @@ User state[attributes:{id=0, currentUser=true}
   }
 """
 
+# User 0 prints only `installed services`, user 10 only `Enabled services`.
+# Neither section speaks for the other user.
+TWO_USERS_DIFFERENT_SECTIONS = """\
+ACCESSIBILITY MANAGER (dumpsys accessibility)
+User state[attributes:{id=0, currentUser=true}
+  installed services: {
+    0 : com.example.app/com.example.app.Service
+  }
+User state[attributes:{id=10, currentUser=false}
+     Enabled services:{{com.other.app/.Helper}}
+"""
+
 
 class _IndicatorsMatching:
     """Minimal stand-in: matches one package id, like the STIX2 loader would."""
@@ -123,3 +135,21 @@ class TestAccessibilityServiceState:
         artifact.check_indicators()
         assert artifact.alertstore.count(AlertLevel.CRITICAL) == 1
         assert artifact.alertstore.count(AlertLevel.LOW) == 0
+
+    def test_printed_sections_are_tracked_per_user(self):
+        artifact = DumpsysAccessibilityArtifact()
+        artifact.results = []
+        artifact.parse(TWO_USERS_DIFFERENT_SECTIONS)
+        by_user = {r["user_id"]: r for r in artifact.results}
+        # User 0's enabled state is not stated, so it is unknown, not off.
+        assert (by_user[0]["installed"], by_user[0]["enabled"]) == (True, None)
+        # User 10's installed state is not stated either.
+        assert (by_user[10]["installed"], by_user[10]["enabled"]) == (None, True)
+
+        artifact.check_indicators()
+        assert artifact.alertstore.count(AlertLevel.LOW) == 0
+        assert artifact.alertstore.count(AlertLevel.MEDIUM) == 2
+        assert not any(
+            "installed, not enabled" in alert.message
+            for alert in artifact.alertstore.alerts
+        )

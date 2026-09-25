@@ -35,7 +35,9 @@ class TestDumpsysAccessibilityArtifact:
 
         assert len(da.results) == 0
         da.parse(data)
-        assert len(da.results) == 1
+        # One named service, plus one count-only record: the dump states
+        # `installedServiceCount=2` and names only one component.
+        assert len(da.results) == 2
         assert da.results[0]["package_name"] == "com.malware.accessibility"
         assert da.results[0]["service_name"] == "com.malware.service.malwareservice"
         assert da.results[0]["enabled"] is True
@@ -53,9 +55,11 @@ class TestDumpsysAccessibilityArtifact:
 
         da.check_indicators()
 
-        assert len(da.alertstore.alerts) == 1
+        assert len(da.alertstore.alerts) == 2
         assert da.alertstore.alerts[0].level == AlertLevel.MEDIUM
         assert da.alertstore.alerts[0].event == da.results[0]
+        assert da.alertstore.alerts[1].level == AlertLevel.LOW
+        assert da.alertstore.alerts[1].event == da.results[1]
 
     def test_same_component_is_kept_for_each_user(self):
         da = DumpsysAccessibilityArtifact()

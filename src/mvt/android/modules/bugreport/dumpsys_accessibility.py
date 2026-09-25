@@ -48,7 +48,7 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
         )
         self.parse(content)
 
-        listed = stated = 0
+        listed = unnamed = 0
         for result in self.results:
             if result.get("component"):
                 listed += 1
@@ -59,11 +59,11 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
             # The operator gets this per user as a LOW alert from
             # check_indicators(); here it only has to survive into the summary,
             # so that a stated count never reads as "a total of 0".
-            stated += result.get("installed_service_count") or 0
+            unnamed += result.get("unnamed_service_count") or 0
 
         self.log.info(
             "Identified a total of %d accessibility services (%d more stated by "
             "the dump without a component name)",
             listed,
-            stated,
+            unnamed,
         )
