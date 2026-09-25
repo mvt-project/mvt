@@ -18,6 +18,11 @@ from mvt.common.module import ModuleResults, MVTModule
 # section finishes and not necessarily between two sections.
 SECTION_DURATION = re.compile(r"^-{3,}\s*[0-9.]+s was the duration of", re.IGNORECASE)
 
+# The members a bug report archive can be entered through, in the order
+# _get_dumpstate_file() tries them. An archive carrying none of them is not a
+# bug report at this level (see CmdAndroidCheckBugreport._has_dumpstate).
+DUMPSTATE_ENTRY_POINTS = ("main_entry.txt", "dumpState_*.log", "*/dumpsys.txt")
+
 
 class BugReportModule(MVTModule):
     """This class provides a base for all Android Bug Report modules."""
@@ -92,7 +97,9 @@ class BugReportModule(MVTModule):
         return data
 
     def _get_dumpstate_file(self) -> Optional[bytes]:
-        main = self._get_files_by_pattern("main_entry.txt")
+        main_entry, dumpstate_log, dumpsys_txt = DUMPSTATE_ENTRY_POINTS
+
+        main = self._get_files_by_pattern(main_entry)
         if main:
             main_content = self._get_file_content(main[0])
             try:
@@ -100,11 +107,11 @@ class BugReportModule(MVTModule):
             except KeyError:
                 return None
 
-        dumpstate_logs = self._get_files_by_pattern("dumpState_*.log")
+        dumpstate_logs = self._get_files_by_pattern(dumpstate_log)
         if dumpstate_logs:
             return self._get_file_content(dumpstate_logs[0])
 
-        dumpsys_files = self._get_files_by_pattern("*/dumpsys.txt")
+        dumpsys_files = self._get_files_by_pattern(dumpsys_txt)
         if dumpsys_files:
             return self._get_file_content(dumpsys_files[0])
 
