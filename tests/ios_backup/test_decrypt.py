@@ -7,6 +7,7 @@ import logging
 import threading
 from pathlib import Path
 
+import pytest
 from Crypto.Cipher import AES
 
 from mvt.ios.decrypt import DecryptBackup, MVTEncryptedBackup
@@ -96,7 +97,10 @@ def test_process_backup_rejects_unsafe_file_ids_and_destinations(mocker, tmp_pat
         source_path = backup_path / file_id[:2] / file_id
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_bytes(b"encrypted")
-    (destination / "ab").symlink_to(outside, target_is_directory=True)
+    try:
+        (destination / "ab").symlink_to(outside, target_is_directory=True)
+    except OSError:
+        pytest.skip("creating symbolic links is not permitted on this system")
 
     cursor = mocker.MagicMock()
     cursor.__iter__.return_value = iter(
