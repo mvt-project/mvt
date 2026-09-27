@@ -30,7 +30,7 @@ class TestIndicators:
         assert len(ind.ioc_collections[0]["files_sha1"]) == 1
         assert len(ind.ioc_collections[0]["urls"]) == 1
 
-    def test_parse_stix2_preserves_equals_in_indicator_value(self, tmp_path):
+    def test_parse_stix2_preserves_equals_and_escaped_values(self, tmp_path):
         stix_file = tmp_path / "equals.stix2"
         stix_file.write_text(
             json.dumps(
@@ -39,7 +39,7 @@ class TestIndicators:
                         {
                             "type": "indicator",
                             "id": "indicator--url",
-                            "pattern": "[url:value='https://example.com/track?id=1']",
+                            "pattern": "[url:value='https://example.com/O\\'Brien?id=1']",
                         },
                         {
                             "type": "indicator",
@@ -54,7 +54,7 @@ class TestIndicators:
         ind = Indicators(log=logging)
         ind.load_indicators_files([str(stix_file)], load_default=False)
 
-        assert ind.ioc_collections[0]["urls"] == ["https://example.com/track?id=1"]
+        assert ind.ioc_collections[0]["urls"] == ["https://example.com/O'Brien?id=1"]
         assert ind.ioc_collections[0]["file_paths"] == [r"C:\Users\O'Brien"]
 
     def test_parse_stix2_skips_malformed_indicator_pattern(self, tmp_path, caplog):
