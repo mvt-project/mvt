@@ -349,7 +349,9 @@ class URL:
             return tld_obj
         if tld_obj is None:
             return ""
-        return tld_obj.parsed_url.netloc.lower().lstrip("www.")
+        # removeprefix, not lstrip: lstrip takes a set of characters, so it ate the
+        # leading "w"s and dots of any domain ("web.evil.com" -> "eb.evil.com").
+        return tld_obj.parsed_url.netloc.lower().removeprefix("www.")
 
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
