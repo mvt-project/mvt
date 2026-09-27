@@ -3,14 +3,19 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import fnmatch
+import io
 import logging
 import os
 from pathlib import Path
 from typing import List, Optional
-from zipfile import ZipFile
+from zipfile import BadZipFile, ZipFile
 
 from mvt.android.artifacts.getprop import GetProp
-from mvt.android.modules.bugreport.base import BugReportModule
+from mvt.android.modules.bugreport.base import (
+    DUMPSTATE_ENTRY_POINTS,
+    BugReportModule,
+)
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
 from mvt.common.module import MVTModule
@@ -87,6 +92,48 @@ class CmdAndroidCheckBugreport(Command):
         self.__zip = bugreport_zip
         for file_name in self.__zip.namelist():
             self.__files.append(file_name)
+
+        if not self._has_dumpstate(self.__files):
+            nested = self._nested_bugreport(bugreport_zip)
+            if nested:
+                self.__zip = nested
+                self.__files = list(nested.namelist())
+
+    @staticmethod
+    def _has_dumpstate(file_names: List[str]) -> bool:
+        """Whether these members carry any of the entry points the bug report
+        modules read (see `BugReportModule._get_dumpstate_file`)."""
+        return any(
+            fnmatch.filter(file_names, pattern) for pattern in DUMPSTATE_ENTRY_POINTS
+        )
+
+    def _nested_bugreport(self, outer: ZipFile) -> Optional[ZipFile]:
+        """Descend one level into an OEM wrapper archive.
+
+        MIUI / HyperOS hands out a zip of app logs, ANR traces and tcpdump
+        captures with the real `bugreport-<device>-<timestamp>.zip` nested
+        inside. Without this descent the outer archive has no entry point,
+        every module reports it found no files, and the command still exits 0
+        with an empty result.
+        """
+        candidates = [
+            name for name in outer.namelist() if name.lower().endswith(".zip")
+        ]
+        candidates.sort(
+            key=lambda name: (
+                "bugreport" not in name.lower() and "dumpstate" not in name.lower()
+            )
+        )
+        for name in candidates:
+            try:
+                inner = ZipFile(io.BytesIO(outer.read(name)))
+            except (BadZipFile, OSError):
+                continue
+            if self._has_dumpstate(inner.namelist()):
+                log.info("Found the bug report nested inside the archive: %s", name)
+                return inner
+            inner.close()
+        return None
 
     def init(self) -> None:
         if self.target_path:
