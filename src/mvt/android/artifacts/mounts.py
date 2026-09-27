@@ -136,6 +136,10 @@ class Mounts(AndroidArtifact):
             mount_options = fields[5].split(",")
             super_options = fields[separator + 3].split(",")
             options = list(dict.fromkeys(mount_options + super_options))
+            # fields[5] are the per-mount (VFS) flags, the field after the
+            # separator the superblock's; a mount is writable only if both
+            # allow it. The merged list made every read-only overlay a HIGH.
+            is_read_write = "rw" in mount_options and "rw" in super_options
             mount_point = fields[4].replace("\\040", " ")
             device = fields[separator + 2].replace("\\040", " ")
             filesystem_type = fields[separator + 1]
@@ -156,7 +160,7 @@ class Mounts(AndroidArtifact):
                     "options_list": options,
                     "optional_fields": fields[6:separator],
                     "is_system_partition": is_system,
-                    "is_read_write": "rw" in options,
+                    "is_read_write": is_read_write,
                     "process_ids": [process_id],
                 }
             )
@@ -191,7 +195,14 @@ class Mounts(AndroidArtifact):
                     )
 
             # Check for other suspicious mount options
-            suspicious_opts = [opt for opt in options if opt in SUSPICIOUS_OPTIONS]
+            # `rw` sitting in the merged option list is not evidence of
+            # writability (see is_read_write in parse_mountinfo); every other
+            # suspicious option is meaningful in either list.
+            suspicious_opts = [
+                opt
+                for opt in options
+                if opt in SUSPICIOUS_OPTIONS and (opt != "rw" or mount["is_read_write"])
+            ]
             if suspicious_opts and mount["is_system_partition"]:
                 if (
                     "noatime" in mount["mount_options"]
