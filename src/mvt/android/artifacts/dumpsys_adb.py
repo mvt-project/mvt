@@ -34,6 +34,15 @@ class DumpsysADBArtifact(AndroidArtifact):
             indent = len(line) - len(line.lstrip())
             if indent < cur_indent:
                 # If the current line is less indented than the previous one, back out
+                if len(stack) <= 1:
+                    # Dedenting below the outermost level means this is not the
+                    # well-formed block the parser expects. Stop here rather than
+                    # raise IndexError out of the module on the next line.
+                    self.log.error(
+                        "Unexpected indentation in ADB manager state, "
+                        "stopping the parse of this section"
+                    )
+                    break
                 stack.pop()
                 cur_indent = indent
             else:
@@ -63,6 +72,12 @@ class DumpsysADBArtifact(AndroidArtifact):
                 current_dict = stack[-1]
 
             if key == "}":
+                if len(stack) <= 1:
+                    self.log.error(
+                        "Unbalanced closing brace in ADB manager state, "
+                        "stopping the parse of this section"
+                    )
+                    break
                 stack.pop()
                 continue
 
@@ -161,6 +176,26 @@ class DumpsysADBArtifact(AndroidArtifact):
                     f"'{user_key['fingerprint']}'"
                 )
 
+    @staticmethod
+    def _find_state_end(content: bytes, open_brace: int) -> int:
+        """Index of the brace closing the one at ``open_brace``, or -1.
+
+        The end of the ADB manager state is found by matching braces rather than
+        by looking for the last one in the output: a bug report holds many
+        dumpsys sections, and a brace in a later one would extend this section
+        past its end.
+        """
+        depth = 0
+        for index in range(open_brace, len(content)):
+            char = content[index : index + 1]
+            if char == b"{":
+                depth += 1
+            elif char == b"}":
+                depth -= 1
+                if depth == 0:
+                    return index
+        return -1
+
     def parse(self, content: bytes) -> None:
         """
         Parse the Dumpsys ADB section
@@ -180,12 +215,14 @@ class DumpsysADBArtifact(AndroidArtifact):
             self.log.error("Unable to find ADB manager state in dumpsys output")
             return
 
-        end_of_json = content.rfind(b"}\n")
-        if end_of_json == -1 or end_of_json <= start_of_json:
+        end_of_json = self._find_state_end(content, start_of_json + 1)
+        if end_of_json == -1:
             self.log.error("Unable to find complete ADB manager state in dumpsys output")
             return
 
-        json_content = content[start_of_json + 2 : end_of_json - 2].rstrip()
+        # The brace that opens the state and the one that closes it are not part
+        # of the indented body.
+        json_content = content[start_of_json + 2 : end_of_json].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
         if parsed.get("debugging_manager") is None:
