@@ -318,8 +318,6 @@ def check_backup(
     if not cmd.resolve_backup_path():
         ctx.exit(1)
 
-    log.info("Checking iTunes backup located at: %s", cmd.target_path)
-
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()
@@ -386,8 +384,6 @@ def check_fs(
         cmd.list_modules()
         return
 
-    log.info("Checking iOS filesystem located at: %s", dump_path)
-
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()
@@ -449,18 +445,20 @@ def check_sysdiagnose(
         custom_modules=custom_modules,
     )
 
-    if not cmd._available_modules():
-        raise click.ClickException(
-            "No custom modules support mvt-ios check-sysdiagnose. "
-            "Load a module that declares supported_commands = "
-            "((\"ios\", \"check-sysdiagnose\"),)."
+    # MVT's own module only records the device details; the checks come from
+    # custom modules, so a run without any must not look like a clean analysis.
+    if all(module in cmd.modules for module in cmd._available_modules()):
+        log.warning(
+            "No forensic sysdiagnose modules have been loaded: MVT's own "
+            "SysdiagnoseInfo module only records the device details. Install a "
+            "module package or load a module that declares supported_commands = "
+            '(("ios", "check-sysdiagnose"),) to check the sysdiagnose.'
         )
 
     if list_modules:
         cmd.list_modules()
         return
 
-    log.info("Checking iOS sysdiagnose at path: %s", sysdiagnose_path)
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()

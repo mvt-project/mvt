@@ -56,6 +56,10 @@ class CmdCheckIOCS(Command):
             if entry not in all_modules:
                 all_modules.append(entry)
 
+        # Read the indicators once, so that a missing indicators file is
+        # reported even when no stored result matches a module.
+        iocs = self.iocs
+
         log.info("Checking stored results against provided indicators...")
 
         total_detections = 0
@@ -83,8 +87,8 @@ class CmdCheckIOCS(Command):
                     log.warning("No result from this module, skipping it")
                     continue
 
-                if self.iocs.total_ioc_count > 0:
-                    m.indicators = self.iocs
+                if iocs.total_ioc_count > 0:
+                    m.indicators = iocs
                     m.indicators.log = m.log
 
                 try:

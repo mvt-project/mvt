@@ -51,5 +51,8 @@ class CmdIOSCheckFS(Command):
         self.name = "check-fs"
         self.modules = FS_MODULES + MIXED_MODULES
 
+    def init(self) -> None:
+        self.log.info("Checking iOS filesystem located at: %s", self.target_path)
+
     def module_init(self, module):
         module.is_fs_dump = True

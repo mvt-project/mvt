@@ -82,6 +82,8 @@ class CmdAndroidCheckAndroidQF(Command):
         if not self.target_path:
             raise NoAndroidQFTargetPath
 
+        self.log.info("Checking AndroidQF acquisition at path: %s", self.target_path)
+
         if os.path.isdir(self.target_path):
             self.__format = "dir"
             parent_path = Path(self.target_path).absolute().parent.as_posix()
