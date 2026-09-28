@@ -29,7 +29,8 @@ class DumpsysADBArtifact(AndroidArtifact):
         stack = [res]
         cur_indent = 0
         in_multiline = False
-        for line in dump_data.strip(b"\n").split(b"\n"):
+        for line in dump_data.strip(b"\r\n").split(b"\n"):
+            line = line.removesuffix(b"\r")
             # Track the level of indentation
             indent = len(line) - len(line.lstrip())
             if indent < cur_indent:
@@ -178,22 +179,22 @@ class DumpsysADBArtifact(AndroidArtifact):
 
     @staticmethod
     def _find_state_end(content: bytes, open_brace: int) -> int:
-        """Index of the brace closing the one at ``open_brace``, or -1.
+        """Find the unindented line closing the ADB manager state, or -1.
 
-        The end of the ADB manager state is found by matching braces rather than
-        by looking for the last one in the output: a bug report holds many
-        dumpsys sections, and a brace in a later one would extend this section
-        past its end.
+        Braces inside key comments or embedded keystore data are values, while
+        nested structural closing braces are indented.
         """
-        depth = 0
-        for index in range(open_brace, len(content)):
-            char = content[index : index + 1]
-            if char == b"{":
-                depth += 1
-            elif char == b"}":
-                depth -= 1
-                if depth == 0:
-                    return index
+        line_start = open_brace
+        while line_start < len(content):
+            line_end = content.find(b"\n", line_start)
+            if line_end == -1:
+                line_end = len(content)
+            line = content[line_start:line_end].removesuffix(b"\r")
+            if line_start > open_brace and line == b"}":
+                return line_start
+            if line.startswith((b"---------", b"DUMP OF SERVICE ")):
+                break
+            line_start = line_end + 1
         return -1
 
     def parse(self, content: bytes) -> None:
@@ -217,7 +218,9 @@ class DumpsysADBArtifact(AndroidArtifact):
 
         end_of_json = self._find_state_end(content, start_of_json + 1)
         if end_of_json == -1:
-            self.log.error("Unable to find complete ADB manager state in dumpsys output")
+            self.log.error(
+                "Unable to find complete ADB manager state in dumpsys output"
+            )
             return
 
         # The brace that opens the state and the one that closes it are not part

@@ -85,7 +85,7 @@ class TestCheckAndroidqfCommand:
     def test_acquisition_context_falls_back_to_public_key_file(self, tmp_path):
         data_path = tmp_path / "androidqf"
         data_path.mkdir()
-        (data_path / "adb_host_key.pub").write_text("QUJDRA== acquisition@host\n")
+        (data_path / "adb_host_key.pub").write_bytes(b"QUJDRA== acquisition@host\n")
         command = CmdAndroidCheckAndroidQF(target_path=str(data_path))
 
         command.init()
