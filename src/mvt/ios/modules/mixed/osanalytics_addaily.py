@@ -65,7 +65,10 @@ class OSAnalyticsADDaily(IOSExtraction):
             ioc_match = self.indicators.check_process(result["package"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("ts") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def run(self) -> None:

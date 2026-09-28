@@ -72,7 +72,10 @@ class Calendar(IOSExtraction):
                 ioc_match = self.indicators.check_email(result["participant_email"])
                 if ioc_match:
                     self.alertstore.critical(
-                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                        ioc_match.message,
+                        result.get("start_date") or "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
@@ -80,7 +83,7 @@ class Calendar(IOSExtraction):
             if result["summary"] == "Meeting" and result["description"] == "Notes":
                 self.alertstore.high(
                     f"Potential Quadream exploit event identified: {result['uuid']}",
-                    "",
+                    result.get("start_date") or "",
                     result,
                 )
 
