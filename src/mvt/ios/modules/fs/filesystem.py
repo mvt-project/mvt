@@ -7,7 +7,15 @@ import logging
 import os
 from typing import Optional
 
-from mvt.common.utils import convert_unix_to_iso
+from mvt.common.utils import convert_unix_to_iso, get_sha256_from_file_path
+from mvt.ios.coruna import (
+    alert_coruna_record,
+    contained_regular_file,
+    correlate_coruna_records,
+    coruna_path_artifact,
+    enrich_coruna_record,
+)
+from mvt.ios.paths import check_ios_path, normalize_ios_path
 from mvt.common.module_types import (
     ModuleAtomicResult,
     ModuleSerializedResult,
@@ -49,14 +57,23 @@ class Filesystem(IOSExtraction):
         }
 
     def check_indicators(self) -> None:
-        if not self.indicators:
-            return
-
+        correlate_coruna_records(self.results, self.alertstore)
         for result in self.results:
             if "path" not in result:
                 continue
 
-            ioc_match = self.indicators.check_file_path(result["path"])
+            alert_coruna_record(result, self.alertstore)
+            if not self.indicators:
+                continue
+            hash_match = self.indicators.check_file_hash(result.get("sha256", ""))
+            if hash_match:
+                self.alertstore.critical(
+                    hash_match.message,
+                    result.get("modified", ""),
+                    result,
+                    matched_indicator=hash_match.ioc,
+                )
+            ioc_match = check_ios_path(self.indicators, result["path"])
             if ioc_match:
                 self.alertstore.high(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
@@ -66,7 +83,9 @@ class Filesystem(IOSExtraction):
             if self.module_options.get("fast_mode", None):
                 continue
 
-            ioc_match = self.indicators.check_file_path_process(result["path"])
+            ioc_match = self.indicators.check_file_path_process(
+                normalize_ios_path(result["path"])
+            )
             if ioc_match:
                 self.alertstore.high(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
@@ -81,9 +100,10 @@ class Filesystem(IOSExtraction):
             for dir_name in dirs:
                 try:
                     dir_path = os.path.join(root, dir_name)
-                    result = {
+                    result: ModuleAtomicResult = {
                         "path": os.path.relpath(dir_path, self.target_path),
                         "modified": convert_unix_to_iso(os.stat(dir_path).st_mtime),
+                        "is_directory": True,
                     }
                 except Exception:
                     continue
@@ -97,6 +117,14 @@ class Filesystem(IOSExtraction):
                         "path": os.path.relpath(file_path, self.target_path),
                         "modified": convert_unix_to_iso(os.stat(file_path).st_mtime),
                     }
+                    inspect_content = coruna_path_artifact(result["path"])
+                    hash_content = self.module_options.get("check_file_hashes", False)
+                    if (inspect_content or hash_content) and contained_regular_file(
+                        self.target_path, file_path
+                    ):
+                        enrich_coruna_record(result, file_path)
+                        if hash_content:
+                            result["sha256"] = get_sha256_from_file_path(file_path)
                 except Exception:
                     continue
                 else:

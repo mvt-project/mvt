@@ -18,7 +18,19 @@ from mvt.common.module_types import (
     ModuleSerializedResult,
 )
 from mvt.common.url import URL
-from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
+from mvt.common.utils import (
+    convert_datetime_to_iso,
+    convert_unix_to_iso,
+    get_sha256_from_file_path,
+)
+from mvt.ios.coruna import (
+    alert_coruna_record,
+    contained_regular_file,
+    correlate_coruna_records,
+    coruna_path_artifact,
+    enrich_coruna_record,
+)
+from mvt.ios.paths import backup_device_path, check_ios_path
 
 from ..base import IOSExtraction
 
@@ -94,14 +106,34 @@ class Manifest(IOSExtraction):
         return records
 
     def check_indicators(self) -> None:
+        correlate_coruna_records(self.results, self.alertstore)
         for result in self.results:
             if not result.get("relative_path"):
                 continue
 
+            alert_coruna_record(result, self.alertstore)
             if not self.indicators:
                 continue
 
-            ioc_match = self.indicators.check_file_path("/" + result["relative_path"])
+            hash_match = self.indicators.check_file_hash(result.get("sha256", ""))
+            if hash_match:
+                self.alertstore.critical(
+                    hash_match.message,
+                    result.get("modified", ""),
+                    result,
+                    matched_indicator=hash_match.ioc,
+                )
+
+            device_path = backup_device_path(
+                result.get("domain", ""), result["relative_path"]
+            )
+            ioc_match = (
+                check_ios_path(self.indicators, device_path) if device_path else None
+            )
+            if not ioc_match:
+                ioc_match = self.indicators.check_file_path(
+                    "/" + result["relative_path"]
+                )
             if ioc_match:
                 self.alertstore.high(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
@@ -191,6 +223,21 @@ class Manifest(IOSExtraction):
                         file_data["relativePath"],
                     )
 
+            inspect_content = coruna_path_artifact(
+                cleaned_metadata["relative_path"], cleaned_metadata["domain"]
+            )
+            hash_content = self.module_options.get("check_file_hashes", False)
+            if inspect_content or hash_content:
+                source_path = self._get_backup_file_from_id(cleaned_metadata["file_id"])
+                if source_path and contained_regular_file(
+                    self.target_path, source_path
+                ):
+                    if inspect_content:
+                        enrich_coruna_record(cleaned_metadata, source_path)
+                    if hash_content:
+                        cleaned_metadata["sha256"] = get_sha256_from_file_path(
+                            source_path
+                        )
             self.results.append(cleaned_metadata)
 
         cur.close()
