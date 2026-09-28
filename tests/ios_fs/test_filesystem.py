@@ -3,15 +3,45 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 import logging
+import ntpath
+from types import SimpleNamespace
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
+from mvt.ios.modules.fs import filesystem
 from mvt.ios.modules.fs.filesystem import Filesystem
 
 from ..utils import get_ios_backup_folder
 
 
 class TestFilesystem:
+    def test_windows_paths_are_normalized_for_indicators(
+        self, monkeypatch, indicators_factory
+    ):
+        m = Filesystem(target_path=r"C:\dump")
+        m.indicators = indicators_factory(
+            file_paths=["matched/directory"], processes=["matched"]
+        )
+        monkeypatch.setattr(
+            filesystem,
+            "os",
+            SimpleNamespace(
+                sep="\\",
+                path=ntpath,
+                walk=lambda _: [(r"C:\dump\matched", ["directory"], ["file.txt"])],
+                stat=lambda _: SimpleNamespace(st_mtime=0),
+            ),
+        )
+
+        m.run()
+        m.check_indicators()
+
+        assert {result["path"] for result in m.results} == {
+            "matched/directory",
+            "matched/file.txt",
+        }
+        assert len(m.alertstore.alerts) == 3
+
     def test_filesystem(self):
         m = Filesystem(target_path=get_ios_backup_folder())
         run_module(m)
