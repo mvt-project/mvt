@@ -130,6 +130,40 @@ class TestDumpsysADBArtifact:
         assert key_store_entry["fingerprint"] == expected_fingerprint
         assert key_store_entry["last_connected"] == "1628501829898"
 
+    def test_parsing_adb_xml_with_crlf_line_endings(self):
+        da_adb = DumpsysADBArtifact()
+        file = get_artifact("android_data/dumpsys_adb_xml.txt")
+        with open(file, "rb") as f:
+            data = f.read().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+
+        da_adb.parse(data)
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["user_keys"][0]["user"] == "user@laptop"
+        assert da_adb.results[0]["keystore"][0]["last_connected"] == "1628501829898"
+
+    def test_parsing_adb_wifi_with_mixed_line_endings(self):
+        da_adb = DumpsysADBArtifact()
+        data = (
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=true\n"
+            b"    user_keys=QUJDRA== host@example\n"
+            b"    adb_wifi={\n"
+            b"      enabled=false\n"
+            b"    }\n"
+            b"  }\r\n"
+            b"}\n"
+            b"--------- duration\n"
+        )
+
+        da_adb.parse(data)
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["user_keys"][0]["user"] == "host@example"
+        assert da_adb.results[0]["adb_wifi"]["enabled"] == b"false"
+
 
 class TestDumpsysADBStateAlerts:
     def test_no_androidqf_context_preserves_existing_behavior(self):
