@@ -164,6 +164,67 @@ class TestDumpsysADBArtifact:
         assert da_adb.results[0]["user_keys"][0]["user"] == "host@example"
         assert da_adb.results[0]["adb_wifi"]["enabled"] == b"false"
 
+    ADB_STATE = (
+        b"ADB MANAGER STATE (dumpsys adb):\n"
+        b"{\n"
+        b"  debugging_manager={\n"
+        b"    connected_to_adb=true\n"
+        b"    user_keys=QUJDRA== host@example\n"
+        b"  }\n"
+        b"}\n"
+        b"--------- 0.5s was the duration of 'dumpsys adb'\n"
+    )
+
+    def test_a_later_dumpsys_section_does_not_extend_the_adb_state(self):
+        # A bug report holds many sections. Looking for the last closing brace
+        # in the whole output pulled a later section into this one, which threw
+        # IndexError out of parse() and lost the ADB records entirely.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            self.ADB_STATE + b"DUMP OF SERVICE other:\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=false\n"
+            b"    user_keys=RVZJTA== attacker@host\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert [key["user"] for key in da_adb.results[0]["user_keys"]] == [
+            "host@example"
+        ]
+        assert da_adb.results[0]["connected_to_adb"] is True
+
+    def test_braces_in_key_comment_are_not_state_delimiters(self):
+        for user in (b"host{example", b"host}}example"):
+            da_adb = DumpsysADBArtifact()
+            da_adb.parse(
+                b"ADB MANAGER STATE (dumpsys adb):\n"
+                b"{\n"
+                b"  debugging_manager={\n"
+                b"    connected_to_adb=true\n"
+                b"    user_keys=QUJDRA== " + user + b"\n  }\n}\n"
+            )
+
+            assert len(da_adb.results) == 1
+            assert da_adb.results[0]["user_keys"][0]["user"] == user.decode()
+
+    def test_unbalanced_state_is_reported_rather_than_raising(self):
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=true\n"
+            b"  }\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        # No exception, and whatever was read before the bad line is kept.
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is True
+
 
 class TestDumpsysADBStateAlerts:
     def test_no_androidqf_context_preserves_existing_behavior(self):
