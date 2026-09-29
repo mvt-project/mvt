@@ -216,6 +216,41 @@ class IOSExtraction(MVTModule):
 
         return None
 
+    def _get_stored_backup_file_ids(self) -> set[str]:
+        """List the IDs of the files actually stored in the backup folder.
+
+        A backup folder stores each file under a two character subfolder named
+        after the first two characters of its file ID. Walking the folders once
+        is cheaper than a filesystem lookup per file ID, and it keeps callers
+        which compare a whole manifest against the folder from paying a
+        `resolve()` for every entry.
+
+        :returns: The file IDs found in the backup folder, empty if there is
+                  no backup folder to walk.
+        """
+        if not self.target_path:
+            return set()
+
+        file_ids: set[str] = set()
+        try:
+            with os.scandir(self.target_path) as entries:
+                for entry in entries:
+                    if not entry.is_dir():
+                        continue
+                    with os.scandir(entry.path) as sub_entries:
+                        for sub_entry in sub_entries:
+                            if sub_entry.is_file():
+                                file_ids.add(sub_entry.name)
+        except OSError as exc:
+            self.log.debug(
+                "Unable to list the files stored in the backup folder %s: %s",
+                self.target_path,
+                exc,
+            )
+            return set()
+
+        return file_ids
+
     def _get_fs_files_from_patterns(self, root_paths: list) -> Iterator[str]:
         if not self.target_path:
             return
