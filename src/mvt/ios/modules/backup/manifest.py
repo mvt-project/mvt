@@ -166,7 +166,11 @@ class Manifest(IOSExtraction):
                 "created": "",
             }
 
-            if file_data["flags"] == 1 and file_data["fileID"] not in stored_file_ids:
+            if (
+                stored_file_ids is not None
+                and file_data["flags"] == 1
+                and file_data["fileID"] not in stored_file_ids
+            ):
                 # Without this, a module which found nothing for one of these
                 # files would look like a negative result rather than a gap in
                 # the acquisition.

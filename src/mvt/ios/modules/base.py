@@ -216,7 +216,7 @@ class IOSExtraction(MVTModule):
 
         return None
 
-    def _get_stored_backup_file_ids(self) -> set[str]:
+    def _get_stored_backup_file_ids(self) -> Optional[set[str]]:
         """List the IDs of the files actually stored in the backup folder.
 
         A backup folder stores each file under a two character subfolder named
@@ -225,29 +225,43 @@ class IOSExtraction(MVTModule):
         which compare a whole manifest against the folder from paying a
         `resolve()` for every entry.
 
-        :returns: The file IDs found in the backup folder, empty if there is
-                  no backup folder to walk.
+        :returns: The file IDs found at their expected paths within the backup
+                  folder, or None if the inventory could not be completed.
         """
         if not self.target_path:
-            return set()
+            return None
 
         file_ids: set[str] = set()
         try:
+            backup_root = Path(self.target_path).resolve()
             with os.scandir(self.target_path) as entries:
                 for entry in entries:
+                    if len(entry.name) != 2 or any(
+                        char not in "0123456789abcdef" for char in entry.name
+                    ):
+                        continue
                     if not entry.is_dir():
+                        continue
+                    if not Path(entry.path).resolve().is_relative_to(backup_root):
                         continue
                     with os.scandir(entry.path) as sub_entries:
                         for sub_entry in sub_entries:
+                            if sub_entry.name[:2] != entry.name:
+                                continue
+                            if sub_entry.is_symlink() and not Path(
+                                sub_entry.path
+                            ).resolve().is_relative_to(backup_root):
+                                continue
                             if sub_entry.is_file():
                                 file_ids.add(sub_entry.name)
         except OSError as exc:
-            self.log.debug(
-                "Unable to list the files stored in the backup folder %s: %s",
+            self.log.warning(
+                "Unable to list the files stored in the backup folder %s: %s. "
+                "Skipping the missing-file check.",
                 self.target_path,
                 exc,
             )
-            return set()
+            return None
 
         return file_ids
 
