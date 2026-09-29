@@ -609,14 +609,14 @@ wheels = [
 
 [[package]]
 name = "iphone-backup-decrypt"
-version = "0.10.0"
+version = "0.11.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pycryptodome" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/01/b8/a2ec2b10d792403d36bb6661fea6357179c31ece1ed3285c442e636d6335/iphone_backup_decrypt-0.10.0.tar.gz", hash = "sha256:5f2799e58f908cce28d7929dd82231abc8acd57c25b37bce6a2d6a82e018d343", size = 20000, upload-time = "2026-09-17T21:46:44Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ee/f4/a2c3e8bfd937346d87753dd2e7e51efff14744ec268ebafe8e7be0269b9e/iphone_backup_decrypt-0.11.2.tar.gz", hash = "sha256:5f631927419e670e461bc0b9e299fae396445a3c84e0afe747a3464ccbb23ed1", size = 23923, upload-time = "2026-09-24T21:02:17.219Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/10/349b2a720e012921d1457e1d1c2b921b16300a5f3570c4c64d0d3787539f/iphone_backup_decrypt-0.10.0-py3-none-any.whl", hash = "sha256:1ac4345a07b104a3eacab20932b8621cd1e0164e0f03d913e66eed6ea5ee173e", size = 17400, upload-time = "2026-09-17T21:46:42Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/33/72414c56bc507b0c104605e16fab2c86465b55567e1aaead8371a4c5884d/iphone_backup_decrypt-0.11.2-py3-none-any.whl", hash = "sha256:f18281997a94313c174aa3839d42db292d198e879fa570799c151ac36ac9c9d7", size = 21779, upload-time = "2026-09-24T21:02:15.878Z" },
 ]
 
 [[package]]
@@ -1038,7 +1038,7 @@ requires-dist = [
     { name = "betterproto2", specifier = "==0.10.0" },
     { name = "click", specifier = "==8.4.2" },
     { name = "cryptography", specifier = "==50.0.0" },
-    { name = "iphone-backup-decrypt", specifier = "==0.10.0" },
+    { name = "iphone-backup-decrypt", specifier = "==0.11.2" },
     { name = "nskeyedunarchiver", specifier = "==1.5.2" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pyahocorasick", specifier = "==2.3.1" },

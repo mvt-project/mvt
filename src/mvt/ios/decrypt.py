@@ -8,10 +8,8 @@ import glob
 import logging
 import os
 import os.path
-import plistlib
 import shutil
 import sqlite3
-import tempfile
 from concurrent.futures import (
     ALL_COMPLETED,
     FIRST_COMPLETED,
@@ -22,100 +20,26 @@ from concurrent.futures import (
 from pathlib import Path
 from typing import Optional
 
-from iphone_backup_decrypt import EncryptedBackup
-from iphone_backup_decrypt import google_iphone_dataprotection
+from iphone_backup_decrypt import (
+    BackupNotEncryptedError,
+    EncryptedBackup,
+    IncorrectPassphraseError,
+    NotABackupFolderError,
+)
 from iphone_backup_decrypt.utils import FilePlist
 
 from .decrypt_config import DEFAULT_DECRYPT_WORKERS, MAX_DECRYPT_WORKERS
 
 log = logging.getLogger(__name__)
 
-# Import pbkdf2_hmac from the same source iphone_backup_decrypt uses internally,
-# so our key derivation is consistent with theirs.
-try:
-    from fastpbkdf2 import pbkdf2_hmac
-except ImportError:
-    import Crypto.Hash.SHA1
-    import Crypto.Hash.SHA256
-    import Crypto.Protocol.KDF
-
-    _HASH_FNS = {"sha1": Crypto.Hash.SHA1, "sha256": Crypto.Hash.SHA256}
-
-    def pbkdf2_hmac(hash_name, password, salt, iterations, dklen=None):
-        return Crypto.Protocol.KDF.PBKDF2(
-            password, salt, dklen, iterations, hmac_hash_module=_HASH_FNS[hash_name]
-        )
-
-
 class MVTEncryptedBackup(EncryptedBackup):
-    """Extends EncryptedBackup with derived key export/import.
-
-    NOTE: This subclass relies on internal APIs of iphone_backup_decrypt
-    (specifically _read_and_unlock_keybag, _keybag, and the Keybag class
-    internals). Pinned to iphone_backup_decrypt==0.10.0.
-    """
-
-    def __init__(self, *, backup_directory, passphrase=None, derived_key=None):
-        if passphrase:
-            super().__init__(backup_directory=backup_directory, passphrase=passphrase)
-            self._derived_key = None  # Will be set after keybag unlock
-        elif derived_key:
-            self._init_without_passphrase(backup_directory, derived_key)
-        else:
-            raise ValueError("Either passphrase or derived_key must be provided")
-
-    def _init_without_passphrase(self, backup_directory, derived_key):
-        """Replicate parent __init__ state without requiring a passphrase."""
-        self.decrypted = False
-        self._backup_directory = os.path.expandvars(backup_directory)
-        self._passphrase = None
-        self._manifest_plist_path = os.path.join(
-            self._backup_directory, "Manifest.plist"
-        )
-        self._manifest_plist = None
-        self._manifest_db_path = os.path.join(self._backup_directory, "Manifest.db")
-        self._keybag = None
-        self._unlocked = False
-        self._temporary_folder = tempfile.mkdtemp()
-        self._temp_decrypted_manifest_db_path = os.path.join(
-            self._temporary_folder, "Manifest.db"
-        )
-        self._temp_manifest_db_conn = None
-        self._derived_key = derived_key  # 32 raw bytes
-
-    def _read_and_unlock_keybag(self):
-        """Override to capture derived key on password unlock, or use
-        a pre-derived key to skip PBKDF2."""
-        if self._unlocked:
-            return self._unlocked
-
-        with open(self._manifest_plist_path, "rb") as infile:
-            self._manifest_plist = plistlib.load(infile)
-        self._keybag = google_iphone_dataprotection.Keybag(
-            self._manifest_plist["BackupKeyBag"]
-        )
-
-        if self._derived_key:
-            # Skip PBKDF2, unwrap class keys directly with pre-derived key
-            self._unlocked = _unlock_keybag_with_derived_key(
-                self._keybag, self._derived_key
-            )
-        else:
-            # Normal path: full PBKDF2 derivation, capturing the intermediate key
-            self._unlocked, self._derived_key = _unlock_keybag_and_capture_key(
-                self._keybag, self._passphrase
-            )
-            self._passphrase = None
-
-        if not self._unlocked:
-            raise ValueError("Failed to decrypt keys: incorrect passphrase?")
-        return True
+    """Extract backup files by ID while MVT processes them concurrently."""
 
     def get_decryption_key(self):
         """Return derived key as hex string (64 chars / 32 bytes)."""
-        if self._derived_key is None:
+        if self.keybag is None or self.keybag.passphrase_key is None:
             raise ValueError("No derived key available")
-        return self._derived_key.hex()
+        return self.keybag.passphrase_key.hex()
 
     def extract_file_by_id(self, *, file_id, file_bplist, output_filename):
         """Extract one manifest entry without loading the whole file into memory."""
@@ -129,8 +53,9 @@ class MVTEncryptedBackup(EncryptedBackup):
             shutil.copy2(source_filename, output_filename)
             return
 
-        inner_key = self._keybag.unwrapKeyForClass(
-            file_plist.protection_class, file_plist.encryption_key
+        inner_key = self.keybag.unwrap_key_for_class(
+            protection_class=file_plist.protection_class,
+            wrapped_file_key=file_plist.encryption_key,
         )
         self._decrypt_file_to_disk(
             file_id=file_id,
@@ -138,47 +63,6 @@ class MVTEncryptedBackup(EncryptedBackup):
             file_plist=file_plist,
             output_filepath=output_filename,
         )
-
-
-def _unlock_keybag_with_derived_key(keybag, passphrase_key):
-    """Unlock keybag class keys using a pre-derived passphrase_key,
-    skipping the expensive PBKDF2 rounds."""
-    WRAP_PASSPHRASE = 2
-    for classkey in keybag.classKeys.values():
-        if b"WPKY" not in classkey:
-            continue
-        if classkey[b"WRAP"] & WRAP_PASSPHRASE:
-            k = google_iphone_dataprotection._AESUnwrap(
-                passphrase_key, classkey[b"WPKY"]
-            )
-            if not k:
-                return False
-            classkey[b"KEY"] = k
-    return True
-
-
-def _unlock_keybag_and_capture_key(keybag, passphrase):
-    """Run full PBKDF2 key derivation and AES unwrap, returning
-    (success, passphrase_key) so the derived key can be exported."""
-    passphrase_round1 = pbkdf2_hmac(
-        "sha256", passphrase, keybag.attrs[b"DPSL"], keybag.attrs[b"DPIC"], 32
-    )
-    passphrase_key = pbkdf2_hmac(
-        "sha1", passphrase_round1, keybag.attrs[b"SALT"], keybag.attrs[b"ITER"], 32
-    )
-    WRAP_PASSPHRASE = 2
-    for classkey in keybag.classKeys.values():
-        if b"WPKY" not in classkey:
-            continue
-        if classkey[b"WRAP"] & WRAP_PASSPHRASE:
-            k = google_iphone_dataprotection._AESUnwrap(
-                passphrase_key, classkey[b"WPKY"]
-            )
-            if not k:
-                return False, None
-            classkey[b"KEY"] = k
-    return True, passphrase_key
-
 
 class DecryptBackup:
     """This class provides functions to decrypt an encrypted iTunes backup
@@ -376,41 +260,36 @@ class DecryptBackup:
                 )
                 return
 
-        # Before proceeding, we check whether the backup is indeed encrypted.
-        if not self.is_encrypted(self.backup_path):
-            return
-
         try:
             self._backup = MVTEncryptedBackup(
                 backup_directory=self.backup_path,
                 passphrase=password,
             )
+            # Manifest.db is a more reliable indication of encryption than
+            # the IsEncrypted field in Manifest.plist.
+            if not self.is_encrypted(self.backup_path):
+                self._backup = None
+                return
             # Eagerly trigger keybag unlock so wrong-password errors
             # surface here rather than later during process_backup().
             self._backup.test_decryption()
+        except IncorrectPassphraseError:
+            self._backup = None
+            log.critical("Failed to decrypt backup. Password is probably wrong.")
+        except (NotABackupFolderError, FileNotFoundError):
+            self._backup = None
+            log.critical(
+                "Failed to find a valid backup at %s. "
+                "Did you point to the right backup path?",
+                self.backup_path,
+            )
+        except BackupNotEncryptedError:
+            self._backup = None
+            log.critical("The backup does not seem encrypted!")
         except Exception as exc:
             self._backup = None
-            if (
-                isinstance(exc, ValueError)
-                and "passphrase" in str(exc).lower()
-            ):
-                log.critical("Failed to decrypt backup. Password is probably wrong.")
-            elif (
-                isinstance(exc, FileNotFoundError)
-                and hasattr(exc, "filename")
-                and os.path.basename(exc.filename) == "Manifest.plist"
-            ):
-                log.critical(
-                    "Failed to find a valid backup at %s. "
-                    "Did you point to the right backup path?",
-                    self.backup_path,
-                )
-            else:
-                log.exception(exc)
-                log.critical(
-                    "Failed to decrypt backup. Did you provide the correct password? "
-                    "Did you point to the right backup path?"
-                )
+            log.exception(exc)
+            log.critical("Failed to decrypt backup.")
 
     def decrypt_with_key_file(self, key_file: str) -> None:
         """Decrypts an encrypted iOS backup using a key file.
@@ -423,10 +302,6 @@ class DecryptBackup:
             self.backup_path,
             key_file,
         )
-
-        # Before proceeding, we check whether the backup is indeed encrypted.
-        if not self.is_encrypted(self.backup_path):
-            return
 
         with open(key_file, "rb") as handle:
             key_bytes = handle.read()
@@ -442,16 +317,30 @@ class DecryptBackup:
             key_bytes_raw = binascii.unhexlify(key_bytes)
             self._backup = MVTEncryptedBackup(
                 backup_directory=self.backup_path,
-                derived_key=key_bytes_raw,
+                passphrase_key=key_bytes_raw,
             )
+            if not self.is_encrypted(self.backup_path):
+                self._backup = None
+                return
             # Eagerly trigger keybag unlock so wrong-key errors surface here.
             self._backup.test_decryption()
+        except (binascii.Error, IncorrectPassphraseError):
+            self._backup = None
+            log.critical("Failed to decrypt backup. Key file is probably wrong.")
+        except (NotABackupFolderError, FileNotFoundError):
+            self._backup = None
+            log.critical(
+                "Failed to find a valid backup at %s. "
+                "Did you point to the right backup path?",
+                self.backup_path,
+            )
+        except BackupNotEncryptedError:
+            self._backup = None
+            log.critical("The backup does not seem encrypted!")
         except Exception as exc:
             self._backup = None
             log.exception(exc)
-            log.critical(
-                "Failed to decrypt backup. Did you provide the correct key file?"
-            )
+            log.critical("Failed to decrypt backup.")
 
     def get_key(self) -> None:
         """Retrieve and prints the encryption key."""
