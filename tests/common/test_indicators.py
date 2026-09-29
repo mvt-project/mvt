@@ -298,6 +298,82 @@ class TestIndicators:
                 f"check_file_hash failed for pattern key '{pattern_key}'"
             )
 
+    def test_parse_stix2_url_value_containing_equals(self, tmp_path):
+        """A url:value query string contains '='. That must not abort the file."""
+        import json
+
+        url = "https://example.com/track?id=1"
+        domain = "good-domain.example"
+        stix = {
+            "type": "bundle",
+            "id": "bundle--00000000-0000-4000-8000-000000000000",
+            "objects": [
+                {
+                    "type": "malware",
+                    "spec_version": "2.1",
+                    "id": "malware--00000000-0000-4000-8000-000000000001",
+                    "created": "2026-01-01T00:00:00Z",
+                    "modified": "2026-01-01T00:00:00Z",
+                    "name": "Demo",
+                    "is_family": False,
+                },
+                {
+                    "type": "indicator",
+                    "spec_version": "2.1",
+                    "id": "indicator--00000000-0000-4000-8000-000000000002",
+                    "created": "2026-01-01T00:00:00Z",
+                    "modified": "2026-01-01T00:00:00Z",
+                    "indicator_types": ["malicious-activity"],
+                    "pattern": f"[domain-name:value='{domain}']",
+                    "pattern_type": "stix",
+                    "valid_from": "2026-01-01T00:00:00Z",
+                },
+                {
+                    "type": "indicator",
+                    "spec_version": "2.1",
+                    "id": "indicator--00000000-0000-4000-8000-000000000003",
+                    "created": "2026-01-01T00:00:00Z",
+                    "modified": "2026-01-01T00:00:00Z",
+                    "indicator_types": ["malicious-activity"],
+                    "pattern": f"[url:value='{url}']",
+                    "pattern_type": "stix",
+                    "valid_from": "2026-01-01T00:00:00Z",
+                },
+                {
+                    "type": "indicator",
+                    "spec_version": "2.1",
+                    "id": "indicator--00000000-0000-4000-8000-000000000006",
+                    "pattern": "not a pattern",
+                    "pattern_type": "stix",
+                },
+                {
+                    "type": "relationship",
+                    "spec_version": "2.1",
+                    "id": "relationship--00000000-0000-4000-8000-000000000004",
+                    "relationship_type": "indicates",
+                    "source_ref": "indicator--00000000-0000-4000-8000-000000000002",
+                    "target_ref": "malware--00000000-0000-4000-8000-000000000001",
+                },
+                {
+                    "type": "relationship",
+                    "spec_version": "2.1",
+                    "id": "relationship--00000000-0000-4000-8000-000000000005",
+                    "relationship_type": "indicates",
+                    "source_ref": "indicator--00000000-0000-4000-8000-000000000003",
+                    "target_ref": "malware--00000000-0000-4000-8000-000000000001",
+                },
+            ],
+        }
+        stix_file = tmp_path / "equals.stix2"
+        stix_file.write_text(json.dumps(stix), encoding="utf-8")
+
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([str(stix_file)], load_default=False)
+        collection = ind.ioc_collections[0]
+        assert domain in collection["domains"]
+        assert url in collection["urls"]
+        assert "not a pattern" not in collection["urls"]
+
     def test_check_android_property(self, indicator_file):
         ind = Indicators(log=logging)
         ind.load_indicators_files([indicator_file], load_default=False)
