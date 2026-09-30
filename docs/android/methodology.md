@@ -54,6 +54,15 @@ To avoid exhausting free VirusTotal API quotas, MVT waits 16 seconds between pac
 mvt-android check-androidqf --virustotal --delay 30 /path/to/androidqf-output
 ```
 
+### Magisk modules
+
+When an AndroidQF acquisition contains an opted-in Magisk module collection,
+`check-androidqf` parses each available `module.prop` and reports the module ID,
+name, version, author, and description. It also reports whether Magisk's
+`disable`, `remove`, or `update` state markers were present. If AndroidQF could
+not completely check the state markers, MVT reports the module state as unknown
+instead of assuming that the module was enabled.
+
 ## Android Intrusion Logs
 
 On devices where the user has opted into Android's [**Advanced Protection Mode**](https://support.google.com/android/answer/16339980) and turned on the optional Intrusion Logging featrue, Android can create and archive structured *Intrusion Logs* in an encrypted format. These logs record DNS queries, outbound network connections, process starts, ADB activity and other security-relevant events, and are a high-fidelity complement to the rest of an AndroidQF acquisition. The logs are generated on-device and encrypted before being stored in the Google account associated with the device. The encryption key is protected by the user device PIN. The intrusion log data is not accessible to Google.
