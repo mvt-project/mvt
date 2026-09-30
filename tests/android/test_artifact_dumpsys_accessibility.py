@@ -46,6 +46,23 @@ class TestDumpsysAccessibilityArtifact:
         # "not stated" into "not installed", so it reads None here.
         assert da.results[0]["installed"] is None
 
+    def test_parsing_installed_and_enabled(self):
+        da = DumpsysAccessibilityArtifact()
+        with open(get_artifact("android_data/dumpsys_accessibility_enabled.txt")) as f:
+            da.parse(f.read())
+
+        assert len(da.results) == 5
+        assert all(result["component"] for result in da.results)
+        assert all(result["installed"] is True for result in da.results)
+        enabled = [result for result in da.results if result["enabled"] is True]
+        assert len(enabled) == 1
+        assert enabled[0]["package_name"] == "com.samsung.accessibility"
+        assert (
+            enabled[0]["component"]
+            == "com.samsung.accessibility/.universalswitch.UniversalSwitchService"
+        )
+        assert sum(result["enabled"] is False for result in da.results) == 4
+
     def test_accessibility_service_alert(self):
         da = DumpsysAccessibilityArtifact()
         file = get_artifact("android_data/dumpsys_accessibility_v14_or_later.txt")
