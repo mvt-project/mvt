@@ -5,6 +5,7 @@
 
 import logging
 import shutil
+import sqlite3
 
 import pytest
 
@@ -52,6 +53,7 @@ class TestSafariBrowserStateModule:
         assert len(m.results) == 1
         assert len(m.timeline) == 1
         assert len(m.alertstore.alerts) == 0
+        assert "tab" in m.results[0]
 
     def test_parsing_backup_with_profile(self, backup_with_safari_profile):
         m = SafariBrowserState(target_path=backup_with_safari_profile)
@@ -74,3 +76,30 @@ class TestSafariBrowserStateModule:
         assert len(m.alertstore.alerts) == 1
         assert len(m.results) == 1
         assert m.results[0]["tab_url"] == "https://en.wikipedia.org/wiki/NSO_Group"
+
+    def test_tabs_without_session_rows_are_not_dropped(self, tmp_path):
+        db_path = tmp_path / "BrowserState.db"
+        conn = sqlite3.connect(db_path)
+        conn.executescript(
+            """
+            CREATE TABLE tabs (
+                uuid TEXT, title TEXT, url TEXT, user_visible_url TEXT,
+                last_viewed_time REAL, private_browsing INTEGER
+            );
+            CREATE TABLE tab_sessions (tab_uuid TEXT, session_data BLOB);
+            INSERT INTO tabs VALUES (
+                'tab-1', 'Example', 'https://example.test',
+                'https://example.test', 700000000, 1
+            );
+            """
+        )
+        conn.close()
+        module = SafariBrowserState(target_path=str(tmp_path))
+
+        module._process_browser_state_db(str(db_path))
+
+        assert len(module.results) == 1
+        assert module.results[0]["tab_url"] == "https://example.test"
+        assert module.results[0]["session_data"] == []
+        assert module.results[0]["tab"]["private_browsing"] == 1
+        assert module.results[0]["tab"]["session_data"] is None

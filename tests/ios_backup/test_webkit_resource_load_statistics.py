@@ -34,6 +34,7 @@ class TestWebkitResourceLoadStatisticsModule:
             "most_recent_web_push_interaction_time" not in result
             for result in m.results
         )
+        assert all("record" in result for result in m.results)
 
     def test_webkit_full_timestamp_schema(self, tmp_path):
         db_path = tmp_path / "observations.db"
@@ -68,3 +69,4 @@ class TestWebkitResourceLoadStatisticsModule:
         assert "most_recent_user_interaction_time_isodate" in result
         assert result["most_recent_web_push_interaction_time"] == -1.0
         assert "most_recent_web_push_interaction_time_isodate" not in result
+        assert result["record"]["domainID"] == 1
