@@ -67,6 +67,21 @@ class TestIndicators:
         assert len(ind.ioc_collections[0]["android_property_names"]) == 0
         assert len(ind.ioc_collections[0]["urls"]) == 54
 
+    def test_check_file_path(self):
+        ind = Indicators(log=logging)
+        file = os.path.join(get_artifact_folder(), "stix2", "cytrox.stix2")
+        ind.load_indicators_files([file], load_default=False)
+        # The indicator itself, and files inside an indicator directory.
+        assert ind.check_file_path("/private/var/tmp/hooker")
+        assert ind.check_file_path("/private/var/tmp/hooker/")
+        assert ind.check_file_path("/data/local/tmp/wd")
+        assert ind.check_file_path("/data/local/tmp/wd/other.so")
+        assert ind.check_file_path("/private/var/tmp/hooker/payload")
+        # Paths that only share a prefix with an indicator are not matches.
+        assert ind.check_file_path("/private/var/tmp/hookers.plist") is None
+        assert ind.check_file_path("/private/var/tmp/takePhotoCache") is None
+        assert ind.check_file_path("/data/local/tmp/wdx/fs.db") is None
+
     def test_check_url(self, indicator_file):
         ind = Indicators(log=logging)
         ind.load_indicators_files([indicator_file], load_default=False)
