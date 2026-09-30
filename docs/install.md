@@ -1,6 +1,6 @@
 # Installation
 
-Before proceeding, please note that MVT requires Python 3.6+ to run. While it should be available on most operating systems, please make sure of that before proceeding.
+Before proceeding, please note that MVT requires Python 3.10 or newer to run. While it should be available on most operating systems, please make sure of that before proceeding.
 
 ## Dependencies on Linux
 
