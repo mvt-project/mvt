@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:">
+<title>MVT report</title>
+<style>
+/*__MVT_REPORT_FONTS__*/
+:root {
+  --ground: #f4f5f7;
+  --surface: #ffffff;
+  --sunken: #f3f5f8;
+  --ink: #12161c;
+  --ink-2: #394350;
+  --muted: #667080;
+  --rule: #e3e6eb;
+  --rule-strong: #b8bfca;
+  --accent: #2b4c9b;
+  --accent-soft: #e2e8f6;
+  --bar: #9aa6b8;
+  --crit: #b3261e; --crit-soft: #fbe8e6;
+  --high: #b9480a; --high-soft: #fcede2;
+  --med: #8f6400; --med-soft: #f8efd6;
+  --low: #3d6283; --low-soft: #e4edf5;
+  --info: #69717e; --info-soft: #eceef1;
+  --ok: #2f6b3f; --ok-soft: #e3f0e6;
+  --sans: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0d1015; --surface: #141920; --sunken: #1b212a;
+    --ink: #e7eaef; --ink-2: #c2c8d1; --muted: #8c95a3;
+    --rule: #262d37; --rule-strong: #3b4451;
+    --accent: #93acec; --accent-soft: #1c2640; --bar: #4b5667;
+    --crit: #f07a70; --crit-soft: #3a1714;
+    --high: #f09a5e; --high-soft: #372012;
+    --med: #dcb24c; --med-soft: #30260e;
+    --low: #8fb4d6; --low-soft: #152538;
+    --info: #9aa3b0; --info-soft: #1d222a;
+    --ok: #7cc28e; --ok-soft: #13271a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0d1015; --surface: #141920; --sunken: #1b212a;
+  --ink: #e7eaef; --ink-2: #c2c8d1; --muted: #8c95a3;
+  --rule: #262d37; --rule-strong: #3b4451;
+  --accent: #93acec; --accent-soft: #1c2640; --bar: #4b5667;
+  --crit: #f07a70; --crit-soft: #3a1714;
+  --high: #f09a5e; --high-soft: #372012;
+  --med: #dcb24c; --med-soft: #30260e;
+  --low: #8fb4d6; --low-soft: #152538;
+  --info: #9aa3b0; --info-soft: #1d222a;
+  --ok: #7cc28e; --ok-soft: #13271a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 14.5px/1.5 var(--sans);
+  padding-inline: 20px;
+}
+a { color: var(--accent); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-size: 12.5px; }
+.muted { color: var(--muted); }
+.wrap { max-width: 1240px; margin: 0 auto; }
+
+/* Header */
+.mast {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 4px 24px; padding-block: 18px 12px; border-bottom: 1px solid var(--rule);
+  font-size: 13px; color: var(--muted);
+}
+.mast-title { color: var(--ink-2); font-weight: 700; }
+
+/* Summary */
+.verdict { padding-block: 30px 26px; display: grid; gap: 18px; }
+.verdict .context { font-size: 13.5px; color: var(--muted); }
+.verdict h1 {
+  margin: 4px 0 8px; font-size: clamp(24px, 3.4vw, 34px); line-height: 1.15;
+  font-weight: 700; letter-spacing: -.005em; text-wrap: balance; max-width: 30ch; color: var(--tone);
+}
+.verdict p { margin: 0; color: var(--ink-2); max-width: 70ch; font-size: 15px; }
+.ledger { display: flex; flex-wrap: wrap; gap: 6px 26px; margin: 0; padding: 0; list-style: none; }
+.ledger li { display: flex; align-items: baseline; gap: 7px; font-size: 14px; color: var(--ink-2); }
+.ledger b { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tone); }
+.verdict .help { padding-top: 14px; border-top: 1px solid var(--rule); }
+.verdict .help strong { color: var(--ink); }
+
+.tone-CRITICAL { --tone: var(--crit); --tone-soft: var(--crit-soft); }
+.tone-HIGH { --tone: var(--high); --tone-soft: var(--high-soft); }
+.tone-MEDIUM { --tone: var(--med); --tone-soft: var(--med-soft); }
+.tone-LOW { --tone: var(--low); --tone-soft: var(--low-soft); }
+.tone-INFORMATIONAL { --tone: var(--info); --tone-soft: var(--info-soft); }
+.tone-OK { --tone: var(--ok); --tone-soft: var(--ok-soft); }
+
+/* Layout */
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; padding-bottom: 36px; }
+@media (max-width: 1020px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Side column */
+.sheet {
+  display: grid; gap: 18px; position: sticky; top: 16px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 20px;
+}
+@media (max-width: 1020px) { .sheet { position: static; } }
+.sheet h2, .panel-head h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--ink); }
+.sheet section { display: grid; gap: 8px; }
+.sheet section + section { border-top: 1px solid var(--rule); padding-top: 16px; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 14px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.files { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.files li { overflow-wrap: anywhere; }
+.hash { display: flex; gap: 8px; align-items: flex-start; }
+.acq { font: 12px/1.45 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.hash code { overflow-wrap: anywhere; font: 11.5px/1.45 var(--mono); color: var(--ink-2); }
+.btn {
+  border: 1px solid var(--rule-strong); background: var(--surface); padding: 4px 11px; border-radius: 8px;
+  cursor: pointer; font-size: 12.5px; white-space: nowrap;
+}
+.btn:hover { background: var(--sunken); }
+.modtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.modtable td { overflow-wrap: anywhere; padding: 5px 0; border-top: 1px solid var(--rule); vertical-align: top; }
+.modtable td:nth-child(n+2) { text-align: right; padding-left: 10px; }
+.modtable th { text-align: right; font-weight: 500; font-size: 12px; color: var(--muted); padding: 0 0 4px 10px; }
+.modtable th:first-child { text-align: left; padding-left: 0; }
+.modtable a { text-decoration: none; color: var(--ink); }
+.modtable a:hover { text-decoration: underline; color: var(--accent); }
+.modtable .hit { color: var(--crit); font-weight: 700; }
+
+/* Panels */
+.main { display: grid; gap: 20px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; min-width: 0; overflow: hidden; }
+.panel-head {
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px;
+}
+.panel-head .sub { font-size: 12.5px; color: var(--muted); }
+
+/* Activity chart */
+.chart { padding: 0 20px 4px; }
+.chart svg { display: block; width: 100%; height: 170px; user-select: none; touch-action: none; cursor: crosshair; }
+.chart-foot { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between; padding: 4px 20px 16px; font-size: 12.5px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.legend i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--tone); }
+.legend .bars i { border-radius: 2px; width: 10px; background: var(--bar); }
+
+/* Detections */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--rule); background: var(--surface);
+  padding: 3px 11px; border-radius: 999px; cursor: pointer; font-size: 12.5px; font-weight: 500; color: var(--muted);
+}
+.chip[aria-pressed="true"] { border-color: transparent; color: var(--tone); background: var(--tone-soft); }
+.chip b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.det { border-top: 1px solid var(--rule); }
+.det > summary {
+  list-style: none; cursor: pointer; display: grid; gap: 4px 14px; align-items: center;
+  grid-template-columns: 84px minmax(0, 1fr) auto; padding: 12px 22px 12px 20px;
+}
+.det > summary::-webkit-details-marker { display: none; }
+.det > summary:hover, .det[open] > summary { background: var(--sunken); }
+.sev {
+  justify-self: start; font-size: 11.5px; font-weight: 700; color: var(--tone); background: var(--tone-soft);
+  padding: 2px 9px; border-radius: 999px;
+}
+.when { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.msg { overflow-wrap: anywhere; }
+.msg .mod { display: block; font-size: 12px; color: var(--muted); }
+@media (max-width: 640px) {
+  .det > summary { grid-template-columns: auto minmax(0, 1fr); }
+  .det > summary .msg { grid-column: 1 / -1; grid-row: 2; }
+  .det > summary .when { grid-row: 1; grid-column: 2; }
+}
+.det-body { display: grid; gap: 18px; padding: 6px 20px 20px 118px; background: var(--sunken); }
+@media (max-width: 640px) { .det-body { padding-left: 20px; } }
+.det-body > * { min-width: 0; }
+.det-body h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.ioc { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 14px; margin: 0; }
+.ioc dt { color: var(--muted); }
+.ioc dd { margin: 0; overflow-wrap: anywhere; }
+.ioc .val { font: 600 13px var(--mono); color: var(--tone); }
+.scroll { overflow-x: auto; }
+.rec { border-collapse: collapse; width: 100%; font-size: 12.5px; background: var(--surface); border-radius: 8px; }
+.rec th { text-align: left; font-weight: 400; color: var(--muted); padding: 5px 16px 5px 12px; white-space: nowrap; vertical-align: top; width: 1%; }
+.rec td { padding: 5px 12px 5px 0; overflow-wrap: anywhere; word-break: break-word; white-space: pre-wrap; }
+.rec tr + tr > * { border-top: 1px solid var(--rule); }
+.det-body .tl { background: var(--surface); }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 13px; }
+.linkbtn:hover { text-decoration: underline; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 18px; }
+
+/* Timeline table */
+.tl-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tl-controls input[type="search"], .tl-controls select {
+  border: 1px solid var(--rule-strong); background: var(--surface); padding: 5px 10px; border-radius: 8px; font-size: 13px; min-width: 0;
+}
+.tl-controls input[type="search"] { width: 220px; max-width: 100%; }
+.range {
+  display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; background: var(--accent-soft);
+  color: var(--accent); padding: 3px 4px 3px 11px; border-radius: 999px;
+}
+.range button { border: 0; background: none; color: inherit; cursor: pointer; padding: 0 6px; font-size: 15px; line-height: 1; }
+.tl { border-collapse: collapse; width: 100%; font-size: 13px; }
+.tl th {
+  position: sticky; top: 0; background: var(--surface); text-align: left; font-weight: 500; font-size: 12px; color: var(--muted);
+  padding: 8px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap;
+}
+.tl th:first-child, .tl td:first-child { padding-left: 20px; }
+.tl td { padding: 6px 12px; border-top: 1px solid var(--rule); vertical-align: top; }
+.tl td:first-child { white-space: nowrap; color: var(--ink-2); font-variant-numeric: tabular-nums; box-shadow: inset 3px 0 0 transparent; }
+.tl td:nth-child(2), .tl td:nth-child(3) { white-space: nowrap; }
+.tl td:nth-child(3) { color: var(--muted); }
+.tl td:last-child { overflow-wrap: anywhere; word-break: break-word; min-width: 240px; }
+.tl tr.flag td { background: var(--tone-soft); }
+.tl tr.flag td:first-child { box-shadow: inset 3px 0 0 var(--tone); }
+.tl mark { background: var(--accent-soft); color: inherit; border-radius: 2px; }
+.tl-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--muted); }
+.empty { padding: 22px 20px; color: var(--muted); }
+
+.foot { padding-block: 4px 36px; font-size: 12.5px; color: var(--muted); display: grid; gap: 6px; }
+.foot p { margin: 0; max-width: 100ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .det > summary, .chip, .btn { transition: background-color .12s, border-color .12s; }
+}
+@media print {
+  body { background: #fff; padding: 0; }
+  .sheet { position: static; }
+  .filters, .tl-controls, .tl-foot button, .row-actions, #activity { display: none !important; }
+  .panel { break-inside: auto; }
+  .det { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px">This report needs JavaScript to display the results. The raw results are the JSON and CSV files in the same folder.</p></noscript>
+<div class="wrap" id="app"></div>
+<script id="mvt-report-data" type="application/json">/*__MVT_REPORT_DATA__*/null</script>
+<script>
+"use strict";
+(function () {
+  var DATA = JSON.parse(document.getElementById("mvt-report-data").textContent);
+  var LEVELS = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"];
+  var SHORT = { CRITICAL: "CRITICAL", HIGH: "HIGH", MEDIUM: "MEDIUM", LOW: "LOW", INFORMATIONAL: "INFO" };
+  var RANK = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFORMATIONAL: 4 };
+  var PAGE = 150;
+  var app = document.getElementById("app");
+
+  if (!DATA) { app.textContent = "The report data is missing."; return; }
+
+  var tz = DATA.timeline && DATA.timeline.timezone === "local" ? "device local time" : "UTC";
+  var tzShort = tz === "UTC" ? "UTC" : "local";
+
+  // ---------------------------------------------------------------- helpers
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) {
+      for (var k in attrs) {
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) continue;
+        if (k === "class") el.className = v;
+        else if (k === "text") el.textContent = v;
+        else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), v);
+        else el.setAttribute(k, v === true ? "" : v);
+      }
+    }
+    for (var i = 2; i < arguments.length; i++) append(el, arguments[i]);
+    return el;
+  }
+  function append(el, child) {
+    if (child === null || child === undefined || child === false) return;
+    if (Array.isArray(child)) { child.forEach(function (c) { append(el, c); }); return; }
+    el.appendChild(typeof child === "object" ? child : document.createTextNode(String(child)));
+  }
+  function svg(tag, attrs) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+  // MVT writes "YYYY-MM-DD HH:MM:SS.ffffff". The value is read as UTC so that
+  // it is shown exactly as recorded, whatever the time zone of the viewer.
+  function parseTime(s) {
+    if (!s || typeof s !== "string") return NaN;
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?/);
+    if (!m) return NaN;
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0), +((m[7] || "0") + "00").slice(0, 3));
+  }
+  function fmtTime(s) { return s ? String(s).replace("T", " ").slice(0, 19) : ""; }
+  function fmtMs(ms, withTime) {
+    var s = new Date(ms).toISOString().replace("T", " ");
+    return withTime ? s.slice(0, 16) : s.slice(0, 10);
+  }
+  function plural(n, one, many) { return n.toLocaleString("en-US") + " " + (n === 1 ? one : many); }
+  function isEmpty(v) { return v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length); }
+  function showValue(v) {
+    if (typeof v === "string") return v;
+    if (Array.isArray(v) && v.every(function (x) { return x === null || typeof x !== "object"; })) return v.join("\n");
+    return JSON.stringify(v, null, 1);
+  }
+
+  // ---------------------------------------------------------------- data
+  var alerts = (DATA.alerts || []).map(function (a, i) {
+    a.id = i; a.ms = parseTime(a.time);
+    if (RANK[a.level] === undefined) a.level = "INFORMATIONAL";
+    return a;
+  });
+  alerts.sort(function (a, b) {
+    return (RANK[a.level] - RANK[b.level]) || ((isNaN(a.ms) ? Infinity : a.ms) - (isNaN(b.ms) ? Infinity : b.ms));
+  });
+  var counts = {}; LEVELS.forEach(function (l) { counts[l] = 0; });
+  alerts.forEach(function (a) { counts[a.level]++; });
+
+  var rows = (DATA.timeline && DATA.timeline.rows) || [];
+  var rowMs = rows.map(function (r) { return parseTime(r[0]); });
+  var alertAt = {};
+  alerts.forEach(function (a) {
+    if (isNaN(a.ms)) return;
+    var cur = alertAt[a.ms];
+    if (!cur || RANK[a.level] < RANK[cur.level]) alertAt[a.ms] = a;
+  });
+
+  // ---------------------------------------------------------------- verdict
+  function verdict() {
+    var collections = {};
+    alerts.forEach(function (a) { if (a.indicator && a.indicator.name) collections[a.indicator.name] = 1; });
+    var names = Object.keys(collections);
+    var matched = alerts.filter(function (a) { return a.indicator; }).length;
+    var warnings = counts.HIGH + counts.MEDIUM + counts.LOW;
+
+    if (counts.CRITICAL) {
+      return {
+        tone: "CRITICAL",
+        title: matched
+          ? plural(matched, "record matches", "records match") + " known indicators of compromise"
+          : plural(counts.CRITICAL, "critical finding needs", "critical findings need") + " expert review",
+        text: (names.length ? "Matches come from the " + names.join(", ") + " indicator " + (names.length === 1 ? "collection" : "collections") + ". " : "") +
+          "Review each match below together with the events around it before drawing any conclusion."
+      };
+    }
+    if (counts.HIGH) {
+      return {
+        tone: "HIGH",
+        title: plural(counts.HIGH, "high-severity finding needs", "high-severity findings need") + " expert review",
+        text: (matched ? "" : "No record matched the loaded indicators. ") +
+          "The findings come from MVT's heuristic checks, which can also flag legitimate configurations."
+      };
+    }
+    if (warnings) {
+      return {
+        tone: counts.MEDIUM ? "MEDIUM" : "LOW",
+        title: "No indicator matches, " + plural(warnings, "warning", "warnings") + " to review",
+        text: "The warnings come from heuristic checks and are often explained by apps or settings the owner knows about."
+      };
+    }
+    return {
+      tone: "OK",
+      title: "No module raised a detection",
+      text: "This means none of the loaded indicators matched the extracted records. It does not prove the device is free of spyware: " +
+        "indicators only cover known campaigns, and some traces do not survive in every kind of acquisition."
+    };
+  }
+
+  function renderVerdict() {
+    var v = verdict();
+    var context = (DATA.device || []).filter(function (d) {
+      return d[0] === "Model" || /version$/.test(d[0]);
+    }).map(function (d) { return d[1]; });
+    var platform = DATA.platform === "ios" ? "iOS" : DATA.platform === "android" ? "Android" : "";
+    if (!context.length && platform) context.push(platform);
+    if (DATA.info && DATA.info.date) context.push("analysed " + fmtTime(DATA.info.date).slice(0, 10));
+
+    var help = null;
+    if (counts.CRITICAL || counts.HIGH) {
+      help = h("p", { class: "help", role: "note" },
+        h("strong", { text: "Only expert review can confirm whether these are signs of an attack. " }),
+        "Human rights defenders and civil society can get support from Amnesty International's Security Lab at ",
+        h("a", { href: "https://securitylab.amnesty.org/get-help/?c=mvt", rel: "noopener noreferrer", text: "securitylab.amnesty.org/get-help" }),
+        ". Share this report only with people you trust: it contains records from the device.");
+    }
+
+    return h("section", { class: "verdict tone-" + v.tone },
+      h("div", null,
+        context.length ? h("div", { class: "context", text: context.join(" · ") }) : null,
+        h("h1", { text: v.title }),
+        h("p", { text: v.text })),
+      h("ul", { class: "ledger", "aria-label": "Detections by severity" },
+        LEVELS.filter(function (l) { return counts[l]; }).map(function (l) {
+          return h("li", { class: "tone-" + l },
+            h("b", { text: counts[l] }), SHORT[l] === "INFO" ? "informational" : SHORT[l].toLowerCase());
+        })),
+      help);
+  }
+
+  // ---------------------------------------------------------------- case sheet
+  function renderSheet() {
+    var info = DATA.info || {};
+    var sheet = h("aside", { class: "sheet", "aria-label": "Case details" });
+
+    var device = (DATA.device || []).slice();
+    var platform = DATA.platform === "ios" ? "iOS" : DATA.platform === "android" ? "Android" : null;
+    if (platform && !device.length) device.push(["Platform", platform]);
+    if (device.length) {
+      sheet.appendChild(h("section", null, h("h2", { text: "Device" }),
+        h("dl", { class: "kv" }, device.map(function (d) { return [h("dt", { text: d[0] }), h("dd", { text: d[1] })]; }))));
+    }
+
+    var acq = [];
+    if (info.date) acq.push(["Analysed", fmtTime(info.date)]);
+    acq.push(["MVT", info.mvt_version || DATA.mvt_version]);
+    acq.push(["Times in", tz]);
+    if (rows.length) acq.push(["Events", rows.length.toLocaleString("en-US") + (DATA.timeline.omitted ? " (+" + DATA.timeline.omitted.toLocaleString("en-US") + " not embedded)" : "")]);
+    sheet.appendChild(h("section", null, h("h2", { text: "Analysis" }),
+      h("dl", { class: "kv" }, acq.map(function (d) { return [h("dt", { text: d[0] }), h("dd", { text: d[1] })]; })),
+      info.target_path ? h("div", null, h("div", { class: "muted", text: "Acquisition" }), h("div", { class: "acq", text: info.target_path })) : null));
+
+    var iocs = info.ioc_files || [];
+    sheet.appendChild(h("section", null, h("h2", { text: "Indicators" }),
+      iocs.length
+        ? h("ul", { class: "files" }, iocs.map(function (f) { return h("li", { title: f, text: f.split(/[\\/]/).pop() }); }))
+        : h("div", { class: "muted", text: "No indicator files were loaded. Only heuristic checks ran." })));
+
+    if (DATA.info_sha256) {
+      var copy = h("button", { class: "btn", type: "button", text: "Copy" });
+      var code = h("code", { text: DATA.info_sha256 });
+      // The report is usually opened from disk, where browsers refuse the
+      // Clipboard API: copy through a selection first, while the click still
+      // counts as a user action.
+      copy.addEventListener("click", function () {
+        function show(text) { copy.textContent = text; setTimeout(function () { copy.textContent = "Copy"; }, 1600); }
+        function selectHash() {
+          var r = document.createRange(); r.selectNodeContents(code);
+          var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+          show("Press Ctrl+C");
+        }
+        var area = h("textarea", { readonly: true, "aria-hidden": "true", style: "position:fixed;top:0;left:0;opacity:0" });
+        area.value = DATA.info_sha256;
+        document.body.appendChild(area);
+        area.select();
+        var copied = false;
+        try { copied = document.execCommand("copy"); } catch (e) { copied = false; }
+        document.body.removeChild(area);
+        if (copied) show("Copied");
+        else if (navigator.clipboard) navigator.clipboard.writeText(DATA.info_sha256).then(function () { show("Copied"); }, selectHash);
+        else selectHash();
+      });
+      sheet.appendChild(h("section", null, h("h2", { text: "info.json SHA-256" }), h("div", { class: "hash" }, code, copy)));
+    }
+
+    var mods = DATA.modules || [];
+    if (mods.length) {
+      var base = DATA.results_link ? DATA.results_link.replace(/\/?$/, "/") : "";
+      sheet.appendChild(h("section", null, h("h2", { text: "Modules" }),
+        h("table", { class: "modtable" },
+          h("thead", null, h("tr", null, h("th", { text: "Result file" }), h("th", { text: "Records" }), h("th", { text: "Hits" }))),
+          h("tbody", null, mods.map(function (m) {
+            return h("tr", null,
+              h("td", null, m.file ? h("a", { href: base + encodeURIComponent(m.file), text: m.name }) : h("span", { class: "mono", text: m.name })),
+              h("td", { text: m.records.toLocaleString("en-US") }),
+              h("td", { class: m.detections ? "hit" : "muted", text: m.detections || "–" }));
+          })))));
+    }
+    return sheet;
+  }
+
+  // ---------------------------------------------------------------- activity chart
+  var state = { from: null, to: null, text: "", module: "", shown: PAGE, levels: {} };
+  LEVELS.forEach(function (l) { state.levels[l] = true; });
+  var onRangeChange = [];
+
+  function chartDomain() {
+    var ts = rowMs.filter(function (t) { return !isNaN(t); }).sort(function (a, b) { return a - b; });
+    var alertTs = alerts.map(function (a) { return a.ms; }).filter(function (t) { return !isNaN(t); });
+    if (!ts.length && !alertTs.length) return null;
+    // Placeholder dates such as 1980-01-01 would squash the chart into a
+    // sliver, so the outermost half percent of events is left out of the axis.
+    var lo = ts.length ? ts[Math.floor(ts.length * 0.005)] : Infinity;
+    var hi = ts.length ? ts[Math.max(0, Math.ceil(ts.length * 0.995) - 1)] : -Infinity;
+    alertTs.forEach(function (t) { lo = Math.min(lo, t); hi = Math.max(hi, t); });
+    if (hi - lo < 3600e3) { lo -= 1800e3; hi += 1800e3; }
+    var pad = (hi - lo) * 0.015;
+    lo -= pad; hi += pad;
+    var outside = ts.filter(function (t) { return t < lo || t > hi; }).length;
+    return { lo: lo, hi: hi, outside: outside, undated: rowMs.length - ts.length };
+  }
+
+  var STEPS = [
+    [3600e3, "hour"], [6 * 3600e3, "6 hours"], [864e5, "day"], [7 * 864e5, "week"],
+    [30.44 * 864e5, "month"], [91.3 * 864e5, "quarter"], [365.25 * 864e5, "year"]
+  ];
+
+  function renderActivity() {
+    var dom = chartDomain();
+    if (!dom) return null;
+    var step = STEPS[STEPS.length - 1];
+    for (var i = 0; i < STEPS.length; i++) { if ((dom.hi - dom.lo) / STEPS[i][0] <= 140) { step = STEPS[i]; break; } }
+    var bw = step[0];
+    var start = Math.floor(dom.lo / bw) * bw;
+    var nb = Math.max(1, Math.ceil((dom.hi - start + 1) / bw));
+    var bins = new Array(nb).fill(0);
+    rowMs.forEach(function (t) { if (!isNaN(t) && t >= dom.lo && t <= dom.hi) bins[Math.min(nb - 1, Math.floor((t - start) / bw))]++; });
+    var max = Math.max.apply(null, bins.concat([1]));
+
+    var box = h("div", { class: "chart" });
+    var readout = h("span", null);
+    var usedLevels = LEVELS.filter(function (l) { return alerts.some(function (a) { return a.level === l && !isNaN(a.ms); }); });
+    var legend = h("div", { class: "legend" },
+      h("span", { class: "bars" }, h("i"), "Events per " + step[1] + " (log scale)"),
+      usedLevels.map(function (l) { return h("span", { class: "tone-" + l }, h("i"), SHORT[l].charAt(0) + SHORT[l].slice(1).toLowerCase()); }));
+    var notes = [];
+    if (dom.outside) notes.push(plural(dom.outside, "event", "events") + " outside the axis");
+    if (dom.undated) notes.push(plural(dom.undated, "event", "events") + " without a time");
+    readout.textContent = (notes.length ? notes.join(" · ") + " · " : "") + "Drag across the chart to filter the timeline";
+
+    var W = 0, H = 170, PADT = 26, PADB = 22, PADL = 36;
+    var el = svg("svg", { role: "img", "aria-label": "Events over time, with detections marked above the bars" });
+    box.appendChild(el);
+
+    function x(t) { return PADL + (t - start) / (nb * bw) * (W - PADL - 2); }
+    function tAt(px) { return start + (px - PADL) / (W - PADL - 2) * nb * bw; }
+
+    function draw() {
+      W = el.clientWidth || 800;
+      el.setAttribute("viewBox", "0 0 " + W + " " + H);
+      while (el.firstChild) el.removeChild(el.firstChild);
+      var ih = H - PADT - PADB;
+      var lmax = Math.log10(max + 1);
+      // grid: 1, 10, 100... events
+      for (var p = 0; Math.pow(10, p) <= max; p++) {
+        var gy = PADT + ih - Math.log10(Math.pow(10, p) + 1) / lmax * ih;
+        el.appendChild(svg("line", { x1: PADL, x2: W, y1: gy, y2: gy, stroke: "var(--rule)", "stroke-width": 1 }));
+        var lab = svg("text", { x: PADL - 6, y: gy + 3.5, "text-anchor": "end", fill: "var(--muted)", "font-size": 10, "font-family": "var(--sans)" });
+        lab.textContent = p >= 3 ? Math.pow(10, p - 3) + "k" : Math.pow(10, p);
+        el.appendChild(lab);
+      }
+      el.appendChild(svg("line", { x1: PADL, x2: W, y1: PADT + ih + .5, y2: PADT + ih + .5, stroke: "var(--rule-strong)", "stroke-width": 1 }));
+      var bwPx = (W - PADL - 2) / nb;
+      bins.forEach(function (c, i) {
+        if (!c) return;
+        var bh = Math.max(1.5, Math.log10(c + 1) / lmax * ih);
+        var inSel = state.from === null || (start + (i + 1) * bw > state.from && start + i * bw < state.to);
+        var r = svg("rect", {
+          x: PADL + i * bwPx + (bwPx > 4 ? .5 : 0), y: PADT + ih - bh, width: Math.max(1, bwPx - (bwPx > 4 ? 1 : 0)), height: bh,
+          fill: inSel ? "var(--bar)" : "var(--rule)"
+        });
+        var tt = svg("title", {});
+        tt.textContent = fmtMs(start + i * bw, bw < 864e5) + " · " + plural(c, "event", "events");
+        r.appendChild(tt);
+        el.appendChild(r);
+      });
+      // axis labels: years, or months when the range is short
+      var span = nb * bw, d0 = new Date(start), labels = [];
+      if (span > 3 * 365 * 864e5) {
+        for (var y = d0.getUTCFullYear() + 1; Date.UTC(y, 0, 1) < start + span; y++) labels.push([Date.UTC(y, 0, 1), String(y)]);
+      } else if (span > 60 * 864e5) {
+        for (var mo = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1)); mo.getTime() < start + span; mo.setUTCMonth(mo.getUTCMonth() + 1)) {
+          labels.push([mo.getTime(), mo.getUTCMonth() === 0 ? String(mo.getUTCFullYear()) : mo.toISOString().slice(0, 7)]);
+        }
+      } else {
+        for (var dd = Math.ceil(start / 864e5) * 864e5; dd < start + span; dd += 864e5) labels.push([dd, fmtMs(dd).slice(5)]);
+      }
+      var minGap = 64, last = -Infinity;
+      labels.forEach(function (l) {
+        var lx = x(l[0]);
+        if (lx - last < minGap || lx > W - 20) return;
+        last = lx;
+        el.appendChild(svg("line", { x1: lx, x2: lx, y1: PADT + ih, y2: PADT + ih + 4, stroke: "var(--rule-strong)" }));
+        var t = svg("text", { x: lx, y: H - 6, "text-anchor": "middle", fill: "var(--muted)", "font-size": 10.5, "font-family": "var(--sans)" });
+        t.textContent = l[1];
+        el.appendChild(t);
+      });
+      // detection markers, most severe drawn last so they stay on top
+      alerts.slice().reverse().forEach(function (a) {
+        if (isNaN(a.ms)) return;
+        var mx = x(a.ms), s = 5;
+        var m = svg("path", {
+          d: "M" + mx + " " + (PADT - 16) + "l" + s + " " + s + "l-" + s + " " + s + "l-" + s + "-" + s + "z",
+          fill: "var(--" + ({ CRITICAL: "crit", HIGH: "high", MEDIUM: "med", LOW: "low", INFORMATIONAL: "info" })[a.level] + ")"
+        });
+        el.appendChild(svg("line", { x1: mx, x2: mx, y1: PADT - 6, y2: PADT + ih, stroke: "var(--" + ({ CRITICAL: "crit", HIGH: "high", MEDIUM: "med", LOW: "low", INFORMATIONAL: "info" })[a.level] + ")", "stroke-width": 1, "stroke-dasharray": "2 3", opacity: .55 }));
+        var tt = svg("title", {}); tt.textContent = fmtTime(a.time) + " · " + a.message;
+        m.appendChild(tt);
+        el.appendChild(m);
+      });
+      if (state.from !== null) {
+        var sx = Math.max(PADL, x(state.from)), ex = Math.min(W, x(state.to));
+        if (ex > sx) el.appendChild(svg("rect", { x: sx, y: PADT - 2, width: Math.max(1, ex - sx), height: ih + 2, fill: "var(--accent)", opacity: .1 }));
+      }
+    }
+
+    // drag to select a range, click to select one bar
+    var dragFrom = null, sel = null;
+    function localX(ev) { var r = el.getBoundingClientRect(); return (ev.clientX - r.left) * (W / r.width); }
+    el.addEventListener("pointerdown", function (ev) {
+      dragFrom = localX(ev); el.setPointerCapture(ev.pointerId);
+      sel = svg("rect", { y: PADT - 2, height: H - PADT - PADB + 2, fill: "var(--accent)", opacity: .15, x: dragFrom, width: 0 });
+      el.appendChild(sel);
+    });
+    el.addEventListener("pointermove", function (ev) {
+      if (dragFrom === null) return;
+      var cx = localX(ev);
+      sel.setAttribute("x", Math.min(cx, dragFrom)); sel.setAttribute("width", Math.abs(cx - dragFrom));
+    });
+    el.addEventListener("pointerup", function (ev) {
+      if (dragFrom === null) return;
+      var cx = localX(ev), a = Math.min(cx, dragFrom), b = Math.max(cx, dragFrom);
+      dragFrom = null;
+      if (b - a < 4) {
+        var i = Math.floor((cx - PADL) / ((W - PADL - 2) / nb));
+        if (i < 0 || i >= nb) { draw(); return; }
+        setRange(start + i * bw, start + (i + 1) * bw);
+      } else {
+        setRange(tAt(a), tAt(b));
+      }
+    });
+
+    onRangeChange.push(draw);
+    window.addEventListener("resize", draw);
+    requestAnimationFrame(draw);
+
+    return h("section", { class: "panel", id: "activity" },
+      h("div", { class: "panel-head" }, h("h2", { text: "Activity" }), h("span", { class: "sub", text: "All times in " + tz })),
+      box,
+      h("div", { class: "chart-foot" }, legend, readout));
+  }
+
+  function setRange(from, to) {
+    state.from = from; state.to = to; state.shown = PAGE;
+    onRangeChange.forEach(function (f) { f(); });
+  }
+
+  // ---------------------------------------------------------------- detections
+  function nearby(a, minutes, limit) {
+    if (isNaN(a.ms)) return [];
+    var win = minutes * 60e3, out = [];
+    for (var i = 0; i < rows.length; i++) {
+      if (Math.abs(rowMs[i] - a.ms) <= win) out.push(i);
+    }
+    out.sort(function (p, q) { return Math.abs(rowMs[p] - a.ms) - Math.abs(rowMs[q] - a.ms); });
+    return out.slice(0, limit).sort(function (p, q) { return p - q; });
+  }
+
+  function recordTable(event, all) {
+    if (event === null || typeof event !== "object" || Array.isArray(event)) {
+      return h("pre", { class: "mono", style: "margin:0;white-space:pre-wrap", text: showValue(event) });
+    }
+    var keys = Object.keys(event);
+    var shown = all ? keys : keys.filter(function (k) { var v = event[k]; return !isEmpty(v) && v !== 0 && v !== false; });
+    return h("table", { class: "rec" }, h("tbody", null, shown.map(function (k) {
+      return h("tr", null, h("th", { text: k }), h("td", { text: showValue(event[k]) }));
+    })));
+  }
+
+  function renderDetectionBody(a) {
+    var body = h("div", { class: "det-body" });
+    var ind = a.indicator;
+    if (ind && typeof ind === "object") {
+      body.appendChild(h("div", null, h("h3", { text: "Matched indicator" }),
+        h("dl", { class: "ioc" },
+          h("dt", { text: "Value" }), h("dd", { class: "val", text: ind.value }),
+          ind.type ? [h("dt", { text: "Type" }), h("dd", { class: "mono", text: ind.type })] : null,
+          ind.name ? [h("dt", { text: "Collection" }), h("dd", null, h("strong", { text: ind.name }))] : null,
+          ind.stix2_file_name ? [h("dt", { text: "From file" }), h("dd", { class: "mono", text: ind.stix2_file_name })] : null)));
+    }
+
+    if (a.event !== undefined && a.event !== null) {
+      var recWrap = h("div", { class: "scroll" }, recordTable(a.event, false));
+      var total = typeof a.event === "object" && !Array.isArray(a.event) ? Object.keys(a.event).length : 0;
+      var toggle = total ? h("button", { class: "linkbtn", type: "button", text: "Show all " + total + " fields" }) : null;
+      if (toggle) {
+        var all = false;
+        toggle.addEventListener("click", function () {
+          all = !all; recWrap.replaceChildren(recordTable(a.event, all));
+          toggle.textContent = all ? "Show only fields with a value" : "Show all " + total + " fields";
+        });
+      }
+      body.appendChild(h("div", null, h("h3", { text: "Record" }), recWrap));
+      var actions = h("div", { class: "row-actions" }, toggle);
+      if (!isNaN(a.ms) && rows.length) {
+        actions.appendChild(h("button", {
+          class: "linkbtn", type: "button", text: "Show the hour around it in the timeline",
+          onclick: function () { setRange(a.ms - 1800e3, a.ms + 1800e3); document.getElementById("timeline").scrollIntoView({ behavior: "smooth", block: "start" }); }
+        }));
+      }
+      if (actions.childNodes.length) body.appendChild(actions);
+    }
+
+    var near = nearby(a, 15, 12);
+    if (near.length) {
+      body.appendChild(h("div", null, h("h3", { text: "Within 15 minutes" }),
+        h("div", { class: "scroll" }, h("table", { class: "tl" }, h("tbody", null, near.map(function (i) { return timelineRow(i, ""); }))))));
+    }
+    return body;
+  }
+
+  function renderDetections() {
+    var panel = h("section", { class: "panel", id: "detections" });
+    var list = h("div", null);
+    var chips = h("div", { class: "filters", role: "group", "aria-label": "Filter by severity" });
+    LEVELS.forEach(function (l) {
+      if (!counts[l]) return;
+      var c = h("button", { class: "chip tone-" + l, type: "button", "aria-pressed": "true" }, SHORT[l], h("b", { text: counts[l] }));
+      c.addEventListener("click", function () {
+        state.levels[l] = !state.levels[l];
+        c.setAttribute("aria-pressed", String(state.levels[l]));
+        draw();
+      });
+      chips.appendChild(c);
+    });
+
+    function draw() {
+      list.replaceChildren();
+      var shown = alerts.filter(function (a) { return state.levels[a.level]; });
+      if (!alerts.length) { list.appendChild(h("div", { class: "empty", text: "No module raised a detection." })); return; }
+      if (!shown.length) { list.appendChild(h("div", { class: "empty", text: "No detections at the selected severities." })); return; }
+      shown.forEach(function (a) {
+        var det = h("details", { class: "det tone-" + a.level, id: "det-" + a.id },
+          h("summary", null,
+            h("span", { class: "sev", text: SHORT[a.level] }),
+            h("span", { class: "msg" }, h("span", { class: "mod", text: a.module }), a.message),
+            h("span", { class: "when" }, a.time
+              ? [fmtTime(a.time), a.time_source === "record" ? h("small", { title: "The alert has no time of its own; this is the time of the record it is about.", text: " ‡" }) : null]
+              : h("span", { class: "muted", text: "no time" }))));
+        var built = false;
+        det.addEventListener("toggle", function () {
+          if (det.open && !built) { det.appendChild(renderDetectionBody(a)); built = true; }
+        });
+        list.appendChild(det);
+      });
+    }
+    draw();
+
+    var inferred = alerts.some(function (a) { return a.time_source === "record"; });
+    panel.appendChild(h("div", { class: "panel-head" },
+      h("h2", { text: "Detections" }), chips));
+    panel.appendChild(list);
+    if (inferred) {
+      panel.appendChild(h("div", { class: "tl-foot" }, h("span", { text: "‡ Time taken from the record the detection is about." })));
+    }
+    return panel;
+  }
+
+  // ---------------------------------------------------------------- timeline
+  function highlight(text, q) {
+    if (!q) return text;
+    var i = text.toLowerCase().indexOf(q);
+    if (i < 0) return text;
+    return [text.slice(0, i), h("mark", { text: text.slice(i, i + q.length) }), text.slice(i + q.length)];
+  }
+
+  function timelineRow(i, q) {
+    var r = rows[i], a = alertAt[rowMs[i]];
+    return h("tr", { class: a ? "flag tone-" + a.level : null, title: a ? a.message : null },
+      h("td", { text: fmtTime(r[0]) || "–" }),
+      h("td", null, highlight(r[1], q)),
+      h("td", null, highlight(r[2], q)),
+      h("td", null, highlight(r[3], q)));
+  }
+
+  function renderTimeline() {
+    if (!rows.length) return null;
+    var modules = {};
+    rows.forEach(function (r) { modules[r[1]] = (modules[r[1]] || 0) + 1; });
+
+    var search = h("input", { type: "search", id: "tl-search", placeholder: "Search events", "aria-label": "Search events" });
+    var select = h("select", { id: "tl-module", "aria-label": "Filter by source" },
+      h("option", { value: "", text: "All sources" }),
+      Object.keys(modules).sort().map(function (m) { return h("option", { value: m, text: m + " (" + modules[m].toLocaleString("en-US") + ")" }); }));
+    var flagged = h("input", { type: "checkbox", id: "tl-flagged" });
+    var rangeSlot = h("span", null);
+    var tbody = h("tbody", null);
+    var foot = h("div", { class: "tl-foot" });
+    var timer = null;
+
+    search.addEventListener("input", function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () { state.text = search.value.trim().toLowerCase(); state.shown = PAGE; draw(); }, 120);
+    });
+    select.addEventListener("change", function () { state.module = select.value; state.shown = PAGE; draw(); });
+    flagged.addEventListener("change", function () { state.shown = PAGE; draw(); });
+
+    function matches(i) {
+      var r = rows[i];
+      if (state.module && r[1] !== state.module) return false;
+      if (state.from !== null && !(rowMs[i] >= state.from && rowMs[i] <= state.to)) return false;
+      if (flagged.checked && !alertAt[rowMs[i]]) return false;
+      if (state.text) {
+        var hay = (r[1] + "\u0000" + r[2] + "\u0000" + r[3] + "\u0000" + r[0]).toLowerCase();
+        if (hay.indexOf(state.text) < 0) return false;
+      }
+      return true;
+    }
+
+    function draw() {
+      rangeSlot.replaceChildren();
+      if (state.from !== null) {
+        var withTime = state.to - state.from < 3 * 864e5;
+        rangeSlot.appendChild(h("span", { class: "range" },
+          fmtMs(state.from, withTime) + " – " + fmtMs(state.to, withTime),
+          h("button", { type: "button", "aria-label": "Clear the time range", text: "×", onclick: function () { setRange(null, null); } })));
+      }
+      var hits = [];
+      for (var i = 0; i < rows.length; i++) if (matches(i)) hits.push(i);
+      tbody.replaceChildren();
+      hits.slice(0, state.shown).forEach(function (i) { tbody.appendChild(timelineRow(i, state.text)); });
+      foot.replaceChildren(h("span", {
+        text: hits.length === rows.length
+          ? plural(rows.length, "event", "events")
+          : plural(hits.length, "event", "events") + " of " + rows.length.toLocaleString("en-US")
+      }));
+      if (!hits.length) tbody.appendChild(h("tr", null, h("td", { colspan: 4, class: "empty", text: "No events match these filters." })));
+      if (hits.length > state.shown) {
+        foot.appendChild(h("button", {
+          class: "btn", type: "button", text: "Show " + Math.min(500, hits.length - state.shown).toLocaleString("en-US") + " more",
+          onclick: function () { state.shown += 500; draw(); }
+        }));
+      }
+    }
+    onRangeChange.push(draw);
+    draw();
+
+    return h("section", { class: "panel", id: "timeline" },
+      h("div", { class: "panel-head" }, h("h2", { text: "Timeline" }),
+        h("div", { class: "tl-controls" }, rangeSlot, search, select,
+          h("label", { for: "tl-flagged", style: "display:inline-flex;gap:6px;align-items:center;font-size:13px" }, flagged, "Only at detection times"))),
+      h("div", { class: "scroll" }, h("table", { class: "tl" },
+        h("thead", null, h("tr", null, h("th", { text: "Time (" + tzShort + ")" }), h("th", { text: "Source" }), h("th", { text: "Event" }), h("th", { text: "Details" }))),
+        tbody)),
+      foot);
+  }
+
+  // ---------------------------------------------------------------- page
+  var title = "MVT report";
+  var dev = (DATA.device || []).filter(function (d) { return d[0] === "Model" || d[0] === "Device name"; })[0];
+  if (dev) title += " · " + dev[1];
+  document.title = title;
+
+  var platformName = DATA.platform === "ios" ? "iOS" : DATA.platform === "android" ? "Android" : "";
+  app.appendChild(h("header", { class: "mast" },
+    h("div", null, h("span", { class: "mast-title", text: "Mobile Verification Toolkit" }), " · " + (platformName ? platformName + " " : "") + "analysis report"),
+    h("div", { text: "Generated " + fmtTime(DATA.generated) + " with MVT " + DATA.mvt_version })));
+  app.appendChild(renderVerdict());
+  app.appendChild(h("div", { class: "layout" },
+    renderSheet(),
+    h("div", { class: "main" }, renderActivity(), renderDetections(), renderTimeline())));
+  app.appendChild(h("footer", { class: "foot" },
+    h("p", { text: "Generated by the Mobile Verification Toolkit from " + DATA.results_path + ". The report embeds the records it shows: handle it with the same care as the device data." }),
+    h("p", { text: "A detection is a lead, not a verdict. Indicators and heuristics can produce false positives, and a clean result does not rule out an infection." })));
+
+  window.addEventListener("beforeprint", function () {
+    document.querySelectorAll("details.det").forEach(function (d) { if (!d.open) { d.open = true; d.dispatchEvent(new Event("toggle")); } });
+  });
+})();
+</script>
+</body>
+</html>
