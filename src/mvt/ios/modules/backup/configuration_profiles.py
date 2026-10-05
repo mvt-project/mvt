@@ -74,7 +74,10 @@ class ConfigurationProfiles(IOSExtraction):
                 if ioc_match:
                     warning_message = f'Found a known malicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with UUID "{result["plist"]["PayloadUUID"]}"'
                     self.alertstore.critical(
-                        warning_message, "", result, matched_indicator=ioc_match.ioc
+                        warning_message,
+                        result.get("install_date") or "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
@@ -82,7 +85,9 @@ class ConfigurationProfiles(IOSExtraction):
                 # to hide notifications.
                 if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
                     warning_message = f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}'
-                    self.alertstore.medium(warning_message, "", result)
+                    self.alertstore.medium(
+                        warning_message, result.get("install_date") or "", result
+                    )
                     continue
 
     @staticmethod

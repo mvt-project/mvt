@@ -44,3 +44,4 @@ class TestCalendarModule:
         assert len(m.results) == 1
         assert len(m.timeline) == 4
         assert len(m.alertstore.alerts) == 1
+        assert m.alertstore.alerts[0].event_time == m.results[0]["start_date"]

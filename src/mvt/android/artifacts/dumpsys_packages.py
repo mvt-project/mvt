@@ -35,7 +35,7 @@ class DumpsysPackagesArtifact(AndroidArtifact):
                 alerted_root_packages.add(package_name)
                 self.alertstore.medium(
                     f'Found an installed package related to rooting/jailbreaking: "{package_name}"',
-                    "",
+                    result.get("timestamp") or "",
                     result,
                 )
             if not self.indicators:
@@ -43,7 +43,10 @@ class DumpsysPackagesArtifact(AndroidArtifact):
             ioc_match = self.indicators.check_app_id(package_name)
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("timestamp") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:

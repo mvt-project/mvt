@@ -24,7 +24,10 @@ class DumpsysBatteryHistoryArtifact(AndroidArtifact):
             ioc_match = self.indicators.check_app_id(package_name)
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("timestamp") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     @staticmethod
