@@ -311,3 +311,31 @@ class TestIndicators:
         ind = Indicators(log=logging)
         ind.load_indicators_files([], load_default=False)
         assert ind.total_ioc_count == 9
+
+    def test_check_url_matches_w_prefixed_subdomain(self, tmp_path):
+        import json
+
+        stix_file = tmp_path / "w-domain.stix2"
+        stix_file.write_text(
+            json.dumps(
+                {
+                    "objects": [
+                        {
+                            "type": "indicator",
+                            "pattern": "[domain-name:value = 'web.evil.com']",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([str(stix_file)], load_default=False)
+
+        for url in (
+            "https://web.evil.com/path",
+            "https://www.web.evil.com/path",
+        ):
+            match = ind.check_url(url)
+            assert match is not None
+            assert match.ioc.value == "web.evil.com"
