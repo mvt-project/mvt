@@ -208,6 +208,51 @@ def test_check_intrusion_logs_cli_lists_modules(tmp_path):
     assert "SecurityEvent" in result.output
 
 
+@pytest.mark.parametrize("success", [True, False, 1, 0])
+def test_check_intrusion_logs_recognizes_key_imported_events(tmp_path, caplog, success):
+    key_info = {
+        "success": success,
+        "key_id": "example_key",
+        "uid": -2147483545,
+    }
+    _write_ndjson(
+        tmp_path / "intrusion.txt",
+        [
+            {
+                "security_event": {
+                    "event_id": 0,
+                    "event_time": 1_700_000_002_000_000_000,
+                    "key_imported": key_info,
+                }
+            }
+        ],
+    )
+
+    with caplog.at_level(logging.INFO):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(tmp_path))
+        cmd.run()
+
+    security_module = next(
+        module for module in cmd.executed if isinstance(module, SecurityEvent)
+    )
+    assert security_module.event_type_counts == {"key_imported": 1}
+    assert len(security_module.results) == 1
+    assert security_module.results[0]["key_imported"] == key_info
+    assert security_module.results[0]["event_id"] == 0
+    assert cmd.timeline == [
+        {
+            "timestamp": security_module.results[0]["timestamp"],
+            "module": "SecurityEvent",
+            "event": "key_imported",
+            "data": f"Key {'imported' if success else 'import failed'}: example_key",
+        }
+    ]
+    assert cmd.timeline[0]["timestamp"] is not None
+    assert "Key Import" in caplog.text
+    assert "Found unknown intrusion logging security event type(s)" not in caplog.text
+    assert security_module.alertstore.alerts == []
+
+
 def _run_security_heuristics(results):
     # No indicators loaded: heuristic alerts must still fire.
     module = SecurityEvent(results=results)

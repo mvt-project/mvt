@@ -142,9 +142,9 @@ SECURITY_EVENT_TAGS = {
         "name": "Key Generated",
         "description": "Cryptographic key was generated",
     },
-    "key_import": {
+    "key_imported": {
         "tag_id": 210025,
-        "name": "Key Import",
+        "name": "Key Imported",
         "description": "Cryptographic key was imported",
     },
     "key_destruction": {
@@ -534,7 +534,7 @@ class SecurityEvent(IntrusionLogsModule):
                     key_id = event_info.get("key_id", "unknown")
                     uid = event_info.get("uid", "")
                     event_data_str = f"Key {'destroyed' if success else 'destruction failed'}: {key_id} (UID: {uid})"
-                elif event_subtype == "key_import":
+                elif event_subtype == "key_imported":
                     success = event_info.get("success", False)
                     key_id = event_info.get("key_id", "unknown")
                     event_data_str = (
