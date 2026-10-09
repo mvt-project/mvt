@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
     env:
       # Takes precedence over .python-version, which otherwise makes `uv run`
       # rebuild the venv with 3.10 and test every matrix entry on 3.10.
@@ -32,6 +32,7 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.python-version == '3.15' }}
       - name: Install Python dependencies
         run: |
           uv sync --locked --group dev
