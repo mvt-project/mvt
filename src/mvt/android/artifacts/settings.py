@@ -257,13 +257,14 @@ class Settings(AndroidArtifact):
         at or before that time.
 
         The year is parsed together with the value, because strptime() would
-        otherwise parse it in 1900, which has no 29 February. Going back eight
-        years always reaches a leap year.
+        otherwise parse it in 1900, which has no 29 February. The most recent
+        matching leap day can be eight years earlier when a century year is
+        not a leap year and the current year's leap day is still in the future.
         """
         if section_end is None:
             return None
 
-        for year in range(section_end.year, section_end.year - 8, -1):
+        for year in range(section_end.year, section_end.year - 9, -1):
             try:
                 timestamp = datetime.strptime(f"{year}-{value}", "%Y-%m-%d %H:%M:%S.%f")
             except ValueError:
