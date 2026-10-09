@@ -18,8 +18,23 @@ markdown_extensions:
         use_pygments: true
 theme:
     name: material
+    logo: mvt.png
+    favicon: favicon.png
     features:
         - tabs
+    palette:
+    - scheme: default
+      primary: blue grey
+      accent: blue grey
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue grey
+      accent: blue grey
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode    
 plugins:
     - search
     - mkdocstrings
