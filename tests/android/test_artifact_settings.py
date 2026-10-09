@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from typing import Optional
+
 from mvt.android.artifacts.settings import Settings
 
 from ..utils import get_artifact
@@ -19,6 +21,21 @@ def parse_bugreport_settings() -> Settings:
 
 def find(settings: Settings, name: str) -> list:
     return [result for result in settings.results if result["name"] == name]
+
+
+def resolve_history_time(time: str, section_end: str) -> Optional[str]:
+    settings = Settings()
+    settings.parse(
+        "SECURE SETTINGS (user 0)\n"
+        "_id:240 name:accessibility_enabled pkg:android value:1\n"
+        "\tHistory (accessibility_enabled)\n"
+        f"\t\ttime:{time} mode:update oldValue:0 newValue:1 "
+        "package:com.example.helper\n"
+        "\n"
+        "--------- 0.019s was the duration of dumpsys settings, "
+        f"ending at: {section_end}\n"
+    )
+    return settings.results[0]["history"][0]["timestamp"]
 
 
 class TestSettingsArtifact:
@@ -158,6 +175,32 @@ class TestSettingsArtifact:
                 "pkg": "com.example.helper",
             }
         ]
+
+    def test_leap_day_history_keeps_its_timestamp(self):
+        assert (
+            resolve_history_time("02-29 22:41:07.980", "2024-03-05 23:14:28")
+            == "2024-02-29 22:41:07.980000"
+        )
+
+    def test_leap_day_history_resolved_to_the_last_leap_year(self):
+        # The most recent 29 February at or before the dump can be several
+        # years back when the dump was taken in a year without one.
+        assert (
+            resolve_history_time("02-29 22:41:07.980", "2025-03-01 10:00:00")
+            == "2024-02-29 22:41:07.980000"
+        )
+        assert (
+            resolve_history_time("02-29 22:41:07.980", "2024-01-10 10:00:00")
+            == "2020-02-29 22:41:07.980000"
+        )
+
+    def test_leap_day_history_before_a_leap_day_after_a_skipped_century(self):
+        # 2100 is not a leap year, so before 29 February 2104 the most
+        # recent matching date is eight years earlier, in 2096.
+        assert (
+            resolve_history_time("02-29 22:41:07.980", "2104-01-10 10:00:00")
+            == "2096-02-29 22:41:07.980000"
+        )
 
     def test_dangerous_setting_is_detected_with_the_changing_package(self):
         settings = parse_bugreport_settings()
