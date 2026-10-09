@@ -194,6 +194,14 @@ class TestSettingsArtifact:
             == "2020-02-29 22:41:07.980000"
         )
 
+    def test_leap_day_history_before_a_leap_day_after_a_skipped_century(self):
+        # 2100 is not a leap year, so before 29 February 2104 the most
+        # recent matching date is eight years earlier, in 2096.
+        assert (
+            resolve_history_time("02-29 22:41:07.980", "2104-01-10 10:00:00")
+            == "2096-02-29 22:41:07.980000"
+        )
+
     def test_dangerous_setting_is_detected_with_the_changing_package(self):
         settings = parse_bugreport_settings()
         settings.check_indicators()
