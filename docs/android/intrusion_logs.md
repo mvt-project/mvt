@@ -1,14 +1,14 @@
 # Check Android Intrusion Logs
 
-Recent versions of Android can produce structured *Intrusion Logs* — newline-delimited JSON records derived from the platform's [SecurityLog API](https://developer.android.com/reference/android/app/admin/SecurityLog). Intrusion Logging is offered as a new option under Android's **Advanced Protection Mode**, which users can opt into on their device; no MDM or device-policy configuration is required. When enabled, these logs provide a high-fidelity record of process starts, DNS queries, outbound network connections, ADB activity, keyguard events, and other security-relevant operations. The initial Intrusion Logging feature was released for Android 16 in May 2026. The feature and supported events is likely to be expanded over time.
+Recent versions of Android can produce structured *Intrusion Logs* — newline-delimited JSON records derived from the platform's [SecurityLog API](https://developer.android.com/reference/android/app/admin/SecurityLog). Intrusion Logging is offered as a new option under Android's **Advanced Protection Mode**, which users can opt into on their device; no MDM or device-policy configuration is required. When enabled, these logs provide a high-fidelity record of process starts, DNS queries, outbound network connections, ADB activity, keyguard events, and other security-relevant operations. The initial Intrusion Logging feature was released for Android 16 in May 2026. The feature and supported events are likely to be expanded over time.
 
-For background on how this data source was introduced and why it is forensically valuable, see the Amnesty International Security Lab announcement: [Android Intrusion Logging as a new source of data for consensual forensic analysis](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/).
+The introduction and forensic uses of this data source are described in the Amnesty International Security Lab announcement: [Android Intrusion Logging as a new source of data for consensual forensic analysis](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/).
 
-## Recommended workflow: collect with AndroidQF
+## Collection with AndroidQF
 
-[AndroidQF](https://github.com/mvt-project/androidqf) is the recommended way to acquire data from an Android device for analysis with MVT. During acquisition AndroidQF will prompt the user to also collect intrusion logs from the device, and writes them into an `intrusion-logs/` subdirectory of the acquisition output.
+[AndroidQF](https://github.com/mvt-project/androidqf) supports intrusion-log collection during Android acquisitions. It prompts for log collection and writes the collected files into an `intrusion-logs/` subdirectory of the acquisition output.
 
-When you analyse such an acquisition with `mvt-android check-androidqf`, MVT automatically detects the `intrusion-logs/` directory and runs the same intrusion-log checks described below — there is no need to invoke a separate command:
+During analysis with `mvt-android check-androidqf`, MVT automatically detects the `intrusion-logs/` directory and includes intrusion-log checks in the acquisition analysis:
 
 ```bash
 mvt-android check-androidqf --output /path/to/results/ /path/to/androidqf-output/
@@ -18,9 +18,9 @@ The device timezone is read from the AndroidQF acquisition (`getprop.txt`) and a
 
 ## Standalone command: `check-intrusion-logs`
 
-The `mvt-android check-intrusion-logs` command runs the intrusion-log analysis directly against a set of log files. Prefer the AndroidQF workflow above; use the standalone command when the intrusion logs were collected outside of an AndroidQF acquisition, or when re-analysing only a set of intrusion logs.
+The `mvt-android check-intrusion-logs` command analyses a set of intrusion-log files independently of an AndroidQF acquisition. Its input can consist of logs collected through another method or the intrusion logs from an existing acquisition.
 
-## Expected input
+## Log format
 
 `check-intrusion-logs` accepts either:
 
@@ -35,9 +35,11 @@ Each `.txt` file is expected to contain newline-delimited JSON, with one JSON ob
 {"security_event": {"event_id": 0, "event_time": 1746979202000000000, "app_process_start": {"process": "com.example.app", "uid": 10000, "pid": 1234}}}
 ```
 
-Network-event `event_time` values are in milliseconds since the Unix epoch; security-event values are in nanoseconds. Security events contain a named subevent with its payload. `event_id` is event metadata, not the numeric Android `SecurityLog` tag ID.
+The top-level keys `dns_event`, `connect_event`, and `security_event` identify DNS resolutions, outbound network connections, and security events respectively. Network-event `event_time` values are in milliseconds since the Unix epoch; security-event values are in nanoseconds.
 
-Use the names in the exported JSON when interpreting or parsing these logs. The platform's Java constants and raw `security_*` event-log names do not define the exported JSON names. For example, the export attached to [issue #971](https://github.com/mvt-project/mvt/issues/971) contains:
+Within a `security_event`, a named subevent such as `app_process_start` identifies the operation and contains its payload. The `event_id` field is event metadata, separate from the Android `SecurityLog` tag ID. The exporter assigns the JSON subevent names, which can differ from the platform's Java constants and raw `security_*` event-log names.
+
+Examples of exported security subevents and their payload fields include:
 
 | Exported security subevent | Payload fields |
 | --- | --- |
@@ -47,13 +49,13 @@ Use the names in the exported JSON when interpreting or parsing these logs. The 
 | `os_startup` | `boot_state`, `verity_mode` |
 | `user_restriction_added`, `user_restriction_removed` | `package`, `admin_user`, `restriction` |
 
-In that export, key-event `success` values are JSON booleans. In particular, key import uses `key_imported` while key destruction uses `key_destruction`; deriving both names from the raw platform logtags would produce an incorrect result. The [Amnesty technical briefing](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/) also shows the exported `adb_shell_cmd` and `adb_sync_recv_file` names. These examples establish the observed formats, not the JSON schema of every event or exporter version.
+The `command` field records an ADB shell command, while `path` records the file path involved in an ADB transfer. Key events contain a JSON boolean `success` value, the key identifier, and the UID associated with the operation. Key imports appear as `key_imported`, and key destruction appears as `key_destruction`. Startup events contain the verified boot state and dm-verity mode; user-restriction events identify the administrator package, administrator user, and restriction.
 
-For all 46 security subevents and their payload fields, including events absent from that capture, see the [JSON key inventory](intrusion_log_format.md). It identifies the inspected Google Play services exporter version and distinguishes source verification from captured examples.
+These names and field types are present in the Pixel export attached to [issue #971](https://github.com/mvt-project/mvt/issues/971). The [Amnesty technical briefing](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/) also includes examples of `adb_shell_cmd` and `adb_sync_recv_file`. The examples describe those exports; event names and payload fields may differ between exporter versions.
 
 Identical events that appear across multiple overlapping log files (e.g. daily rotations) are de-duplicated on a first-seen basis.
 
-## Running the analysis
+## Analysis commands
 
 ```bash
 mvt-android check-intrusion-logs --output /path/to/results/ /path/to/intrusion-logs/
@@ -71,10 +73,10 @@ mvt-android check-intrusion-logs --output /path/to/results/ /path/to/intrusion-l
 | --- | --- |
 | `-i, --iocs PATH` | Path to a STIX2 indicator file. May be passed multiple times. |
 | `-o, --output PATH` | Directory where JSON results and the timeline CSV will be written. |
-| `-l, --list-modules` | List the available intrusion-log modules and exit. |
-| `-m, --module NAME` | Run a single module (e.g. `DnsEvent`) instead of all of them. |
+| `-l, --list-modules` | Lists the available intrusion-log modules and exits. |
+| `-m, --module NAME` | Limits analysis to a single module (e.g. `DnsEvent`). |
 | `-t, --timezone TZ` | IANA timezone name for the device (e.g. `Europe/Paris`). When set, event timestamps are converted to the device's local time instead of UTC. |
-| `-v, --verbose` | Verbose logging. Kept for compatibility and to be removed in a future release: pass `--verbose` to `mvt-android` itself instead. |
+| `-v, --verbose` | Enables verbose logging. Retained for compatibility; the global `mvt-android --verbose` option also controls verbosity. |
 
 ## Modules
 
@@ -84,9 +86,9 @@ The command runs the following modules over the parsed events:
 - **`ConnectEvent`** — Outbound network connection events. Destination IPs (with localhost addresses skipped) are checked against domain indicators, and `package_name` is checked against app-identifier indicators.
 - **`SecurityEvent`** — Security log events identified by named JSON subevents (e.g. `app_process_start`, `adb_shell_cmd`, `keyguard_dismissed`, `os_startup`, `cert_*` events). These are surfaced in the timeline to help reconstruct device activity around suspected events.
 
-All three modules share a single pre-parsing pass over the input, so adding more modules in the future does not multiply I/O cost. Additional modules will be added in the future to support new event types which are generated by the Intrusion Logging feature.
+All three modules share a single pre-parsing pass over the input, so the log files are parsed once for the analysis.
 
-## Interpreting results
+## Results
 
 A successful IOC match raises a `CRITICAL` alert that includes the matched indicator, the offending event, and the event timestamp. Alerts are summarised at the end of the run and persisted alongside the per-module JSON results.
 
@@ -94,5 +96,5 @@ When `--timezone` is provided, timestamps in the timeline and JSON output reflec
 
 ## Limitations
 
-- This page assumes the intrusion logs have already been collected from the device. The recommended collection path is via AndroidQF (see above); intrusion logging itself must have been enabled on the device beforehand by opting into Android's Advanced Protection mode and also enabling the optional Intrusion Logging feature (see the [Amnesty blog post](https://securitylab.amnesty.org/latest/2026/05/android-intrusion-logging-as-a-new-source-of-data-for-consensual-forensic-analysis/) for details).
-- As with all IOC-based analysis, public indicators alone are not sufficient to conclude that a device is uncompromised. See the [Indicators of Compromise](../iocs.md) page for context.
+- Intrusion logs cover activity recorded while the optional Intrusion Logging feature is enabled under Android's Advanced Protection Mode. MVT analyses the collected files; it does not enable logging on the device.
+- As with all IOC-based analysis, public indicators alone are not sufficient to conclude that a device is uncompromised. The [Indicators of Compromise](../iocs.md) page describes the scope of indicator-based analysis.

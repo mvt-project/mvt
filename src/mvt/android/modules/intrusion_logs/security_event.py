@@ -11,7 +11,6 @@ from .base import IntrusionLogsModule
 # Keys are the subevent names in exported Intrusion Logging JSON. They can differ
 # from both SecurityLog Java constants and the AOSP security_* event-log names.
 # Tag IDs and semantics are based on the Android SecurityLog API.
-# Exporter provenance and key inventory: docs/android/intrusion_log_format.md.
 # Reference: https://developer.android.com/reference/android/app/admin/SecurityLog
 SECURITY_EVENT_TAGS = {
     # ADB events (API level 24)
