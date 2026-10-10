@@ -13,7 +13,11 @@ from mvt.common.module_types import (
     ModuleSerializedResult,
 )
 from mvt.common.url import URL
-from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
+from mvt.common.utils import (
+    convert_mactime_to_datetime,
+    convert_mactime_to_iso,
+    sanitize_json_data,
+)
 
 from ..base import IOSExtraction
 
@@ -133,39 +137,41 @@ class SafariHistory(IOSExtraction):
         self._recover_sqlite_db_if_needed(history_path)
         conn = self._open_sqlite_db(history_path)
         cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT
-                history_items.id,
-                history_items.url,
-                history_visits.id,
-                history_visits.visit_time,
-                history_visits.redirect_source,
-                history_visits.redirect_destination
-            FROM history_items
-            JOIN history_visits ON history_visits.history_item = history_items.id
-            ORDER BY history_visits.visit_time;
-        """
-        )
-
-        for row in cur:
-            self.results.append(
-                {
-                    "id": row[0],
-                    "url": row[1],
-                    "visit_id": row[2],
-                    "timestamp": row[3],
-                    "isodate": convert_mactime_to_iso(row[3]),
-                    "redirect_source": row[4],
-                    "redirect_destination": row[5],
-                    "safari_history_db": os.path.relpath(
-                        history_path, self.target_path
-                    ),
-                }
+        try:
+            cur.execute("PRAGMA table_info(history_items);")
+            item_columns = [row[1] for row in cur]
+            cur.execute("PRAGMA table_info(history_visits);")
+            visit_columns = [row[1] for row in cur]
+            selected = [
+                f'i."{column}" AS "item_{column}"' for column in item_columns
+            ] + [f'v."{column}" AS "visit_{column}"' for column in visit_columns]
+            cur.execute(
+                f"SELECT {', '.join(selected)} FROM history_items i "
+                "JOIN history_visits v ON v.history_item = i.id "
+                "ORDER BY v.visit_time;"
             )
-
-        cur.close()
-        conn.close()
+            names = [description[0] for description in cur.description]
+            for row in cur:
+                raw = sanitize_json_data(dict(zip(names, row)))
+                timestamp = raw.get("visit_visit_time")
+                self.results.append(
+                    {
+                        "id": raw.get("item_id"),
+                        "url": raw.get("item_url"),
+                        "visit_id": raw.get("visit_id"),
+                        "timestamp": timestamp,
+                        "isodate": convert_mactime_to_iso(timestamp),
+                        "redirect_source": raw.get("visit_redirect_source"),
+                        "redirect_destination": raw.get("visit_redirect_destination"),
+                        "safari_history_db": os.path.relpath(
+                            history_path, self.target_path
+                        ),
+                        "record": raw,
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
     def run(self) -> None:
         if self.is_backup:
