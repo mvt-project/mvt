@@ -49,7 +49,6 @@ nav:
         - Android Forensic Methodology: "android/methodology.md"
         - Check an Android Backup (SMS messages): "android/backup.md"
         - Check Android Intrusion Logs: "android/intrusion_logs.md"
-        - Intrusion Logging JSON Keys: "android/intrusion_log_format.md"
     - Indicators of Compromise: "iocs.md"
     - Development:
         - Development Instructions: "development/index.md"
