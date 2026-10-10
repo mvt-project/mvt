@@ -8,7 +8,10 @@ from typing import Optional, Union
 
 from .base import IntrusionLogsModule
 
-# Security event tags based on Android SecurityLog API
+# Keys are the subevent names in exported Intrusion Logging JSON. They can differ
+# from both SecurityLog Java constants and the AOSP security_* event-log names.
+# Tag IDs and semantics are based on the Android SecurityLog API.
+# Exporter provenance and key inventory: docs/android/intrusion_log_format.md.
 # Reference: https://developer.android.com/reference/android/app/admin/SecurityLog
 SECURITY_EVENT_TAGS = {
     # ADB events (API level 24)
@@ -77,12 +80,12 @@ SECURITY_EVENT_TAGS = {
         "description": "Audit logging has stopped",
     },
     # Media events (API level 28)
-    "media_mount": {
+    "media_mounted": {
         "tag_id": 210013,
         "name": "Media Mount",
         "description": "Removable media has been mounted",
     },
-    "media_unmount": {
+    "media_unmounted": {
         "tag_id": 210014,
         "name": "Media Unmount",
         "description": "Removable media was unmounted",
@@ -262,6 +265,10 @@ SECURITY_EVENT_TAGS = {
         "description": "NFC service is disabled",
     },
 }
+
+# Retain the media names previously recognized by MVT for older inputs.
+SECURITY_EVENT_TAGS["media_mount"] = SECURITY_EVENT_TAGS["media_mounted"]
+SECURITY_EVENT_TAGS["media_unmount"] = SECURITY_EVENT_TAGS["media_unmounted"]
 
 SECURITY_EVENT_METADATA_KEYS = {
     "event_id",
@@ -517,8 +524,12 @@ class SecurityEvent(IntrusionLogsModule):
                 elif event_subtype == "keyguard_secured":
                     event_data_str = "Device locked"
                 elif event_subtype == "keyguard_disabled_features_set":
-                    admin = event_info.get("admin_package", "")
-                    features = event_info.get("disabled_features", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
+                    features = event_info.get(
+                        "features", event_info.get("disabled_features", "")
+                    )
                     event_data_str = (
                         f"Keyguard features disabled by {admin}: {features}"
                     )
@@ -557,7 +568,9 @@ class SecurityEvent(IntrusionLogsModule):
                     )
                 elif event_subtype == "cert_validation_failure":
                     reason = (
-                        event_info if isinstance(event_info, str) else str(event_info)
+                        event_info.get("reason", str(event_info))
+                        if isinstance(event_info, dict)
+                        else str(event_info)
                     )
                     event_data_str = f"Certificate validation failure: {reason}"
                 elif event_subtype == "crypto_self_test_completed":
@@ -585,8 +598,12 @@ class SecurityEvent(IntrusionLogsModule):
 
                 # OS events
                 elif event_subtype == "os_startup":
-                    verified_boot = event_info.get("verified_boot_state", "")
-                    dm_verity = event_info.get("dm_verity_mode", "")
+                    verified_boot = event_info.get(
+                        "boot_state", event_info.get("verified_boot_state", "")
+                    )
+                    dm_verity = event_info.get(
+                        "verity_mode", event_info.get("dm_verity_mode", "")
+                    )
                     event_data_str = f"OS startup (verified boot: {verified_boot}, dm-verity: {dm_verity})"
                 elif event_subtype == "os_shutdown":
                     event_data_str = "OS shutdown"
@@ -600,64 +617,96 @@ class SecurityEvent(IntrusionLogsModule):
                     event_data_str = "Log buffer at 90% capacity"
 
                 # Media events
-                elif event_subtype == "media_mount":
-                    mount_point = event_info.get("mount_point", "")
-                    label = event_info.get("volume_label", "")
+                elif event_subtype in ["media_mounted", "media_mount"]:
+                    mount_point = event_info.get(
+                        "path", event_info.get("mount_point", "")
+                    )
+                    label = event_info.get("label", event_info.get("volume_label", ""))
                     event_data_str = f"Media mounted: {mount_point} ({label})"
-                elif event_subtype == "media_unmount":
-                    mount_point = event_info.get("mount_point", "")
-                    label = event_info.get("volume_label", "")
+                elif event_subtype in ["media_unmounted", "media_unmount"]:
+                    mount_point = event_info.get(
+                        "path", event_info.get("mount_point", "")
+                    )
+                    label = event_info.get("label", event_info.get("volume_label", ""))
                     event_data_str = f"Media unmounted: {mount_point} ({label})"
 
                 # Password policy events
                 elif event_subtype == "password_expiration_set":
-                    admin = event_info.get("admin_package", "")
-                    timeout = event_info.get("timeout_ms", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
+                    timeout = event_info.get(
+                        "timeout", event_info.get("timeout_ms", "")
+                    )
                     event_data_str = f"Password expiration set by {admin}: {timeout}ms"
                 elif event_subtype == "password_complexity_set":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     event_data_str = f"Password complexity set by {admin}"
                 elif event_subtype == "password_complexity_required":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     complexity = event_info.get("complexity", "")
                     event_data_str = (
                         f"Password complexity required by {admin}: {complexity}"
                     )
                 elif event_subtype == "password_history_length_set":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     length = event_info.get("length", "")
                     event_data_str = f"Password history length set by {admin}: {length}"
                 elif event_subtype == "password_changed":
-                    complexity = event_info.get("complexity", "")
-                    user_id = event_info.get("user_id", "")
+                    complexity = event_info.get(
+                        "password_complexity", event_info.get("complexity", "")
+                    )
+                    user_id = event_info.get(
+                        "target_user", event_info.get("user_id", "")
+                    )
                     event_data_str = (
                         f"Password changed (complexity: {complexity}, user: {user_id})"
                     )
                 elif event_subtype == "max_screen_lock_timeout_set":
-                    admin = event_info.get("admin_package", "")
-                    timeout = event_info.get("timeout_ms", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
+                    timeout = event_info.get(
+                        "timeout", event_info.get("timeout_ms", "")
+                    )
                     event_data_str = (
                         f"Max screen lock timeout set by {admin}: {timeout}ms"
                     )
                 elif event_subtype == "max_password_attempts_set":
-                    admin = event_info.get("admin_package", "")
-                    attempts = event_info.get("max_attempts", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
+                    attempts = event_info.get(
+                        "num_failures", event_info.get("max_attempts", "")
+                    )
                     event_data_str = f"Max password attempts set by {admin}: {attempts}"
 
                 # Remote lock and wipe events
                 elif event_subtype == "remote_lock":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     event_data_str = f"Device remotely locked by {admin}"
                 elif event_subtype == "wipe_failure":
                     event_data_str = "Device wipe failed"
 
                 # User restriction events
                 elif event_subtype == "user_restriction_added":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     restriction = event_info.get("restriction", "")
                     event_data_str = f"User restriction added by {admin}: {restriction}"
                 elif event_subtype == "user_restriction_removed":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     restriction = event_info.get("restriction", "")
                     event_data_str = (
                         f"User restriction removed by {admin}: {restriction}"
@@ -680,14 +729,14 @@ class SecurityEvent(IntrusionLogsModule):
 
                 # Bluetooth events
                 elif event_subtype == "bluetooth_connection":
-                    mac = event_info.get("mac_address", "")
+                    mac = event_info.get("addr", event_info.get("mac_address", ""))
                     success = event_info.get("success", False)
                     reason = event_info.get("reason", "")
                     event_data_str = f"Bluetooth {'connected' if success else 'connection failed'}: {mac}"
                     if reason:
                         event_data_str += f" - {reason}"
                 elif event_subtype == "bluetooth_disconnection":
-                    mac = event_info.get("mac_address", "")
+                    mac = event_info.get("addr", event_info.get("mac_address", ""))
                     reason = event_info.get("reason", "")
                     event_data_str = f"Bluetooth disconnected: {mac}"
                     if reason:
@@ -695,7 +744,9 @@ class SecurityEvent(IntrusionLogsModule):
 
                 # Camera policy event
                 elif event_subtype == "camera_policy_set":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     disabled = event_info.get("disabled", False)
                     event_data_str = (
                         f"Camera {'disabled' if disabled else 'enabled'} by {admin}"
@@ -703,7 +754,9 @@ class SecurityEvent(IntrusionLogsModule):
 
                 # Backup service event
                 elif event_subtype == "backup_service_toggled":
-                    admin = event_info.get("admin_package", "")
+                    admin = event_info.get(
+                        "package", event_info.get("admin_package", "")
+                    )
                     enabled = event_info.get("enabled", False)
                     event_data_str = f"Backup service {'enabled' if enabled else 'disabled'} by {admin}"
 

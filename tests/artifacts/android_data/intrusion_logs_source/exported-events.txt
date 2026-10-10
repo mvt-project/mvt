@@ -1,0 +1,28 @@
+{"security_event":{"event_id":0,"event_time":1700000000000000000,"adb_shell_interactive":{}}}
+{"security_event":{"event_id":1,"event_time":1700000000000000000,"os_shutdown":{}}}
+{"security_event":{"event_id":2,"event_time":1700000000000000000,"logging_stopped":{}}}
+{"security_event":{"event_id":3,"event_time":1700000000000000000,"media_mounted":{"path":"/storage/example","label":"Example"}}}
+{"security_event":{"event_id":4,"event_time":1700000000000000000,"media_unmounted":{"path":"/storage/example","label":"Example"}}}
+{"security_event":{"event_id":5,"event_time":1700000000000000000,"log_buffer_size_critical":{}}}
+{"security_event":{"event_id":6,"event_time":1700000000000000000,"password_expiration_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"timeout":0}}}
+{"security_event":{"event_id":7,"event_time":1700000000000000000,"password_complexity_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"length":12,"quality":0,"num_letters":8,"num_non_letters":4,"num_numeric":2,"num_uppercase":4,"num_lowercase":4,"num_symbols":2}}}
+{"security_event":{"event_id":8,"event_time":1700000000000000000,"password_history_length_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"length":5}}}
+{"security_event":{"event_id":9,"event_time":1700000000000000000,"max_screen_lock_timeout_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"timeout":60000}}}
+{"security_event":{"event_id":10,"event_time":1700000000000000000,"max_password_attempts_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"num_failures":0}}}
+{"security_event":{"event_id":11,"event_time":1700000000000000000,"keyguard_disabled_features_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"features":0}}}
+{"security_event":{"event_id":12,"event_time":1700000000000000000,"remote_lock":{"package":"com.example.admin","admin_user":0,"target_user":10}}}
+{"security_event":{"event_id":13,"event_time":1700000000000000000,"wipe_failure":{}}}
+{"security_event":{"event_id":14,"event_time":1700000000000000000,"cert_authority_installed":{"success":true,"subject":"CN=Example CA","target_user":10}}}
+{"security_event":{"event_id":15,"event_time":1700000000000000000,"cert_authority_removed":{"success":true,"subject":"CN=Example CA","target_user":10}}}
+{"security_event":{"event_id":16,"event_time":1700000000000000000,"key_integrity_violation":{"key_id":"example_key","uid":10000}}}
+{"security_event":{"event_id":17,"event_time":1700000000000000000,"cert_validation_failure":{"reason":"chain validation failed"}}}
+{"security_event":{"event_id":18,"event_time":1700000000000000000,"camera_policy_set":{"package":"com.example.admin","admin_user":0,"target_user":10,"disabled":false}}}
+{"security_event":{"event_id":19,"event_time":1700000000000000000,"password_complexity_required":{"package":"com.example.admin","admin_user":0,"target_user":10,"complexity":0}}}
+{"security_event":{"event_id":20,"event_time":1700000000000000000,"password_changed":{"password_complexity":0,"target_user":10}}}
+{"security_event":{"event_id":21,"event_time":1700000000000000000,"wifi_connection":{"bssid":"02:00:00:00:00:01","event_type":"connected","reason":"example reason"}}}
+{"security_event":{"event_id":22,"event_time":1700000000000000000,"wifi_disconnection":{"bssid":"02:00:00:00:00:01","reason":"example reason"}}}
+{"security_event":{"event_id":23,"event_time":1700000000000000000,"bluetooth_connection":{"addr":"02:00:00:00:00:02","success":true,"reason":"example reason"}}}
+{"security_event":{"event_id":24,"event_time":1700000000000000000,"bluetooth_disconnection":{"addr":"02:00:00:00:00:02","reason":"example reason"}}}
+{"security_event":{"event_id":25,"event_time":1700000000000000000,"backup_service_toggled":{"package":"com.example.admin","admin_user":0,"enabled":false}}}
+{"security_event":{"event_id":26,"event_time":1700000000000000000,"nfc_enabled":{}}}
+{"security_event":{"event_id":27,"event_time":1700000000000000000,"nfc_disabled":{}}}
