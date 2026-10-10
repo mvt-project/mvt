@@ -48,12 +48,17 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
         )
         self.parse(content)
 
-        listed = unnamed = 0
+        listed = unnamed = enabled_count = 0
         for result in self.results:
             if result.get("component"):
                 listed += 1
+                enabled = result.get("enabled")
+                if enabled is True:
+                    enabled_count += 1
                 self.log.info(
-                    'Found accessibility service "%s"', result.get("component")
+                    'Found accessibility service "%s" (enabled: %s)',
+                    result.get("component"),
+                    "not stated" if enabled is None else enabled,
                 )
                 continue
             # The operator gets this per user as a LOW alert from
@@ -62,8 +67,9 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
             unnamed += result.get("unnamed_service_count") or 0
 
         self.log.info(
-            "Identified a total of %d accessibility services (%d more stated by "
-            "the dump without a component name)",
+            "Identified a total of %d accessibility services, %d reported enabled "
+            "(%d more stated by the dump without a component name)",
             listed,
+            enabled_count,
             unnamed,
         )
