@@ -409,6 +409,16 @@ class Command:
                 return handler
         return None
 
+    def _publish_completed_modules(
+        self,
+        ordered_modules: list[type[MVTModule]],
+        completed: dict[type[MVTModule], MVTModule],
+    ) -> None:
+        """Expose a stable snapshot of completed modules to initialization hooks."""
+        self.executed = [
+            completed[module] for module in ordered_modules if module in completed
+        ]
+
     def _aggregate_modules(
         self,
         ordered_modules: list[type[MVTModule]],
@@ -419,7 +429,6 @@ class Command:
             if module not in completed:
                 continue
             instance = completed[module]
-            self.executed.append(instance)
             self.timeline.extend(instance.timeline)
             self.alertstore.extend(instance.alertstore.alerts)
 
@@ -432,6 +441,7 @@ class Command:
             if encrypted:
                 return completed, True
             completed[module] = instance
+            self._publish_completed_modules(ordered_modules, completed)
         return completed, False
 
     def _run_parallel(
@@ -485,6 +495,7 @@ class Command:
                                 fatal = True
                                 break
                             completed[module] = instance
+                            self._publish_completed_modules(ordered_modules, completed)
                             update_status()
                             continue
 
@@ -504,6 +515,7 @@ class Command:
                             fatal = True
                             break
                         completed[module] = instance
+                        self._publish_completed_modules(ordered_modules, completed)
                         update_status()
                         continue
 
@@ -530,6 +542,7 @@ class Command:
                         fatal = True
                         break
                     completed[module] = instance
+                    self._publish_completed_modules(ordered_modules, completed)
                     update_status()
 
                 if fatal:

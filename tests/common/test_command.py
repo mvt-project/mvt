@@ -9,6 +9,7 @@ import threading
 import time
 from io import StringIO
 
+import pytest
 from rich.console import Console
 
 from mvt.common.command import Command
@@ -125,6 +126,38 @@ class TestCommand:
             "SecondModule",
             "ThirdModule",
         ]
+
+    @pytest.mark.parametrize("jobs", [1, 2])
+    @pytest.mark.parametrize("parallel_safe", [False, True])
+    def test_initialization_hook_sees_completed_dependencies(self, jobs, parallel_safe):
+        class Prerequisite(FirstModule):
+            pass
+
+        Prerequisite.parallel_safe = parallel_safe
+
+        class Dependent(SecondModule):
+            dependencies = (Prerequisite,)
+
+            def run(self):
+                self.results = self.get_dependency_results(Prerequisite) + ["second"]
+
+        class HookCommand(RecordingCommand):
+            def module_init(self, module):
+                if isinstance(module, Dependent):
+                    self.seen = [
+                        executed.results
+                        for executed in self.executed
+                        if isinstance(executed, Prerequisite)
+                    ]
+
+        cmd = HookCommand(jobs=jobs)
+        cmd.modules = [Dependent, Prerequisite]
+
+        cmd.run()
+
+        assert cmd.seen == [["first"]]
+        assert [type(module) for module in cmd.executed] == [Prerequisite, Dependent]
+        assert cmd.executed[1].results == ["first", "second"]
 
     def test_circular_dependency_warns_and_stops(self, caplog):
         class CircularOne(RecordingModule):
