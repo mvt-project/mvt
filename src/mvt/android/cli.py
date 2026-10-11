@@ -21,6 +21,7 @@ from mvt.common.help import (
     HELP_MSG_CHECK_ANDROID_BACKUP,
     HELP_MSG_CHECK_ANDROIDQF,
     HELP_MSG_CHECK_BUGREPORT,
+    HELP_MSG_CHECK_FS,
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_CHECK_INTRUSION_LOGS,
     HELP_MSG_DELAY_CHECKS,
@@ -358,6 +359,59 @@ def check_androidqf(
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_disable_adb_warning()
+    cmd.show_support_message()
+
+
+# ==============================================================================
+# Command: check-fs
+# ==============================================================================
+@cli.command("check-fs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_CHECK_FS)
+@click.option(
+    "--iocs",
+    "-i",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_IOC,
+)
+@click.option("--output", "-o", type=click.Path(exists=False), help=HELP_MSG_OUTPUT)
+@click.option("--list-modules", "-l", is_flag=True, help=HELP_MSG_LIST_MODULES)
+@click.option("--module", "-m", help=HELP_MSG_MODULE)
+@click.option(
+    "--load-module",
+    type=click.Path(exists=True),
+    multiple=True,
+    default=[],
+    help=HELP_MSG_LOAD_MODULE,
+)
+@click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.argument("DUMP_PATH", type=click.Path(exists=True))
+@click.pass_context
+def check_fs(
+    ctx, iocs, output, list_modules, module, load_module, hashes, verbose, dump_path
+):
+    set_verbose_logging(verbose)
+    custom_modules = _load_custom_modules(load_module)
+    from .cmd_check_fs import CmdAndroidCheckFS
+
+    cmd = CmdAndroidCheckFS(
+        target_path=dump_path,
+        results_path=output,
+        ioc_files=iocs,
+        module_name=module,
+        hashes=hashes,
+        disable_version_check=_get_disable_flags(ctx)[0],
+        disable_indicator_check=_get_disable_flags(ctx)[1],
+        custom_modules=custom_modules,
+    )
+    if list_modules:
+        cmd.list_modules()
+        return
+
+    log.info("Checking Android filesystem located at: %s", dump_path)
+    cmd.run()
+    cmd.show_alerts_brief()
     cmd.show_support_message()
 
 
