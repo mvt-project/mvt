@@ -34,17 +34,14 @@ class DumpsysBatteryDaily(DumpsysBatteryDailyArtifact, BugReportModule):
         )
 
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        dumpsys_section = self._get_dumpsys_section("DUMP OF SERVICE batterystats:")
+        if dumpsys_section is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
 
-        dumpsys_section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="replace"), "DUMP OF SERVICE batterystats:"
-        )
         self.parse(dumpsys_section)
 
         self.log.info("Extracted a total of %d battery daily stats", len(self.results))

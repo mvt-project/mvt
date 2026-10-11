@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import threading
 from dataclasses import asdict, is_dataclass
 from typing import Any, Dict, Optional, Sequence
 
@@ -46,6 +47,7 @@ class MVTModule:
     slug: Optional[str] = None
     dependencies: Sequence[type["MVTModule"]] = ()
     supported_commands: Sequence[tuple[str, str]] = ()
+    parallel_safe: bool = True
     # A custom module can name a module class it supersedes, usually a
     # built-in one. When both are available to a command, the named module is
     # dropped from the run and this module takes its place, including in the
@@ -90,6 +92,12 @@ class MVTModule:
         self.timeline: ModuleTimeline = []
         self.url_results: list[URLResult] = []
         self.dependency_modules: Dict[type["MVTModule"], "MVTModule"] = {}
+        # Commands replace this with a command-scoped lock for modules sharing
+        # archive handles or other non-thread-safe read resources.
+        self.resource_lock = threading.RLock()
+        # Commands also replace this with a command-scoped cache. Cached values
+        # must be immutable, because parallel modules can read them concurrently.
+        self.resource_cache: Dict[object, Any] = {}
 
     def get_dependency_results(
         self, module_class: type["MVTModule"]
@@ -185,17 +193,20 @@ class MVTModule:
 
         """
         timeline_set = set()
+        deduplicated = []
         for record in timeline:
-            timeline_set.add(
-                json.dumps(
-                    asdict(record)
-                    if is_dataclass(record) and not isinstance(record, type)
-                    else record,
-                    sort_keys=True,
-                )
+            serialized = json.dumps(
+                asdict(record)
+                if is_dataclass(record) and not isinstance(record, type)
+                else record,
+                sort_keys=True,
             )
+            if serialized in timeline_set:
+                continue
+            timeline_set.add(serialized)
+            deduplicated.append(json.loads(serialized))
 
-        return [json.loads(record) for record in timeline_set]
+        return deduplicated
 
     def to_timeline(self) -> None:
         """Convert results into a timeline."""

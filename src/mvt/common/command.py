@@ -6,7 +6,10 @@
 import json
 import logging
 import os
+import queue
 import sys
+import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime
 from functools import cached_property
 from heapq import heappop, heappush
@@ -19,6 +22,7 @@ from rich.text import Text
 from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
+from .log import MVTLogHandler, finish_module_log_buffer, start_module_log_buffer
 from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
 from .module_loader import (
     ModuleOrigin,
@@ -52,6 +56,7 @@ class Command:
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
         custom_modules: Optional[list[type[MVTModule]]] = None,
+        jobs: int = 4,
     ) -> None:
         self.name = ""
         self.platform = ""
@@ -67,6 +72,11 @@ class Command:
         self.sub_command = sub_command
         self.disable_version_check = disable_version_check
         self.disable_indicator_check = disable_indicator_check
+        if jobs < 1:
+            raise ValueError("jobs must be at least 1")
+        self.jobs = jobs
+        self._resource_lock = threading.RLock()
+        self._resource_cache: dict[object, Any] = {}
 
         # This dictionary can contain options that will be passed down from
         # the Command to all modules. This can for example be used to pass
@@ -710,41 +720,22 @@ class Command:
 
         return ordered
 
-    def run(self) -> None:
-        # The output folder and its command.log exist for a run, so that
-        # listing modules or rejecting a target leaves nothing behind.
-        # Resolving the module list can warn, so the log comes first.
-        self._create_storage()
-        self._setup_logging()
-
-        ordered_modules = self._ordered_modules()
-        if ordered_modules is None:
-            return
-
-        # Read the indicators once the run is certain to happen, before
-        # init() does any work on the target, so that a missing indicators
-        # file is reported first and every module gets the same object.
-        iocs = self.iocs
-
-        # Commands announce their target from init(), so it goes before the
-        # module list.
+    def _run_module(
+        self,
+        module: type[MVTModule],
+        executed_by_type: dict[type[MVTModule], MVTModule],
+        capture_logs: bool,
+    ) -> tuple[MVTModule, list[logging.LogRecord], bool]:
+        """Initialize and run one module, optionally buffering console logs."""
+        token = start_module_log_buffer() if capture_logs else None
+        records: list[logging.LogRecord] = []
+        encrypted = False
         try:
-            self.init()
-        except NotImplementedError:
-            pass
-
-        self._log_loaded_modules(ordered_modules)
-
-        executed_by_type: dict[type[MVTModule], MVTModule] = {}
-        for module in ordered_modules:
-
-            module_logger = get_module_logger(module)
-
             m = module(
                 target_path=self.target_path,
                 results_path=self.results_path,
                 module_options=self.module_options,
-                log=module_logger,
+                log=get_module_logger(module),
             )
             # Dependencies are keyed by the module class they declare, even
             # when it was replaced, so that a module asking for the results
@@ -753,10 +744,12 @@ class Command:
                 dependency: executed_by_type[resolved]
                 for dependency, resolved in self._module_dependencies(module)
             }
+            m.resource_lock = self._resource_lock
+            m.resource_cache = self._resource_cache
 
-            if iocs.total_ioc_count:
-                m.indicators = iocs
-                m.indicators.log = m.log
+            if self.iocs.total_ioc_count:
+                # IOC collections are shared read-only during module execution.
+                m.indicators = self.iocs
 
             if self.serial:
                 m.serial = self.serial
@@ -769,22 +762,214 @@ class Command:
             try:
                 run_module(m)
             except EncryptedBackupError:
-                self.log.critical(
-                    "The backup appears to be encrypted. "
-                    "Please decrypt it first using `mvt-ios decrypt-backup`."
-                )
-                return
+                encrypted = True
+        finally:
+            if token is not None:
+                records = finish_module_log_buffer(token)
 
-            self.executed.append(m)
-            executed_by_type[module] = m
-            self.timeline.extend(m.timeline)
-            self.url_results.extend(m.url_results)
-            self.alertstore.extend(m.alertstore.alerts)
+        return m, records, encrypted
+
+    @staticmethod
+    def _console_handler() -> Optional[MVTLogHandler]:
+        for handler in reversed(logging.getLogger("mvt").handlers):
+            if isinstance(handler, MVTLogHandler):
+                return handler
+        return None
+
+    def _publish_completed_modules(
+        self,
+        ordered_modules: list[type[MVTModule]],
+        completed: dict[type[MVTModule], MVTModule],
+    ) -> None:
+        """Expose a stable snapshot of completed modules to initialization hooks."""
+        self.executed = [
+            completed[module] for module in ordered_modules if module in completed
+        ]
+
+    def _aggregate_modules(
+        self,
+        ordered_modules: list[type[MVTModule]],
+        completed: dict[type[MVTModule], MVTModule],
+    ) -> None:
+        """Aggregate results in stable topological order."""
+        for module in ordered_modules:
+            if module not in completed:
+                continue
+            instance = completed[module]
+            self.timeline.extend(instance.timeline)
+            self.url_results.extend(instance.url_results)
+            self.alertstore.extend(instance.alertstore.alerts)
+
+    def _run_sequential(
+        self, ordered_modules: list[type[MVTModule]]
+    ) -> tuple[dict[type[MVTModule], MVTModule], bool]:
+        completed: dict[type[MVTModule], MVTModule] = {}
+        for module in ordered_modules:
+            instance, _, encrypted = self._run_module(module, completed, False)
+            if encrypted:
+                return completed, True
+            completed[module] = instance
+            self._publish_completed_modules(ordered_modules, completed)
+        return completed, False
+
+    def _run_parallel(
+        self, ordered_modules: list[type[MVTModule]], jobs: int
+    ) -> tuple[dict[type[MVTModule], MVTModule], bool]:
+        """Run a stable module DAG with bounded worker threads."""
+        completed: dict[type[MVTModule], MVTModule] = {}
+        scheduled: set[type[MVTModule]] = set()
+        running: dict[Future, type[MVTModule]] = {}
+        completion_queue: queue.Queue[Future] = queue.Queue()
+        handler = self._console_handler()
+        status = None
+        fatal = False
+
+        def ready_modules() -> list[type[MVTModule]]:
+            return [
+                module
+                for module in ordered_modules
+                if module not in scheduled
+                and all(
+                    dependency in completed
+                    for _, dependency in self._module_dependencies(module)
+                )
+            ]
+
+        def update_status() -> None:
+            if status is None:
+                return
+            names = ", ".join(module.__name__ for module in running.values())
+            status.update(
+                f"Modules: {len(completed)}/{len(ordered_modules)} complete"
+                + (f"; running {names}" if names else "")
+            )
+
+        if handler and handler.console.is_terminal:
+            status = handler.console.status("")
+            status.start()
+
+        try:
+            with ThreadPoolExecutor(max_workers=jobs) as executor:
+                while len(completed) < len(ordered_modules):
+                    ready = ready_modules()
+
+                    # An unsafe module is a scheduler barrier: it starts only
+                    # after active workers drain and blocks later ready work.
+                    if ready and not ready[0].parallel_safe:
+                        if running:
+                            future = completion_queue.get()
+                            module = running.pop(future)
+                            instance, records, encrypted = future.result()
+                            if handler:
+                                handler.emit_module_records(module.__name__, records)
+                            if encrypted:
+                                fatal = True
+                                break
+                            completed[module] = instance
+                            self._publish_completed_modules(ordered_modules, completed)
+                            update_status()
+                            continue
+
+                        module = ready[0]
+                        scheduled.add(module)
+                        if status is not None:
+                            status.update(
+                                f"Modules: {len(completed)}/{len(ordered_modules)} "
+                                f"complete; running {module.__name__}"
+                            )
+                        instance, records, encrypted = self._run_module(
+                            module, completed, True
+                        )
+                        if handler:
+                            handler.emit_module_records(module.__name__, records)
+                        if encrypted:
+                            fatal = True
+                            break
+                        completed[module] = instance
+                        self._publish_completed_modules(ordered_modules, completed)
+                        update_status()
+                        continue
+
+                    for module in ready:
+                        if len(running) >= jobs or not module.parallel_safe:
+                            break
+                        scheduled.add(module)
+                        future = executor.submit(
+                            self._run_module, module, dict(completed), True
+                        )
+                        running[future] = module
+                        future.add_done_callback(completion_queue.put)
+
+                    update_status()
+                    if not running:
+                        break
+
+                    future = completion_queue.get()
+                    module = running.pop(future)
+                    instance, records, encrypted = future.result()
+                    if handler:
+                        handler.emit_module_records(module.__name__, records)
+                    if encrypted:
+                        fatal = True
+                        break
+                    completed[module] = instance
+                    self._publish_completed_modules(ordered_modules, completed)
+                    update_status()
+
+                if fatal:
+                    for future in running:
+                        future.cancel()
+                    # The executor context waits for already-active work. Its
+                    # results are intentionally discarded after the fatal error.
+        finally:
+            if status is not None:
+                status.stop()
+
+        return completed, fatal
+
+    def run(self) -> None:
+        self._create_storage()
+        self._setup_logging()
+
+        ordered_modules = self._ordered_modules()
+        if ordered_modules is None:
+            return
+
+        # Load shared indicators before touching the acquisition.
+        self.iocs
+
+        try:
+            self.init()
+        except NotImplementedError:
+            pass
+
+        self._log_loaded_modules(ordered_modules)
+
+        jobs = self.jobs
+        if settings.PROFILE and jobs > 1:
+            self.log.warning(
+                "MVT_PROFILE is enabled; forcing sequential module execution."
+            )
+            jobs = 1
+
+        if jobs == 1:
+            completed, fatal = self._run_sequential(ordered_modules)
+        else:
+            completed, fatal = self._run_parallel(ordered_modules, jobs)
+
+        self._aggregate_modules(ordered_modules, completed)
 
         try:
             self.finish()
         except NotImplementedError:
             pass
+
+        if fatal:
+            self.log.critical(
+                "The backup appears to be encrypted. "
+                "Please decrypt it first using `mvt-ios decrypt-backup`."
+            )
+            return
 
         # We only store the timeline from the parent/main command
         if self.sub_command:

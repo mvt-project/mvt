@@ -36,6 +36,7 @@ from mvt.common.help import (
     HELP_MSG_LOAD_MODULE,
     HELP_MSG_MODULE,
     HELP_MSG_VERBOSE,
+    HELP_MSG_JOBS,
     HELP_MSG_VERBOSE_COMMAND,
     HELP_MSG_CHECK_FS,
     HELP_MSG_CHECK_IOCS,
@@ -279,6 +280,9 @@ def extract_key(password, key_file, backup_path):
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--jobs", type=click.IntRange(min=1), default=4, show_default=True, help=HELP_MSG_JOBS
+)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -291,6 +295,7 @@ def check_backup(
     load_module,
     hashes,
     verbose,
+    jobs,
     backup_path,
 ):
     from .cmd_check_backup import CmdIOSCheckBackup
@@ -309,6 +314,7 @@ def check_backup(
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
         custom_modules=custom_modules,
+        jobs=jobs,
     )
 
     if list_modules:
@@ -348,6 +354,9 @@ def check_backup(
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
 @click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--jobs", type=click.IntRange(min=1), default=4, show_default=True, help=HELP_MSG_JOBS
+)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_fs(
@@ -360,6 +369,7 @@ def check_fs(
     load_module,
     hashes,
     verbose,
+    jobs,
     dump_path,
 ):
     from .cmd_check_fs import CmdIOSCheckFS
@@ -378,6 +388,7 @@ def check_fs(
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
         custom_modules=custom_modules,
+        jobs=jobs,
     )
 
     if list_modules:

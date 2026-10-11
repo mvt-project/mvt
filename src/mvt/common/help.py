@@ -17,6 +17,7 @@ HELP_MSG_LOAD_MODULE = (
 HELP_MSG_NONINTERACTIVE = "Don't ask interactive questions during processing"
 HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"
+HELP_MSG_JOBS = "Number of extraction modules to run concurrently"
 HELP_MSG_VERBOSE_COMMAND = (
     "Verbose mode (kept for compatibility, pass --verbose before the command "
     "name instead)"

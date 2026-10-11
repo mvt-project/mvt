@@ -46,6 +46,33 @@ on it, and runs the rest of the analysis. Selecting such a module with
 A cycle in the dependency graph is a programming error rather than a
 configuration problem: the command logs a warning and runs no modules at all.
 
+## Parallel module execution
+
+Extraction modules run concurrently, using four worker threads by default. Use
+`--jobs INTEGER` to change the worker limit, or `--jobs 1` for sequential
+execution and live per-line logging:
+
+```bash
+mvt-ios check-backup --jobs 8 --output ./out ./backup
+```
+
+The scheduler starts a module only after all of its declared dependencies have
+completed. Results, alerts, and timeline entries are still aggregated in stable
+topological order. During parallel execution, console records from each module
+are buffered and printed together as a labeled block when that module finishes;
+`command.log` is written immediately and retains the complete log stream.
+
+Parallel-safe modules must log through `self.log`, must not write directly to
+stdout or stderr, and must not mutate shared global state. A module that uses a
+non-thread-safe resource or direct terminal output can opt out:
+
+```python
+class TerminalModule(MVTModule):
+    parallel_safe = False
+```
+
+Such modules run synchronously and exclusively after active workers finish.
+
 ## Custom modules
 
 MVT's module-running `check-*` commands can run forensic modules which are not
@@ -382,7 +409,8 @@ module came from:
 Some MVT modules extract and process significant amounts of data during the analysis process or while checking results against known indicators. Care must be
 take to avoid inefficient code paths as we add new modules.
 
-MVT modules can be profiled with Python built-in `cProfile` by setting the `MVT_PROFILE` environment variable.
+MVT modules can be profiled with Python built-in `cProfile` by setting the `MVT_PROFILE` environment variable. Profiling forces sequential execution even
+when `--jobs` is greater than one.
 
 ```bash
 MVT_PROFILE=1 dev/mvt-ios check-backup test_backup

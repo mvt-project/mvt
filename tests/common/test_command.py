@@ -5,14 +5,22 @@
 
 import json
 import logging
-from unittest.mock import patch
+import threading
+import time
+from io import StringIO
 
 import pytest
-from click.testing import CliRunner
+from rich.console import Console
 
 from mvt.common.command import Command
+from mvt.common.config import settings
+from mvt.common.log import MVTLogHandler
+from mvt.common.module import EncryptedBackupError, MVTModule
+from unittest.mock import patch
+
+from click.testing import CliRunner
+
 from mvt.common.indicators import Indicators
-from mvt.common.module import MVTModule
 
 
 class RecordingModule(MVTModule):
@@ -298,6 +306,15 @@ class TestCommand:
         alerts = json.loads((tmp_path / "alerts.json").read_text())
         assert alerts[0]["event"]["payload"] == "\\xa8\\xa9"
 
+    def test_timeline_deduplication_preserves_first_seen_order(self):
+        timeline = [
+            {"timestamp": "same", "event": "first"},
+            {"timestamp": "same", "event": "second"},
+            {"timestamp": "same", "event": "first"},
+        ]
+
+        assert MVTModule._deduplicate_timeline(timeline) == timeline[:2]
+
     def test_stores_collected_urls(self, tmp_path):
         cmd = RecordingCommand(results_path=str(tmp_path))
         cmd.modules = [URLRecordingModule]
@@ -314,7 +331,7 @@ class TestCommand:
         ]
 
     def test_modules_run_in_stable_topological_order(self):
-        cmd = RecordingCommand()
+        cmd = RecordingCommand(jobs=1)
         cmd.modules = [ThirdModule, IndependentModule, SecondModule, FirstModule]
 
         cmd.run()
@@ -329,7 +346,7 @@ class TestCommand:
         assert second.results == ["first", "second"]
 
     def test_selected_module_runs_transitive_dependencies(self):
-        cmd = RecordingCommand(module_name="ThirdModule")
+        cmd = RecordingCommand(module_name="ThirdModule", jobs=1)
         cmd.modules = [ThirdModule, SecondModule, FirstModule, IndependentModule]
 
         cmd.run()
@@ -339,6 +356,38 @@ class TestCommand:
             "SecondModule",
             "ThirdModule",
         ]
+
+    @pytest.mark.parametrize("jobs", [1, 2])
+    @pytest.mark.parametrize("parallel_safe", [False, True])
+    def test_initialization_hook_sees_completed_dependencies(self, jobs, parallel_safe):
+        class Prerequisite(FirstModule):
+            pass
+
+        Prerequisite.parallel_safe = parallel_safe
+
+        class Dependent(SecondModule):
+            dependencies = (Prerequisite,)
+
+            def run(self):
+                self.results = self.get_dependency_results(Prerequisite) + ["second"]
+
+        class HookCommand(RecordingCommand):
+            def module_init(self, module):
+                if isinstance(module, Dependent):
+                    self.seen = [
+                        executed.results
+                        for executed in self.executed
+                        if isinstance(executed, Prerequisite)
+                    ]
+
+        cmd = HookCommand(jobs=jobs)
+        cmd.modules = [Dependent, Prerequisite]
+
+        cmd.run()
+
+        assert cmd.seen == [["first"]]
+        assert [type(module) for module in cmd.executed] == [Prerequisite, Dependent]
+        assert cmd.executed[1].results == ["first", "second"]
 
     def test_circular_dependency_warns_and_stops(self, caplog):
         class CircularOne(RecordingModule):
@@ -372,7 +421,10 @@ class TestCommand:
         with caplog.at_level(logging.WARNING):
             cmd.run()
 
-        assert RecordingModule.run_order == ["IndependentModule", "FirstModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "IndependentModule",
+            "FirstModule",
+        ]
         assert cmd.initialized
         assert "Module DependentModule will be SKIPPED" in caplog.text
         assert "depends on module UnavailableModule" in caplog.text
@@ -476,7 +528,7 @@ class TestCommand:
         ]
 
     def test_selected_custom_module_runs(self):
-        cmd = RecordingCommand(module_name="CustomIOSBackupModule")
+        cmd = RecordingCommand(module_name="CustomIOSBackupModule", jobs=1)
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.custom_modules = [CustomIOSBackupModule]
@@ -496,7 +548,7 @@ class TestCommand:
         assert RecordingModule.run_order == []
 
     def test_custom_module_dependencies_use_topological_order(self):
-        cmd = RecordingCommand(module_name="CustomDependsOnBuiltin")
+        cmd = RecordingCommand(module_name="CustomDependsOnBuiltin", jobs=1)
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.modules = [SecondModule, FirstModule]
@@ -506,6 +558,228 @@ class TestCommand:
 
         assert RecordingModule.run_order == ["FirstModule", "CustomDependsOnBuiltin"]
 
+    def test_parallel_modules_overlap_and_respect_worker_limit(self):
+        lock = threading.Lock()
+        barrier = threading.Barrier(2)
+        active = 0
+        maximum = 0
+        overlapped = []
+
+        class ParallelModule(RecordingModule):
+            def run(self):
+                nonlocal active, maximum
+                with lock:
+                    active += 1
+                    maximum = max(maximum, active)
+                try:
+                    barrier.wait(timeout=2)
+                    overlapped.append(self.__class__.__name__)
+                    time.sleep(0.02)
+                finally:
+                    with lock:
+                        active -= 1
+
+        class ParallelOne(ParallelModule):
+            pass
+
+        class ParallelTwo(ParallelModule):
+            pass
+
+        class ParallelThree(ParallelModule):
+            pass
+
+        cmd = RecordingCommand(jobs=2)
+        cmd.modules = [ParallelOne, ParallelTwo, ParallelThree]
+        cmd.run()
+
+        assert maximum == 2
+        assert {"ParallelOne", "ParallelTwo"}.issubset(overlapped)
+
+    def test_dependencies_wait_and_transitive_dependencies_run_once(self):
+        prerequisite_finished = threading.Event()
+        runs = []
+
+        class Prerequisite(RecordingModule):
+            def run(self):
+                runs.append("prerequisite")
+                self.results = ["ready"]
+                prerequisite_finished.set()
+
+        class Dependent(RecordingModule):
+            dependencies = (Prerequisite,)
+
+            def run(self):
+                assert prerequisite_finished.is_set()
+                assert self.get_dependency_results(Prerequisite) == ["ready"]
+                runs.append(self.__class__.__name__)
+
+        class DependentOne(Dependent):
+            pass
+
+        class DependentTwo(Dependent):
+            pass
+
+        cmd = RecordingCommand(jobs=3)
+        cmd.modules = [DependentOne, DependentTwo, Prerequisite]
+        cmd.run()
+
+        assert runs.count("prerequisite") == 1
+        assert set(runs[1:]) == {"DependentOne", "DependentTwo"}
+
+    def test_parallel_unsafe_module_runs_exclusively(self):
+        lock = threading.Lock()
+        active = 0
+        unsafe_ran_exclusively = []
+
+        class SafeOne(RecordingModule):
+            def run(self):
+                nonlocal active
+                with lock:
+                    active += 1
+                time.sleep(0.03)
+                with lock:
+                    active -= 1
+
+        class Unsafe(RecordingModule):
+            parallel_safe = False
+
+            def run(self):
+                nonlocal active
+                with lock:
+                    unsafe_ran_exclusively.append(active == 0)
+                    active += 1
+                time.sleep(0.01)
+                with lock:
+                    active -= 1
+
+        class SafeTwo(SafeOne):
+            pass
+
+        cmd = RecordingCommand(jobs=3)
+        cmd.modules = [SafeOne, Unsafe, SafeTwo]
+        cmd.run()
+
+        assert unsafe_ran_exclusively == [True]
+
+    def test_results_are_aggregated_in_topological_order(self):
+        release_first = threading.Event()
+
+        class SlowFirst(RecordingModule):
+            def run(self):
+                release_first.wait(timeout=2)
+                self.results = ["first"]
+                self.timeline = [{"module": "first"}]
+                self.alertstore.info("first", "", {"order": 1})
+
+        class FastSecond(RecordingModule):
+            def run(self):
+                self.results = ["second"]
+                self.timeline = [{"module": "second"}]
+                self.alertstore.info("second", "", {"order": 2})
+                release_first.set()
+
+        cmd = RecordingCommand(jobs=2)
+        cmd.modules = [SlowFirst, FastSecond]
+        cmd.run()
+
+        assert [type(module) for module in cmd.executed] == [SlowFirst, FastSecond]
+        assert [entry["module"] for entry in cmd.timeline] == ["first", "second"]
+        assert [alert.message for alert in cmd.alertstore.alerts] == ["first", "second"]
+
+    def test_parallel_console_logs_are_grouped_and_file_log_is_complete(
+        self, tmp_path
+    ):
+        output = StringIO()
+        handler = MVTLogHandler(
+            console=Console(file=output, force_terminal=False, color_system=None)
+        )
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger = logging.getLogger("mvt")
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+        release_slow = threading.Event()
+
+        class SlowLog(RecordingModule):
+            def run(self):
+                self.log.info("slow-a")
+                release_slow.wait(timeout=2)
+                self.log.info("slow-b")
+
+        class FastLog(RecordingModule):
+            def run(self):
+                self.log.info("fast-a")
+                self.log.info("fast-b")
+                release_slow.set()
+
+        SlowLog.__module__ = "mvt.tests.parallel"
+        FastLog.__module__ = "mvt.tests.parallel"
+        try:
+            cmd = RecordingCommand(results_path=str(tmp_path), jobs=2)
+            cmd.modules = [SlowLog, FastLog]
+            cmd.run()
+        finally:
+            logger.removeHandler(handler)
+
+        console_output = output.getvalue()
+        fast_block = (
+            console_output.index("--- FastLog ---"),
+            console_output.index("fast-a"),
+            console_output.index("fast-b"),
+        )
+        slow_block = (
+            console_output.index("--- SlowLog ---"),
+            console_output.index("slow-a"),
+            console_output.index("slow-b"),
+        )
+        assert fast_block == tuple(sorted(fast_block))
+        assert slow_block == tuple(sorted(slow_block))
+        assert fast_block[-1] < slow_block[0] or slow_block[-1] < fast_block[0]
+        file_output = (tmp_path / "command.log").read_text()
+        for message in ("slow-a", "slow-b", "fast-a", "fast-b"):
+            assert message in file_output
+
+    def test_encrypted_backup_stops_scheduling_and_cleans_up(self, caplog):
+        finish_called = []
+
+        class Encrypted(RecordingModule):
+            def run(self):
+                raise EncryptedBackupError
+
+        class NeverScheduled(RecordingModule):
+            dependencies = (Encrypted,)
+
+        class CleanupCommand(RecordingCommand):
+            def finish(self):
+                finish_called.append(True)
+
+        cmd = CleanupCommand(jobs=2)
+        cmd.modules = [Encrypted, NeverScheduled]
+        with caplog.at_level(logging.CRITICAL):
+            cmd.run()
+
+        assert finish_called == [True]
+        assert not any(isinstance(module, NeverScheduled) for module in cmd.executed)
+        assert "backup appears to be encrypted" in caplog.text
+
+    def test_profiling_forces_sequential_execution(self, monkeypatch, caplog):
+        run_order = []
+
+        class ProfileOne(RecordingModule):
+            def run(self):
+                run_order.append("one")
+
+        class ProfileTwo(RecordingModule):
+            def run(self):
+                run_order.append("two")
+
+        monkeypatch.setattr(settings, "PROFILE", True)
+        cmd = RecordingCommand(jobs=4)
+        cmd.modules = [ProfileOne, ProfileTwo]
+        with caplog.at_level(logging.WARNING):
+            cmd.run()
+
+        assert run_order == ["one", "two"]
+        assert "forcing sequential module execution" in caplog.text
     def test_custom_module_replaces_builtin(self, caplog):
         cmd = RecordingCommand()
         cmd.platform = "ios"
@@ -516,7 +790,10 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == ["IndependentModule", "ReplacementModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "IndependentModule",
+            "ReplacementModule",
+        ]
         assert cmd.module_replacements == {FirstModule: ReplacementModule}
         assert (
             "Module ReplacementModule from" in caplog.text
@@ -532,7 +809,10 @@ class TestCommand:
 
         cmd.run()
 
-        assert RecordingModule.run_order == ["FirstModule", "CustomIOSBackupModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "FirstModule",
+            "CustomIOSBackupModule",
+        ]
         assert cmd.module_replacements == {}
 
     def test_unavailable_replaced_module_is_ignored(self, caplog):
@@ -545,7 +825,10 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == ["IndependentModule", "ReplacementModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "IndependentModule",
+            "ReplacementModule",
+        ]
         assert cmd.module_replacements == {}
         assert "replaces module FirstModule" not in caplog.text
 
@@ -663,7 +946,7 @@ class TestCommand:
         with caplog.at_level(logging.WARNING):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "ReplacementModule",
             "OtherReplacementModule",
         ]
@@ -722,8 +1005,9 @@ class TestCommand:
         assert cmd.module_replacements == {}
         assert logged_substitutions(caplog) == []
 
-    def test_modules_replacing_each_other_all_run(self, caplog):
-        cmd = RecordingCommand()
+    @pytest.mark.parametrize("jobs", [1, 4])
+    def test_modules_replacing_each_other_all_run(self, caplog, jobs):
+        cmd = RecordingCommand(jobs=jobs)
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.custom_modules = [MutualReplacementOne, MutualReplacementTwo]
@@ -731,7 +1015,7 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "MutualReplacementOne",
             "MutualReplacementTwo",
         ]
@@ -742,8 +1026,9 @@ class TestCommand:
         )
         assert logged_substitutions(caplog) == []
 
-    def test_replacement_cycle_of_three_modules_all_run(self, caplog):
-        cmd = RecordingCommand()
+    @pytest.mark.parametrize("jobs", [1, 4])
+    def test_replacement_cycle_of_three_modules_all_run(self, caplog, jobs):
+        cmd = RecordingCommand(jobs=jobs)
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.custom_modules = [CycleOneModule, CycleTwoModule, CycleThreeModule]
@@ -751,7 +1036,7 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "CycleOneModule",
             "CycleTwoModule",
             "CycleThreeModule",
@@ -834,7 +1119,7 @@ class TestCommand:
         with caplog.at_level(logging.WARNING):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "SharedSlugModule",
             "OtherSharedSlugModule",
         ]

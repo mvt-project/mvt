@@ -38,18 +38,13 @@ class DumpsysActivities(DumpsysPackageActivitiesArtifact, BugReportModule):
         self.results = results if results else []
 
     def run(self) -> None:
-        content = self._get_dumpstate_file()
-        if not content:
+        section = self._get_dumpsys_section("DUMP OF SERVICE package:", errors="ignore")
+        if section is None:
             self.log.error(
                 "Unable to find dumpstate file. "
                 "Did you provide a valid bug report archive?"
             )
             return
-
-        # Extract package section
-        section = self.extract_dumpsys_section(
-            content.decode("utf-8", errors="ignore"), "DUMP OF SERVICE package:"
-        )
 
         # Parse
         self.parse(section)

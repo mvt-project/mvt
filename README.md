@@ -86,6 +86,11 @@ writing and installing them, and the
 [custom CLI command documentation](https://docs.mvt.re/en/latest/development/custom_commands/)
 for the entry points a package registers commands in.
 
+Extraction commands run independent modules concurrently with four workers by
+default. Use `--jobs 1` for sequential execution or another positive value to
+set the worker limit. Dependencies retain their declared ordering, and parallel
+console logs are printed as grouped module blocks.
+
 
 ## License
 
