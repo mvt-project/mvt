@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .aqf_files import AQFFiles
 from .aqf_getprop import AQFGetProp
 from .aqf_log_timestamps import AQFLogTimestamps
@@ -13,7 +15,7 @@ from .browser_history import BrowserHistory
 from .mounts import Mounts
 from .root_binaries import RootBinaries
 
-ANDROIDQF_MODULES = [
+ANDROIDQF_MODULES: list[type[MVTModule]] = [
     AQFPackages,
     AQFProcesses,
     AQFGetProp,

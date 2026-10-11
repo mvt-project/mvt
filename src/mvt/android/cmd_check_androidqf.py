@@ -82,6 +82,8 @@ class CmdAndroidCheckAndroidQF(Command):
         if not self.target_path:
             raise NoAndroidQFTargetPath
 
+        self.log.info("Checking AndroidQF acquisition at path: %s", self.target_path)
+
         if os.path.isdir(self.target_path):
             self.__format = "dir"
             parent_path = Path(self.target_path).absolute().parent.as_posix()
@@ -292,9 +294,7 @@ class CmdAndroidCheckAndroidQF(Command):
         try:
             cmd.from_ab(backup)
         except InvalidAndroidBackup as exc:
-            self.log.warning(
-                "Skipping backup modules as backup.ab is malformed: %s", exc
-            )
+            self.log.warning("Skipping backup modules: %s", exc)
             return False
 
         cmd.run()

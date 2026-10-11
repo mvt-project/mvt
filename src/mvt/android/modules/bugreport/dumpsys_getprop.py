@@ -44,21 +44,8 @@ class DumpsysGetProp(GetPropArtifact, BugReportModule):
             )
             return
 
-        lines = []
-        in_getprop = False
-
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip().startswith("------ SYSTEM PROPERTIES"):
-                in_getprop = True
-                continue
-
-            if not in_getprop:
-                continue
-
-            if line.strip() == "------":
-                break
-
-            lines.append(line)
-
-        self.parse("\n".join(lines))
+        section = self.extract_command_section(
+            content.decode(errors="ignore"), "------ SYSTEM PROPERTIES"
+        )
+        self.parse(section)
         self.log.info("Extracted %d Android system properties", len(self.results))

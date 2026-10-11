@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .applications import Applications
 from .calendar import Calendar
 from .calls import Calls
@@ -26,8 +28,9 @@ from .tcc import TCC
 from .webkit_resource_load_statistics import WebkitResourceLoadStatistics
 from .webkit_session_resource_log import WebkitSessionResourceLog
 from .whatsapp import Whatsapp
+from .whatsapp_contacts import WhatsappContacts
 
-MIXED_MODULES = [
+MIXED_MODULES: list[type[MVTModule]] = [
     Calls,
     ChromeFavicon,
     ChromeHistory,
@@ -47,6 +50,7 @@ MIXED_MODULES = [
     WebkitResourceLoadStatistics,
     WebkitSessionResourceLog,
     Whatsapp,
+    WhatsappContacts,
     Shortcuts,
     Applications,
     Calendar,

@@ -19,17 +19,14 @@ class TestDumpsysReceiversArtifact:
 
         assert len(dr.results) == 0
         dr.parse(data)
-        assert len(dr.results) == 4
-        assert (
-            list(dr.results.keys())[0]
-            == "com.android.storagemanager.automatic.SHOW_NOTIFICATION"
+        assert len(dr.results) == 9
+        assert dr.results[0]["resolver_type"] == "full_mime_type"
+        storage_manager = next(
+            result
+            for result in dr.results
+            if result["key"] == "com.android.storagemanager.automatic.SHOW_NOTIFICATION"
         )
-        assert (
-            dr.results["com.android.storagemanager.automatic.SHOW_NOTIFICATION"][0][
-                "package_name"
-            ]
-            == "com.android.storagemanager"
-        )
+        assert storage_manager["package_name"] == "com.android.storagemanager"
 
     def test_parsing_misindented_action(self):
         dr = DumpsysReceiversArtifact()
@@ -44,12 +41,8 @@ Receiver Resolver Table:
 
         dr.parse(data)
 
-        assert (
-            dr.results["android.intent.action.MY_PACKAGE_REPLACED"][0][
-                "package_name"
-            ]
-            == "com.psycatgames.nhiegame"
-        )
+        assert dr.results[1]["key"] == "android.intent.action.MY_PACKAGE_REPLACED"
+        assert dr.results[1]["package_name"] == "com.psycatgames.nhiegame"
 
     def test_parsing_misindented_first_action(self):
         dr = DumpsysReceiversArtifact()
@@ -62,12 +55,8 @@ Receiver Resolver Table:
 
         dr.parse(data)
 
-        assert (
-            dr.results["android.intent.action.MY_PACKAGE_REPLACED"][0][
-                "package_name"
-            ]
-            == "com.psycatgames.nhiegame"
-        )
+        assert dr.results[0]["key"] == "android.intent.action.MY_PACKAGE_REPLACED"
+        assert dr.results[0]["package_name"] == "com.psycatgames.nhiegame"
 
     def test_ioc_check(self, indicator_file):
         dr = DumpsysReceiversArtifact()

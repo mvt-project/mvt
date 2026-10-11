@@ -50,7 +50,10 @@ class DumpsysPackages(DumpsysPackagesArtifact, BugReportModule):
 
         for result in self.results:
             dangerous_permissions_count = 0
-            for perm in result["permissions"]:
+            permissions = list(result["permissions"])
+            for user in result.get("users", []):
+                permissions.extend(user.get("permissions", []))
+            for perm in permissions:
                 if perm["name"] in DANGEROUS_PERMISSIONS:
                     dangerous_permissions_count += 1
 

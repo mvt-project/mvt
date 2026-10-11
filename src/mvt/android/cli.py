@@ -14,13 +14,6 @@ from mvt.common.cli_plugins import (
     load_cli_commands_option,
     register_cli_plugins,
 )
-from mvt.common.cmd_check_iocs import CmdCheckIOCS
-from mvt.common.completion import (
-    SUPPORTED_SHELLS,
-    completion_instructions,
-    generate_completion_script,
-    install_completion_script,
-)
 from mvt.common.help import (
     HELP_MSG_ANDROID_BACKUP_PASSWORD,
     HELP_MSG_CHECK_ADB_REMOVED,
@@ -32,7 +25,6 @@ from mvt.common.help import (
     HELP_MSG_CHECK_IOCS,
     HELP_MSG_CHECK_INTRUSION_LOGS,
     HELP_MSG_DELAY_CHECKS,
-    HELP_MSG_COMPLETION,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
     HELP_MSG_DISABLE_UPDATE_CHECK,
     HELP_MSG_HASHES,
@@ -44,24 +36,16 @@ from mvt.common.help import (
     HELP_MSG_OUTPUT,
     HELP_MSG_STIX2,
     HELP_MSG_VERBOSE,
+    HELP_MSG_VERBOSE_COMMAND,
     HELP_MSG_VERSION,
     HELP_MSG_VIRUS_TOTAL,
 )
-from mvt.common.logo import logo
-from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
-from mvt.common.updates import IndicatorsUpdates
 from mvt.common.utils import init_logging, set_verbose_logging
 
-from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
-from .cmd_check_backup import CmdAndroidCheckBackup
-from .cmd_check_bugreport import CmdAndroidCheckBugreport
-from .cmd_check_fs import CmdAndroidCheckFS
-from .cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
-from .modules.intrusion_logs import INTRUSION_LOGS_MODULES
-from .modules.androidqf import ANDROIDQF_MODULES
-from .modules.backup import BACKUP_MODULES
-from .modules.backup.helpers import cli_load_android_backup_password
-from .modules.bugreport import BUGREPORT_MODULES
+# The commands import what they run only when they are invoked. This module is
+# imported at every start of mvt-android, including by shell completion on
+# every keystroke, so importing it must do no more than build the command tree:
+# the forensic modules, the backup parsers and the update checks stay out of it.
 
 init_logging()
 log = logging.getLogger("mvt")
@@ -79,7 +63,14 @@ def _get_disable_flags(ctx):
     )
 
 
+def _get_verbose(ctx):
+    """Return whether --verbose was passed to the CLI itself."""
+    return bool(ctx.obj and ctx.obj.get("verbose", False))
+
+
 def _load_custom_modules(load_module):
+    from mvt.common.module_loader import CustomModuleLoadError, load_custom_modules
+
     try:
         return load_custom_modules(load_module)
     except CustomModuleLoadError as exc:
@@ -99,58 +90,29 @@ def _load_custom_modules(load_module):
     is_flag=True,
     help=HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
 )
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
 @click.pass_context
-def cli(ctx, disable_update_check, disable_indicator_update_check):
+def cli(ctx, disable_update_check, disable_indicator_update_check, verbose):
     ctx.ensure_object(dict)
     ctx.obj["disable_version_check"] = disable_update_check
     ctx.obj["disable_indicator_check"] = disable_indicator_update_check
-    if ctx.invoked_subcommand != "completion":
-        logo(
-            disable_version_check=disable_update_check,
-            disable_indicator_check=disable_indicator_update_check,
-        )
+    ctx.obj["verbose"] = verbose
+    set_verbose_logging(verbose)
+
+    from mvt.common.logo import logo
+
+    logo(
+        disable_version_check=disable_update_check,
+        disable_indicator_check=disable_indicator_update_check,
+    )
 
 
 # ==============================================================================
 # Command: version
 # ==============================================================================
-@cli.command("version", help=HELP_MSG_VERSION)
+@cli.command("version", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_VERSION)
 def version():
     return
-
-
-# ==============================================================================
-# Command: completion
-# ==============================================================================
-@cli.command("completion", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_COMPLETION)
-@click.argument("shell", required=False, type=click.Choice(SUPPORTED_SHELLS))
-@click.option(
-    "--install",
-    is_flag=True,
-    help="Write completion files and update shell configuration.",
-)
-@click.pass_context
-def completion(ctx, shell, install):
-    program_name = "mvt-android"
-
-    if shell is None:
-        if install:
-            raise click.UsageError("A shell is required when using --install.")
-        click.echo(completion_instructions(program_name))
-        return
-
-    root_cli = ctx.find_root().command
-
-    if install:
-        script_path = install_completion_script(root_cli, program_name, shell)
-        click.echo(f"Installed {shell} completion to {script_path}")
-        if shell in ("bash", "zsh"):
-            click.echo(f"Updated ~/.{shell}rc")
-        else:
-            click.echo("Fish loads completion files automatically.")
-        return
-
-    click.echo(generate_completion_script(root_cli, program_name, shell))
 
 
 # ==============================================================================
@@ -189,7 +151,17 @@ def check_adb(ctx):
     default=[],
     help=HELP_MSG_LOAD_MODULE,
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option(
+    "--timezone",
+    "-t",
+    default=None,
+    help=(
+        "IANA timezone name for the device, for example 'Europe/Paris'. "
+        "Bugreport file timestamps are the device's wall clock; by default the "
+        "zone is read from persist.sys.timezone in the bugreport itself."
+    ),
+)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_bugreport(
@@ -199,17 +171,26 @@ def check_bugreport(
     list_modules,
     module,
     load_module,
+    timezone,
     verbose,
     bugreport_path,
 ):
-    set_verbose_logging(verbose)
+    from .cmd_check_bugreport import CmdAndroidCheckBugreport
+
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
+
+    module_options = {}
+    if timezone:
+        module_options["device_timezone"] = timezone
+
     # Always generate hashes as bug reports are small.
     cmd = CmdAndroidCheckBugreport(
         target_path=bugreport_path,
         results_path=output,
         ioc_files=iocs,
         module_name=module,
+        module_options=module_options if module_options else None,
         hashes=True,
         disable_version_check=_get_disable_flags(ctx)[0],
         disable_indicator_check=_get_disable_flags(ctx)[1],
@@ -219,8 +200,6 @@ def check_bugreport(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking Android bug report at path: %s", bugreport_path)
 
     try:
         cmd.run()
@@ -257,7 +236,7 @@ def check_bugreport(
 )
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -271,7 +250,10 @@ def check_backup(
     verbose,
     backup_path,
 ):
-    set_verbose_logging(verbose)
+    from .cmd_check_backup import CmdAndroidCheckBackup
+    from .modules.backup.helpers import cli_load_android_backup_password
+
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
 
     # Always generate hashes as backups are generally small.
@@ -292,8 +274,6 @@ def check_backup(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking Android backup at path: %s", backup_path)
 
     cmd.run()
     cmd.show_alerts_brief()
@@ -331,7 +311,7 @@ def check_backup(
 )
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
@@ -349,7 +329,10 @@ def check_androidqf(
     verbose,
     androidqf_path,
 ):
-    set_verbose_logging(verbose)
+    from .cmd_check_androidqf import CmdAndroidCheckAndroidQF
+    from .modules.backup.helpers import cli_load_android_backup_password
+
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
 
     cmd = CmdAndroidCheckAndroidQF(
@@ -372,8 +355,6 @@ def check_androidqf(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking AndroidQF acquisition at path: %s", androidqf_path)
 
     cmd.run()
     cmd.show_alerts_brief()
@@ -412,6 +393,8 @@ def check_fs(
 ):
     set_verbose_logging(verbose)
     custom_modules = _load_custom_modules(load_module)
+    from .cmd_check_fs import CmdAndroidCheckFS
+
     cmd = CmdAndroidCheckFS(
         target_path=dump_path,
         results_path=output,
@@ -468,7 +451,7 @@ def check_fs(
         "time instead of UTC."
     ),
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE)
+@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
 @click.argument("LOGS_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_intrusion_logs(
@@ -482,7 +465,9 @@ def check_intrusion_logs(
     verbose,
     logs_path,
 ):
-    set_verbose_logging(verbose)
+    from .cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
+
+    set_verbose_logging(verbose or _get_verbose(ctx))
     custom_modules = _load_custom_modules(load_module)
 
     module_options = {}
@@ -503,8 +488,6 @@ def check_intrusion_logs(
     if list_modules:
         cmd.list_modules()
         return
-
-    log.info("Checking intrusion logs at path: %s", logs_path)
 
     cmd.run()
     cmd.show_alerts_brief()
@@ -535,6 +518,10 @@ def check_intrusion_logs(
 @click.argument("FOLDER", type=click.Path(exists=True))
 @click.pass_context
 def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
+    from mvt.common.cmd_check_iocs import CmdCheckIOCS
+
+    from .command_modules import ANDROID_CHECK_IOCS_MODULES
+
     custom_modules = _load_custom_modules(load_module)
     cmd = CmdCheckIOCS(
         target_path=folder,
@@ -545,9 +532,7 @@ def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
         custom_modules=custom_modules,
         platform="android",
     )
-    cmd.modules = (
-        BACKUP_MODULES + BUGREPORT_MODULES + ANDROIDQF_MODULES + INTRUSION_LOGS_MODULES
-    )
+    cmd.modules = ANDROID_CHECK_IOCS_MODULES
 
     if list_modules:
         cmd.list_modules()
@@ -563,12 +548,25 @@ def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
 # ==============================================================================
 @cli.command("download-iocs", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_STIX2)
 def download_indicators():
+    from mvt.common.updates import IndicatorsUpdates
+
     ioc_updates = IndicatorsUpdates()
     ioc_updates.update()
 
 
-register_cli_plugins(
-    cli,
-    entry_point_group=ANDROID_CLI_PLUGIN_GROUP,
-    environment_variable=MVT_ANDROID_CUSTOM_COMMANDS_ENV,
-)
+# ==============================================================================
+# Entry point of the mvt-android console script
+# ==============================================================================
+def main() -> None:
+    """Register the external commands and run the mvt-android CLI.
+
+    External commands are registered here rather than when this module is
+    imported, so that importing MVT never runs third-party code and a plugin
+    importing from MVT cannot re-enter a module that is still initializing.
+    """
+    register_cli_plugins(
+        cli,
+        entry_point_group=ANDROID_CLI_PLUGIN_GROUP,
+        environment_variable=MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    )
+    cli()

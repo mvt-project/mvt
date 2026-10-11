@@ -3,14 +3,25 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import atexit
 import logging
 import os
+import shutil
+import tempfile
 
 import pytest
 
-from mvt.common.indicators import Indicators
-
 from .artifacts.generate_stix import generate_test_stix_file
+
+# The suite must neither read nor write the developer's own MVT settings,
+# downloaded indicators or update-check state, and mvt.common.config saves
+# the settings file as soon as it is imported. Both folders are redirected
+# before any mvt module is imported, which is why this file imports none at
+# the top; the subprocesses the tests start inherit the variables.
+MVT_TEST_HOME = tempfile.mkdtemp(prefix="mvt-tests-")
+atexit.register(shutil.rmtree, MVT_TEST_HOME, ignore_errors=True)
+os.environ["MVT_CONFIG_FOLDER"] = os.path.join(MVT_TEST_HOME, "config")
+os.environ["MVT_DATA_FOLDER"] = os.path.join(MVT_TEST_HOME, "data")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -42,6 +53,8 @@ def indicators_factory(indicator_file):
         android_property_names=[],
         files_sha256=[],
     ):
+        from mvt.common.indicators import Indicators
+
         ind = Indicators(log=logging.getLogger())
         ind.parse_stix2(indicator_file)
 
@@ -58,3 +71,38 @@ def indicators_factory(indicator_file):
         return ind
 
     return f
+
+
+@pytest.fixture()
+def restore_cli_commands(monkeypatch):
+    """Keep the external commands a test registers out of the next test.
+
+    Each CLI group is a module-level object shared by every test, so a test
+    registering plugin or environment commands on one has to put it back. The
+    groups are imported here rather than at the top of the file, so that
+    collecting the tests does not import three CLIs for the sake of one
+    fixture.
+    """
+    from mvt.android.cli import cli as android_cli
+    from mvt.cli import cli as neutral_cli
+    from mvt.common.cli_plugins import (
+        MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+        MVT_CUSTOM_COMMANDS_ENV,
+        MVT_IOS_CUSTOM_COMMANDS_ENV,
+    )
+    from mvt.ios.cli import cli as ios_cli
+
+    groups = (neutral_cli, ios_cli, android_cli)
+    for variable in (
+        MVT_CUSTOM_COMMANDS_ENV,
+        MVT_IOS_CUSTOM_COMMANDS_ENV,
+        MVT_ANDROID_CUSTOM_COMMANDS_ENV,
+    ):
+        monkeypatch.delenv(variable, raising=False)
+    originals = [dict(group.commands) for group in groups]
+    yield
+    for group, commands in zip(groups, originals):
+        group.commands.clear()
+        group.commands.update(commands)
+        if hasattr(group, "_mvt_external_command_sources"):
+            delattr(group, "_mvt_external_command_sources")

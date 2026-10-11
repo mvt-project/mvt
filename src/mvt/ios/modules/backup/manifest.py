@@ -147,6 +147,12 @@ class Manifest(IOSExtraction):
             )
         names = [description[0] for description in cur.description]
 
+        # An incomplete backup still lists the files it failed to acquire in
+        # its manifest. Only regular files are stored in the backup folder, so
+        # directories and symlinks (flags 2 and 4) are not looked up.
+        stored_file_ids = self._get_stored_backup_file_ids()
+        missing_files = 0
+
         for file_entry in cur:
             file_data = {}
             for index, value in enumerate(file_entry):
@@ -159,6 +165,22 @@ class Manifest(IOSExtraction):
                 "flags": file_data["flags"],
                 "created": "",
             }
+
+            if (
+                stored_file_ids is not None
+                and file_data["flags"] == 1
+                and file_data["fileID"] not in stored_file_ids
+            ):
+                # Without this, a module which found nothing for one of these
+                # files would look like a negative result rather than a gap in
+                # the acquisition.
+                cleaned_metadata["missing"] = True
+                missing_files += 1
+                self.log.debug(
+                    "File %s is listed in the manifest but was not found in the "
+                    "backup folder",
+                    cleaned_metadata["relative_path"],
+                )
 
             if file_data["file"]:
                 try:
@@ -197,3 +219,10 @@ class Manifest(IOSExtraction):
         conn.close()
 
         self.log.info("Extracted a total of %d file metadata items", len(self.results))
+
+        if missing_files:
+            self.log.info(
+                "Found %d files listed in the manifest but missing from the backup "
+                "folder. The backup might be incomplete.",
+                missing_files,
+            )

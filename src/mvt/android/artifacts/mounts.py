@@ -117,6 +117,55 @@ class Mounts(AndroidArtifact):
                 # Skip lines that don't match expected format
                 continue
 
+    @staticmethod
+    def parse_mountinfo(entry: str, process_id: int) -> list[dict[str, Any]]:
+        """Parse Linux /proc/PID/mountinfo records."""
+        results = []
+        for line in entry.splitlines():
+            fields = line.split()
+            if "-" not in fields:
+                continue
+            separator = fields.index("-")
+            if separator < 6 or len(fields) < separator + 4:
+                continue
+            try:
+                mount_id = int(fields[0])
+                parent_id = int(fields[1])
+            except ValueError:
+                continue
+            mount_options = fields[5].split(",")
+            super_options = fields[separator + 3].split(",")
+            options = list(dict.fromkeys(mount_options + super_options))
+            # fields[5] are the per-mount (VFS) flags, the field after the
+            # separator the superblock's; a mount is writable only if both
+            # allow it. The merged list made every read-only overlay a HIGH.
+            is_read_write = "rw" in mount_options and "rw" in super_options
+            mount_point = fields[4].replace("\\040", " ")
+            device = fields[separator + 2].replace("\\040", " ")
+            filesystem_type = fields[separator + 1]
+            is_system = mount_point in SUSPICIOUS_MOUNT_POINTS or any(
+                mount_point.startswith(f"{prefix}/")
+                for prefix in SUSPICIOUS_MOUNT_POINTS
+            )
+            results.append(
+                {
+                    "mount_id": mount_id,
+                    "parent_id": parent_id,
+                    "major_minor": fields[2],
+                    "root": fields[3].replace("\\040", " "),
+                    "mount_point": mount_point,
+                    "device": device,
+                    "filesystem_type": filesystem_type,
+                    "mount_options": ",".join(options),
+                    "options_list": options,
+                    "optional_fields": fields[6:separator],
+                    "is_system_partition": is_system,
+                    "is_read_write": is_read_write,
+                    "process_ids": [process_id],
+                }
+            )
+        return results
+
     def check_indicators(self) -> None:
         """
         Check for suspicious mount configurations that may indicate root access
@@ -146,7 +195,14 @@ class Mounts(AndroidArtifact):
                     )
 
             # Check for other suspicious mount options
-            suspicious_opts = [opt for opt in options if opt in SUSPICIOUS_OPTIONS]
+            # `rw` sitting in the merged option list is not evidence of
+            # writability (see is_read_write in parse_mountinfo); every other
+            # suspicious option is meaningful in either list.
+            suspicious_opts = [
+                opt
+                for opt in options
+                if opt in SUSPICIOUS_OPTIONS and (opt != "rw" or mount["is_read_write"])
+            ]
             if suspicious_opts and mount["is_system_partition"]:
                 if (
                     "noatime" in mount["mount_options"]

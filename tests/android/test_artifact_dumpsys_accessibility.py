@@ -23,7 +23,7 @@ class TestDumpsysAccessibilityArtifact:
         assert len(da.results) == 4
         assert da.results[0]["package_name"] == "com.android.settings"
         assert (
-            da.results[0]["service"]
+            da.results[0]["component"]
             == "com.android.settings/com.samsung.android.settings.development.gpuwatch.GPUWatchInterceptor"
         )
 
@@ -35,9 +35,16 @@ class TestDumpsysAccessibilityArtifact:
 
         assert len(da.results) == 0
         da.parse(data)
-        assert len(da.results) == 1
+        # One named service, plus one count-only record: the dump states
+        # `installedServiceCount=2` and names only one component.
+        assert len(da.results) == 2
         assert da.results[0]["package_name"] == "com.malware.accessibility"
-        assert da.results[0]["service"] == "com.malware.service.malwareservice"
+        assert da.results[0]["service_name"] == "com.malware.service.malwareservice"
+        assert da.results[0]["enabled"] is True
+        # This fixture never prints an `installed services:` section, so the
+        # dump does not state the installed status. Reporting False would turn
+        # "not stated" into "not installed", so it reads None here.
+        assert da.results[0]["installed"] is None
 
     def test_accessibility_service_alert(self):
         da = DumpsysAccessibilityArtifact()
@@ -48,9 +55,27 @@ class TestDumpsysAccessibilityArtifact:
 
         da.check_indicators()
 
-        assert len(da.alertstore.alerts) == 1
+        assert len(da.alertstore.alerts) == 2
         assert da.alertstore.alerts[0].level == AlertLevel.MEDIUM
         assert da.alertstore.alerts[0].event == da.results[0]
+        assert da.alertstore.alerts[1].level == AlertLevel.LOW
+        assert da.alertstore.alerts[1].event == da.results[1]
+
+    def test_same_component_is_kept_for_each_user(self):
+        da = DumpsysAccessibilityArtifact()
+        da.parse(
+            """User state[attributes:{id=0
+  installed services: {
+    0 : com.example/.Service
+  }
+User state[attributes:{id=10
+  installed services: {
+    0 : com.example/.Service
+  }
+"""
+        )
+
+        assert [result["user_id"] for result in da.results] == [0, 10]
 
     def test_ioc_check(self, indicator_file):
         da = DumpsysAccessibilityArtifact()
@@ -66,7 +91,11 @@ class TestDumpsysAccessibilityArtifact:
         assert len(da.alertstore.alerts) == 0
         da.check_indicators()
         assert len(da.alertstore.alerts) == len(da.results)
-        assert da.alertstore.count(AlertLevel.MEDIUM) == 3
+        # Every service in this fixture is installed and switched off
+        # (`enabled services:{}` is printed and empty), so the three non-IOC
+        # findings are LOW, not MEDIUM. The IOC match is unaffected by the
+        # state.
+        assert da.alertstore.count(AlertLevel.LOW) == 3
         assert da.alertstore.count(AlertLevel.CRITICAL) == 1
         critical_alert = next(
             alert
