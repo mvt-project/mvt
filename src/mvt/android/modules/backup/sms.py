@@ -54,7 +54,10 @@ class SMS(BackupModule):
         ):
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", message, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    message.get("isodate") or "",
+                    message,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def collect_url_results(self) -> None:

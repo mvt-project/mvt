@@ -60,7 +60,10 @@ class ShutdownLog(IOSExtraction):
             ioc_match = self.indicators.check_file_path(result["client"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("isodate") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
                 continue
 
@@ -69,7 +72,7 @@ class ShutdownLog(IOSExtraction):
                 if ioc.value in parts:
                     self.alertstore.critical(
                         f'Found mention of a known malicious process "{ioc.value}" in shutdown.log',
-                        "",
+                        result.get("isodate") or "",
                         result,
                         matched_indicator=ioc,
                     )

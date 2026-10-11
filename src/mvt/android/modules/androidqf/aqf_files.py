@@ -90,7 +90,10 @@ class AQFFiles(AndroidQFModule):
             ioc_match = self.indicators.check_file_path(result["path"])
             if ioc_match:
                 self.alertstore.critical(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("modified_time") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
                 continue
 
@@ -105,7 +108,7 @@ class AQFFiles(AndroidQFModule):
                         file_type = "executable "
 
                     msg = f'Found {file_type}file at suspicious path "{result["path"]}"'
-                    self.alertstore.high(msg, "", result)
+                    self.alertstore.high(msg, result.get("modified_time") or "", result)
 
             for hash_key in ("sha256", "sha1", "md5"):
                 file_hash = result.get(hash_key, "")
@@ -114,7 +117,10 @@ class AQFFiles(AndroidQFModule):
                 ioc_match = self.indicators.check_file_hash(file_hash)
                 if ioc_match:
                     self.alertstore.critical(
-                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                        ioc_match.message,
+                        result.get("modified_time") or "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     break
 
