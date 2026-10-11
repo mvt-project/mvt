@@ -107,6 +107,44 @@ def test_androidqf_browser_history_directory_and_zip(tmp_path, use_zip):
     assert module.timeline[0]["event"] == "browser_history"
 
 
+@pytest.mark.parametrize("prefix", ["", "./", "acquisition/", "./acquisition/"])
+@pytest.mark.parametrize("separator", ["/", "\\"])
+def test_androidqf_zip_paths_preserve_wal_visits(tmp_path, prefix, separator):
+    database = tmp_path / "History"
+    create_history_database(database)
+    connection = sqlite3.connect(database)
+    connection.execute("PRAGMA journal_mode=WAL")
+    connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    connection.execute(
+        "INSERT INTO urls VALUES (2, ?, 'WAL', 1, 0)", (URL + "/wal",)
+    )
+    connection.execute(
+        "INSERT INTO visits VALUES (8, 2, ?, 0, 805306368)", (CHROME_TIME,)
+    )
+    connection.commit()
+    archive_path = "browser_history/com.android.chrome/Default/History"
+    acquisition = tmp_path / "acquisition.zip"
+    try:
+        with zipfile.ZipFile(acquisition, "w") as archive:
+            for suffix in ("", "-wal", "-shm"):
+                archive.writestr(
+                    (prefix + archive_path + suffix).replace("/", separator),
+                    Path(f"{database}{suffix}").read_bytes(),
+                )
+            archive.writestr(
+                (prefix + "browser_history/manifest.json").replace("/", separator),
+                json.dumps(manifest([("com.android.chrome", archive_path)])),
+            )
+        module = AndroidQFBrowserHistory()
+        with zipfile.ZipFile(acquisition) as archive:
+            module.from_zip(archive, archive.namelist())
+            module.run()
+    finally:
+        connection.close()
+
+    assert {result["url"] for result in module.results} == {URL, URL + "/wal"}
+
+
 def test_androidqf_browser_history_isolates_malformed_database(tmp_path, caplog):
     acquisition = tmp_path / "acquisition"
     good_archive_path = "browser_history/com.android.chrome/Default/History"

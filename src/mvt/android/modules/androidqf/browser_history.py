@@ -40,7 +40,8 @@ class BrowserHistory(BrowserHistoryArtifact, AndroidQFModule):
         self, archive_path: str, prefix: str, temporary_path: Path
     ) -> Path:
         available_files = {
-            file_path.replace("\\", "/"): file_path for file_path in self.files
+            str(PurePosixPath(file_path.replace("\\", "/"))): file_path
+            for file_path in self.files
         }
         normalized_path = str(PurePosixPath(prefix, archive_path))
         source_path = available_files.get(normalized_path)
