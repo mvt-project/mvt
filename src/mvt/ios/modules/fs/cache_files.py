@@ -13,11 +13,14 @@ from mvt.common.module_types import (
     ModuleResults,
     ModuleSerializedResult,
 )
+from mvt.schemas import MappingOutput
 
 from ..base import IOSExtraction
 
 
 class CacheFiles(IOSExtraction):
+    output_model = MappingOutput
+
     def __init__(
         self,
         file_path: Optional[str] = None,

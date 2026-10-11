@@ -32,6 +32,7 @@ nav:
     - Introduction: "introduction.md"
     - Installation: "install.md"
     - Command Completion: "command_completion.md"
+    - Output Schemas: "output-schemas.md"
     - Using Docker: "docker.md"
     - MVT for iOS:
         - iOS Forensic Methodology: "ios/methodology.md"

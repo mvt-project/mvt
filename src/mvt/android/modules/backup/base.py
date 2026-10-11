@@ -7,13 +7,16 @@ import fnmatch
 import logging
 import os
 from tarfile import TarFile
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from mvt.common.module import ModuleResults, MVTModule
+from mvt.schemas import OutputModel, RecordListOutput
 
 
 class BackupModule(MVTModule):
     """This class provides a base for all backup extractios modules"""
+
+    output_model: ClassVar[OutputModel] = RecordListOutput
 
     def __init__(
         self,

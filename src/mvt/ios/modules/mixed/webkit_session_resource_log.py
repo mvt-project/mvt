@@ -10,6 +10,7 @@ from typing import Optional
 
 from mvt.common.module_types import ModuleResults
 from mvt.common.utils import convert_datetime_to_iso
+from mvt.schemas import MappingOutput
 
 from ..base import IOSExtraction
 
@@ -31,6 +32,8 @@ class WebkitSessionResourceLog(IOSExtraction):
 
 
     """
+
+    output_model = MappingOutput
 
     def __init__(
         self,

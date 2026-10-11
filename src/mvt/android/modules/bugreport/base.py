@@ -8,11 +8,12 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 from zipfile import ZipFile
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from mvt.common.module import ModuleResults, MVTModule
+from mvt.schemas import OutputModel, RecordListOutput
 
 # `------ 0.101s was the duration of 'SOME SECTION' ------`, printed when that
 # section finishes and not necessarily between two sections.
@@ -26,6 +27,8 @@ DUMPSTATE_ENTRY_POINTS = ("main_entry.txt", "dumpState_*.log", "*/dumpsys.txt")
 
 class BugReportModule(MVTModule):
     """This class provides a base for all Android Bug Report modules."""
+
+    output_model: ClassVar[OutputModel] = RecordListOutput
 
     def __init__(
         self,

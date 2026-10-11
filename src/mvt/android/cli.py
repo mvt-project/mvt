@@ -98,12 +98,13 @@ def cli(ctx, disable_update_check, disable_indicator_update_check, verbose):
     ctx.obj["verbose"] = verbose
     set_verbose_logging(verbose)
 
-    from mvt.common.logo import logo
+    if ctx.invoked_subcommand not in ("completion", "schemas"):
+        from mvt.common.logo import logo
 
-    logo(
-        disable_version_check=disable_update_check,
-        disable_indicator_check=disable_indicator_update_check,
-    )
+        logo(
+            disable_version_check=disable_update_check,
+            disable_indicator_check=disable_indicator_update_check,
+        )
 
 
 # ==============================================================================
@@ -115,6 +116,21 @@ def version():
 
 
 # ==============================================================================
+# Command: schemas
+# ==============================================================================
+@cli.command("schemas", help="Print or export the JSON Schemas for MVT outputs.")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(file_okay=False, dir_okay=True),
+    help="Write one JSON Schema file per output to this directory.",
+)
+def schemas(output):
+    from mvt.common.cmd_schemas import emit_schemas
+
+    emit_schemas("android", output)
+
+
 # Command: check-adb (removed)
 # ==============================================================================
 @cli.command(

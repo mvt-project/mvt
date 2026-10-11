@@ -389,3 +389,9 @@ MVT_PROFILE=1 dev/mvt-ios check-backup test_backup
 ```
 
 Open an issue or PR if you are encountering significant performance issues when analyzing a device with MVT.
+
+## Output schemas
+
+Custom modules should declare an `output_model` using a Pydantic `RootModel`.
+This validates saved results and lets consumers obtain the module's JSON Schema.
+See [Output schemas](../output-schemas.md#custom-modules) for a complete example.
