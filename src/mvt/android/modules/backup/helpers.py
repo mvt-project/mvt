@@ -4,9 +4,8 @@
 #   https://license.mvt.re/1.1/
 
 
-from rich.prompt import Prompt
-
 from mvt.common.config import settings
+from mvt.common.password import prompt_password
 
 MVT_ANDROID_BACKUP_PASSWORD = "MVT_ANDROID_BACKUP_PASSWORD"
 
@@ -49,7 +48,7 @@ def prompt_or_load_android_backup_password(log, module_options):
 
     # The default is to allow interactivity
     elif module_options.get("interactive", True):
-        backup_password = Prompt.ask(prompt="Enter backup password", password=True)
+        backup_password = prompt_password("Enter backup password: ")
     else:
         log.critical(
             "Cannot decrypt backup because interactivity"

@@ -20,23 +20,39 @@ class AndroidArtifact(Artifact):
         :param binary: whether the dumpsys should be pared as binary or not (bool)
         :return: section extracted (string or bytes)
         """
-        lines = []
         in_section = False
-        delimiter = "------------------------------------------------------------------------------"
+        delimiter_str = "------------------------------------------------------------------------------"
+        delimiter_bytes = b"------------------------------------------------------------------------------"
+
         if binary:
-            delimiter = delimiter.encode("utf-8")
+            lines_bytes = []
+            for line in dumpsys.splitlines():  # type: ignore[union-attr]
+                if line.strip() == separator:  # type: ignore[arg-type]
+                    in_section = True
+                    continue
 
-        for line in dumpsys.splitlines():
-            if line.strip() == separator:
-                in_section = True
-                continue
+                if not in_section:
+                    continue
 
-            if not in_section:
-                continue
+                if line.strip().startswith(delimiter_bytes):  # type: ignore[arg-type]
+                    break
 
-            if line.strip().startswith(delimiter):
-                break
+                lines_bytes.append(line)  # type: ignore[arg-type]
 
-            lines.append(line)
+            return b"\n".join(lines_bytes)  # type: ignore[return-value,arg-type]
+        else:
+            lines_str = []
+            for line in dumpsys.splitlines():  # type: ignore[union-attr]
+                if line.strip() == separator:  # type: ignore[arg-type]
+                    in_section = True
+                    continue
 
-        return b"\n".join(lines) if binary else "\n".join(lines)
+                if not in_section:
+                    continue
+
+                if line.strip().startswith(delimiter_str):  # type: ignore[arg-type]
+                    break
+
+                lines_str.append(line)  # type: ignore[arg-type]
+
+            return "\n".join(lines_str)  # type: ignore[return-value,arg-type]

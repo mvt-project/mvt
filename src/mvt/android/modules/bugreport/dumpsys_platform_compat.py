@@ -9,10 +9,11 @@ from typing import Optional
 from mvt.android.artifacts.dumpsys_platform_compat import DumpsysPlatformCompatArtifact
 
 from mvt.android.modules.bugreport.base import BugReportModule
+from mvt.common.module_types import ModuleResults
 
 
 class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
-    """This module extracts details on uninstalled apps."""
+    """This module extracts raw per-package compatibility overrides."""
 
     def __init__(
         self,
@@ -21,7 +22,7 @@ class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -41,8 +42,10 @@ class DumpsysPlatformCompat(DumpsysPlatformCompatArtifact, BugReportModule):
             )
             return
 
-        data = data.decode("utf-8", errors="replace")
-        content = self.extract_dumpsys_section(data, "DUMP OF SERVICE platform_compat:")
+        decoded_data = data.decode("utf-8", errors="replace")
+        content = self.extract_dumpsys_section(
+            decoded_data, "DUMP OF SERVICE platform_compat:"
+        )
         self.parse(content)
 
-        self.log.info("Found %d uninstalled apps", len(self.results))
+        self.log.info("Found %d package compatibility overrides", len(self.results))

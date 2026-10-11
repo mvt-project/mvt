@@ -1,0 +1,4 @@
+prune tests
+prune docs
+prune .github
+exclude uv.lock Dockerfile* mkdocs.yml .readthedocs.yaml .safety-policy.yml .python-version .gitignore Makefile

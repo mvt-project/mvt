@@ -1,19 +1,20 @@
-import os
-import yaml
 import json
+import os
+from typing import Optional, Tuple, Type
 
-from typing import Tuple, Type, Optional
+import yaml
 from appdirs import user_config_dir
-from pydantic import AnyHttpUrl, Field
+from pydantic import Field
 from pydantic_settings import (
     BaseSettings,
-    InitSettingsSource,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
     YamlConfigSettingsSource,
 )
 
-MVT_CONFIG_FOLDER = user_config_dir("mvt")
+# MVT_CONFIG_FOLDER in the environment relocates the settings file, so that
+# a test run or a scripted install never touches the user's own.
+MVT_CONFIG_FOLDER = os.environ.get("MVT_CONFIG_FOLDER") or user_config_dir("mvt")
 MVT_CONFIG_PATH = os.path.join(MVT_CONFIG_FOLDER, "config.yaml")
 
 
@@ -22,50 +23,53 @@ class MVTSettings(BaseSettings):
         env_prefix="MVT_",
         env_nested_delimiter="_",
         extra="ignore",
-        nested_model_default_partial_updates=True,
     )
     # Allow to decided if want to load environment variables
     load_env: bool = Field(True, exclude=True)
 
     # General settings
-    PYPI_UPDATE_URL: AnyHttpUrl = Field(
-        "https://pypi.org/pypi/mvt/json",
-        validate_default=False,
+    PYPI_UPDATE_URL: str = Field(
+        default="https://pypi.org/pypi/mvt/json",
     )
     NETWORK_ACCESS_ALLOWED: bool = True
     NETWORK_TIMEOUT: int = 15
 
     # Command default settings, all can be specified by MVT_ prefixed environment variables too.
     IOS_BACKUP_PASSWORD: Optional[str] = Field(
-        None, description="Default password to use to decrypt iOS backups"
+        default=None, description="Default password to use to decrypt iOS backups"
     )
     ANDROID_BACKUP_PASSWORD: Optional[str] = Field(
-        None, description="Default password to use to decrypt Android backups"
+        default=None, description="Default password to use to decrypt Android backups"
     )
     STIX2: Optional[str] = Field(
-        None, description="List of directories where STIX2 files are stored"
+        default=None, description="List of directories where STIX2 files are stored"
     )
     VT_API_KEY: Optional[str] = Field(
-        None, description="API key to use for VirusTotal lookups"
+        default=None, description="API key to use for VirusTotal lookups"
     )
-    PROFILE: bool = Field(False, description="Profile the execution of MVT modules")
-    HASH_FILES: bool = Field(False, description="Should MVT hash output files")
+    PROFILE: bool = Field(
+        default=False, description="Profile the execution of MVT modules"
+    )
+    HASH_FILES: bool = Field(default=False, description="Should MVT hash output files")
 
     @classmethod
     def settings_customise_sources(
         cls,
         settings_cls: Type[BaseSettings],
-        init_settings: InitSettingsSource,
+        init_settings: PydanticBaseSettingsSource,
         env_settings: PydanticBaseSettingsSource,
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
-        sources = (
+        sources: Tuple[PydanticBaseSettingsSource, ...] = (
             YamlConfigSettingsSource(settings_cls, MVT_CONFIG_PATH),
             init_settings,
         )
-        # Load env variables if enabled
-        if init_settings.init_kwargs.get("load_env", True):
+        # Load env variables only when asked to. initialise() constructs the
+        # settings once without them so that what gets written back to
+        # config.yaml never includes values taken from the environment.
+        # init_settings() returns the keyword arguments passed to the constructor.
+        if init_settings().get("load_env", True):
             sources = (env_settings,) + sources
         return sources
 
@@ -93,12 +97,12 @@ class MVTSettings(BaseSettings):
 
         Afterwards we load the settings again, this time including the env variables.
         """
-        # Set invalid env prefix to avoid loading env variables.
-        settings = MVTSettings(load_env=False)
+        # Construct the settings without env variables so they are not persisted.
+        settings = cls(load_env=False)
         settings.save_settings()
 
         # Load the settings again with any ENV variables.
-        settings = MVTSettings(load_env=True)
+        settings = cls(load_env=True)
         return settings
 
 

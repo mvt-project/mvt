@@ -9,6 +9,8 @@ from pathlib import Path
 from mvt.android.modules.bugreport.dumpsys_appops import DumpsysAppops
 from mvt.android.modules.bugreport.dumpsys_getprop import DumpsysGetProp
 from mvt.android.modules.bugreport.dumpsys_packages import DumpsysPackages
+from mvt.android.modules.bugreport.dumpsys_receivers import DumpsysReceivers
+from mvt.android.modules.bugreport.settings import Settings
 from mvt.android.modules.bugreport.tombstones import Tombstones
 from mvt.common.module import run_module
 
@@ -36,9 +38,13 @@ class TestBugreportAnalysis:
         assert len(m.timeline) == 16
 
         detected_by_ioc = [
-            detected for detected in m.detected if detected.get("matched_indicator")
+            detected
+            for detected in m.alertstore.alerts
+            if detected.event.get("matched_indicator")
         ]
-        assert len(m.detected) == 1  # Hueristic detection for suspicious permissions
+        assert (
+            len(m.alertstore.alerts) == 1
+        )  # Hueristic detection for suspicious permissions
         assert len(detected_by_ioc) == 0
 
     def test_packages_module(self):
@@ -49,14 +55,66 @@ class TestBugreportAnalysis:
             == "com.samsung.android.provider.filterprovider"
         )
         assert m.results[1]["package_name"] == "com.instagram.android"
+        assert m.results[0]["installer"] is None
+        assert m.results[1]["installer"] == "com.android.vending"
         assert len(m.results[0]["permissions"]) == 4
-        assert len(m.results[1]["permissions"]) == 32
+        assert len(m.results[1]["permissions"]) == 20
+        assert len(m.results[1]["users"][0]["permissions"]) == 19
 
     def test_getprop_module(self):
         m = self.launch_bug_report_module(DumpsysGetProp)
         assert len(m.results) == 0
 
+    def test_receivers_match_exact_package_name(self, indicators_factory):
+        intent = "android.intent.action.PHONE_STATE"
+        false_positive = {
+            "resolver_type": "non_data_action",
+            "key": intent,
+            "package_name": "com.android.phone",
+            "component": (
+                "com.android.phone/"
+                "com.android.services.telephony.sip.SipIncomingCallReceiver"
+            ),
+            "filter_count": 1,
+        }
+        malicious_receiver = {
+            "resolver_type": "non_data_action",
+            "key": intent,
+            "package_name": "com.android.services",
+            "component": "com.android.services/com.example.SomeReceiver",
+            "filter_count": 1,
+        }
+        module = DumpsysReceivers(results=[false_positive, malicious_receiver])
+        module.indicators = indicators_factory(app_ids=["com.android.services"])
+
+        module.check_indicators()
+
+        assert len(module.alertstore.alerts) == 1
+        alert = module.alertstore.alerts[0]
+        assert alert.event == malicious_receiver
+        assert alert.matched_indicator.value == "com.android.services"
+
+    def test_settings_module(self):
+        m = self.launch_bug_report_module(Settings)
+        assert len(m.results) == 12
+
+        assert len(m.alertstore.alerts) == 1
+        assert "accessibility_enabled = 1" in m.alertstore.alerts[0].message
+
+        assert len(m.timeline) == 3
+        change = [
+            entry
+            for entry in m.timeline
+            if entry["timestamp"] == "2022-03-28 22:41:07.980000"
+        ][0]
+        assert change["event"] == "settings_change"
+        assert change["data"] == (
+            'secure setting "accessibility_enabled" changed from "0" to "1" '
+            "by com.example.helper"
+        )
+
     def test_tombstones_modules(self):
         m = self.launch_bug_report_module(Tombstones)
         assert len(m.results) == 2
         assert m.results[1]["pid"] == 3559
+        assert m.results[0]["sources"]["text"]["parsed"] is True

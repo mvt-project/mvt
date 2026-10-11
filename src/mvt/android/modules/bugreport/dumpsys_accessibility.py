@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.dumpsys_accessibility import DumpsysAccessibilityArtifact
+from mvt.common.module_types import ModuleResults
 
 from .base import BugReportModule
 
@@ -21,7 +22,7 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -47,11 +48,22 @@ class DumpsysAccessibility(DumpsysAccessibilityArtifact, BugReportModule):
         )
         self.parse(content)
 
+        listed = unnamed = 0
         for result in self.results:
-            self.log.info(
-                'Found installed accessibility service "%s"', result.get("service")
-            )
+            if result.get("component"):
+                listed += 1
+                self.log.info(
+                    'Found accessibility service "%s"', result.get("component")
+                )
+                continue
+            # The operator gets this per user as a LOW alert from
+            # check_indicators(); here it only has to survive into the summary,
+            # so that a stated count never reads as "a total of 0".
+            unnamed += result.get("unnamed_service_count") or 0
 
         self.log.info(
-            "Identified a total of %d accessibility services", len(self.results)
+            "Identified a total of %d accessibility services (%d more stated by "
+            "the dump without a component name)",
+            listed,
+            unnamed,
         )

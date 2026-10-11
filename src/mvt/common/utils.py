@@ -10,10 +10,10 @@ import json
 import logging
 import os
 import re
+from dataclasses import asdict, is_dataclass
 from typing import Any, Iterator, Union
 
-from rich.logging import RichHandler
-from mvt.common.config import settings
+from .log import MVTLogHandler
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -30,6 +30,9 @@ class CustomJSONEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
+        # Unwrap dataclass instances (such as Indicator) to dict. Skip class itself.
+        if is_dataclass(o) and not isinstance(o, type):
+            return asdict(o)
         if isinstance(o, bytes):
             # Decode as utf-8, replace any invalid UTF-8 bytes with escaped hex
             return o.decode("utf-8", errors="backslashreplace")
@@ -119,10 +122,9 @@ def convert_mactime_to_datetime(timestamp: Union[int, float], from_2001: bool = 
     if from_2001:
         timestamp = timestamp + 978307200
 
-    # TODO: This is rather ugly. Happens sometimes with invalid timestamps.
     try:
         return convert_unix_to_utc_datetime(timestamp)
-    except Exception:
+    except (OSError, OverflowError, ValueError):
         return None
 
 
@@ -234,11 +236,17 @@ def init_logging(verbose: bool = False):
     """
     Initialise logging for the MVT module
     """
-    # Setup logging using Rich.
     log = logging.getLogger("mvt")
     log.setLevel(logging.DEBUG)
-    consoleHandler = RichHandler(show_path=False, log_time_format="%X")
-    consoleHandler.setFormatter(logging.Formatter("[%(name)s] %(message)s"))
+
+    # Importing an MVT CLI module calls init_logging() at import time, and
+    # loaded module packages may import one indirectly. Keep this idempotent
+    # so console log lines are not duplicated by a second handler.
+    if any(isinstance(handler, MVTLogHandler) for handler in log.handlers):
+        return
+
+    consoleHandler = MVTLogHandler()
+    consoleHandler.setFormatter(logging.Formatter("%(message)s"))
     if verbose:
         consoleHandler.setLevel(logging.DEBUG)
     else:
@@ -247,16 +255,26 @@ def init_logging(verbose: bool = False):
 
 
 def set_verbose_logging(verbose: bool = False):
+    """Raise or lower the verbosity of MVT's console output.
+
+    Only MVT's own console handler is adjusted, wherever it sits in the list.
+    The file handler a command attaches to its output folder keeps recording
+    everything, so the command.log of a run does not depend on how the run was
+    invoked, and a handler attached to the "mvt" logger by anything else is
+    left alone.
+    """
     log = logging.getLogger("mvt")
-    handler = log.handlers[0]
-    if verbose:
-        handler.setLevel(logging.DEBUG)
-    else:
-        handler.setLevel(logging.INFO)
+    for handler in log.handlers:
+        if isinstance(handler, MVTLogHandler):
+            handler.setLevel(logging.DEBUG if verbose else logging.INFO)
 
 
 def exec_or_profile(module, globals, locals):
     """Hook for profiling MVT modules"""
+    # Imported here so that the CLI modules, which import this one at start-up,
+    # do not load the settings (and pydantic) before a command runs.
+    from .config import settings
+
     if settings.PROFILE:
         cProfile.runctx(module, globals, locals)
     else:

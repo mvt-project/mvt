@@ -28,21 +28,18 @@ INTERESTING_PROPERTIES = [
 class GetProp(AndroidArtifact):
     def parse(self, entry: str) -> None:
         self.results: List[Dict[str, str]] = []
-        rxp = re.compile(r"\[(.+?)\]: \[(.+?)\]")
+        # A property value may span several lines: persist.sys.boot.reason.history
+        # prints one boot per line. Matching the whole section instead of line by
+        # line lets a value run to the first closing bracket that ends a line.
+        rxp = re.compile(
+            r"^[ \t]*\[([^]]+)\]: \[(.*?)\][ \t\r]*$",
+            re.MULTILINE | re.DOTALL,
+        )
 
-        for line in entry.splitlines():
-            line = line.strip()
-            if line == "":
-                continue
+        for name, value in rxp.findall(entry):
+            self.results.append({"name": name, "value": value})
 
-            matches = re.findall(rxp, line)
-            if not matches or len(matches[0]) != 2:
-                continue
-
-            entry = {"name": matches[0][0], "value": matches[0][1]}
-            self.results.append(entry)
-
-    def get_device_timezone(self) -> str:
+    def get_device_timezone(self) -> str | None:
         """
         Get the device timezone from the getprop results
 
@@ -59,13 +56,18 @@ class GetProp(AndroidArtifact):
                 self.log.info("%s: %s", entry["name"], entry["value"])
 
             if entry["name"] == "ro.build.version.security_patch":
-                warn_android_patch_level(entry["value"], self.log)
+                warning_message = warn_android_patch_level(entry["value"], self.log)
+                if isinstance(warning_message, str):
+                    self.alertstore.medium(warning_message, "", entry)
 
         if not self.indicators:
             return
 
         for result in self.results:
-            ioc = self.indicators.check_android_property_name(result.get("name", ""))
-            if ioc:
-                result["matched_indicator"] = ioc
-                self.detected.append(result)
+            ioc_match = self.indicators.check_android_property_name(
+                result.get("name", "")
+            )
+            if ioc_match:
+                self.alertstore.critical(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )

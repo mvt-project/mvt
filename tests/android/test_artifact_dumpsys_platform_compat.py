@@ -22,6 +22,9 @@ class TestDumpsysPlatformCompatArtifact:
         assert len(dbi.results) == 2
         assert dbi.results[0]["package_name"] == "org.torproject.torbrowser"
         assert dbi.results[1]["package_name"] == "org.article19.circulo.next"
+        assert dbi.results[0]["change_id"] == 168419799
+        assert dbi.results[0]["change_name"] == "DOWNSCALED"
+        assert dbi.results[0]["override_value"] is False
 
     def test_ioc_check(self, indicator_file):
         dbi = DumpsysPlatformCompatArtifact()
@@ -35,6 +38,6 @@ class TestDumpsysPlatformCompatArtifact:
         ind.ioc_collections[0]["app_ids"].append("org.torproject.torbrowser")
         ind.ioc_collections[0]["app_ids"].append("org.article19.circulo.next")
         dbi.indicators = ind
-        assert len(dbi.detected) == 0
+        assert len(dbi.alertstore.alerts) == 0
         dbi.check_indicators()
-        assert len(dbi.detected) == 2
+        assert len(dbi.alertstore.alerts) == 2

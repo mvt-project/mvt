@@ -18,7 +18,7 @@ class TestTCCModule:
         run_module(m)
         assert len(m.results) == 11
         assert len(m.timeline) == 11
-        assert len(m.detected) == 0
+        assert len(m.alertstore.alerts) == 0
         assert m.results[0]["service"] == "kTCCServiceUbiquity"
         assert m.results[0]["client"] == "com.apple.Preferences"
         assert m.results[0]["auth_value"] == "allowed"
@@ -31,6 +31,6 @@ class TestTCCModule:
         run_module(m)
         assert len(m.results) == 11
         assert len(m.timeline) == 11
-        assert len(m.detected) == 1
-        assert m.detected[0]["service"] == "kTCCServiceLiverpool"
-        assert m.detected[0]["client"] == "Launch"
+        assert len(m.alertstore.alerts) == 1
+        assert m.alertstore.alerts[0].event["service"] == "kTCCServiceLiverpool"
+        assert m.alertstore.alerts[0].event["client"] == "Launch"

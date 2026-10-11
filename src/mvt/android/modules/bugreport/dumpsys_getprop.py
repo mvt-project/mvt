@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.android.artifacts.getprop import GetProp as GetPropArtifact
+from mvt.common.module_types import ModuleResults
 
 from .base import BugReportModule
 
@@ -21,7 +22,7 @@ class DumpsysGetProp(GetPropArtifact, BugReportModule):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -43,21 +44,8 @@ class DumpsysGetProp(GetPropArtifact, BugReportModule):
             )
             return
 
-        lines = []
-        in_getprop = False
-
-        for line in content.decode(errors="ignore").splitlines():
-            if line.strip().startswith("------ SYSTEM PROPERTIES"):
-                in_getprop = True
-                continue
-
-            if not in_getprop:
-                continue
-
-            if line.strip() == "------":
-                break
-
-            lines.append(line)
-
-        self.parse("\n".join(lines))
+        section = self.extract_command_section(
+            content.decode(errors="ignore"), "------ SYSTEM PROPERTIES"
+        )
+        self.parse(section)
         self.log.info("Extracted %d Android system properties", len(self.results))

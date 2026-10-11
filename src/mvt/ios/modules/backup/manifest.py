@@ -8,9 +8,15 @@ import io
 import logging
 import os
 import plistlib
+import sqlite3
 from typing import Optional
 
-from mvt.common.module import DatabaseNotFoundError
+from mvt.common.module import DatabaseNotFoundError, EncryptedBackupError
+from mvt.common.module_types import (
+    ModuleAtomicResult,
+    ModuleResults,
+    ModuleSerializedResult,
+)
 from mvt.common.url import URL
 from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
 
@@ -27,7 +33,7 @@ class Manifest(IOSExtraction):
         results_path: Optional[str] = None,
         module_options: Optional[dict] = None,
         log: logging.Logger = logging.getLogger(__name__),
-        results: Optional[list] = None,
+        results: Optional[ModuleResults] = None,
     ) -> None:
         super().__init__(
             file_path=file_path,
@@ -60,8 +66,8 @@ class Manifest(IOSExtraction):
 
         return convert_unix_to_iso(timestamp_or_unix_time_int)
 
-    def serialize(self, record: dict) -> []:
-        records = []
+    def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
+        records: list = []
         if "modified" not in record or "status_changed" not in record:
             return records
 
@@ -95,8 +101,11 @@ class Manifest(IOSExtraction):
             if not self.indicators:
                 continue
 
-            if self.indicators.check_file_path("/" + result["relative_path"]):
-                self.detected.append(result)
+            ioc_match = self.indicators.check_file_path("/" + result["relative_path"])
+            if ioc_match:
+                self.alertstore.high(
+                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                )
                 continue
 
             rel_path = result["relative_path"].lower()
@@ -107,17 +116,18 @@ class Manifest(IOSExtraction):
                 except Exception:
                     continue
 
-                ioc = self.indicators.check_url(part)
-                if ioc:
-                    self.log.warning(
-                        'Found mention of domain "%s" in a backup file with path: %s',
-                        ioc["value"],
-                        rel_path,
+                ioc_match = self.indicators.check_url(part)
+                if ioc_match:
+                    self.alertstore.high(
+                        f'Found mention of domain "{ioc_match.ioc.value}" in a backup file with path: {rel_path}',
+                        "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
 
     def run(self) -> None:
+        if not self.target_path:
+            raise DatabaseNotFoundError("target_path is not set")
         manifest_db_path = os.path.join(self.target_path, "Manifest.db")
         if not os.path.isfile(manifest_db_path):
             raise DatabaseNotFoundError("unable to find backup's Manifest.db")
@@ -127,8 +137,21 @@ class Manifest(IOSExtraction):
         conn = self._open_sqlite_db(manifest_db_path)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM Files;")
+        try:
+            cur.execute("SELECT * FROM Files;")
+        except sqlite3.DatabaseError:
+            conn.close()
+            raise EncryptedBackupError(
+                "Manifest.db is not a valid SQLite database. "
+                "The backup may be encrypted."
+            )
         names = [description[0] for description in cur.description]
+
+        # An incomplete backup still lists the files it failed to acquire in
+        # its manifest. Only regular files are stored in the backup folder, so
+        # directories and symlinks (flags 2 and 4) are not looked up.
+        stored_file_ids = self._get_stored_backup_file_ids()
+        missing_files = 0
 
         for file_entry in cur:
             file_data = {}
@@ -142,6 +165,22 @@ class Manifest(IOSExtraction):
                 "flags": file_data["flags"],
                 "created": "",
             }
+
+            if (
+                stored_file_ids is not None
+                and file_data["flags"] == 1
+                and file_data["fileID"] not in stored_file_ids
+            ):
+                # Without this, a module which found nothing for one of these
+                # files would look like a negative result rather than a gap in
+                # the acquisition.
+                cleaned_metadata["missing"] = True
+                missing_files += 1
+                self.log.debug(
+                    "File %s is listed in the manifest but was not found in the "
+                    "backup folder",
+                    cleaned_metadata["relative_path"],
+                )
 
             if file_data["file"]:
                 try:
@@ -180,3 +219,10 @@ class Manifest(IOSExtraction):
         conn.close()
 
         self.log.info("Extracted a total of %d file metadata items", len(self.results))
+
+        if missing_files:
+            self.log.info(
+                "Found %d files listed in the manifest but missing from the backup "
+                "folder. The backup might be incomplete.",
+                missing_files,
+            )

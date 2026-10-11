@@ -29,9 +29,6 @@ class InvalidBackupPassword(AndroidBackupParsingError):
     pass
 
 
-# TODO: Need to clean all the following code and conform it to the coding style.
-
-
 def to_utf8_bytes(input_bytes):
     output = []
     for byte in input_bytes:
@@ -51,13 +48,16 @@ def parse_ab_header(data):
         'encryption': "none", 'version': 4}
     """
     if data.startswith(b"ANDROID BACKUP"):
-        [_, version, is_compressed, encryption, _] = data.split(b"\n", 4)
-        return {
-            "backup": True,
-            "compression": (is_compressed == b"1"),
-            "version": int(version),
-            "encryption": encryption.decode("utf-8"),
-        }
+        try:
+            [_, version, is_compressed, encryption, _] = data.split(b"\n", 4)
+            return {
+                "backup": True,
+                "compression": (is_compressed == b"1"),
+                "version": int(version),
+                "encryption": encryption.decode("utf-8"),
+            }
+        except (UnicodeDecodeError, ValueError):
+            pass
 
     return {"backup": False, "compression": None, "version": None, "encryption": None}
 
@@ -131,20 +131,23 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
     if password is None:
         raise InvalidBackupPassword()
 
-    [
-        user_salt,
-        checksum_salt,
-        pbkdf2_rounds,
-        user_iv,
-        master_key_blob,
-        encrypted_data,
-    ] = encrypted_backup.split(b"\n", 5)
+    try:
+        [
+            user_salt,
+            checksum_salt,
+            pbkdf2_rounds,
+            user_iv,
+            master_key_blob,
+            encrypted_data,
+        ] = encrypted_backup.split(b"\n", 5)
 
-    user_salt = bytes.fromhex(user_salt.decode("utf-8"))
-    checksum_salt = bytes.fromhex(checksum_salt.decode("utf-8"))
-    pbkdf2_rounds = int(pbkdf2_rounds)
-    user_iv = bytes.fromhex(user_iv.decode("utf-8"))
-    master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
+        user_salt = bytes.fromhex(user_salt.decode("utf-8"))
+        checksum_salt = bytes.fromhex(checksum_salt.decode("utf-8"))
+        pbkdf2_rounds = int(pbkdf2_rounds)
+        user_iv = bytes.fromhex(user_iv.decode("utf-8"))
+        master_key_blob = bytes.fromhex(master_key_blob.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise AndroidBackupParsingError("Invalid encrypted backup header") from exc
 
     # Derive decryption master key from password.
     master_key, master_iv = decrypt_master_key(
@@ -157,13 +160,13 @@ def decrypt_backup_data(encrypted_backup, password, encryption_algo, format_vers
         checksum_salt=checksum_salt,
     )
 
-    # Decrypt and unpad backup data using derivied key.
+    # Decrypt and unpad backup data using derived key.
     cipher = Cipher(algorithms.AES(master_key), modes.CBC(master_iv))
     decryptor = cipher.decryptor()
     decrypted_tar = decryptor.update(encrypted_data) + decryptor.finalize()
 
     unpadder = padding.PKCS7(128).unpadder()
-    return unpadder.update(decrypted_tar)
+    return unpadder.update(decrypted_tar) + unpadder.finalize()
 
 
 def parse_backup_file(data, password=None):
@@ -174,10 +177,12 @@ def parse_backup_file(data, password=None):
     if not data.startswith(b"ANDROID BACKUP"):
         raise AndroidBackupParsingError("Invalid file header")
 
-    [_, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
-
-    version = int(version)
-    is_compressed = int(is_compressed)
+    try:
+        [_, version, is_compressed, encryption_algo, tar_data] = data.split(b"\n", 4)
+        version = int(version)
+        is_compressed = int(is_compressed)
+    except ValueError as exc:
+        raise AndroidBackupParsingError("Invalid file header") from exc
 
     if encryption_algo != b"none":
         tar_data = decrypt_backup_data(
@@ -210,6 +215,8 @@ def parse_tar_for_sms(data):
                 or member.name.endswith("_mms_backup")
             ):
                 dhandler = tar.extractfile(member)
+                if not dhandler:
+                    continue
                 res.extend(parse_sms_file(dhandler.read()))
 
     return res

@@ -4,12 +4,13 @@
 #   https://license.mvt.re/1.1/
 
 from datetime import datetime
-from typing import Any, Dict, List, Union
+import re
+from typing import Any
 
+from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_datetime_to_iso
 
 from .artifact import AndroidArtifact
-
 
 RISKY_PERMISSIONS = ["REQUEST_INSTALL_PACKAGES"]
 RISKY_PACKAGES = ["com.android.shell"]
@@ -20,21 +21,21 @@ class DumpsysAppopsArtifact(AndroidArtifact):
     Parser for dumpsys app ops info
     """
 
-    def serialize(self, record: dict) -> Union[dict, list]:
+    def serialize(self, result: ModuleAtomicResult) -> ModuleSerializedResult:
         records = []
-        for perm in record["permissions"]:
+        for perm in result["permissions"]:
             if "entries" not in perm:
                 continue
 
             for entry in perm["entries"]:
-                if "timestamp" in entry:
+                if entry.get("timestamp"):
                     records.append(
                         {
                             "timestamp": entry["timestamp"],
                             "module": self.__class__.__name__,
-                            "event": entry["access"],
-                            "data": f"{record['package_name']} access to "
-                            f"{perm['name']}: {entry['access']}",
+                            "event": entry["event"],
+                            "data": f"{result['package_name']} access to "
+                            f"{perm['name']}: {entry['event']}",
                         }
                     )
 
@@ -43,141 +44,181 @@ class DumpsysAppopsArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         for result in self.results:
             if self.indicators:
-                ioc = self.indicators.check_app_id(result.get("package_name"))
-                if ioc:
-                    result["matched_indicator"] = ioc
-                    self.detected.append(result)
+                ioc_match = self.indicators.check_app_id(result.get("package_name"))
+                if ioc_match:
+                    self.alertstore.critical(
+                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    )
                     continue
 
-            detected_permissions = []
+            # We use a placeholder entry to create a basic alert even without permission entries.
+            placeholder_entry = {"event": "unknown", "timestamp": ""}
+
             for perm in result["permissions"]:
                 if (
                     perm["name"] in RISKY_PERMISSIONS
                     # and perm["access"] == "allow"
                 ):
-                    detected_permissions.append(perm)
-                    for entry in sorted(perm["entries"], key=lambda x: x["timestamp"]):
-                        self.log.warning(
-                            "Package '%s' had risky permission '%s' set to '%s' at %s",
-                            result["package_name"],
-                            perm["name"],
-                            entry["access"],
+                    for entry in sorted(
+                        perm["entries"] or [placeholder_entry],
+                        key=lambda x: x.get("timestamp") or "",
+                    ):
+                        cleaned_result = result.copy()
+                        cleaned_result["permissions"] = [perm]
+                        self.alertstore.medium(
+                            f"Package '{result['package_name']}' had risky permission '{perm['name']}' set to '{entry['event']}' at {entry['timestamp']}",
                             entry["timestamp"],
+                            cleaned_result,
                         )
 
                 elif result["package_name"] in RISKY_PACKAGES:
-                    detected_permissions.append(perm)
-                    for entry in sorted(perm["entries"], key=lambda x: x["timestamp"]):
-                        self.log.warning(
-                            "Risky package '%s' had '%s' permission set to '%s' at %s",
-                            result["package_name"],
-                            perm["name"],
-                            entry["access"],
+                    for entry in sorted(
+                        perm["entries"] or [placeholder_entry],
+                        key=lambda x: x.get("timestamp") or "",
+                    ):
+                        cleaned_result = result.copy()
+                        cleaned_result["permissions"] = [perm]
+                        self.alertstore.medium(
+                            f"Risky package '{result['package_name']}' had '{perm['name']}' permission set to '{entry['event']}' at {entry['timestamp']}",
                             entry["timestamp"],
+                            cleaned_result,
                         )
 
-            if detected_permissions:
-                # We clean the result to only include the risky permission, otherwise the timeline
-                # will be polluted with all the other irrelevant permissions
-                cleaned_result = result.copy()
-                cleaned_result["permissions"] = detected_permissions
-                self.detected.append(cleaned_result)
-
     def parse(self, output: str) -> None:
-        self.results: List[Dict[str, Any]] = []
-        perm = {}
-        package = {}
-        entry = {}
-        uid = None
+        self.results: list[dict[str, Any]] = []
+        permission: dict[str, Any] | None = None
+        package: dict[str, Any] | None = None
+        uid: str | None = None
+        uid_details: dict[str, Any] = {}
+        attribution: str | None = None
         in_packages = False
 
+        def finish_permission() -> None:
+            nonlocal permission
+            if package is not None and permission is not None:
+                package["permissions"].append(permission)
+            permission = None
+
+        def finish_package() -> None:
+            nonlocal package
+            finish_permission()
+            if package is not None:
+                self.results.append(package)
+            package = None
+
         for line in output.splitlines():
-            if line.startswith("  Uid 0:"):
+            uid_match = re.match(r"^  Uid ([^:]+):$", line)
+            if uid_match:
                 in_packages = True
+                finish_package()
+                uid = uid_match.group(1)
+                uid_details = {
+                    "uid_state": None,
+                    "capability": None,
+                    "app_widget_visible": None,
+                    "default_modes": {},
+                }
+                continue
 
             if not in_packages:
                 continue
 
-            if line.startswith("  Uid "):
-                uid = line[6:-1]
-                if entry:
-                    perm["entries"].append(entry)
-                    entry = {}
-                if package:
-                    if perm:
-                        package["permissions"].append(perm)
+            uid_property = re.match(
+                r"^    (state|capability|appWidgetVisible)=(.*)$", line
+            )
+            if uid_property:
+                key = {
+                    "state": "uid_state",
+                    "appWidgetVisible": "app_widget_visible",
+                }.get(uid_property.group(1), uid_property.group(1))
+                value: Any = uid_property.group(2)
+                if value in ("true", "false"):
+                    value = value == "true"
+                uid_details[key] = value
+                continue
 
-                    perm = {}
-                    self.results.append(package)
-                package = {}
+            default_mode = re.match(r"^      ([A-Z0-9_]+): mode=([^\s]+)", line)
+            if default_mode and package is None:
+                uid_details["default_modes"][default_mode.group(1)] = (
+                    default_mode.group(2)
+                )
                 continue
 
             if line.startswith("    Package "):
-                if entry:
-                    perm["entries"].append(entry)
-                    entry = {}
-
-                if package:
-                    if perm:
-                        package["permissions"].append(perm)
-
-                    perm = {}
-                    self.results.append(package)
-
+                finish_package()
                 package = {
                     "package_name": line[12:-1],
                     "permissions": [],
                     "uid": uid,
+                    **uid_details,
                 }
                 continue
 
-            if package and line.startswith("      ") and line[6] != " ":
-                if entry:
-                    perm["entries"].append(entry)
-                    entry = {}
-                if perm:
-                    package["permissions"].append(perm)
-                    perm = {}
-
-                perm["name"] = line.split()[0]
-                perm["entries"] = []
-                if len(line.split()) > 1:
-                    perm["access"] = line.split()[1][1:-2]
-
+            operation_match = re.match(
+                r"^      ([A-Z0-9_]+)(?: \(([^)]+)\))?:\s*$", line
+            )
+            if package is not None and operation_match:
+                finish_permission()
+                permission = {
+                    "name": operation_match.group(1),
+                    "mode": operation_match.group(2),
+                    "entries": [],
+                }
+                attribution = None
                 continue
 
-            if line.startswith("          "):
-                # Permission entry like:
-                # Reject: [fg-s]2021-05-19 22:02:52.054 (-314d1h25m2s33ms)
-                access_type = line.split(":")[0].strip()
-                if access_type not in ["Access", "Reject"]:
-                    # Skipping invalid access type. Some entries are not in the format we expect
-                    continue
+            attribution_match = re.match(r"^\s{8,}([^=]+)=\[$", line)
+            if attribution_match:
+                attribution = attribution_match.group(1).strip()
+                continue
+            if line.strip() == "]":
+                attribution = None
+                continue
 
-                if entry:
-                    perm["entries"].append(entry)
-                    entry = {}
-
-                entry["access"] = access_type
-                entry["type"] = line[line.find("[") + 1 : line.find("]")]
-
-                try:
-                    entry["timestamp"] = convert_datetime_to_iso(
-                        datetime.strptime(
-                            line[line.find("]") + 1 : line.find("(")].strip(),
-                            "%Y-%m-%d %H:%M:%S.%f",
-                        )
+            if permission is None:
+                continue
+            event_match = re.match(
+                r"^\s*(Access|Reject):\s*\[([^]]+)\]\s*"
+                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\s*"
+                r"(\([^)]*\))?(?:\s+duration=([^\s]+))?",
+                line,
+            )
+            running_match = re.match(
+                r"^\s*Running start at:\s*(\S+(?: \S+)?)",
+                line,
+            )
+            if event_match:
+                entry = {
+                    "event": event_match.group(1).lower(),
+                    "access": event_match.group(1),
+                    "uid_state": event_match.group(2),
+                    "timestamp": convert_datetime_to_iso(
+                        datetime.strptime(event_match.group(3), "%Y-%m-%d %H:%M:%S.%f")
+                    ),
+                    "relative_time": event_match.group(4),
+                    "duration": event_match.group(5),
+                    "attribution": attribution,
+                }
+                permission["entries"].append(entry)
+            elif running_match:
+                raw_start = running_match.group(1)
+                timestamp = None
+                if re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+", raw_start):
+                    timestamp = convert_datetime_to_iso(
+                        datetime.strptime(raw_start, "%Y-%m-%d %H:%M:%S.%f")
                     )
-                except ValueError:
-                    # Invalid date format
-                    pass
+                permission["entries"].append(
+                    {
+                        "event": "running",
+                        "access": "Running",
+                        "uid_state": None,
+                        "timestamp": timestamp,
+                        "relative_time": raw_start
+                        if raw_start.startswith("+")
+                        else None,
+                        "duration": None,
+                        "attribution": attribution,
+                    }
+                )
 
-            if line.strip() == "":
-                break
-
-        if entry:
-            perm["entries"].append(entry)
-        if perm:
-            package["permissions"].append(perm)
-        if package:
-            self.results.append(package)
+        finish_package()

@@ -8,6 +8,8 @@ import os
 from typing import Optional
 
 from mvt.common.command import Command
+from mvt.common.module import MVTModule
+from mvt.common.module_loader import get_module_logger
 from mvt.common.utils import exec_or_profile
 
 log = logging.getLogger(__name__)
@@ -26,6 +28,8 @@ class CmdCheckIOCS(Command):
         sub_command: Optional[bool] = False,
         disable_version_check: bool = False,
         disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
+        platform: str = "",
     ) -> None:
         super().__init__(
             target_path=target_path,
@@ -39,16 +43,22 @@ class CmdCheckIOCS(Command):
             log=log,
             disable_version_check=disable_version_check,
             disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
         )
 
+        self.platform = platform
         self.name = "check-iocs"
 
     def run(self) -> None:
         assert self.target_path is not None
         all_modules = []
-        for entry in self.modules:
+        for entry in self._available_modules():
             if entry not in all_modules:
                 all_modules.append(entry)
+
+        # Read the indicators once, so that a missing indicators file is
+        # reported even when no stored result matches a module.
+        iocs = self.iocs
 
         log.info("Checking stored results against provided indicators...")
 
@@ -71,14 +81,14 @@ class CmdCheckIOCS(Command):
                 )
 
                 m = iocs_module.from_json(
-                    file_path, log=logging.getLogger(iocs_module.__module__)
+                    file_path, log=get_module_logger(iocs_module)
                 )
                 if not m:
                     log.warning("No result from this module, skipping it")
                     continue
 
-                if self.iocs.total_ioc_count > 0:
-                    m.indicators = self.iocs
+                if iocs.total_ioc_count > 0:
+                    m.indicators = iocs
                     m.indicators.log = m.log
 
                 try:
@@ -86,7 +96,7 @@ class CmdCheckIOCS(Command):
                 except NotImplementedError:
                     continue
                 else:
-                    total_detections += len(m.detected)
+                    total_detections += len(m.alertstore.alerts)
 
         if total_detections > 0:
             log.warning(
