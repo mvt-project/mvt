@@ -43,4 +43,5 @@ def check_ios_path(indicators: Indicators, path: str) -> Optional[IndicatorMatch
         match = indicators.check_file_path(candidate)
         if match:
             return match
-    return None
+    # Filesystem records and existing indicators may both use relative paths.
+    return indicators.check_file_path(posixpath.normpath(path.replace("\\", "/")))

@@ -187,6 +187,10 @@ def test_path_only_alert_is_medium():
         ("/var/tmp/ioslab_ctl", "private\\var\\tmp\\ioslab_ctl", True),
         ("/var/tmp/ioslab_ctl", "/var/tmp/ioslab_ctl2", False),
         ("/private/var/tmp/.ghost_upper/", "/var/tmp/.ghost_upper-copy/file", False),
+        ("matched/directory", "matched/directory/file", True),
+        ("matched/directory", "matched\\directory\\file", True),
+        ("matched/directory", "matched/directory-copy/file", False),
+        ("matched/directory", "matched/directory/../other/file", False),
     ],
 )
 def test_ios_path_iocs_respect_aliases_and_boundaries(ioc, path, expected):
