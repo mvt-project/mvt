@@ -3,11 +3,12 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .backup_info import BackupInfo
 from .configuration_profiles import ConfigurationProfiles
 from .manifest import Manifest
 from .profile_events import ProfileEvents
-from mvt.common.module import MVTModule
 
 BACKUP_MODULES: list[type[MVTModule]] = [
     BackupInfo,

@@ -53,9 +53,32 @@ Connection pool for /data/user/0/com.example/databases/current.db:
 
         assert dbi.results == [
             {
-                "isodate": "07-15 20:27:39.431",
+                "timestamp": "07-15 20:27:39.431",
+                "pid": None,
                 "action": "executeForCursorWindow",
+                "duration_ms": 1,
+                "status": "succeeded",
                 "sql": "SELECT 1",
                 "path": "/data/user/0/com.example/databases/current.db",
+                "pool_path": "/data/user/0/com.example/databases/current.db",
+                "connection_number": None,
+                "is_primary": None,
             }
         ]
+
+    def test_parses_operations_from_multiple_connections(self):
+        dbi = DumpsysDBInfoArtifact()
+        dbi.parse(
+            """Connection pool for /data/example.db:
+    Connection #0:
+      isPrimaryConnection: true
+      Most recently executed operations:
+        0: [2025-01-01 00:00:00.000] execute took 1ms - succeeded, sql="SELECT 1", path=/data/example.db
+    Connection #1:
+      isPrimaryConnection: false
+      Most recently executed operations:
+        0: [2025-01-01 00:00:01.000] execute took 2ms - succeeded, sql="SELECT 2", path=/data/example.db
+"""
+        )
+
+        assert [record["connection_number"] for record in dbi.results] == [0, 1]

@@ -40,13 +40,29 @@ class BugReportTimestamps(FileTimestampsArtifact, BugReportModule):
 
         self.results = []
         for file in filesystem_files:
-            # Only the modification time is available in the zip file metadata.
-            # The timezone is the local timezone of the machine the phone.
+            # A zip entry keeps the device's wall clock, read in the device's
+            # timezone when the command found one (see CmdAndroidCheckBugreport);
+            # an unpacked bugreport's mtime is read as a UTC instant.
             modification_time = self._get_file_modification_time(file)
             self.results.append(
                 {
                     "path": file,
-                    "modified_time": convert_datetime_to_iso(modification_time),
+                    "modified_time": convert_datetime_to_iso(
+                        modification_time.replace(tzinfo=None)
+                    ),
+                    "modified_time_utc": (
+                        convert_datetime_to_iso(modification_time)
+                        if modification_time.tzinfo
+                        else None
+                    ),
+                    "timezone": (
+                        self.module_options.get("device_timezone")
+                        if self.zip_archive
+                        else "UTC"
+                    ),
+                    "timestamp_source": (
+                        "zip_metadata" if self.zip_archive else "filesystem_metadata"
+                    ),
                 }
             )
 

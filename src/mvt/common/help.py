@@ -17,17 +17,29 @@ HELP_MSG_LOAD_MODULE = (
 HELP_MSG_NONINTERACTIVE = "Don't ask interactive questions during processing"
 HELP_MSG_HASHES = "Generate hashes of all the files analyzed"
 HELP_MSG_VERBOSE = "Verbose mode"
+HELP_MSG_VERBOSE_COMMAND = (
+    "Verbose mode (kept for compatibility, pass --verbose before the command "
+    "name instead)"
+)
 HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
 HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
 HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
-HELP_MSG_COMPLETION = "Generate or install shell completion"
+HELP_MSG_COMPLETION = (
+    "Generate or install shell completion for mvt, mvt-ios and mvt-android"
+)
+HELP_MSG_PLUGINS = "Inspect the installed MVT plugin packages"
+HELP_MSG_PLUGINS_LIST = "List the installed plugins and what they contribute to MVT"
+HELP_MSG_PLUGINS_CHECK_UPDATES = (
+    "Check the installed plugins for updates without installing them"
+)
 
 # IOS Specific
 HELP_MSG_DECRYPT_BACKUP = "Decrypt an encrypted iTunes backup"
 HELP_MSG_BACKUP_DESTINATION = (
     "Path to the folder where the decrypted backup should be stored"
 )
+HELP_MSG_DECRYPT_JOBS = "Number of files to decrypt concurrently"
 HELP_MSG_IOS_BACKUP_PASSWORD = (
     "Password to use to decrypt the backup (or, set the {MVT_IOS_BACKUP_PASSWORD} "
     "environment variable)"

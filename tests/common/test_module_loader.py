@@ -1,9 +1,14 @@
+from pathlib import Path
+
 import pytest
 
+from mvt.common.cli_plugins import _module_name_for_path as _command_module_name
 from mvt.common.module import MVTModule
 from mvt.common.module_loader import (
     CustomModuleLoadError,
+    _module_name_for_path,
     get_module_logger,
+    get_plugin_logger,
     load_custom_modules,
     load_custom_modules_from_path,
     module_supports_command,
@@ -168,9 +173,9 @@ def test_get_module_logger_strips_the_plugin_package_prefix():
     class PluginModule(MVTModule):
         pass
 
-    PluginModule.__module__ = "mvt_plugin_amnesty_custom.ios.custom"
+    PluginModule.__module__ = "mvt_plugin_example_org.ios.custom"
 
-    assert get_module_logger(PluginModule).name == "mvt.ext.amnesty_custom.ios.custom"
+    assert get_module_logger(PluginModule).name == "mvt.ext.example_org.ios.custom"
 
 
 def test_get_module_logger_only_strips_the_prefix_from_the_top_level():
@@ -187,3 +192,25 @@ def test_get_module_logger_names_path_modules_after_their_file(tmp_path):
     module = load_custom_modules_from_path(str(module_path))[0]
 
     assert get_module_logger(module).name == "mvt.ext.my_custom_module"
+
+
+def test_get_plugin_logger_uses_the_same_namespace_as_modules():
+    assert (
+        get_plugin_logger("mvt_plugin_example_org.commands.summarize").name
+        == "mvt.ext.example_org.commands.summarize"
+    )
+    assert get_plugin_logger("example_plugin.cli").name == "mvt.ext.example_plugin.cli"
+
+
+def test_get_plugin_logger_keeps_builtin_names():
+    assert get_plugin_logger("mvt.ios.cli").name == "mvt.ios.cli"
+
+
+def test_get_plugin_logger_names_loaded_files_after_the_file():
+    # A file loaded with --load-command or --load-module is imported under a
+    # mangled name. The log names the file instead.
+    command_name = _command_module_name(Path("/tmp/case_summary.py"))
+    module_name = _module_name_for_path(Path("/tmp/my_custom_module.py"))
+
+    assert get_plugin_logger(command_name).name == "mvt.ext.case_summary"
+    assert get_plugin_logger(module_name).name == "mvt.ext.my_custom_module"

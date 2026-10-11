@@ -1,10 +1,10 @@
 # Mobile Verification Toolkit (MVT)
-# Copyright (c) 2021-2023 The MVT Authors.
+# Copyright (c) 2021-2026 The MVT Authors.
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from mvt.android.utils import ROOT_PACKAGES
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
@@ -12,222 +12,244 @@ from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from .artifact import AndroidArtifact
 
 
+def _value(raw: str) -> Any:
+    if raw == "null":
+        return None
+    if raw in ("true", "false"):
+        return raw == "true"
+    try:
+        return int(raw)
+    except ValueError:
+        return raw
+
+
 class DumpsysPackagesArtifact(AndroidArtifact):
     def check_indicators(self) -> None:
         alerted_root_packages = set()
         for result in self.results:
-            if result["package_name"] in ROOT_PACKAGES:
-                if result["package_name"] in alerted_root_packages:
-                    continue
-                alerted_root_packages.add(result["package_name"])
+            package_name = result["package_name"]
+            if (
+                package_name in ROOT_PACKAGES
+                and package_name not in alerted_root_packages
+            ):
+                alerted_root_packages.add(package_name)
                 self.alertstore.medium(
-                    f'Found an installed package related to rooting/jailbreaking: "{result["package_name"]}"',
+                    f'Found an installed package related to rooting/jailbreaking: "{package_name}"',
                     "",
                     result,
                 )
-                continue
-
             if not self.indicators:
                 continue
-
-            ioc_match = self.indicators.check_app_id(result.get("package_name", ""))
+            ioc_match = self.indicators.check_app_id(package_name)
             if ioc_match:
                 self.alertstore.critical(
                     ioc_match.message, "", result, matched_indicator=ioc_match.ioc
                 )
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
-        records = []
         timestamps = [
-            {"event": "package_install", "timestamp": record["timestamp"]},
+            ("package_install", record.get("timestamp")),
+            ("package_last_update", record.get("last_update_time")),
+        ]
+        timestamps.extend(
+            ("package_first_install", user.get("first_install_time"))
+            for user in record.get("users", [])
+        )
+        return [
             {
-                "event": "package_first_install",
-                "timestamp": record["first_install_time"],
-            },
-            {"event": "package_last_update", "timestamp": record["last_update_time"]},
+                "timestamp": timestamp,
+                "module": self.__class__.__name__,
+                "event": event,
+                "data": f"Install or update of package {record['package_name']}",
+            }
+            for event, timestamp in timestamps
+            if timestamp
         ]
 
-        for timestamp in timestamps:
-            records.append(
-                {
-                    "timestamp": timestamp["timestamp"],
-                    "module": self.__class__.__name__,
-                    "event": timestamp["event"],
-                    "data": f"Install or update of package {record['package_name']}",
-                }
-            )
-
-        return records
-
     @staticmethod
-    def parse_dumpsys_package_for_details(output: str) -> Dict[str, Any]:
-        """
-        Parse one entry of a dumpsys package information
-        """
-        details: Dict[str, Any] = {
-            "uid": "",
-            "version_name": "",
-            "version_code": "",
-            "timestamp": "",
-            "first_install_time": "",
-            "last_update_time": "",
-            "installer": "",
-            "system": False,
-            "permissions": list(),
-            "requested_permissions": list(),
+    def _permission(line: str, permission_type: str) -> dict:
+        name, _, details = line.strip().partition(":")
+        granted_match = re.search(r"granted=(true|false)", details)
+        flags_match = re.search(r"flags=\[\s*([^]]*)\]", details)
+        return {
+            "name": name,
+            "type": permission_type,
+            "granted": granted_match.group(1) == "true" if granted_match else None,
+            "flags": [
+                flag.strip()
+                for flag in (flags_match.group(1).split("|") if flags_match else [])
+                if flag.strip()
+            ],
         }
-        in_install_permissions = False
-        in_runtime_permissions = False
-        in_declared_permissions = False
-        in_requested_permissions = True
-        current_user: Optional[int] = None
-        first_install_times: Dict[Optional[int], str] = {}
-        runtime_permissions: Dict[Optional[int], List[Dict[str, Any]]] = {}
+
+    @classmethod
+    def parse_dumpsys_package_for_details(cls, output: str) -> dict[str, Any]:
+        details: dict[str, Any] = {
+            "app_id": None,
+            "version_name": None,
+            "version_code": None,
+            "min_sdk": None,
+            "target_sdk": None,
+            "timestamp": None,
+            "last_update_time": None,
+            "installer": None,
+            "system": False,
+            "permissions": [],
+            "requested_permissions": [],
+            "users": [],
+        }
+        permission_section: str | None = None
+        current_user: dict[str, Any] | None = None
+        legacy_first_install: str | None = None
+
         for line in output.splitlines():
-            user_match = re.match(r"User (\d+):", line.strip())
+            stripped = line.strip()
+            user_match = re.match(r"User (\d+):\s*(.*)", stripped)
             if user_match:
-                current_user = int(user_match.group(1))
+                current_user = {"user_id": int(user_match.group(1)), "permissions": []}
+                for key, raw in re.findall(r"(\w+)=([^\s]+)", user_match.group(2)):
+                    clean_key = {
+                        "notLaunched": "not_launched",
+                        "installReason": "install_reason",
+                        "uninstallReason": "uninstall_reason",
+                        "dataDir": "data_dir",
+                    }.get(key, re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower())
+                    current_user[clean_key] = _value(raw)
+                details["users"].append(current_user)
+                permission_section = None
+                continue
 
-            if in_install_permissions:
-                if line.startswith(" " * 4) and not line.startswith(" " * 6):
-                    in_install_permissions = False
-                else:
-                    lineinfo = line.strip().split(":")
-                    permission = lineinfo[0]
-                    granted = None
-                    if "granted=" in lineinfo[1]:
-                        granted = "granted=true" in lineinfo[1]
+            header = stripped.lower()
+            if header in {
+                "declared permissions:",
+                "install permissions:",
+                "requested permissions:",
+                "runtime permissions:",
+            }:
+                permission_section = header.split()[0]
+                continue
 
-                    details["permissions"].append(
-                        {"name": permission, "granted": granted, "type": "install"}
-                    )
-            if in_runtime_permissions:
-                if not line.startswith(" " * 8):
-                    in_runtime_permissions = False
-                else:
-                    lineinfo = line.strip().split(":")
-                    permission = lineinfo[0]
-                    granted = None
-                    if "granted=" in lineinfo[1]:
-                        granted = "granted=true" in lineinfo[1]
-
-                    runtime_permissions.setdefault(current_user, []).append(
-                        {"name": permission, "granted": granted, "type": "runtime"}
-                    )
-            if in_declared_permissions:
-                if not line.startswith(" " * 6):
-                    in_declared_permissions = False
-                else:
-                    permission = line.strip().split(":")[0]
-                    details["permissions"].append(
-                        {"name": permission, "type": "declared"}
-                    )
-            if in_requested_permissions:
-                if not line.startswith(" " * 6):
-                    in_requested_permissions = False
-                else:
-                    details["requested_permissions"].append(line.strip())
-            if line.strip().startswith("userId="):
-                details["uid"] = line.split("=")[1].strip()
-            elif line.strip().startswith("versionName="):
-                details["version_name"] = line.split("=")[1].strip()
-            elif line.strip().startswith("versionCode="):
-                details["version_code"] = line.split("=", 1)[1].strip()
-            elif line.strip().startswith("timeStamp="):
-                details["timestamp"] = line.split("=")[1].strip()
-            elif line.strip().startswith("installerPackageName="):
-                details["installer"] = line.split("=", 1)[1].strip()
-            elif line.strip().startswith("pkgFlags="):
-                details["system"] = "SYSTEM" in line.split("=", 1)[1].split()
-            elif line.strip().startswith("firstInstallTime="):
-                first_install_times[current_user] = line.split("=", 1)[1].strip()
-            elif line.strip().startswith("lastUpdateTime="):
-                details["last_update_time"] = line.split("=")[1].strip()
-            elif line.strip() == "install permissions:":
-                in_install_permissions = True
-            elif line.strip() == "runtime permissions:":
-                in_runtime_permissions = True
-            elif line.strip() == "declared permissions:":
-                in_declared_permissions = True
-            elif line.strip() == "requested permissions:":
-                in_requested_permissions = True
-
-        if 0 in first_install_times:
-            details["first_install_time"] = first_install_times[0]
-        elif None in first_install_times:
-            details["first_install_time"] = first_install_times[None]
-        elif first_install_times:
-            details["first_install_time"] = next(iter(first_install_times.values()))
-
-        if 0 in runtime_permissions:
-            details["permissions"].extend(runtime_permissions[0])
-        elif None in runtime_permissions:
-            details["permissions"].extend(runtime_permissions[None])
-        elif runtime_permissions:
-            details["permissions"].extend(next(iter(runtime_permissions.values())))
-        return details
-
-    def parse_dumpsys_packages(self, output: str) -> List[Dict[str, Any]]:
-        """
-        Parse the dumpsys package service data
-        """
-        pkg_rxp = re.compile(r"  Package \[(.+?)\].*")
-
-        results = []
-        package_name = None
-        package = {}
-        lines: list[str] = []
-        for line in output.splitlines():
-            if line.startswith("  Package ["):
-                if len(lines) > 0:
-                    details = self.parse_dumpsys_package_for_details("\n".join(lines))
-                    package.update(details)
-                    results.append(package)
-                    lines = []
-                    package = {}
-
-                matches = pkg_rxp.findall(line)
-                if not matches:
+            if current_user is not None:
+                user_property = re.match(
+                    r"(installReason|uninstallReason|dataDir|firstInstallTime)=(.*)",
+                    stripped,
+                )
+                if user_property:
+                    key = {
+                        "installReason": "install_reason",
+                        "uninstallReason": "uninstall_reason",
+                        "dataDir": "data_dir",
+                        "firstInstallTime": "first_install_time",
+                    }[user_property.group(1)]
+                    current_user[key] = _value(user_property.group(2))
                     continue
 
-                package_name = matches[0]
-                package["package_name"] = package_name
+            if permission_section == "requested" and line.startswith("      "):
+                details["requested_permissions"].append(stripped)
+                continue
+            if permission_section in ("declared", "install") and line.startswith(
+                "      "
+            ):
+                details["permissions"].append(
+                    cls._permission(stripped, permission_section)
+                )
+                continue
+            if (
+                permission_section == "runtime"
+                and line.startswith("        ")
+                and current_user is not None
+            ):
+                current_user["permissions"].append(cls._permission(stripped, "runtime"))
                 continue
 
-            if not package_name:
+            simple_match = re.match(
+                r"(appId|userId|versionName|timeStamp|lastUpdateTime|installerPackageName)=(.*)",
+                stripped,
+            )
+            if simple_match:
+                key = {
+                    "appId": "app_id",
+                    "userId": "app_id",
+                    "versionName": "version_name",
+                    "timeStamp": "timestamp",
+                    "lastUpdateTime": "last_update_time",
+                    "installerPackageName": "installer",
+                }[simple_match.group(1)]
+                raw_value = simple_match.group(2)
+                details[key] = (
+                    _value(raw_value)
+                    if key == "app_id" or raw_value == "null"
+                    else raw_value
+                )
                 continue
+            if stripped.startswith("pkgFlags="):
+                details["system"] = "SYSTEM" in stripped.split("=", 1)[1].split()
+                continue
+            version_match = re.match(
+                r"versionCode=([^\s]+)(?:\s+minSdk=([^\s]+))?(?:\s+targetSdk=([^\s]+))?",
+                stripped,
+            )
+            if version_match:
+                details["version_code"] = _value(version_match.group(1))
+                details["min_sdk"] = (
+                    _value(version_match.group(2)) if version_match.group(2) else None
+                )
+                details["target_sdk"] = (
+                    _value(version_match.group(3)) if version_match.group(3) else None
+                )
+            elif stripped.startswith("firstInstallTime="):
+                legacy_first_install = stripped.split("=", 1)[1]
 
-            lines.append(line)
+        if legacy_first_install:
+            user_zero = next(
+                (user for user in details["users"] if user["user_id"] == 0), None
+            )
+            if user_zero is None:
+                user_zero = {"user_id": 0, "permissions": []}
+                details["users"].append(user_zero)
+            user_zero.setdefault("first_install_time", legacy_first_install)
+        return details
 
-        if len(lines) > 0:
-            details = self.parse_dumpsys_package_for_details("\n".join(lines))
-            package.update(details)
-            results.append(package)
+    def parse(self, content: str) -> None:
+        self.results: list[dict[str, Any]] = []
+        category: str | None = None
+        package: dict[str, Any] | None = None
+        block: list[str] = []
 
-        return results
+        def finish() -> None:
+            nonlocal package, block
+            if package is not None:
+                package.update(self.parse_dumpsys_package_for_details("\n".join(block)))
+                self.results.append(package)
+            package = None
+            block = []
 
-    def parse(self, content: str):
-        """
-        Parse the Dumpsys Package section for activities
-        Adds results to self.results
-
-        :param content: content of the package section (string)
-        """
-        self.results = []
-        package = []
-
-        in_package_list = False
         for line in content.splitlines():
-            if line.startswith("Packages:"):
-                in_package_list = True
+            if line == "Packages:":
+                finish()
+                category = "active"
                 continue
-
-            if not in_package_list:
+            if line == "Hidden system packages:":
+                finish()
+                category = "hidden_system"
                 continue
-
-            if line.strip() == "":
-                break
-
-            package.append(line)
-
-        self.results = self.parse_dumpsys_packages("\n".join(package))
+            package_match = re.match(r"^  Package \[([^]]+)\]", line)
+            if package_match and category:
+                finish()
+                package = {
+                    "package_name": package_match.group(1),
+                    "package_type": category,
+                }
+                continue
+            if (
+                category
+                and line
+                and not line.startswith(" ")
+                and not line.endswith(" overlay paths:")
+            ):
+                finish()
+                category = None
+                continue
+            if package is not None:
+                block.append(line)
+        finish()

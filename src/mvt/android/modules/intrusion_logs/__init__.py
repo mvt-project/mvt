@@ -3,10 +3,11 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .connect_event import ConnectEvent
 from .dns_event import DnsEvent
 from .security_event import SecurityEvent
-from mvt.common.module import MVTModule
 
 INTRUSION_LOGS_MODULES: list[type[MVTModule]] = [
     DnsEvent,

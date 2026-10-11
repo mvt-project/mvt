@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .analytics import Analytics
 from .analytics_ios_versions import AnalyticsIOSVersions
 from .cache_files import CacheFiles
@@ -14,7 +16,6 @@ from .version_history import IOSVersionHistory
 from .webkit_indexeddb import WebkitIndexedDB
 from .webkit_localstorage import WebkitLocalStorage
 from .webkit_safariviewservice import WebkitSafariViewService
-from mvt.common.module import MVTModule
 
 FS_MODULES: list[type[MVTModule]] = [
     CacheFiles,

@@ -19,7 +19,13 @@ class TestSettingsModule:
         parent_path = Path(data_path).absolute().parent.as_posix()
         m.from_dir(parent_path, files)
         run_module(m)
-        assert len(m.results) == 1
-        assert "random" in m.results.keys()
+        assert len(m.results) == 9
+        assert {result["namespace"] for result in m.results} == {"random"}
+        assert m.results[0] == {
+            "namespace": "random",
+            "user": None,
+            "name": "samsung_errorlog_agree",
+            "value": "0",
+        }
         assert len(m.alertstore.alerts) == 1
         assert "samsung_errorlog_agree" in m.alertstore.alerts[0].message

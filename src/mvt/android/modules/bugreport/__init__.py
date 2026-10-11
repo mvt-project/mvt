@@ -3,6 +3,8 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+from mvt.common.module import MVTModule
+
 from .dumpsys_accessibility import DumpsysAccessibility
 from .dumpsys_activities import DumpsysActivities
 from .dumpsys_appops import DumpsysAppops
@@ -16,7 +18,9 @@ from .dumpsys_receivers import DumpsysReceivers
 from .dumpsys_adb_state import DumpsysADBState
 from .fs_timestamps import BugReportTimestamps
 from .tombstones import Tombstones
-from mvt.common.module import MVTModule
+from .mounts import Mounts
+from .processes import Processes
+from .settings import Settings
 
 BUGREPORT_MODULES: list[type[MVTModule]] = [
     DumpsysAccessibility,
@@ -32,4 +36,7 @@ BUGREPORT_MODULES: list[type[MVTModule]] = [
     DumpsysADBState,
     BugReportTimestamps,
     Tombstones,
+    Processes,
+    Settings,
+    Mounts,
 ]

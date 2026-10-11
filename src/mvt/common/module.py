@@ -52,6 +52,11 @@ class MVTModule:
     dependencies: Sequence[type["MVTModule"]] = ()
     supported_commands: Sequence[tuple[str, str]] = ()
     output_model: ClassVar[type[BaseModel]] = GenericModuleOutput
+    # A custom module can name a module class it supersedes, usually a
+    # built-in one. When both are available to a command, the named module is
+    # dropped from the run and this module takes its place, including in the
+    # dependencies of any other module.
+    replaces: Optional[type["MVTModule"]] = None
 
     def __init__(
         self,

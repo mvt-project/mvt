@@ -58,7 +58,7 @@ mvt-android check-intrusion-logs --output /path/to/results/ /path/to/intrusion-l
 | `-l, --list-modules` | List the available intrusion-log modules and exit. |
 | `-m, --module NAME` | Run a single module (e.g. `DnsEvent`) instead of all of them. |
 | `-t, --timezone TZ` | IANA timezone name for the device (e.g. `Europe/Paris`). When set, event timestamps are converted to the device's local time instead of UTC. |
-| `-v, --verbose` | Verbose logging. |
+| `-v, --verbose` | Verbose logging. Kept for compatibility and to be removed in a future release: pass `--verbose` to `mvt-android` itself instead. |
 
 ## Modules
 

@@ -10,6 +10,7 @@ import inspect
 import json
 import logging
 import os
+import re
 import sys
 from dataclasses import dataclass
 from functools import lru_cache
@@ -17,6 +18,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Iterable, Optional
 
+from .cli_plugins import CUSTOM_COMMAND_MODULE_PREFIX
 from .module import MVTModule
 from .version import MVT_VERSION
 
@@ -26,6 +28,7 @@ EXTERNAL_LOGGER_NAMESPACE = "mvt.ext"
 PLUGIN_PACKAGE_PREFIX = "mvt_plugin_"
 _ORIGIN_ATTRIBUTE = "_mvt_module_origin"
 _PATH_MODULE_PREFIX = "_mvt_custom_module_"
+_LOADED_FILE_DIGEST = re.compile(r"_[0-9a-f]{16}$")
 log = logging.getLogger(__name__)
 
 
@@ -66,6 +69,25 @@ def _module_name_for_path(path: Path) -> str:
     return f"{_PATH_MODULE_PREFIX}{path.stem}_{digest}"
 
 
+def _is_builtin_logger_name(name: str) -> bool:
+    return name == "mvt" or name.startswith("mvt.")
+
+
+def _loaded_file_stem(name: str, prefix: str) -> str:
+    """Recover a loaded file's name from the import name MVT gave it."""
+    return _LOADED_FILE_DIGEST.sub("", name[len(prefix) :])
+
+
+def _external_logger_name(name: str) -> str:
+    """Return the "mvt.ext" logger name external code logs under."""
+    top_level, separator, rest = name.partition(".")
+    if top_level.startswith(PLUGIN_PACKAGE_PREFIX) and len(top_level) > len(
+        PLUGIN_PACKAGE_PREFIX
+    ):
+        name = top_level[len(PLUGIN_PACKAGE_PREFIX) :] + separator + rest
+    return f"{EXTERNAL_LOGGER_NAMESPACE}.{name}"
+
+
 def get_module_logger(module_class: type[MVTModule]) -> logging.Logger:
     """Return the logger a module's records should be emitted through.
 
@@ -80,19 +102,35 @@ def get_module_logger(module_class: type[MVTModule]) -> logging.Logger:
     "mvt_plugin_<name>" naming convention log under "mvt.ext.<name>".
     """
     name = module_class.__module__
-    if name == "mvt" or name.startswith("mvt."):
+    if _is_builtin_logger_name(name):
         return logging.getLogger(name)
 
     if name.startswith(_PATH_MODULE_PREFIX):
-        name = Path(get_module_origin(module_class).name).stem
-    else:
-        top_level, separator, rest = name.partition(".")
-        if top_level.startswith(PLUGIN_PACKAGE_PREFIX) and len(top_level) > len(
-            PLUGIN_PACKAGE_PREFIX
-        ):
-            name = top_level[len(PLUGIN_PACKAGE_PREFIX) :] + separator + rest
+        file_name = Path(get_module_origin(module_class).name).stem
+        return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{file_name}")
 
-    return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{name}")
+    return logging.getLogger(_external_logger_name(name))
+
+
+def get_plugin_logger(name: str) -> logging.Logger:
+    """Return a general logger for use in custom MVT plugins.
+
+    Call it with ``__name__``. The logger sits under "mvt.ext". That is
+    where get_module_logger() puts module classes. A file loaded with
+    --load-module or --load-command is named after the file.
+    """
+    if _is_builtin_logger_name(name):
+        return logging.getLogger(name)
+
+    # A file loaded with --load-module or --load-command is imported under a
+    # mangled name. Log it under the file it came from. get_module_logger()
+    # does the same for the module classes such a file defines.
+    for prefix in (_PATH_MODULE_PREFIX, CUSTOM_COMMAND_MODULE_PREFIX):
+        if name.startswith(prefix):
+            stem = _loaded_file_stem(name, prefix)
+            return logging.getLogger(f"{EXTERNAL_LOGGER_NAMESPACE}.{stem}")
+
+    return logging.getLogger(_external_logger_name(name))
 
 
 def _iter_module_files(path: Path) -> Iterable[Path]:
@@ -179,20 +217,35 @@ def _module_key(module_class: type[MVTModule]) -> tuple[str, str]:
     return (source, module_class.__qualname__)
 
 
+def distribution_direct_url(dist: importlib.metadata.Distribution) -> Optional[dict]:
+    """Return the PEP 610 direct URL metadata of a distribution, if recorded.
+
+    Packages installed from an index have no direct URL metadata, while
+    packages installed directly from a repository or from a local folder
+    record where they were installed from in ``direct_url.json``.
+    """
+    try:
+        direct_url_text = dist.read_text("direct_url.json")
+        if not direct_url_text:
+            return None
+        direct_url = json.loads(direct_url_text)
+        return direct_url if isinstance(direct_url, dict) else None
+    except Exception:
+        return None
+
+
 def _distribution_commit(dist: importlib.metadata.Distribution) -> Optional[str]:
     """Return the VCS commit a distribution was installed from, if recorded.
 
     Packages installed directly from a repository (``pip install git+...``)
     record the commit in ``direct_url.json`` (PEP 610).
     """
-    try:
-        direct_url_text = dist.read_text("direct_url.json")
-        if not direct_url_text:
-            return None
-        commit = json.loads(direct_url_text).get("vcs_info", {}).get("commit_id")
-        return commit if isinstance(commit, str) else None
-    except Exception:
+    vcs_info = (distribution_direct_url(dist) or {}).get("vcs_info")
+    if not isinstance(vcs_info, dict):
         return None
+
+    commit = vcs_info.get("commit_id")
+    return commit if isinstance(commit, str) else None
 
 
 def _entry_point_origin(entry_point: importlib.metadata.EntryPoint) -> ModuleOrigin:
@@ -348,4 +401,14 @@ def module_supports_command(
         )
         return False
 
-    return (platform, command) in {tuple(entry) for entry in supported_commands}
+    pairs = {tuple(entry) for entry in supported_commands}
+    if (platform, command) in pairs:
+        return True
+
+    # A module which implements check_indicators() is re-checked by check-iocs
+    # for its platform. It does not need to declare the check-iocs pair.
+    return (
+        command == "check-iocs"
+        and platform in {entry[0] for entry in pairs if entry}
+        and module_class.check_indicators is not MVTModule.check_indicators
+    )

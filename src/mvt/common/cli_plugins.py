@@ -15,10 +15,20 @@ from typing import Iterable
 
 import click
 
+# This module is imported by every CLI at start-up, and by shell completion on
+# every keystroke, so it must stay cheap: nothing here may import the module
+# machinery (mvt.common.module_loader and what it pulls in).
+
 IOS_CLI_PLUGIN_GROUP = "mvt.ios.cli_plugins"
 ANDROID_CLI_PLUGIN_GROUP = "mvt.android.cli_plugins"
+# Commands in this group are registered on the platform-neutral mvt command only.
+NEUTRAL_CLI_PLUGIN_GROUP = "mvt.cli_plugins"
+MVT_CUSTOM_COMMANDS_ENV = "MVT_CUSTOM_COMMANDS"
 MVT_IOS_CUSTOM_COMMANDS_ENV = "MVT_IOS_CUSTOM_COMMANDS"
 MVT_ANDROID_CUSTOM_COMMANDS_ENV = "MVT_ANDROID_CUSTOM_COMMANDS"
+# Prefix of the import name given to a command file loaded from a path. Shared
+# with module_loader, which recognises such files when naming their loggers.
+CUSTOM_COMMAND_MODULE_PREFIX = "_mvt_custom_command_"
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +64,7 @@ class BrokenPluginCommand(click.Command):
 
 def _module_name_for_path(path: Path) -> str:
     digest = hashlib.sha256(str(path).encode("utf-8")).hexdigest()[:16]
-    return f"_mvt_custom_command_{path.stem}_{digest}"
+    return f"{CUSTOM_COMMAND_MODULE_PREFIX}{path.stem}_{digest}"
 
 
 def _iter_command_files(path: Path) -> Iterable[Path]:
@@ -255,6 +265,16 @@ def register_cli_plugins(
     entry_point_group: str,
     environment_variable: str,
 ) -> None:
+    """Register the external commands of one CLI on its group.
+
+    Each CLI has one entry-point group and one environment variable of its
+    own, so a command package chooses the CLIs its commands are added to.
+
+    :param group: CLI group to register the external commands on.
+    :param entry_point_group: Entry-point group of the CLI.
+    :param environment_variable: Name of the environment variable holding a
+                                 path to load commands from.
+    """
     environment_path = os.environ.get(environment_variable)
     if environment_path:
         register_cli_commands_from_path(group, environment_path)

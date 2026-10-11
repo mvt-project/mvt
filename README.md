@@ -58,34 +58,33 @@ For alternative installation options and known issues, please refer to the [docu
 
 ## Usage
 
-MVT provides two commands `mvt-ios` and `mvt-android`. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+MVT provides three commands: `mvt-ios` and `mvt-android` analyse acquisitions from devices of that platform, and `mvt` hosts what belongs to neither: `version`, `completion`, `plugins` and `download-iocs` (`version` and `download-iocs` remain available on the platform commands for now). Running `mvt` on its own shows the installed version, update notices and the available commands. [Check out the documentation to learn how to use them!](https://docs.mvt.re/)
+
+Pass `--verbose` to any of the three commands, before the command name (`mvt-ios --verbose check-backup ...`), for debug output. The `--verbose` option the `check-*` commands accept after their name still works but is kept for compatibility only and will be removed in a future release.
 
 ### Shell completion
 
-MVT can generate shell completion scripts for Bash, Zsh, and Fish:
+MVT can generate a shell completion script for Bash, Zsh, and Fish which covers `mvt`, `mvt-ios` and `mvt-android`:
 
 ```bash
-mvt-ios completion
-mvt-android completion
+mvt completion
 ```
 
-The commands print setup instructions by default. To generate a completion script directly, pass the shell name:
+The command prints setup instructions by default. To generate the completion script directly, pass the shell name:
 
 ```bash
-mvt-ios completion bash
-mvt-android completion zsh
+mvt completion bash
 ```
 
 MVT only writes completion files or shell configuration when `--install` is passed. See the [command completion documentation](https://docs.mvt.re/en/latest/command_completion/) for details.
-Module-running `check-*` commands can load custom Python modules with
-`--load-module PATH` or from a folder set in `MVT_CUSTOM_MODULES`. See the
-[development documentation](https://docs.mvt.re/en/latest/development/) for
-details.
 
-Users can also add top-level commands to `mvt-ios` and `mvt-android` from
-installed Python packages or local files and folders. See the
-[custom CLI command documentation](https://docs.mvt.re/en/latest/custom_commands/)
-for the plugin entry points and `--load-command` interface.
+Plugin packages extend MVT with additional forensic modules, which run inside
+the `check-*` commands, and with top-level commands on `mvt`, `mvt-ios` and
+`mvt-android`. See the
+[development documentation](https://docs.mvt.re/en/latest/development/) for
+writing and installing them, and the
+[custom CLI command documentation](https://docs.mvt.re/en/latest/development/custom_commands/)
+for the entry points a package registers commands in.
 
 
 ## License
