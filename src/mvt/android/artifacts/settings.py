@@ -255,19 +255,25 @@ class Settings(AndroidArtifact):
         dumpsys prints the change history without a year, so it is resolved
         against the time the section was dumped: the most recent matching date
         at or before that time.
+
+        The year is parsed together with the value, because strptime() would
+        otherwise parse it in 1900, which has no 29 February. The most recent
+        matching leap day can be eight years earlier when a century year is
+        not a leap year and the current year's leap day is still in the future.
         """
         if section_end is None:
             return None
 
-        try:
-            partial = datetime.strptime(value, "%m-%d %H:%M:%S.%f")
-            timestamp = partial.replace(year=section_end.year)
-            if timestamp > section_end:
-                timestamp = partial.replace(year=section_end.year - 1)
-        except ValueError:
-            return None
+        for year in range(section_end.year, section_end.year - 9, -1):
+            try:
+                timestamp = datetime.strptime(f"{year}-{value}", "%Y-%m-%d %H:%M:%S.%f")
+            except ValueError:
+                continue
 
-        return convert_datetime_to_iso(timestamp)
+            if timestamp <= section_end:
+                return convert_datetime_to_iso(timestamp)
+
+        return None
 
     def _parse_history(
         self, line: str, section_end: Optional[datetime]
