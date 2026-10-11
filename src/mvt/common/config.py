@@ -12,7 +12,9 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-MVT_CONFIG_FOLDER = user_config_dir("mvt")
+# MVT_CONFIG_FOLDER in the environment relocates the settings file, so that
+# a test run or a scripted install never touches the user's own.
+MVT_CONFIG_FOLDER = os.environ.get("MVT_CONFIG_FOLDER") or user_config_dir("mvt")
 MVT_CONFIG_PATH = os.path.join(MVT_CONFIG_FOLDER, "config.yaml")
 
 
@@ -59,13 +61,16 @@ class MVTSettings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
-        yaml_source = YamlConfigSettingsSource(settings_cls, MVT_CONFIG_PATH)
         sources: Tuple[PydanticBaseSettingsSource, ...] = (
-            yaml_source,
+            YamlConfigSettingsSource(settings_cls, MVT_CONFIG_PATH),
             init_settings,
         )
-        # Always load env variables by default
-        sources = (env_settings,) + sources
+        # Load env variables only when asked to. initialise() constructs the
+        # settings once without them so that what gets written back to
+        # config.yaml never includes values taken from the environment.
+        # init_settings() returns the keyword arguments passed to the constructor.
+        if init_settings().get("load_env", True):
+            sources = (env_settings,) + sources
         return sources
 
     def save_settings(
@@ -92,7 +97,7 @@ class MVTSettings(BaseSettings):
 
         Afterwards we load the settings again, this time including the env variables.
         """
-        # Set invalid env prefix to avoid loading env variables.
+        # Construct the settings without env variables so they are not persisted.
         settings = cls(load_env=False)
         settings.save_settings()
 

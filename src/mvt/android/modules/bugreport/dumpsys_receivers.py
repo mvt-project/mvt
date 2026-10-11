@@ -33,7 +33,7 @@ class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
             results=results,
         )
 
-        self.results = results if results else {}
+        self.results = results if results else []
 
     def run(self) -> None:
         dumpsys_section = self._get_dumpsys_section("DUMP OF SERVICE package:")
@@ -45,4 +45,4 @@ class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
             return
 
         self.parse(dumpsys_section)
-        self.log.info("Extracted receivers for %d intents", len(self.results))
+        self.log.info("Extracted %d package receivers", len(self.results))

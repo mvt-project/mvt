@@ -57,3 +57,9 @@ If the backup is encrypted, ABE will prompt you to enter the password.
 Alternatively, [ab-decrypt](https://github.com/joernheissler/ab-decrypt) can be used for that purpose.
 
 You can then extract SMSs with MVT by passing the folder path as parameter instead of the `.ab` file: `mvt-android check-backup --output /path/to/results/ /path/to/backup/` (the path to backup given should be the folder containing the `apps` folder).
+
+When an output folder is specified, URLs extracted from SMS and MMS messages
+are also written to `urls.json`. Each entry contains the URL, its expanded
+destination when MVT resolved a shortened URL during indicator checking, the
+message timestamp, and the `sms` source. The same file is created by
+`check-androidqf` when its nested Android backup contains messages with URLs.

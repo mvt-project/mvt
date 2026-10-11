@@ -7,9 +7,10 @@ import glob
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 import ahocorasick
 from appdirs import user_data_dir
@@ -17,10 +18,14 @@ from appdirs import user_data_dir
 from .config import settings
 from .url import URL
 
-MVT_DATA_FOLDER = user_data_dir("mvt")
+# MVT_DATA_FOLDER in the environment relocates the downloaded indicators and
+# the update-check state kept next to them.
+MVT_DATA_FOLDER = os.environ.get("MVT_DATA_FOLDER") or user_data_dir("mvt")
 MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
 
 logger = logging.getLogger(__name__)
+
+URL_CHECK_MAX_WORKERS = 20
 
 
 @dataclass
@@ -46,6 +51,7 @@ class Indicators:
         self.log = log
         self.ioc_collections: List[Dict[str, Any]] = []
         self.total_ioc_count = 0
+        self.resolved_urls: Dict[str, str] = {}
 
     def _load_downloaded_indicators(self) -> None:
         if not os.path.isdir(MVT_INDICATORS_FOLDER):
@@ -67,7 +73,9 @@ class Indicators:
             if os.path.isfile(path) and path.lower().endswith(".stix2"):
                 self.parse_stix2(path)
             elif os.path.isdir(path):
-                for file in glob.glob(os.path.join(path, "**", "*.stix2"), recursive=True):
+                for file in glob.glob(
+                    os.path.join(path, "**", "*.stix2"), recursive=True
+                ):
                     self.parse_stix2(file)
             else:
                 self.log.error(
@@ -436,9 +444,14 @@ class Indicators:
                         orig_url.url,
                         dest_url.url,
                     )
-                    return self.check_url(dest_url.url)
+                    match = self.check_url(dest_url.url)
+                    self.resolved_urls[url] = self.resolved_urls.get(
+                        dest_url.url, dest_url.url
+                    )
+                    return match
 
                 final_url = dest_url
+                self.resolved_urls[url] = final_url.url
             else:
                 # If it's not shortened, we just use the original URL object.
                 final_url = orig_url
@@ -479,6 +492,13 @@ class Indicators:
 
         return None
 
+    def get_expanded_url(self, url: str) -> Optional[str]:
+        """Return the final URL recorded while checking a shortened URL."""
+        expanded_url = self.resolved_urls.get(url)
+        if expanded_url and expanded_url != url:
+            return expanded_url
+        return None
+
     def check_urls(self, urls: list) -> Optional[IndicatorMatch]:
         """Check a list of URLs against the provided list of domain indicators.
 
@@ -490,12 +510,39 @@ class Indicators:
         if not urls:
             return None
 
-        for url in urls:
-            check = self.check_url(url)
-            if check:
-                return check
+        return self.check_url_batches([urls])[0]
 
-        return None
+    def check_url_batches(
+        self, url_batches: Sequence[Optional[Sequence[str]]]
+    ) -> List[Optional[IndicatorMatch]]:
+        """Check batches of URLs concurrently while preserving batch order.
+
+        URLs are deduplicated across batches before checking. Each returned item
+        is the first indicator match from the corresponding input batch, using
+        the original URL order.
+        """
+        batches = [list(urls) if urls else [] for urls in url_batches]
+        unique_urls = list(dict.fromkeys(url for urls in batches for url in urls))
+
+        if not unique_urls:
+            return [None] * len(batches)
+
+        if settings.NETWORK_ACCESS_ALLOWED and len(unique_urls) > 1:
+            worker_count = min(URL_CHECK_MAX_WORKERS, len(unique_urls))
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                url_matches = dict(
+                    zip(unique_urls, executor.map(self.check_url, unique_urls))
+                )
+        else:
+            url_matches = {url: self.check_url(url) for url in unique_urls}
+
+        return [
+            next(
+                (url_matches[url] for url in urls if url_matches[url] is not None),
+                None,
+            )
+            for urls in batches
+        ]
 
     def check_process(self, process: str) -> Optional[IndicatorMatch]:
         """Check the provided process name against the list of process

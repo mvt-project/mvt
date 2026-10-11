@@ -5,6 +5,7 @@
 
 import logging
 from typing import Optional
+from urllib.parse import urlparse
 
 import requests
 from tld import get_tld
@@ -348,7 +349,9 @@ class URL:
             return tld_obj
         if tld_obj is None:
             return ""
-        return tld_obj.parsed_url.netloc.lower().lstrip("www.")
+        # removeprefix, not lstrip: lstrip takes a set of characters, so it ate the
+        # leading "w"s and dots of any domain ("web.evil.com" -> "eb.evil.com").
+        return tld_obj.parsed_url.netloc.lower().removeprefix("www.")
 
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
@@ -373,6 +376,10 @@ class URL:
         :rtype: bool
 
         """
+        parsed_url = urlparse(self.url if "://" in self.url else f"//{self.url}")
+        if self.domain.lower() == "goo.gl" and parsed_url.path.startswith("/maps/"):
+            return False
+
         if self.domain.lower() in SHORTENER_DOMAINS:
             self.is_shortened = True
 

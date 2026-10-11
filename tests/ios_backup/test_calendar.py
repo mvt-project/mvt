@@ -4,6 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import logging
+import os
 
 from mvt.common.indicators import Indicators
 from mvt.common.module import run_module
@@ -19,6 +20,18 @@ class TestCalendarModule:
         assert len(m.results) == 1
         assert len(m.timeline) == 4
         assert len(m.alertstore.alerts) == 0
+        assert m.results[0]["summary"] == "Super interesting meeting"
+
+    def test_calendar_with_explicit_file_path(self):
+        backup_path = get_ios_backup_folder()
+        database_path = os.path.join(
+            backup_path, "20", "2041457d5fe04d39d0ab481178355df6781e6858"
+        )
+        m = Calendar(file_path=database_path)
+
+        run_module(m)
+
+        assert len(m.results) == 1
         assert m.results[0]["summary"] == "Super interesting meeting"
 
     def test_calendar_detection(self, indicator_file):

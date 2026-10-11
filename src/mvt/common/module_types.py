@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, TypedDict, Union
 
 
 # ModuleAtomicResult is a flexible dictionary that can contain any data.
@@ -20,6 +20,13 @@ ModuleAtomicResult = Dict[str, Any]
 # dictionaries keyed by source path. Keep this alias broad until those shapes
 # are modeled per module.
 ModuleResults = Any
+
+
+class URLResult(TypedDict):
+    url: str
+    expanded_url: Optional[str]
+    timestamp: Optional[str]
+    source: str
 
 
 @dataclass

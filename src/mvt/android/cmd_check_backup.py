@@ -89,11 +89,15 @@ class CmdAndroidCheckBackup(Command):
         if header["encryption"] != "none":
             password = prompt_or_load_android_backup_password(log, self.module_options)
             if not password:
+                if self.sub_command:
+                    raise InvalidAndroidBackup("No backup password provided")
                 log.critical("No backup password provided.")
                 sys.exit(1)
         try:
             tardata = parse_backup_file(ab_file_bytes, password=password)
         except InvalidBackupPassword:
+            if self.sub_command:
+                raise InvalidAndroidBackup("Invalid backup password")
             log.critical("Invalid backup password")
             sys.exit(1)
         except AndroidBackupParsingError as exc:
@@ -127,6 +131,7 @@ class CmdAndroidCheckBackup(Command):
         assert self.target_path is not None  # type: ignore[has-type]
         # Use a different local variable name to avoid any scoping issues
         backup_path: str = self.target_path  # type: ignore[has-type]
+        self.log.info("Checking Android backup at path: %s", backup_path)
 
         if os.path.isfile(backup_path):
             self.__type = "ab"

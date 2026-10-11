@@ -73,7 +73,9 @@ class Calls(IOSExtraction):
                     "duration": row[1],
                     "location": row[2],
                     "number": (
-                        row[3].decode("utf-8") if row[3] and row[3] is bytes else row[3]
+                        row[3].decode("utf-8")
+                        if isinstance(row[3], bytes)
+                        else row[3]
                     ),
                     "provider": row[4],
                 }

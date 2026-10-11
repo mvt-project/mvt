@@ -3,4 +3,4 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
-from .cli import cli
+from .cli import cli, main

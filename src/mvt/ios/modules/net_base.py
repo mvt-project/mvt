@@ -42,7 +42,8 @@ class NetBase(IOSExtraction):
         )
 
     def _extract_net_data(self):
-        conn = sqlite3.connect(self.file_path)
+        assert self.file_path is not None
+        conn = self._open_sqlite_db(self.file_path)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         try:
@@ -237,9 +238,7 @@ class NetBase(IOSExtraction):
                             "been truncated in the database)"
                         )
 
-                    self.alertstore.medium(
-                        msg, proc["live_isodate"], proc
-                    )
+                    self.alertstore.medium(msg, proc["live_isodate"], proc)
 
             if not proc["live_proc_id"]:
                 self.log.info(

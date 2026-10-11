@@ -18,6 +18,14 @@ class TestSMSModule:
         run_module(m)
         assert len(m.results) == 1
         assert len(m.timeline) == 2
+        assert m.url_results == [
+            {
+                "url": "https://badbadbad.example.org/",
+                "expanded_url": None,
+                "timestamp": "2019-08-29 23:13:30.000000",
+                "source": "sms",
+            }
+        ]
         assert len(m.alertstore.alerts) == 0
 
     def test_detection(self, indicator_file):
@@ -29,3 +37,31 @@ class TestSMSModule:
         m.indicators = ind
         run_module(m)
         assert len(m.alertstore.alerts) == 1
+
+    def test_detection_batches_urls_and_preserves_event(self, indicator_file, mocker):
+        results = [
+            {
+                "text": "first",
+                "links": ["http://example.com/thisisbad"],
+            },
+            {
+                "text": "second",
+                "links": ["https://github.com"],
+            },
+        ]
+        m = SMS(results=results)
+        ind = Indicators(log=logging.getLogger())
+        ind.parse_stix2(indicator_file)
+        batch_check = mocker.spy(ind, "check_url_batches")
+        m.indicators = ind
+
+        m.check_indicators()
+
+        batch_check.assert_called_once_with(
+            [
+                ["http://example.com/thisisbad"],
+                ["https://github.com"],
+            ]
+        )
+        assert len(m.alertstore.alerts) == 1
+        assert m.alertstore.alerts[0].event is results[0]

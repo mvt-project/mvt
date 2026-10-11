@@ -6,12 +6,20 @@
 import base64
 import binascii
 import hashlib
+import re
 
 from .artifact import AndroidArtifact
 
 
 class DumpsysADBArtifact(AndroidArtifact):
     multiline_fields = ["user_keys", "keystore"]
+
+    @staticmethod
+    def is_structural_line(key: str, vals: list) -> bool:
+        if key == "}":
+            return True
+        # XML keystore continuations also split on "=", but never into an identifier.
+        return len(vals) == 2 and key.isidentifier()
 
     def indented_dump_parser(self, dump_data):
         """
@@ -21,11 +29,26 @@ class DumpsysADBArtifact(AndroidArtifact):
         stack = [res]
         cur_indent = 0
         in_multiline = False
-        for line in dump_data.strip(b"\n").split(b"\n"):
+        for line in dump_data.strip(b"\r\n").split(b"\n"):
+            line = line.removesuffix(b"\r")
             # Track the level of indentation
             indent = len(line) - len(line.lstrip())
-            if indent < cur_indent:
+            # A closing brace is dedented from the block it closes, and the
+            # brace handler below pops that block. Popping on the dedent as
+            # well would close two levels for one brace. A blank line has no
+            # indentation to compare: it ends a multiline value (handled
+            # below) and is otherwise skipped.
+            if indent < cur_indent and line.strip() not in (b"", b"}"):
                 # If the current line is less indented than the previous one, back out
+                if len(stack) <= 1:
+                    # Dedenting below the outermost level means this is not the
+                    # well-formed block the parser expects. Stop here rather than
+                    # raise IndexError out of the module on the next line.
+                    self.log.error(
+                        "Unexpected indentation in ADB manager state, "
+                        "stopping the parse of this section"
+                    )
+                    break
                 stack.pop()
                 cur_indent = indent
             else:
@@ -41,12 +64,29 @@ class DumpsysADBArtifact(AndroidArtifact):
                 if key == "":
                     # If the line is empty, it's the terminator for the multiline value
                     in_multiline = False
-                    stack.pop()
-                else:
+                    if isinstance(stack[-1], list):
+                        stack.pop()
+                    continue
+
+                if not self.is_structural_line(key, vals):
                     current_dict.append(line.lstrip())
+                    continue
+
+                in_multiline = False
+                if isinstance(stack[-1], list):
+                    stack.pop()
+                current_dict = stack[-1]
+
+            if not line.strip():
                 continue
 
             if key == "}":
+                if len(stack) <= 1:
+                    self.log.error(
+                        "Unbalanced closing brace in ADB manager state, "
+                        "stopping the parse of this section"
+                    )
+                    break
                 stack.pop()
                 continue
 
@@ -83,6 +123,34 @@ class DumpsysADBArtifact(AndroidArtifact):
 
         return keystore
 
+    def parse_binary_xml(self, data: bytes) -> list[dict]:
+        """Recover ADB key records from Android binary XML (ABX).
+
+        Some dumpstate implementations embed ABX in a text stream and replace
+        binary token bytes. The public key remains intact, while unavailable
+        numeric metadata is represented as ``None`` rather than corrupt text.
+        """
+        keystore = []
+        seen = set()
+        for match in re.finditer(
+            rb"(?<![A-Za-z0-9+/])([A-Za-z0-9+/]{300,}={0,2})"
+            rb"(?: ([A-Za-z0-9_.@-]+))?",
+            data,
+        ):
+            key = match.group(1)
+            try:
+                base64.b64decode(key, validate=True)
+            except (binascii.Error, ValueError):
+                continue
+            if key in seen:
+                continue
+            seen.add(key)
+            full_key = key + (b" " + match.group(2) if match.group(2) else b"")
+            key_info = self.calculate_key_info(full_key)
+            key_info["last_connected"] = None
+            keystore.append(key_info)
+        return keystore
+
     @staticmethod
     def calculate_key_info(user_key: bytes) -> dict:
         if b" " in user_key:
@@ -103,7 +171,7 @@ class DumpsysADBArtifact(AndroidArtifact):
         return {
             "user": user.decode("utf-8"),
             "fingerprint": key_fingerprint_colon,
-            "key": key_base64,
+            "key": key_base64.decode("ascii", errors="replace"),
         }
 
     def check_indicators(self) -> None:
@@ -116,6 +184,26 @@ class DumpsysADBArtifact(AndroidArtifact):
                     f"Found trusted ADB key for user '{user_key['user']}' with fingerprint "
                     f"'{user_key['fingerprint']}'"
                 )
+
+    @staticmethod
+    def _find_state_end(content: bytes, open_brace: int) -> int:
+        """Find the unindented line closing the ADB manager state, or -1.
+
+        Braces inside key comments or embedded keystore data are values, while
+        nested structural closing braces are indented.
+        """
+        line_start = open_brace
+        while line_start < len(content):
+            line_end = content.find(b"\n", line_start)
+            if line_end == -1:
+                line_end = len(content)
+            line = content[line_start:line_end].removesuffix(b"\r")
+            if line_start > open_brace and line == b"}":
+                return line_start
+            if line.startswith((b"---------", b"DUMP OF SERVICE ")):
+                break
+            line_start = line_end + 1
+        return -1
 
     def parse(self, content: bytes) -> None:
         """
@@ -136,12 +224,16 @@ class DumpsysADBArtifact(AndroidArtifact):
             self.log.error("Unable to find ADB manager state in dumpsys output")
             return
 
-        end_of_json = content.rfind(b"}\n")
-        if end_of_json == -1 or end_of_json <= start_of_json:
-            self.log.error("Unable to find complete ADB manager state in dumpsys output")
+        end_of_json = self._find_state_end(content, start_of_json + 1)
+        if end_of_json == -1:
+            self.log.error(
+                "Unable to find complete ADB manager state in dumpsys output"
+            )
             return
 
-        json_content = content[start_of_json + 2 : end_of_json - 2].rstrip()
+        # The brace that opens the state and the one that closes it are not part
+        # of the indented body.
+        json_content = content[start_of_json + 2 : end_of_json].rstrip()
 
         parsed = self.indented_dump_parser(json_content)
         if parsed.get("debugging_manager") is None:
@@ -160,11 +252,22 @@ class DumpsysADBArtifact(AndroidArtifact):
         # Keystore is in XML format on some devices and we need to parse it
         if keystore_data and keystore_data.startswith(b"<?xml"):
             parsed["debugging_manager"]["keystore"] = self.parse_xml(keystore_data)
+        elif keystore_data and keystore_data.startswith(b"ABX\x00"):
+            parsed["debugging_manager"]["keystore"] = self.parse_binary_xml(
+                keystore_data
+            )
         else:
             # Keystore is not XML format
             parsed["debugging_manager"]["keystore"] = keystore_data
 
         parsed = parsed["debugging_manager"]
+
+        for key, value in list(parsed.items()):
+            if isinstance(value, bytes):
+                decoded = value.decode("utf-8", errors="replace")
+                parsed[key] = (
+                    decoded == "true" if decoded in ("true", "false") else decoded
+                )
 
         # Calculate key fingerprints for better readability
         key_info = []

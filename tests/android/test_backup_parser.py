@@ -5,7 +5,10 @@
 
 import hashlib
 
+import pytest
+
 from mvt.android.parsers.backup import (
+    AndroidBackupParsingError,
     parse_ab_header,
     parse_backup_file,
     parse_tar_for_sms,
@@ -22,6 +25,14 @@ class TestBackupParsing:
             "version": None,
             "encryption": None,
         }
+
+    def test_parse_truncated_encrypted_header(self):
+        with pytest.raises(
+            AndroidBackupParsingError, match="Invalid encrypted backup header"
+        ):
+            parse_backup_file(
+                b"ANDROID BACKUP\n5\n0\nAES-256\ntruncated", password="password"
+            )
 
     def test_parsing_noencryption(self):
         file = get_artifact("android_backup/backup.ab")

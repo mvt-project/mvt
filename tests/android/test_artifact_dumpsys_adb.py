@@ -3,12 +3,27 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import base64
+
 from mvt.android.artifacts.dumpsys_adb import DumpsysADBArtifact
+from mvt.android.modules.bugreport.dumpsys_adb_state import DumpsysADBState
+from mvt.common.alerts import AlertLevel
 
 from ..utils import get_artifact
 
 
 class TestDumpsysADBArtifact:
+    def test_parsing_binary_xml_recovers_key(self):
+        public_key = base64.b64encode(bytes(range(256)))
+        keystore = DumpsysADBArtifact().parse_binary_xml(
+            b"ABX\x00binary-key=" + public_key + b" user@host\x00lastConnection"
+        )
+
+        assert len(keystore) == 1
+        assert keystore[0]["key"] == public_key.decode()
+        assert keystore[0]["user"] == "user@host"
+        assert keystore[0]["last_connected"] is None
+
     def test_parsing(self):
         da_adb = DumpsysADBArtifact()
         file = get_artifact("android_data/dumpsys_adb.txt")
@@ -29,6 +44,66 @@ class TestDumpsysADBArtifact:
             user_key["fingerprint"] == "F0:A1:3D:8C:B3:F4:7B:09:9F:EE:8B:D8:38:2E:BD:C6"
         )
         assert user_key["user"] == "user@linux"
+
+    def test_parsing_adb_wifi(self):
+        da_adb = DumpsysADBArtifact()
+        file = get_artifact("android_data/dumpsys_adb_wifi.txt")
+        with open(file, "rb") as f:
+            data = f.read()
+
+        da_adb.parse(data)
+
+        assert len(da_adb.results) == 1
+        adb_data = da_adb.results[0]
+        assert "user_keys" in adb_data
+        assert len(adb_data["user_keys"]) == 1
+
+        user_key = adb_data["user_keys"][0]
+        assert (
+            user_key["fingerprint"] == "F0:A1:3D:8C:B3:F4:7B:09:9F:EE:8B:D8:38:2E:BD:C6"
+        )
+        assert user_key["user"] == "user@linux"
+
+        # The adb_wifi block following the keystore is not part of the keystore.
+        assert b"adb_wifi" not in adb_data["keystore"]
+
+    def test_parsing_multiline_terminated_by_structural_line(self):
+        dump_data = (
+            b"debugging_manager={\n"
+            b"  keystore=ABX\x00\x0bkeyStore\x00\x02\x11\n"
+            b"  connected_to_adb=true\n"
+            b"  adb_wifi={\n"
+            b"    enabled=false\n"
+            b"    tls_port=0\n"
+            b"  }\n"
+        )
+
+        parsed = DumpsysADBArtifact().indented_dump_parser(dump_data)
+
+        debugging_manager = parsed["debugging_manager"]
+        assert debugging_manager["keystore"] == [b"ABX\x00\x0bkeyStore\x00\x02\x11"]
+        assert debugging_manager["connected_to_adb"] == b"true"
+        assert debugging_manager["adb_wifi"] == {
+            "enabled": b"false",
+            "tls_port": b"0",
+        }
+
+    def test_parsing_multiline_terminated_by_closing_brace(self):
+        dump_data = (
+            b"debugging_manager={\n"
+            b"  keystore=ABX\x00\x0bkeyStore\x00\x02\x11\n"
+            b"}\n"
+            b"other={\n"
+            b"  value=true\n"
+            b"}\n"
+        )
+
+        parsed = DumpsysADBArtifact().indented_dump_parser(dump_data)
+
+        assert parsed["debugging_manager"]["keystore"] == [
+            b"ABX\x00\x0bkeyStore\x00\x02\x11"
+        ]
+        assert parsed["other"] == {"value": b"true"}
 
     def test_parsing_adb_xml(self):
         da_adb = DumpsysADBArtifact()
@@ -54,3 +129,293 @@ class TestDumpsysADBArtifact:
         assert key_store_entry["user"] == "user@laptop"
         assert key_store_entry["fingerprint"] == expected_fingerprint
         assert key_store_entry["last_connected"] == "1628501829898"
+
+    def test_parsing_adb_xml_with_crlf_line_endings(self):
+        da_adb = DumpsysADBArtifact()
+        file = get_artifact("android_data/dumpsys_adb_xml.txt")
+        with open(file, "rb") as f:
+            data = f.read().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+
+        da_adb.parse(data)
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["user_keys"][0]["user"] == "user@laptop"
+        assert da_adb.results[0]["keystore"][0]["last_connected"] == "1628501829898"
+
+    def test_parsing_adb_wifi_with_mixed_line_endings(self):
+        da_adb = DumpsysADBArtifact()
+        data = (
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=true\n"
+            b"    user_keys=QUJDRA== host@example\n"
+            b"    adb_wifi={\n"
+            b"      enabled=false\n"
+            b"    }\n"
+            b"  }\r\n"
+            b"}\n"
+            b"--------- duration\n"
+        )
+
+        da_adb.parse(data)
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["user_keys"][0]["user"] == "host@example"
+        assert da_adb.results[0]["adb_wifi"]["enabled"] == b"false"
+
+    ADB_STATE = (
+        b"ADB MANAGER STATE (dumpsys adb):\n"
+        b"{\n"
+        b"  debugging_manager={\n"
+        b"    connected_to_adb=true\n"
+        b"    user_keys=QUJDRA== host@example\n"
+        b"  }\n"
+        b"}\n"
+        b"--------- 0.5s was the duration of 'dumpsys adb'\n"
+    )
+
+    def test_a_later_dumpsys_section_does_not_extend_the_adb_state(self):
+        # A bug report holds many sections. Looking for the last closing brace
+        # in the whole output pulled a later section into this one, which threw
+        # IndexError out of parse() and lost the ADB records entirely.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            self.ADB_STATE + b"DUMP OF SERVICE other:\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=false\n"
+            b"    user_keys=RVZJTA== attacker@host\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert [key["user"] for key in da_adb.results[0]["user_keys"]] == [
+            "host@example"
+        ]
+        assert da_adb.results[0]["connected_to_adb"] is True
+
+    def test_braces_in_key_comment_are_not_state_delimiters(self):
+        for user in (b"host{example", b"host}}example"):
+            da_adb = DumpsysADBArtifact()
+            da_adb.parse(
+                b"ADB MANAGER STATE (dumpsys adb):\n"
+                b"{\n"
+                b"  debugging_manager={\n"
+                b"    connected_to_adb=true\n"
+                b"    user_keys=QUJDRA== " + user + b"\n  }\n}\n"
+            )
+
+            assert len(da_adb.results) == 1
+            assert da_adb.results[0]["user_keys"][0]["user"] == user.decode()
+
+    def test_state_without_keys_is_parsed_without_error(self, caplog):
+        # Shape printed by every device with no stored ADB keys (Samsung
+        # SM-A525F, Android 12). The block's closing brace is dedented from
+        # the last entry and must close exactly one level.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=false\n"
+            b"  }\n"
+            b"}\n"
+            b"--------- 0.015s was the duration of dumpsys adb\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is False
+        assert not [r for r in caplog.records if r.levelname == "ERROR"]
+
+    def test_nested_block_as_last_entry_is_parsed_without_error(self, caplog):
+        # Shape printed by Pixel devices with no stored ADB keys.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=false\n"
+            b"    adb_wifi={\n"
+            b"      enabled=false\n"
+            b"      tls_port=0\n"
+            b"    }\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is False
+        assert da_adb.results[0]["adb_wifi"]["tls_port"] == b"0"
+        assert not [r for r in caplog.records if r.levelname == "ERROR"]
+
+    def test_entry_after_nested_block_stays_in_debugging_manager(self):
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    adb_wifi={\n"
+            b"      enabled=false\n"
+            b"    }\n"
+            b"    connected_to_adb=true\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is True
+
+    def test_blank_line_after_single_line_value_does_not_raise(self):
+        # `system_keys` is the content of /adb_keys and ends with a newline,
+        # so a blank line follows it. It is not a multiline field, so the
+        # blank line is not a multiline terminator either.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=true\n"
+            b"    user_keys=QUJDRA== host@example\n"
+            b"\n"
+            b"    system_keys=RUZHSA== system@example\n"
+            b"\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["user_keys"][0]["user"] == "host@example"
+        assert da_adb.results[0]["system_keys"] == "RUZHSA== system@example"
+
+    def test_unbalanced_state_is_reported_rather_than_raising(self):
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=true\n"
+            b"  }\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        # No exception, and whatever was read before the bad line is kept.
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is True
+
+
+class TestDumpsysADBStateAlerts:
+    def test_no_androidqf_context_preserves_existing_behavior(self):
+        module = DumpsysADBState(
+            results=[
+                {
+                    "user_keys": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "host@example",
+                            "fingerprint": "fingerprint",
+                        }
+                    ]
+                }
+            ]
+        )
+
+        module.check_indicators()
+
+        assert module.alertstore.alerts == []
+
+    def test_androidqf_trusted_keys_create_expected_alerts(self):
+        module = DumpsysADBState(
+            module_options={
+                "androidqf_acquisition": {
+                    "started": "2025-06-20T18:00:00Z",
+                    "adb_host_public_key": "QUJDRA== acquisition@host",
+                }
+            },
+            results=[
+                {
+                    "user_keys": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "acquisition@host",
+                            "fingerprint": "acquisition-fingerprint",
+                        },
+                        {
+                            "key": b"RUZHSA==",
+                            "user": "other@host",
+                            "fingerprint": "other-fingerprint",
+                        },
+                        {
+                            "key": b"not-base64",
+                            "user": "invalid@host",
+                            "fingerprint": "",
+                        },
+                    ],
+                    "keystore": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "acquisition@host",
+                            "fingerprint": "acquisition-fingerprint",
+                            "last_connected": "1750266000000",
+                        }
+                    ],
+                }
+            ],
+        )
+
+        module.check_indicators()
+
+        assert [alert.level for alert in module.alertstore.alerts] == [
+            AlertLevel.INFORMATIONAL,
+            AlertLevel.LOW,
+            AlertLevel.LOW,
+        ]
+        informational, different, invalid = module.alertstore.alerts
+        assert "at least one day before" in informational.message
+        assert informational.event_time == "2025-06-18 17:00:00.000000"
+        assert "different from the AndroidQF acquisition host" in different.message
+        assert "invalid trusted ADB host key" in invalid.message
+
+    def test_missing_androidqf_host_key_creates_low_alert(self):
+        trusted_key = {
+            "key": b"QUJDRA==",
+            "user": "host@example",
+            "fingerprint": "fingerprint",
+        }
+        module = DumpsysADBState(
+            module_options={"androidqf_acquisition": {}},
+            results=[{"user_keys": [trusted_key]}],
+        )
+
+        module.check_indicators()
+
+        assert len(module.alertstore.alerts) == 1
+        assert module.alertstore.alerts[0].level == AlertLevel.LOW
+        assert "does not include its host key" in module.alertstore.alerts[0].message
+
+    def test_recent_acquisition_host_key_does_not_create_alert(self):
+        module = DumpsysADBState(
+            module_options={
+                "androidqf_acquisition": {
+                    "started": "2025-06-20T18:00:00Z",
+                    "adb_host_public_key": "QUJDRA== acquisition@host",
+                }
+            },
+            results=[
+                {
+                    "keystore": [
+                        {
+                            "key": b"QUJDRA==",
+                            "user": "acquisition@host",
+                            "fingerprint": "fingerprint",
+                            "last_connected": "1750438800000",
+                        }
+                    ]
+                }
+            ],
+        )
+
+        module.check_indicators()
+
+        assert module.alertstore.alerts == []

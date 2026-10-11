@@ -17,10 +17,17 @@ from mvt.common.utils import convert_mactime_to_datetime, convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
-SAFARI_HISTORY_BACKUP_RELPATH = "Library/Safari/History.db"
+# Safari profiles (iOS 17 and later) each keep their own History.db under
+# Library/Safari/Profiles/<UUID>/, separate from the default profile's database.
+SAFARI_HISTORY_BACKUP_RELPATHS = [
+    "Library/Safari/History.db",
+    "Library/Safari/Profiles/*/History.db",
+]
 SAFARI_HISTORY_ROOT_PATHS = [
     "private/var/mobile/Library/Safari/History.db",
+    "private/var/mobile/Library/Safari/Profiles/*/History.db",
     "private/var/mobile/Containers/Data/Application/*/Library/Safari/History.db",
+    "private/var/mobile/Containers/Data/Application/*/Library/Safari/Profiles/*/History.db",
 ]
 
 
@@ -75,6 +82,9 @@ class SafariHistory(IOSExtraction):
 
             # We loop again through visits in order to find redirect record.
             for redirect in self.results:
+                if redirect["safari_history_db"] != result["safari_history_db"]:
+                    continue
+
                 if redirect["visit_id"] != result["redirect_destination"]:
                     continue
 
@@ -159,17 +169,22 @@ class SafariHistory(IOSExtraction):
 
     def run(self) -> None:
         if self.is_backup:
-            for history_file in self._get_backup_files_from_manifest(
-                relative_path=SAFARI_HISTORY_BACKUP_RELPATH
-            ):
-                history_path = self._get_backup_file_from_id(history_file["file_id"])
+            for relative_path in SAFARI_HISTORY_BACKUP_RELPATHS:
+                for history_file in self._get_backup_files_from_manifest(
+                    relative_path=relative_path
+                ):
+                    history_path = self._get_backup_file_from_id(
+                        history_file["file_id"]
+                    )
 
-                if not history_path:
-                    continue
+                    if not history_path:
+                        continue
 
-                self.log.info("Found Safari history database at path: %s", history_path)
+                    self.log.info(
+                        "Found Safari history database at path: %s", history_path
+                    )
 
-                self._process_history_db(history_path)
+                    self._process_history_db(history_path)
         elif self.is_fs_dump:
             for history_path in self._get_fs_files_from_patterns(
                 SAFARI_HISTORY_ROOT_PATHS
