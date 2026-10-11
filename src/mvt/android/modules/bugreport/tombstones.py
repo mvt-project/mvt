@@ -68,6 +68,11 @@ class Tombstones(TombstoneCrashArtifact, BugReportModule):
                 }
                 try:
                     data = self._get_file_content(file_path)
+                    if not data:
+                        self.log.debug("Skipping empty tombstone file %s (0 bytes)", file_path)
+                        source_info["error"] = "empty tombstone"
+                        parsed_sources[source] = source_info
+                        continue
                     if source == "protobuf":
                         record = self.parse_protobuf_record(
                             file_name, file_timestamp, data

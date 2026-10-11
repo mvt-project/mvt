@@ -66,4 +66,4 @@ docker run --rm -it \
     ghcr.io/mvt-project/mvt:latest-ios lockdown info
 ```
 
-If you built the image from source, replace `ghcr.io/mvt-project/mvt` with `mvt`. 
+If you built the image from source, replace `ghcr.io/mvt-project/mvt` with `mvt`.
