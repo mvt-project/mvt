@@ -421,7 +421,10 @@ class TestCommand:
         with caplog.at_level(logging.WARNING):
             cmd.run()
 
-        assert RecordingModule.run_order == ["IndependentModule", "FirstModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "IndependentModule",
+            "FirstModule",
+        ]
         assert cmd.initialized
         assert "Module DependentModule will be SKIPPED" in caplog.text
         assert "depends on module UnavailableModule" in caplog.text
@@ -787,7 +790,10 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == ["IndependentModule", "ReplacementModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "IndependentModule",
+            "ReplacementModule",
+        ]
         assert cmd.module_replacements == {FirstModule: ReplacementModule}
         assert (
             "Module ReplacementModule from" in caplog.text
@@ -803,7 +809,10 @@ class TestCommand:
 
         cmd.run()
 
-        assert RecordingModule.run_order == ["FirstModule", "CustomIOSBackupModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "FirstModule",
+            "CustomIOSBackupModule",
+        ]
         assert cmd.module_replacements == {}
 
     def test_unavailable_replaced_module_is_ignored(self, caplog):
@@ -816,7 +825,10 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == ["IndependentModule", "ReplacementModule"]
+        assert [type(module).__name__ for module in cmd.executed] == [
+            "IndependentModule",
+            "ReplacementModule",
+        ]
         assert cmd.module_replacements == {}
         assert "replaces module FirstModule" not in caplog.text
 
@@ -934,7 +946,7 @@ class TestCommand:
         with caplog.at_level(logging.WARNING):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "ReplacementModule",
             "OtherReplacementModule",
         ]
@@ -993,8 +1005,9 @@ class TestCommand:
         assert cmd.module_replacements == {}
         assert logged_substitutions(caplog) == []
 
-    def test_modules_replacing_each_other_all_run(self, caplog):
-        cmd = RecordingCommand()
+    @pytest.mark.parametrize("jobs", [1, 4])
+    def test_modules_replacing_each_other_all_run(self, caplog, jobs):
+        cmd = RecordingCommand(jobs=jobs)
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.custom_modules = [MutualReplacementOne, MutualReplacementTwo]
@@ -1002,7 +1015,7 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "MutualReplacementOne",
             "MutualReplacementTwo",
         ]
@@ -1013,8 +1026,9 @@ class TestCommand:
         )
         assert logged_substitutions(caplog) == []
 
-    def test_replacement_cycle_of_three_modules_all_run(self, caplog):
-        cmd = RecordingCommand()
+    @pytest.mark.parametrize("jobs", [1, 4])
+    def test_replacement_cycle_of_three_modules_all_run(self, caplog, jobs):
+        cmd = RecordingCommand(jobs=jobs)
         cmd.platform = "ios"
         cmd.name = "check-backup"
         cmd.custom_modules = [CycleOneModule, CycleTwoModule, CycleThreeModule]
@@ -1022,7 +1036,7 @@ class TestCommand:
         with caplog.at_level(logging.INFO):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "CycleOneModule",
             "CycleTwoModule",
             "CycleThreeModule",
@@ -1105,7 +1119,7 @@ class TestCommand:
         with caplog.at_level(logging.WARNING):
             cmd.run()
 
-        assert RecordingModule.run_order == [
+        assert [type(module).__name__ for module in cmd.executed] == [
             "SharedSlugModule",
             "OtherSharedSlugModule",
         ]
