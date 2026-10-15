@@ -298,6 +298,63 @@ class TestIndicators:
                 f"check_file_hash failed for pattern key '{pattern_key}'"
             )
 
+    def test_parse_stix2_url_with_equals(self, tmp_path):
+        """Preserve equals signs inside STIX indicator values."""
+        import json
+
+        stix = {
+            "type": "bundle",
+            "id": "bundle--test",
+            "objects": [
+                {
+                    "type": "malware",
+                    "id": "malware--test",
+                    "name": "TestMalware",
+                    "is_family": False,
+                },
+                {
+                    "type": "indicator",
+                    "id": "indicator--url",
+                    "indicator_types": ["malicious-activity"],
+                    "pattern": "[url:value='https://example.com/track?id=1']",
+                    "pattern_type": "stix",
+                    "valid_from": "2024-01-01T00:00:00Z",
+                },
+                {
+                    "type": "indicator",
+                    "id": "indicator--domain",
+                    "indicator_types": ["malicious-activity"],
+                    "pattern": "[domain-name:value='example.org']",
+                    "pattern_type": "stix",
+                    "valid_from": "2024-01-01T00:00:00Z",
+                },
+                {
+                    "type": "relationship",
+                    "id": "relationship--url",
+                    "relationship_type": "indicates",
+                    "source_ref": "indicator--url",
+                    "target_ref": "malware--test",
+                },
+                {
+                    "type": "relationship",
+                    "id": "relationship--domain",
+                    "relationship_type": "indicates",
+                    "source_ref": "indicator--domain",
+                    "target_ref": "malware--test",
+                },
+            ],
+        }
+        stix_file = tmp_path / "test.stix2"
+        stix_file.write_text(json.dumps(stix))
+
+        ind = Indicators(log=logging)
+        ind.load_indicators_files([str(stix_file)], load_default=False)
+
+        assert ind.ioc_collections[0]["urls"] == [
+            "https://example.com/track?id=1"
+        ]
+        assert ind.ioc_collections[0]["domains"] == ["example.org"]
+
     def test_check_android_property(self, indicator_file):
         ind = Indicators(log=logging)
         ind.load_indicators_files([indicator_file], load_default=False)
