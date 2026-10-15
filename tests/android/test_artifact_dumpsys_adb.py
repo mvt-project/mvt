@@ -209,6 +209,85 @@ class TestDumpsysADBArtifact:
             assert len(da_adb.results) == 1
             assert da_adb.results[0]["user_keys"][0]["user"] == user.decode()
 
+    def test_state_without_keys_is_parsed_without_error(self, caplog):
+        # Shape printed by every device with no stored ADB keys (Samsung
+        # SM-A525F, Android 12). The block's closing brace is dedented from
+        # the last entry and must close exactly one level.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=false\n"
+            b"  }\n"
+            b"}\n"
+            b"--------- 0.015s was the duration of dumpsys adb\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is False
+        assert not [r for r in caplog.records if r.levelname == "ERROR"]
+
+    def test_nested_block_as_last_entry_is_parsed_without_error(self, caplog):
+        # Shape printed by Pixel devices with no stored ADB keys.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=false\n"
+            b"    adb_wifi={\n"
+            b"      enabled=false\n"
+            b"      tls_port=0\n"
+            b"    }\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is False
+        assert da_adb.results[0]["adb_wifi"]["tls_port"] == b"0"
+        assert not [r for r in caplog.records if r.levelname == "ERROR"]
+
+    def test_entry_after_nested_block_stays_in_debugging_manager(self):
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    adb_wifi={\n"
+            b"      enabled=false\n"
+            b"    }\n"
+            b"    connected_to_adb=true\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["connected_to_adb"] is True
+
+    def test_blank_line_after_single_line_value_does_not_raise(self):
+        # `system_keys` is the content of /adb_keys and ends with a newline,
+        # so a blank line follows it. It is not a multiline field, so the
+        # blank line is not a multiline terminator either.
+        da_adb = DumpsysADBArtifact()
+        da_adb.parse(
+            b"ADB MANAGER STATE (dumpsys adb):\n"
+            b"{\n"
+            b"  debugging_manager={\n"
+            b"    connected_to_adb=true\n"
+            b"    user_keys=QUJDRA== host@example\n"
+            b"\n"
+            b"    system_keys=RUZHSA== system@example\n"
+            b"\n"
+            b"  }\n"
+            b"}\n"
+        )
+
+        assert len(da_adb.results) == 1
+        assert da_adb.results[0]["user_keys"][0]["user"] == "host@example"
+        assert da_adb.results[0]["system_keys"] == "RUZHSA== system@example"
+
     def test_unbalanced_state_is_reported_rather_than_raising(self):
         da_adb = DumpsysADBArtifact()
         da_adb.parse(
