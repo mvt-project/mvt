@@ -6,7 +6,7 @@
 """Password prompts with masked keyboard feedback.
 
 This is based on the ``echo_char`` support added to :mod:`getpass` in Python
-3.14. MVT supports Python 3.10 and later, so it cannot use that API directly.
+3.14. MVT supports Python 3.11 and later, so it cannot use that API directly.
 """
 
 import contextlib

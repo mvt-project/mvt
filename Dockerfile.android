@@ -1,5 +1,5 @@
 # Create main image
-FROM python:3.10.14-alpine3.20 AS main
+FROM python:3.11.17-alpine3.24 AS main
 COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /usr/local/bin/
 
 LABEL org.opencontainers.image.url="https://mvt.re"
@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.source="https://github.com/mvt-project/mvt"
 LABEL org.opencontainers.image.title="Mobile Verification Toolkit (Android)"
 LABEL org.opencontainers.image.description="MVT is a forensic tool to look for signs of infection in smartphone devices."
 LABEL org.opencontainers.image.licenses="MVT License 1.1"
-LABEL org.opencontainers.image.base.name=docker.io/library/python:3.10.14-alpine3.20
+LABEL org.opencontainers.image.base.name=docker.io/library/python:3.11.17-alpine3.24
 
 # Install runtime dependencies
 RUN apk add --no-cache \
