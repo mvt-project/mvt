@@ -22,6 +22,8 @@ from mvt.common.help import (
     HELP_MSG_CHECK_ANDROIDQF,
     HELP_MSG_CHECK_BUGREPORT,
     HELP_MSG_CHECK_IOCS,
+    HELP_MSG_REPORT,
+    HELP_MSG_REPORT_OUTPUT,
     HELP_MSG_CHECK_INTRUSION_LOGS,
     HELP_MSG_DELAY_CHECKS,
     HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK,
@@ -487,6 +489,21 @@ def check_iocs(ctx, iocs, list_modules, module, load_module, folder):
     cmd.run()
     cmd.show_alerts_brief()
     cmd.show_support_message()
+
+
+# ==============================================================================
+# Command: report
+# ==============================================================================
+@cli.command("report", context_settings=CONTEXT_SETTINGS, help=HELP_MSG_REPORT)
+@click.option(
+    "--output", "-o", type=click.Path(exists=False), help=HELP_MSG_REPORT_OUTPUT
+)
+@click.argument("RESULTS_PATH", type=click.Path(exists=True, file_okay=False))
+def report(output, results_path):
+    from mvt.common.report import generate_report
+
+    report_path = generate_report(results_path, output)
+    log.info("Report written to %s", report_path)
 
 
 # ==============================================================================
