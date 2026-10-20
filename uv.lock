@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -614,9 +614,9 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pycryptodome" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/01/b8/a2ec2b10d792403d36bb6661fea6357179c31ece1ed3285c442e636d6335/iphone_backup_decrypt-0.10.0.tar.gz", hash = "sha256:5f2799e58f908cce28d7929dd82231abc8acd57c25b37bce6a2d6a82e018d343", size = 20000, upload-time = "2026-09-17T21:46:44Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/b8/a2ec2b10d792403d36bb6661fea6357179c31ece1ed3285c442e636d6335/iphone_backup_decrypt-0.10.0.tar.gz", hash = "sha256:5f2799e58f908cce28d7929dd82231abc8acd57c25b37bce6a2d6a82e018d343", size = 19954, upload-time = "2026-09-17T21:46:44.048Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/10/349b2a720e012921d1457e1d1c2b921b16300a5f3570c4c64d0d3787539f/iphone_backup_decrypt-0.10.0-py3-none-any.whl", hash = "sha256:1ac4345a07b104a3eacab20932b8621cd1e0164e0f03d913e66eed6ea5ee173e", size = 17400, upload-time = "2026-09-17T21:46:42Z" },
+    { url = "https://files.pythonhosted.org/packages/89/10/349b2a720e012921d1457e1d1c2b921b16300a5f3570c4c64d0d3787539f/iphone_backup_decrypt-0.10.0-py3-none-any.whl", hash = "sha256:1ac4345a07b104a3eacab20932b8621cd1e0164e0f03d913e66eed6ea5ee173e", size = 17373, upload-time = "2026-09-17T21:46:42.976Z" },
 ]
 
 [[package]]
@@ -1034,24 +1034,24 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "appdirs", specifier = "==1.4.4" },
-    { name = "betterproto2", specifier = "==0.10.0" },
-    { name = "click", specifier = "==8.4.2" },
-    { name = "cryptography", specifier = "==50.0.0" },
-    { name = "iphone-backup-decrypt", specifier = "==0.10.0" },
-    { name = "nskeyedunarchiver", specifier = "==1.5.2" },
-    { name = "packaging", specifier = "==26.3" },
-    { name = "pyahocorasick", specifier = "==2.3.1" },
+    { name = "appdirs", specifier = "~=1.4.4" },
+    { name = "betterproto2", specifier = "~=0.10.0" },
+    { name = "click", specifier = "~=8.4.2" },
+    { name = "cryptography", specifier = "~=50.0.0" },
+    { name = "iphone-backup-decrypt", specifier = "~=0.10.0" },
+    { name = "nskeyedunarchiver", specifier = "~=1.5.2" },
+    { name = "packaging", specifier = "~=26.3" },
+    { name = "pyahocorasick", specifier = "~=2.3.1" },
     { name = "pycryptodome", specifier = ">=3.20.0" },
-    { name = "pydantic", specifier = "==2.13.4" },
-    { name = "pydantic-settings", specifier = "==2.15.0" },
-    { name = "python-dateutil", specifier = "==2.9.0.post0" },
+    { name = "pydantic", specifier = "~=2.13.4" },
+    { name = "pydantic-settings", specifier = "~=2.15.0" },
+    { name = "python-dateutil", specifier = "~=2.9.0.post0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "requests", specifier = "==2.34.2" },
-    { name = "rich", specifier = "==15.0.0" },
-    { name = "simplejson", specifier = "==4.1.1" },
-    { name = "tld", specifier = "==0.13.2" },
-    { name = "tzdata", specifier = "==2026.3" },
+    { name = "requests", specifier = "~=2.34.2" },
+    { name = "rich", specifier = "~=15.0.0" },
+    { name = "simplejson", specifier = "~=4.1.1" },
+    { name = "tld", specifier = "~=0.13.2" },
+    { name = "tzdata", specifier = "~=2026.3" },
 ]
 
 [package.metadata.requires-dev]
@@ -1070,11 +1070,11 @@ dev = [
     { name = "types-requests", specifier = ">=2.32.4.20250913" },
 ]
 docs = [
-    { name = "mkdocs", specifier = "==1.6.1" },
-    { name = "mkdocs-autorefs", specifier = "==1.4.4" },
-    { name = "mkdocs-material", specifier = "==9.7.7" },
-    { name = "mkdocs-material-extensions", specifier = "==1.3.1" },
-    { name = "mkdocstrings", specifier = "==1.0.6" },
+    { name = "mkdocs", specifier = "~=1.6.1" },
+    { name = "mkdocs-autorefs", specifier = "~=1.4.4" },
+    { name = "mkdocs-material", specifier = "~=9.7.7" },
+    { name = "mkdocs-material-extensions", specifier = "~=1.3.1" },
+    { name = "mkdocstrings", specifier = "~=1.0.6" },
 ]
 
 [[package]]
