@@ -3,12 +3,15 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import hashlib
 import logging
+import plistlib
 import threading
 from pathlib import Path
 
 import pytest
 from Crypto.Cipher import AES
+from iphone_backup_decrypt import IncorrectPassphraseError
 
 from mvt.ios.decrypt import DecryptBackup, MVTEncryptedBackup
 
@@ -22,6 +25,89 @@ def _encrypted_file(backup_path, file_id, key, plaintext):
     source_path = backup_path / file_id[:2] / file_id
     source_path.parent.mkdir(parents=True)
     source_path.write_bytes(encrypted)
+
+
+def _keybag_tlv(tag, value):
+    return tag + len(value).to_bytes(4, "big") + value
+
+
+def test_derived_key_can_unlock_keybag(mocker, tmp_path, caplog):
+    password = b"backup password"
+    salt = b"salt" * 4
+    dpsl = b"dpsl" * 4
+    round1 = hashlib.pbkdf2_hmac("sha256", password, dpsl, 1, 32)
+    derived_key = hashlib.pbkdf2_hmac("sha1", round1, salt, 1, 32)
+    wrapped_class_key = AES.new(derived_key, AES.MODE_KW).seal(b"k" * 32)
+    keybag_data = b"".join(
+        [
+            _keybag_tlv(b"TYPE", (1).to_bytes(4, "big")),
+            _keybag_tlv(b"DPSL", dpsl),
+            _keybag_tlv(b"DPIC", (1).to_bytes(4, "big")),
+            _keybag_tlv(b"SALT", salt),
+            _keybag_tlv(b"ITER", (1).to_bytes(4, "big")),
+            _keybag_tlv(b"UUID", b"g" * 16),
+            _keybag_tlv(b"WRAP", (2).to_bytes(4, "big")),
+            _keybag_tlv(b"UUID", b"c" * 16),
+            _keybag_tlv(b"CLAS", (1).to_bytes(4, "big")),
+            _keybag_tlv(b"WRAP", (2).to_bytes(4, "big")),
+            _keybag_tlv(b"WPKY", wrapped_class_key),
+        ]
+    )
+    (tmp_path / "Manifest.plist").write_bytes(
+        plistlib.dumps({"IsEncrypted": True, "BackupKeyBag": keybag_data})
+    )
+    (tmp_path / "Manifest.db").touch()
+
+    with pytest.raises(IncorrectPassphraseError):
+        MVTEncryptedBackup(
+            backup_directory=str(tmp_path), passphrase="wrong"
+        )._read_and_unlock_keybag()
+
+    password_backup = MVTEncryptedBackup(
+        backup_directory=str(tmp_path), passphrase=password
+    )
+    password_backup._read_and_unlock_keybag()
+    assert password_backup.get_decryption_key() == derived_key.hex()
+
+    key_backup = MVTEncryptedBackup(
+        backup_directory=str(tmp_path), passphrase_key=derived_key
+    )
+    key_backup._read_and_unlock_keybag()
+    assert key_backup.get_decryption_key() == derived_key.hex()
+
+    # Exercise MVT's password and key-file entry points with the native unlock.
+    mocker.patch.object(DecryptBackup, "is_encrypted", return_value=True)
+    mocker.patch.object(
+        MVTEncryptedBackup,
+        "test_decryption",
+        MVTEncryptedBackup._read_and_unlock_keybag,
+    )
+    password_decryptor = DecryptBackup(str(tmp_path))
+    password_decryptor.decrypt_with_password(password)
+    password_decryptor.get_key()
+    assert password_decryptor._decryption_key == derived_key.hex()
+
+    key_file = tmp_path / "key.txt"
+    key_file.write_text(derived_key.hex())
+    key_decryptor = DecryptBackup(str(tmp_path))
+    key_decryptor.decrypt_with_key_file(str(key_file))
+    assert key_decryptor.can_process()
+    assert key_decryptor._backup.get_decryption_key() == derived_key.hex()
+
+    with caplog.at_level(logging.CRITICAL, logger="mvt.ios.decrypt"):
+        wrong_password = DecryptBackup(str(tmp_path))
+        wrong_password.decrypt_with_password("wrong")
+    assert not wrong_password.can_process()
+    assert "Password is probably wrong" in caplog.text
+
+
+def test_invalid_backup_folder_uses_specific_error(tmp_path, caplog):
+    decryptor = DecryptBackup(str(tmp_path))
+    with caplog.at_level(logging.CRITICAL, logger="mvt.ios.decrypt"):
+        decryptor.decrypt_with_password("password")
+
+    assert not decryptor.can_process()
+    assert "Failed to find a valid backup" in caplog.text
 
 
 def test_extract_file_by_id_preserves_bytes_with_wrong_manifest_size(
@@ -39,13 +125,15 @@ def test_extract_file_by_id_preserves_bytes_with_wrong_manifest_size(
         mtime=None,
     )
     mocker.patch("mvt.ios.decrypt.FilePlist", return_value=file_plist)
+    (tmp_path / "Manifest.plist").touch()
+    (tmp_path / "Manifest.db").touch()
 
     backup = MVTEncryptedBackup(
-        backup_directory=str(tmp_path), derived_key=b"d" * 32
+        backup_directory=str(tmp_path), passphrase_key=b"d" * 32
     )
     mocker.patch.object(backup, "_read_and_unlock_keybag", return_value=True)
-    backup._keybag = mocker.Mock()
-    backup._keybag.unwrapKeyForClass.return_value = inner_key
+    backup.keybag = mocker.Mock()
+    backup.keybag.unwrap_key_for_class.return_value = inner_key
     streaming_decrypt = mocker.spy(backup, "_decrypt_file_to_disk")
     output_path = tmp_path / "output"
 
@@ -57,6 +145,9 @@ def test_extract_file_by_id_preserves_bytes_with_wrong_manifest_size(
 
     assert output_path.read_bytes() == plaintext
     streaming_decrypt.assert_called_once()
+    backup.keybag.unwrap_key_for_class.assert_called_once_with(
+        protection_class=1, wrapped_file_key=b"wrapped-key"
+    )
 
 
 def test_extract_file_by_id_copies_unencrypted_files(mocker, tmp_path):
@@ -67,8 +158,10 @@ def test_extract_file_by_id_copies_unencrypted_files(mocker, tmp_path):
 
     file_plist = mocker.Mock(encryption_key=None)
     mocker.patch("mvt.ios.decrypt.FilePlist", return_value=file_plist)
+    (tmp_path / "Manifest.plist").touch()
+    (tmp_path / "Manifest.db").touch()
     backup = MVTEncryptedBackup(
-        backup_directory=str(tmp_path), derived_key=b"d" * 32
+        backup_directory=str(tmp_path), passphrase_key=b"d" * 32
     )
     mocker.patch.object(backup, "_read_and_unlock_keybag", return_value=True)
     output_path = tmp_path / "output"
@@ -80,6 +173,19 @@ def test_extract_file_by_id_copies_unencrypted_files(mocker, tmp_path):
     )
 
     assert output_path.read_bytes() == b"plain content"
+
+
+def test_get_decryption_key_uses_unlocked_keybag(tmp_path):
+    (tmp_path / "Manifest.plist").touch()
+    (tmp_path / "Manifest.db").touch()
+    backup = MVTEncryptedBackup(
+        backup_directory=str(tmp_path), passphrase_key=b"d" * 32
+    )
+    with pytest.raises(ValueError, match="No derived key available"):
+        backup.get_decryption_key()
+
+    backup.keybag = type("Keybag", (), {"passphrase_key": b"d" * 32})()
+    assert backup.get_decryption_key() == "64" * 32
 
 
 @pytest.mark.parametrize("with_symlink", [False, True], ids=["file-id", "symlink"])
