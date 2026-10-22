@@ -5,6 +5,7 @@
 
 import json
 import logging
+from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
@@ -72,9 +73,7 @@ def test_check_intrusion_logs_warns_about_unknown_top_level_event_type(
     assert "Please open an issue on GitHub" in caplog.text
 
 
-def test_check_intrusion_logs_parses_core_and_unknown_security_events(
-    tmp_path, caplog
-):
+def test_check_intrusion_logs_parses_core_and_unknown_security_events(tmp_path, caplog):
     _write_ndjson(
         tmp_path / "intrusion.txt",
         [
@@ -187,14 +186,16 @@ def test_check_intrusion_logs_treats_event_id_as_security_event_metadata(
     keyguard_events = {
         event["event"]: event
         for event in cmd.timeline
-        if event["event"]
-        in {"keyguard_dismiss_auth_attempt", "keyguard_dismissed"}
+        if event["event"] in {"keyguard_dismiss_auth_attempt", "keyguard_dismissed"}
     }
-    assert "Auth attempt: Success" in keyguard_events[
-        "keyguard_dismiss_auth_attempt"
-    ]["data"]
+    assert (
+        "Auth attempt: Success"
+        in keyguard_events["keyguard_dismiss_auth_attempt"]["data"]
+    )
     assert keyguard_events["keyguard_dismissed"]["data"] == "Keyguard dismissed"
-    assert "unknown intrusion logging security event type(s): event_id" not in caplog.text
+    assert (
+        "unknown intrusion logging security event type(s): event_id" not in caplog.text
+    )
 
 
 def test_check_intrusion_logs_cli_lists_modules(tmp_path):
@@ -206,6 +207,284 @@ def test_check_intrusion_logs_cli_lists_modules(tmp_path):
     assert "DnsEvent" in result.output
     assert "ConnectEvent" in result.output
     assert "SecurityEvent" in result.output
+
+
+@pytest.mark.parametrize("success", [True, False, 1, 0])
+def test_check_intrusion_logs_recognizes_key_imported_events(tmp_path, caplog, success):
+    key_info = {
+        "success": success,
+        "key_id": "example_key",
+        "uid": -2147483545,
+    }
+    _write_ndjson(
+        tmp_path / "intrusion.txt",
+        [
+            {
+                "security_event": {
+                    "event_id": 0,
+                    "event_time": 1_700_000_002_000_000_000,
+                    "key_imported": key_info,
+                }
+            }
+        ],
+    )
+
+    with caplog.at_level(logging.INFO):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(tmp_path))
+        cmd.run()
+
+    security_module = next(
+        module for module in cmd.executed if isinstance(module, SecurityEvent)
+    )
+    assert security_module.event_type_counts == {"key_imported": 1}
+    assert len(security_module.results) == 1
+    assert security_module.results[0]["key_imported"] == key_info
+    assert security_module.results[0]["event_id"] == 0
+    assert cmd.timeline == [
+        {
+            "timestamp": security_module.results[0]["timestamp"],
+            "module": "SecurityEvent",
+            "event": "key_imported",
+            "data": f"Key {'imported' if success else 'import failed'}: example_key",
+        }
+    ]
+    assert cmd.timeline[0]["timestamp"] is not None
+    assert "Key Import" in caplog.text
+    assert "Found unknown intrusion logging security event type(s)" not in caplog.text
+    assert security_module.alertstore.alerts == []
+
+
+def test_check_intrusion_logs_exported_event_schemas(caplog):
+    # Field names/types from issue #971's Pixel export, with illustrative values.
+    fixture_dir = Path(__file__).parents[1] / "artifacts/android_data/intrusion_logs"
+    with caplog.at_level(logging.WARNING):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(fixture_dir))
+        cmd.run()
+
+    assert [len(module.results) for module in cmd.executed] == [1, 1, 18]
+    assert {event["timestamp"] for event in cmd.timeline} == {
+        "2023-11-14 22:13:20.000000"
+    }
+    assert {event["event"]: event["data"] for event in cmd.timeline} == {
+        "dns_query": "DNS query for example.com by com.example.app [IPs: 192.0.2.1]",
+        "network_connection": "Connection to 192.0.2.1:443 by com.example.app",
+        "adb_shell_cmd": "ADB shell command: com.example.app",
+        "adb_sync_recv_file": "File pulled via ADB: /sdcard/Download/example.txt",
+        "adb_sync_send_file": "File pushed via ADB: /sdcard/Download/example.txt",
+        "app_process_start": "Process started: com.example.app (UID: 10000, PID: 1234)",
+        "keyguard_dismissed": "Keyguard dismissed",
+        "keyguard_dismiss_auth_attempt": "Auth attempt: Success (method strength: 0)",
+        "keyguard_secured": "Device locked",
+        "os_startup": "OS startup (verified boot: green, dm-verity: enforcing)",
+        "logging_started": "Audit logging started",
+        "key_generated": "Key generated: example_key (UID: 10000)",
+        "key_imported": "Key imported: example_key",
+        "key_destruction": "Key destroyed: example_key (UID: 10000)",
+        "user_restriction_added": (
+            "User restriction added by com.example.admin: no_install_apps"
+        ),
+        "user_restriction_removed": (
+            "User restriction removed by com.example.admin: no_install_apps"
+        ),
+        "crypto_self_test_completed": "Crypto self test: passed",
+        "package_installed": "Package Installed: com.example.app (v1, user: 0)",
+        "package_updated": "Package Updated: com.example.app (v2, user: 0)",
+        "package_uninstalled": "Package Uninstalled: com.example.app (v2, user: 0)",
+    }
+    # The summaries may select fields, but JSON results must retain every field.
+    results = {
+        record["event_id"]: record
+        for module in cmd.executed
+        for record in module.results
+    }
+    for line in (fixture_dir / "exported-events.txt").read_text().splitlines():
+        original = next(iter(json.loads(line).values()))
+        result = results[original["event_id"]]
+        assert {key: result[key] for key in original} == original
+    assert "Found unknown intrusion logging" not in caplog.text
+
+
+def test_exported_adb_events_match_indicators(tmp_path, indicators_factory):
+    _write_ndjson(
+        tmp_path / "intrusion.txt",
+        [
+            {
+                "security_event": {
+                    "event_time": 1_700_000_000_000_000_000,
+                    "adb_shell_cmd": {"command": "com.example.suspicious"},
+                }
+            },
+            *[
+                {
+                    "security_event": {
+                        "event_time": 1_700_000_000_000_000_000,
+                        event: {"path": "/data/local/tmp/suspicious"},
+                    }
+                }
+                for event in ("adb_sync_recv_file", "adb_sync_send_file")
+            ],
+        ],
+    )
+    cmd = CmdAndroidCheckIntrusionLogs(
+        target_path=str(tmp_path),
+        iocs=indicators_factory(
+            app_ids=["com.example.suspicious"],
+            file_paths=["/data/local/tmp/suspicious"],
+        ),
+    )
+    cmd.run()
+    security_module = next(
+        module for module in cmd.executed if isinstance(module, SecurityEvent)
+    )
+    alerts = security_module.alertstore.alerts
+    assert len(alerts) == 3
+    assert all(alert.level == AlertLevel.CRITICAL for alert in alerts)
+
+
+def test_check_intrusion_logs_source_event_schemas(caplog):
+    # Events absent from issue #971, verified in GMS 26.32.34's BackupService
+    # and csza JSON serializers. Values are illustrative; see the format docs.
+    fixture_dir = (
+        Path(__file__).parents[1] / "artifacts/android_data/intrusion_logs_source"
+    )
+    with caplog.at_level(logging.WARNING):
+        cmd = CmdAndroidCheckIntrusionLogs(target_path=str(fixture_dir))
+        cmd.run()
+
+    assert [len(module.results) for module in cmd.executed] == [0, 0, 28]
+    assert {event["timestamp"] for event in cmd.timeline} == {
+        "2023-11-14 22:13:20.000000"
+    }
+    assert {event["event"]: event["data"] for event in cmd.timeline} == {
+        "adb_shell_interactive": "ADB interactive shell opened",
+        "os_shutdown": "OS shutdown",
+        "logging_stopped": "Audit logging stopped",
+        "media_mounted": "Media mounted: /storage/example (Example)",
+        "media_unmounted": "Media unmounted: /storage/example (Example)",
+        "log_buffer_size_critical": "Log buffer at 90% capacity",
+        "password_expiration_set": "Password expiration set by com.example.admin: 0ms",
+        "password_complexity_set": "Password complexity set by com.example.admin",
+        "password_history_length_set": "Password history length set by com.example.admin: 5",
+        "max_screen_lock_timeout_set": "Max screen lock timeout set by com.example.admin: 60000ms",
+        "max_password_attempts_set": "Max password attempts set by com.example.admin: 0",
+        "keyguard_disabled_features_set": "Keyguard features disabled by com.example.admin: 0",
+        "remote_lock": "Device remotely locked by com.example.admin",
+        "wipe_failure": "Device wipe failed",
+        "cert_authority_installed": "Cert installed: CN=Example CA",
+        "cert_authority_removed": "Cert removed: CN=Example CA",
+        "key_integrity_violation": "Key integrity violation: example_key",
+        "cert_validation_failure": "Certificate validation failure: chain validation failed",
+        "camera_policy_set": "Camera enabled by com.example.admin",
+        "password_complexity_required": "Password complexity required by com.example.admin: 0",
+        "password_changed": "Password changed (complexity: 0, user: 10)",
+        "wifi_connection": "WiFi connection: connected (BSSID: 02:00:00:00:00:01) - example reason",
+        "wifi_disconnection": "WiFi disconnection (BSSID: 02:00:00:00:00:01) - example reason",
+        "bluetooth_connection": "Bluetooth connected: 02:00:00:00:00:02 - example reason",
+        "bluetooth_disconnection": "Bluetooth disconnected: 02:00:00:00:00:02 - example reason",
+        "backup_service_toggled": "Backup service disabled by com.example.admin",
+        "nfc_enabled": "NFC enabled",
+        "nfc_disabled": "NFC disabled",
+    }
+    security_module = next(
+        module for module in cmd.executed if isinstance(module, SecurityEvent)
+    )
+    originals = [
+        json.loads(line)["security_event"]
+        for line in (fixture_dir / "exported-events.txt").read_text().splitlines()
+    ]
+    for original, result in zip(originals, security_module.results):
+        assert {key: result[key] for key in original} == original
+    assert "Found unknown intrusion logging" not in caplog.text
+    assert len(security_module.alertstore.alerts) == 4
+    assert all(
+        alert.level == AlertLevel.MEDIUM for alert in security_module.alertstore.alerts
+    )
+
+
+@pytest.mark.parametrize(
+    ("event", "payload", "expected"),
+    [
+        (
+            "os_startup",
+            {"verified_boot_state": "green", "dm_verity_mode": "enforcing"},
+            "OS startup (verified boot: green, dm-verity: enforcing)",
+        ),
+        *[
+            (
+                event,
+                {"mount_point": "/storage/example", "volume_label": "Example"},
+                f"Media {action}: /storage/example (Example)",
+            )
+            for event, action in (
+                ("media_mount", "mounted"),
+                ("media_unmount", "unmounted"),
+            )
+        ],
+        (
+            "password_expiration_set",
+            {"admin_package": "com.example.admin", "timeout_ms": 60000},
+            "Password expiration set by com.example.admin: 60000ms",
+        ),
+        (
+            "max_screen_lock_timeout_set",
+            {"admin_package": "com.example.admin", "timeout_ms": 60000},
+            "Max screen lock timeout set by com.example.admin: 60000ms",
+        ),
+        (
+            "max_password_attempts_set",
+            {"admin_package": "com.example.admin", "max_attempts": 5},
+            "Max password attempts set by com.example.admin: 5",
+        ),
+        (
+            "keyguard_disabled_features_set",
+            {"admin_package": "com.example.admin", "disabled_features": 0},
+            "Keyguard features disabled by com.example.admin: 0",
+        ),
+        (
+            "password_changed",
+            {"complexity": 0, "user_id": 10},
+            "Password changed (complexity: 0, user: 10)",
+        ),
+        *[
+            (
+                event,
+                {"mac_address": "02:00:00:00:00:02", "success": True},
+                f"Bluetooth {action}: 02:00:00:00:00:02",
+            )
+            for event, action in (
+                ("bluetooth_connection", "connected"),
+                ("bluetooth_disconnection", "disconnected"),
+            )
+        ],
+        *[
+            (
+                f"user_restriction_{action}",
+                {
+                    "admin_package": "com.example.admin",
+                    "restriction": "no_install_apps",
+                },
+                f"User restriction {action} by com.example.admin: no_install_apps",
+            )
+            for action in ("added", "removed")
+        ],
+    ],
+)
+def test_security_event_legacy_payload_fields(event, payload, expected):
+    assert SecurityEvent().serialize({event: payload})["data"] == expected
+
+
+def test_exported_fields_take_precedence_over_legacy_fields():
+    record = {
+        "password_expiration_set": {
+            "package": "com.example.admin",
+            "admin_package": "legacy.admin",
+            "timeout": 0,
+            "timeout_ms": 60000,
+        }
+    }
+    assert SecurityEvent().serialize(record)["data"] == (
+        "Password expiration set by com.example.admin: 0ms"
+    )
 
 
 def _run_security_heuristics(results):
