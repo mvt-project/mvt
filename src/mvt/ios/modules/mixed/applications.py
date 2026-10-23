@@ -119,7 +119,7 @@ class Applications(IOSExtraction):
                 entry["com.apple.iTunesStore.downloadInfo"]["purchaseDate"],
                 "%Y-%m-%dT%H:%M:%SZ",
             )
-            timestamp_utc = timestamp.astimezone(timezone.utc)
+            timestamp_utc = timestamp.replace(tzinfo=timezone.utc)
             entry["isodate"] = convert_datetime_to_iso(timestamp_utc)
 
     def _parse_itunes_metadata(self, plist_path: str) -> None:

@@ -9,6 +9,7 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
+from pathlib import Path
 from typing import Any, Dict, Optional, Sequence
 
 from .alerts import AlertStore
@@ -37,6 +38,27 @@ class EncryptedBackupError(Exception):
 
 class InsufficientPrivileges(Exception):
     pass
+
+
+def validate_output_paths(
+    target_path: Optional[str],
+    results_path: Optional[str],
+    output_names: Sequence[str] = (),
+) -> None:
+    """Reject output locations that would overwrite the acquisition itself."""
+    if not target_path or not results_path:
+        return
+
+    target = Path(target_path).resolve()
+    output = Path(results_path).resolve()
+    if target == output or (
+        target.is_file()
+        and any(target == (output / name).resolve() for name in output_names)
+    ):
+        raise ValueError(
+            "The output location overlaps the acquisition; "
+            "choose a separate output directory."
+        )
 
 
 class MVTModule:
@@ -134,10 +156,25 @@ class MVTModule:
             }
         )
 
+    def _clear_saved_results(self) -> None:
+        """Remove only this module's output from a previous extraction."""
+        if not self.results_path:
+            return
+
+        output_names = [
+            f"{self.get_slug()}{suffix}" for suffix in (".json", "_detected.json")
+        ]
+        validate_output_paths(self.target_path, self.results_path, output_names)
+        validate_output_paths(self.file_path, self.results_path, output_names)
+        for name in output_names:
+            path = Path(self.results_path) / name
+            path.unlink(missing_ok=True)
+
     def save_to_json(self) -> None:
         if not self.results_path:
             return
 
+        self._clear_saved_results()
         name = self.get_slug()
 
         if self.results:
@@ -220,6 +257,10 @@ class MVTModule:
 
 def run_module(module: MVTModule) -> None:
     module.log.info("Running module %s...", module.__class__.__name__)
+
+    # Clear before extraction too: a missing or corrupt source must not leave
+    # a previous run's results behind when save_to_json() is never reached.
+    module._clear_saved_results()
 
     try:
         exec_or_profile("module.run()", globals(), locals())
