@@ -16,6 +16,13 @@ from mvt.common.utils import check_for_links, convert_unix_to_iso
 
 PBKDF2_KEY_SIZE = 32
 
+# Telephony.Sms.TYPE and Telephony.Mms.MESSAGE_BOX use the same values for
+# inbox, sent, outbox and failed messages. Only SMS has a queued state (6).
+# "sent" describes the outgoing direction, not successful delivery. Drafts
+# and unknown message types do not establish a sent/received direction.
+MMS_MESSAGE_DIRECTIONS = {"1": "received", "2": "sent", "4": "sent", "5": "sent"}
+SMS_MESSAGE_DIRECTIONS = {**MMS_MESSAGE_DIRECTIONS, "6": "sent"}
+
 
 class AndroidBackupParsingError(Exception):
     """Exception raised file parsing an android backup file"""
@@ -232,8 +239,9 @@ def parse_sms_file(data):
     json_data = json.loads(data)
 
     for entry in json_data:
+        is_mms = "mms_body" in entry
         # Adapt MMS format to SMS format.
-        if "mms_body" in entry:
+        if is_mms:
             entry["body"] = entry["mms_body"]
             entry.pop("mms_body")
 
@@ -242,8 +250,15 @@ def parse_sms_file(data):
         if body:
             message_links = check_for_links(entry["body"])
 
-        entry["isodate"] = convert_unix_to_iso(int(entry["date"]) / 1000)
-        entry["direction"] = "sent" if int(entry["date_sent"]) else "received"
+        # The backup writer preserves provider dates: seconds for MMS,
+        # milliseconds for SMS. date_sent is a timestamp, not a direction flag.
+        timestamp = int(entry["date"])
+        entry["isodate"] = convert_unix_to_iso(
+            timestamp if is_mms else timestamp / 1000
+        )
+        directions = MMS_MESSAGE_DIRECTIONS if is_mms else SMS_MESSAGE_DIRECTIONS
+        message_type = entry.get("msg_box" if is_mms else "type")
+        entry["direction"] = directions.get(str(message_type), "unknown")
 
         # Extract links from the body
         if message_links or entry["body"].strip() == "":

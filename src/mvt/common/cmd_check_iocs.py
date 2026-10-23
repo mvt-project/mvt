@@ -96,6 +96,7 @@ class CmdCheckIOCS(Command):
                 except NotImplementedError:
                     continue
                 else:
+                    self.alertstore.extend(m.alertstore.alerts)
                     total_detections += len(m.alertstore.alerts)
 
         if total_detections > 0:

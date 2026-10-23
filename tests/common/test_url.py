@@ -39,6 +39,23 @@ def test_get_domain_strips_only_a_whole_www_prefix(url, domain):
     assert URL(url).domain == domain
 
 
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://payload.example.org:443/path",
+        "https://user:password@payload.example.org/path",
+        "https://user:password@www.payload.example.org:8443/path",
+        "payload.example.org:443/path",
+    ],
+)
+def test_get_domain_excludes_port_and_credentials(url):
+    assert URL(url).domain == "payload.example.org"
+
+
+def test_shortener_with_port_and_credentials_is_detected():
+    assert URL("https://user:password@bit.ly:443/example").check_if_shortened()
+
+
 def test_shortener_starting_with_w_is_detected():
     assert URL("https://w3t.org/example").check_if_shortened() is True
     assert URL("https://www.w3t.org/example").check_if_shortened() is True

@@ -27,6 +27,10 @@ class TestBackupModule:
         assert len(mod.results) == 2
         assert len(mod.results[0]["links"]) == 1
         assert mod.results[0]["links"][0] == "https://google.com/"
+        mms_url = next(
+            result for result in mod.url_results if result["url"] == "http://google.com"
+        )
+        assert mms_url["timestamp"] == "2020-01-20 14:49:49.000000"
 
     def test_module_file(self):
         fpath = os.path.join(get_android_backup_folder(), "backup.ab")
