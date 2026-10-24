@@ -12,7 +12,10 @@ from click.testing import CliRunner
 from mvt.android.cli import check_intrusion_logs
 from mvt.android.cmd_check_intrusion_logs import CmdAndroidCheckIntrusionLogs
 from mvt.android.modules.intrusion_logs.base import IntrusionLogsModule
-from mvt.android.modules.intrusion_logs.security_event import SecurityEvent
+from mvt.android.modules.intrusion_logs.security_event import (
+    SECURITY_EVENT_TAGS,
+    SecurityEvent,
+)
 from mvt.common.alerts import AlertLevel
 
 
@@ -321,7 +324,7 @@ def test_security_heuristics_fire_when_no_indicators_loaded():
     # so none of the heuristic alerts fired on a default run.
     alerts = _run_security_heuristics(
         [
-            {"timestamp": "2024-01-01 00:00:00.000", "wipe_failure": {"reason": "x"}},
+            {"timestamp": "2024-01-01 00:00:00.000", "wipe_failed": {"reason": "x"}},
             {
                 "timestamp": "2024-01-01 00:00:00.000",
                 "key_integrity_violation": {"key_id": "k1"},
@@ -331,3 +334,62 @@ def test_security_heuristics_fire_when_no_indicators_loaded():
 
     assert len(alerts) == 2
     assert all(alert.level == AlertLevel.MEDIUM for alert in alerts)
+
+
+def test_security_event_tags_match_aosp_logtag_names():
+    # The event type recorded in the intrusion log is the AOSP logtag name for
+    # the tag ID (frameworks/base core/java/android/app/admin/SecurityLogTags.logtags),
+    # not the name of the matching SecurityLog.TAG_* constant. Names drifted
+    # apart for some tags, which made those events render as unknown types.
+    aosp_names = {
+        210002: "adb_shell_command",
+        210003: "adb_sync_recv",
+        210004: "adb_sync_send",
+        210013: "media_mounted",
+        210014: "media_unmounted",
+        210023: "wipe_failed",
+        210024: "key_generated",
+        210025: "key_imported",
+        210026: "key_destroyed",
+    }
+    mvt_names = {tag["tag_id"]: name for name, tag in SECURITY_EVENT_TAGS.items()}
+
+    assert {tag_id: mvt_names[tag_id] for tag_id in aosp_names} == aosp_names
+
+
+def test_key_imported_and_key_destroyed_are_known_event_types(caplog):
+    module = SecurityEvent(target_path=None)
+    for record in (
+        {
+            "timestamp": "2026-06-17 15:31:02.014",
+            "key_imported": {"success": 1, "key_id": "imported_key", "uid": 1000},
+        },
+        {
+            "timestamp": "2026-06-17 15:31:03.014",
+            "key_destroyed": {"success": 1, "key_id": "destroyed_key", "uid": 1000},
+        },
+    ):
+        module.process_event(record)
+
+    with caplog.at_level(logging.WARNING):
+        module.run()
+
+    assert "Found unknown intrusion logging security event type(s)" not in caplog.text
+    assert (
+        SecurityEvent().serialize(
+            {
+                "timestamp": "2026-06-17 15:31:02.014",
+                "key_imported": {"success": 1, "key_id": "imported_key", "uid": 1000},
+            }
+        )["data"]
+        == "Key imported: imported_key"
+    )
+    assert (
+        SecurityEvent().serialize(
+            {
+                "timestamp": "2026-06-17 15:31:03.014",
+                "key_destroyed": {"success": 0, "key_id": "destroyed_key", "uid": 1000},
+            }
+        )["data"]
+        == "Key destruction failed: destroyed_key (UID: 1000)"
+    )

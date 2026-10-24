@@ -17,17 +17,17 @@ SECURITY_EVENT_TAGS = {
         "name": "ADB Shell Interactive",
         "description": "An ADB interactive shell was opened via 'adb shell'",
     },
-    "adb_shell_cmd": {
+    "adb_shell_command": {
         "tag_id": 210002,
         "name": "ADB Shell Command",
         "description": "A shell command was issued over ADB via 'adb shell <command>'",
     },
-    "adb_sync_recv_file": {
+    "adb_sync_recv": {
         "tag_id": 210003,
         "name": "ADB Sync Recv File",
         "description": "A file was pulled from the device via adb daemon (adb pull)",
     },
-    "adb_sync_send_file": {
+    "adb_sync_send": {
         "tag_id": 210004,
         "name": "ADB Sync Send File",
         "description": "A file was pushed to the device via adb daemon (adb push)",
@@ -77,12 +77,12 @@ SECURITY_EVENT_TAGS = {
         "description": "Audit logging has stopped",
     },
     # Media events (API level 28)
-    "media_mount": {
+    "media_mounted": {
         "tag_id": 210013,
         "name": "Media Mount",
         "description": "Removable media has been mounted",
     },
-    "media_unmount": {
+    "media_unmounted": {
         "tag_id": 210014,
         "name": "Media Unmount",
         "description": "Removable media was unmounted",
@@ -131,7 +131,7 @@ SECURITY_EVENT_TAGS = {
         "description": "Admin remotely locked the device or profile",
     },
     # Wipe failure event (API level 28)
-    "wipe_failure": {
+    "wipe_failed": {
         "tag_id": 210023,
         "name": "Wipe Failure",
         "description": "Failed to wipe device or user data",
@@ -142,12 +142,12 @@ SECURITY_EVENT_TAGS = {
         "name": "Key Generated",
         "description": "Cryptographic key was generated",
     },
-    "key_import": {
+    "key_imported": {
         "tag_id": 210025,
         "name": "Key Import",
         "description": "Cryptographic key was imported",
     },
-    "key_destruction": {
+    "key_destroyed": {
         "tag_id": 210026,
         "name": "Key Destruction",
         "description": "Cryptographic key was destroyed",
@@ -371,8 +371,8 @@ class SecurityEvent(IntrusionLogsModule):
                             )
 
             # Check ADB shell commands for suspicious patterns
-            if "adb_shell_cmd" in result:
-                cmd_info = result["adb_shell_cmd"]
+            if "adb_shell_command" in result:
+                cmd_info = result["adb_shell_command"]
                 command = cmd_info.get("command", "")
                 if command:
                     # Check if command contains any suspicious app IDs
@@ -386,7 +386,7 @@ class SecurityEvent(IntrusionLogsModule):
                         )
 
             # Check ADB file sync events for suspicious paths
-            for adb_event in ["adb_sync_recv_file", "adb_sync_send_file"]:
+            for adb_event in ["adb_sync_recv", "adb_sync_send"]:
                 if adb_event in result:
                     file_info = result[adb_event]
                     file_path = file_info.get("path", "")
@@ -453,7 +453,7 @@ class SecurityEvent(IntrusionLogsModule):
                 )
 
         # Flag wipe failures
-        if "wipe_failure" in result:
+        if "wipe_failed" in result:
             self.alertstore.medium(
                 "Device wipe failure detected",
                 result.get("timestamp") or "",
@@ -488,13 +488,13 @@ class SecurityEvent(IntrusionLogsModule):
                 # ADB events
                 if event_subtype == "adb_shell_interactive":
                     event_data_str = "ADB interactive shell opened"
-                elif event_subtype == "adb_shell_cmd":
+                elif event_subtype == "adb_shell_command":
                     command = event_info.get("command", "")
                     event_data_str = f"ADB shell command: {command}"
-                elif event_subtype == "adb_sync_recv_file":
+                elif event_subtype == "adb_sync_recv":
                     path = event_info.get("path", "")
                     event_data_str = f"File pulled via ADB: {path}"
-                elif event_subtype == "adb_sync_send_file":
+                elif event_subtype == "adb_sync_send":
                     path = event_info.get("path", "")
                     event_data_str = f"File pushed via ADB: {path}"
 
@@ -529,12 +529,12 @@ class SecurityEvent(IntrusionLogsModule):
                     key_id = event_info.get("key_id", "unknown")
                     uid = event_info.get("uid", "")
                     event_data_str = f"Key {'generated' if success else 'generation failed'}: {key_id} (UID: {uid})"
-                elif event_subtype == "key_destruction":
+                elif event_subtype == "key_destroyed":
                     success = event_info.get("success", False)
                     key_id = event_info.get("key_id", "unknown")
                     uid = event_info.get("uid", "")
                     event_data_str = f"Key {'destroyed' if success else 'destruction failed'}: {key_id} (UID: {uid})"
-                elif event_subtype == "key_import":
+                elif event_subtype == "key_imported":
                     success = event_info.get("success", False)
                     key_id = event_info.get("key_id", "unknown")
                     event_data_str = (
@@ -600,11 +600,11 @@ class SecurityEvent(IntrusionLogsModule):
                     event_data_str = "Log buffer at 90% capacity"
 
                 # Media events
-                elif event_subtype == "media_mount":
+                elif event_subtype == "media_mounted":
                     mount_point = event_info.get("mount_point", "")
                     label = event_info.get("volume_label", "")
                     event_data_str = f"Media mounted: {mount_point} ({label})"
-                elif event_subtype == "media_unmount":
+                elif event_subtype == "media_unmounted":
                     mount_point = event_info.get("mount_point", "")
                     label = event_info.get("volume_label", "")
                     event_data_str = f"Media unmounted: {mount_point} ({label})"
@@ -648,7 +648,7 @@ class SecurityEvent(IntrusionLogsModule):
                 elif event_subtype == "remote_lock":
                     admin = event_info.get("admin_package", "")
                     event_data_str = f"Device remotely locked by {admin}"
-                elif event_subtype == "wipe_failure":
+                elif event_subtype == "wipe_failed":
                     event_data_str = "Device wipe failed"
 
                 # User restriction events
