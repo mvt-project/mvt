@@ -33,7 +33,12 @@ class DumpsysADBArtifact(AndroidArtifact):
             line = line.removesuffix(b"\r")
             # Track the level of indentation
             indent = len(line) - len(line.lstrip())
-            if indent < cur_indent:
+            # A closing brace is dedented from the block it closes, and the
+            # brace handler below pops that block. Popping on the dedent as
+            # well would close two levels for one brace. A blank line has no
+            # indentation to compare: it ends a multiline value (handled
+            # below) and is otherwise skipped.
+            if indent < cur_indent and line.strip() not in (b"", b"}"):
                 # If the current line is less indented than the previous one, back out
                 if len(stack) <= 1:
                     # Dedenting below the outermost level means this is not the
@@ -71,6 +76,9 @@ class DumpsysADBArtifact(AndroidArtifact):
                 if isinstance(stack[-1], list):
                     stack.pop()
                 current_dict = stack[-1]
+
+            if not line.strip():
+                continue
 
             if key == "}":
                 if len(stack) <= 1:
