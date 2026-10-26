@@ -18,8 +18,28 @@ markdown_extensions:
         use_pygments: true
 theme:
     name: material
+    logo: mvt.png
+    favicon: favicon.png
     features:
         - tabs
+    palette:
+    - media: "(prefers-color-scheme)"
+      primary: black
+      toggle:
+        icon: material/link
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
 plugins:
     - search
     - mkdocstrings
