@@ -22,18 +22,23 @@ theme:
     features:
         - tabs
     palette:
-    - scheme: default
-      primary: blue grey
-      accent: blue grey
+    - media: "(prefers-color-scheme)"
+      primary: black
       toggle:
-        icon: material/brightness-7
+        icon: material/link
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      toggle:
+        icon: material/toggle-switch
         name: Switch to dark mode
-    - scheme: slate
-      primary: blue grey
-      accent: blue grey
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
       toggle:
-        icon: material/brightness-4
-        name: Switch to light mode    
+        icon: material/toggle-switch-off
+        name: Switch to system preference
 plugins:
     - search
     - mkdocstrings
