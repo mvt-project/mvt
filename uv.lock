@@ -150,11 +150,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2026.7.22"
+version = "2026.10.19"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a3/c2/24167ea9858356b47a87a50d39908bfdb72ceeefe0041586e704e5376b3a/certifi-2026.7.22.tar.gz", hash = "sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55", size = 138112, upload-time = "2026-07-22T03:35:12.644Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/bd/1436c50cc46699de0230fbaacc1d1de7bfec413176099949e9d5112e88f2/certifi-2026.10.19.tar.gz", hash = "sha256:035c1e85572b141bf1c3a3eff0e33a8eb74917522f2559075ff8d2fea780a1ae", size = 137598, upload-time = "2026-10-20T02:24:16.604Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl", hash = "sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775", size = 136983, upload-time = "2026-07-22T03:35:11.276Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl", hash = "sha256:42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b", size = 136464, upload-time = "2026-10-20T02:24:15.072Z" },
 ]
 
 [[package]]
@@ -614,9 +614,9 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pycryptodome" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/01/b8/a2ec2b10d792403d36bb6661fea6357179c31ece1ed3285c442e636d6335/iphone_backup_decrypt-0.10.0.tar.gz", hash = "sha256:5f2799e58f908cce28d7929dd82231abc8acd57c25b37bce6a2d6a82e018d343", size = 20000, upload-time = "2026-09-17T21:46:44Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/b8/a2ec2b10d792403d36bb6661fea6357179c31ece1ed3285c442e636d6335/iphone_backup_decrypt-0.10.0.tar.gz", hash = "sha256:5f2799e58f908cce28d7929dd82231abc8acd57c25b37bce6a2d6a82e018d343", size = 19954, upload-time = "2026-09-17T21:46:44.048Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/10/349b2a720e012921d1457e1d1c2b921b16300a5f3570c4c64d0d3787539f/iphone_backup_decrypt-0.10.0-py3-none-any.whl", hash = "sha256:1ac4345a07b104a3eacab20932b8621cd1e0164e0f03d913e66eed6ea5ee173e", size = 17400, upload-time = "2026-09-17T21:46:42Z" },
+    { url = "https://files.pythonhosted.org/packages/89/10/349b2a720e012921d1457e1d1c2b921b16300a5f3570c4c64d0d3787539f/iphone_backup_decrypt-0.10.0-py3-none-any.whl", hash = "sha256:1ac4345a07b104a3eacab20932b8621cd1e0164e0f03d913e66eed6ea5ee173e", size = 17373, upload-time = "2026-09-17T21:46:42.976Z" },
 ]
 
 [[package]]
@@ -1914,11 +1914,11 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.7.0"
+version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/05/b17359e1cefb4f909b5e40b1b90a496d987258916dbbf88e842c729f510e/urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63", size = 458972, upload-time = "2026-09-15T19:29:36.253Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+    { url = "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3", size = 135717, upload-time = "2026-09-15T19:29:34.577Z" },
 ]
 
 [[package]]
