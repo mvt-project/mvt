@@ -116,7 +116,7 @@ def test_archive_is_extracted_once_and_unsafe_members_are_skipped(tmp_path):
         module = SysdiagnoseExtraction()
         command.module_init(module)
         assert module.tar is None
-        assert module.parent_path == str(extracted_path.parent)
+        assert Path(module.parent_path) == extracted_path.parent
     finally:
         command.finish()
 
