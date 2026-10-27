@@ -11,6 +11,7 @@ from .aqf_log_timestamps import AQFLogTimestamps
 from .aqf_packages import AQFPackages
 from .aqf_processes import AQFProcesses
 from .aqf_settings import AQFSettings
+from .magisk_modules import MagiskModules
 from .mounts import Mounts
 from .root_binaries import RootBinaries
 
@@ -22,5 +23,6 @@ ANDROIDQF_MODULES: list[type[MVTModule]] = [
     AQFFiles,
     AQFLogTimestamps,
     RootBinaries,
+    MagiskModules,
     Mounts,
 ]
