@@ -17,24 +17,24 @@ classifiers = [
     "Programming Language :: Python",
 ]
 dependencies = [
-    "click==8.4.2",
-    "rich==15.0.0",
-    "tld==0.13.2",
-    "requests==2.34.2",
-    "simplejson==4.1.1",
-    "packaging==26.3",
-    "appdirs==1.4.4",
-    "iphone_backup_decrypt==0.10.0",
+    "click~=8.4.2",
+    "rich~=15.0.0",
+    "tld~=0.13.2",
+    "requests~=2.34.2",
+    "simplejson~=4.1.1",
+    "packaging~=26.3",
+    "appdirs~=1.4.4",
+    "iphone_backup_decrypt~=0.10.0",
     "pycryptodome>=3.20.0",
-    "cryptography==50.0.0",
+    "cryptography~=50.0.0",
     "PyYAML>=6.0.2",
-    "pyahocorasick==2.3.1",
-    "betterproto2==0.10.0",
-    "pydantic==2.13.4",
-    "pydantic-settings==2.15.0",
-    "NSKeyedUnArchiver==1.5.2",
-    "python-dateutil==2.9.0.post0",
-    "tzdata==2026.3",
+    "pyahocorasick~=2.3.1",
+    "betterproto2~=0.10.0",
+    "pydantic~=2.13.4",
+    "pydantic-settings~=2.15.0",
+    "NSKeyedUnArchiver~=1.5.2",
+    "python-dateutil~=2.9.0.post0",
+    "tzdata~=2026.3",
 ]
 requires-python = ">= 3.10"
 
@@ -63,11 +63,11 @@ dev = [
     "types-requests>=2.32.4.20250913",
 ]
 docs = [
-    "mkdocs==1.6.1",
-    "mkdocs-autorefs==1.4.4",
-    "mkdocs-material==9.7.7",
-    "mkdocs-material-extensions==1.3.1",
-    "mkdocstrings==1.0.6",
+    "mkdocs~=1.6.1",
+    "mkdocs-autorefs~=1.4.4",
+    "mkdocs-material~=9.7.7",
+    "mkdocs-material-extensions~=1.3.1",
+    "mkdocstrings~=1.0.6",
 ]
 
 [build-system]
