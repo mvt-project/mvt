@@ -27,6 +27,8 @@ from .modules.backup import BACKUP_MODULES
 
 log = logging.getLogger(__name__)
 
+MAX_BACKUP_PASSWORD_ATTEMPTS = 3
+
 
 class InvalidAndroidBackup(Exception):
     pass
@@ -72,6 +74,15 @@ class CmdAndroidCheckBackup(Command):
         self.__tar: Optional[tarfile.TarFile] = None
         self.__files: List[str] = []
 
+    def _get_backup_password(self) -> str:
+        password = prompt_or_load_android_backup_password(log, self.module_options)
+        if not password:
+            if self.sub_command:
+                raise InvalidAndroidBackup("No backup password provided")
+            log.critical("No backup password provided.")
+            sys.exit(1)
+        return password
+
     def from_ab(self, ab_file_bytes: bytes) -> None:
         self.__type = "ab"
         header = parse_ab_header(ab_file_bytes)
@@ -84,28 +95,40 @@ class CmdAndroidCheckBackup(Command):
             sys.exit(1)
 
         password = None
+        # A password typed at the prompt is asked for again if it is wrong.
+        # One given on the command line or in the environment is not.
+        max_attempts = 1
         if header["encryption"] != "none":
-            password = prompt_or_load_android_backup_password(log, self.module_options)
-            if not password:
+            if not self.module_options.get("backup_password", None):
+                max_attempts = MAX_BACKUP_PASSWORD_ATTEMPTS
+            password = self._get_backup_password()
+        attempt = 1
+        while True:
+            try:
+                tardata = parse_backup_file(ab_file_bytes, password=password)
+                break
+            except InvalidBackupPassword:
+                if attempt < max_attempts:
+                    attempt += 1
+                    log.error(
+                        "Invalid backup password, try again (attempt %d of %d)",
+                        attempt,
+                        max_attempts,
+                    )
+                    password = self._get_backup_password()
+                    continue
                 if self.sub_command:
-                    raise InvalidAndroidBackup("No backup password provided")
-                log.critical("No backup password provided.")
+                    raise InvalidAndroidBackup("Invalid backup password")
+                log.critical("Invalid backup password")
                 sys.exit(1)
-        try:
-            tardata = parse_backup_file(ab_file_bytes, password=password)
-        except InvalidBackupPassword:
-            if self.sub_command:
-                raise InvalidAndroidBackup("Invalid backup password")
-            log.critical("Invalid backup password")
-            sys.exit(1)
-        except AndroidBackupParsingError as exc:
-            if self.sub_command:
-                raise InvalidAndroidBackup(
-                    f"Impossible to parse this backup file: {exc}"
-                ) from exc
-            log.critical("Impossible to parse this backup file: %s", exc)
-            log.critical("Please use Android Backup Extractor (ABE) instead")
-            sys.exit(1)
+            except AndroidBackupParsingError as exc:
+                if self.sub_command:
+                    raise InvalidAndroidBackup(
+                        f"Impossible to parse this backup file: {exc}"
+                    ) from exc
+                log.critical("Impossible to parse this backup file: %s", exc)
+                log.critical("Please use Android Backup Extractor (ABE) instead")
+                sys.exit(1)
 
         dbytes = io.BytesIO(tardata)
         try:
