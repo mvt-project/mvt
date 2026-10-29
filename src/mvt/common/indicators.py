@@ -435,6 +435,16 @@ class Indicators:
                     self.log.warning("Unable to unshorten URL %s", url)
                     return None
 
+                # Exact URL indicators apply to the destination too, including
+                # URLs whose host cannot be parsed as a public domain.
+                for ioc in self.get_iocs("urls"):
+                    if ioc.value == unshortened:
+                        self.resolved_urls[url] = unshortened
+                        return IndicatorMatch(
+                            ioc=ioc,
+                            message=f'Found a known suspicious URL {unshortened} shortened as {url} matching indicator "{ioc.value}" from "{ioc.name}"',
+                        )
+
                 # Now we check for any nested URL shorteners.
                 dest_url = URL(unshortened)
                 if dest_url.check_if_shortened():
@@ -458,6 +468,9 @@ class Indicators:
         except Exception:
             # If URL parsing failed, we just try to do a simple substring
             # match.
+            if not domain_matcher:
+                return None
+
             for _, ioc in domain_matcher.iter(url):
                 if ioc.value.lower() in url:
                     return IndicatorMatch(
@@ -466,6 +479,11 @@ class Indicators:
                     )
 
             # If nothing matched, we can quit here.
+            return None
+
+        # An empty Aho-Corasick trie cannot be iterated, but bundles without
+        # domain indicators are valid (e.g. exact URLs or file hashes only).
+        if not domain_matcher:
             return None
 
         # If all parsing worked, we start walking through available domain

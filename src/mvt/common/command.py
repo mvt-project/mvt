@@ -10,6 +10,7 @@ import sys
 from datetime import datetime
 from functools import cached_property
 from heapq import heappop, heappush
+from pathlib import Path
 from typing import Any, Optional
 
 from rich.console import Console
@@ -19,7 +20,13 @@ from rich.text import Text
 from .alerts import AlertLevel, AlertStore
 from .config import settings
 from .indicators import Indicators
-from .module import EncryptedBackupError, MVTModule, run_module, save_timeline
+from .module import (
+    EncryptedBackupError,
+    MVTModule,
+    run_module,
+    save_timeline,
+    validate_output_paths,
+)
 from .module_loader import (
     ModuleOrigin,
     get_module_logger,
@@ -107,6 +114,26 @@ class Command:
                 )
                 sys.exit(1)
 
+    def _validate_storage(self, modules: list[type[MVTModule]]) -> None:
+        output_names = [
+            "command.log",
+            "info.json",
+            "alerts.json",
+            "alerts_timeline.csv",
+            "timeline.csv",
+            "urls.json",
+        ]
+        output_names.extend(
+            f"{module.get_slug()}{suffix}"
+            for module in modules
+            for suffix in (".json", "_detected.json")
+        )
+        try:
+            validate_output_paths(self.target_path, self.results_path, output_names)
+        except ValueError as exc:
+            self.log.error("%s", exc)
+            sys.exit(1)
+
     def _setup_logging(self):
         if not self.results_path:
             return
@@ -142,30 +169,38 @@ class Command:
         else:
             is_utc = True
 
-        if len(self.timeline) > 0:
+        timeline_path = os.path.join(self.results_path, "timeline.csv")
+        if self.timeline:
             save_timeline(
                 self.timeline,
-                os.path.join(self.results_path, "timeline.csv"),
+                timeline_path,
                 is_utc=is_utc,
             )
+        else:
+            Path(timeline_path).unlink(missing_ok=True)
 
     def _store_alerts(self) -> None:
         if not self.results_path:
             return
 
         alerts = self.alertstore.as_json()
+        alerts_path = os.path.join(self.results_path, "alerts.json")
         if not alerts:
+            Path(alerts_path).unlink(missing_ok=True)
             return
 
-        alerts_path = os.path.join(self.results_path, "alerts.json")
         with open(alerts_path, "w+", encoding="utf-8") as handle:
             json.dump(alerts, handle, indent=4, cls=CustomJSONEncoder)
 
     def _store_urls(self) -> None:
-        if not self.results_path or not self.url_results:
+        if not self.results_path:
             return
 
         urls_path = os.path.join(self.results_path, "urls.json")
+        if not self.url_results:
+            Path(urls_path).unlink(missing_ok=True)
+            return
+
         with open(urls_path, "w", encoding="utf-8") as handle:
             json.dump(self.url_results, handle, indent=4, cls=CustomJSONEncoder)
 
@@ -711,6 +746,10 @@ class Command:
         return ordered
 
     def run(self) -> None:
+        # Reject an acquisition directory used as output before creating logs
+        # or removing any previous module output. Resolve path aliases too.
+        self._validate_storage([])
+
         # The output folder and its command.log exist for a run, so that
         # listing modules or rejecting a target leaves nothing behind.
         # Resolving the module list can warn, so the log comes first.
@@ -720,6 +759,8 @@ class Command:
         ordered_modules = self._ordered_modules()
         if ordered_modules is None:
             return
+
+        self._validate_storage(ordered_modules)
 
         # Read the indicators once the run is certain to happen, before
         # init() does any work on the target, so that a missing indicators
