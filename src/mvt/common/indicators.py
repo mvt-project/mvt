@@ -646,14 +646,19 @@ class Indicators:
         if not file_path:
             return None
 
-        ioc_match = self.check_file_name(os.path.basename(file_path))
+        # Device paths use forward slashes even when analysed on Windows.
+        file_path = file_path.replace("\\", "/")
+        ioc_match = self.check_file_name(file_path.rsplit("/", 1)[-1])
         if ioc_match:
             return ioc_match
 
         for ioc in self.get_iocs("file_paths"):
             # Strip any trailing slash from indicator paths to match
             # directories.
-            if file_path.startswith(ioc.value.rstrip("/")):
+            indicator_path = ioc.value.replace("\\", "/").rstrip("/")
+            if file_path == indicator_path or file_path.startswith(
+                indicator_path + "/"
+            ):
                 return IndicatorMatch(
                     ioc=ioc,
                     message=f'Found a known suspicious file path "{file_path}" matching indicators form "{ioc.name}"',
