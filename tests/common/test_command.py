@@ -12,7 +12,7 @@ from click.testing import CliRunner
 
 from mvt.common.command import Command
 from mvt.common.indicators import Indicators
-from mvt.common.module import MVTModule
+from mvt.common.module import DatabaseNotFoundError, MVTModule
 
 
 class RecordingModule(MVTModule):
@@ -54,6 +54,31 @@ class URLRecordingModule(RecordingModule):
             "2026-07-29 12:00:00.000000",
             "test-chat",
         )
+
+
+class SavedOutputModule(RecordingModule):
+    def run(self):
+        if self.module_options.get("empty"):
+            return
+        self.results = [{"url": "https://example.org/previous"}]
+        if self.module_options.get("fail"):
+            raise DatabaseNotFoundError("No current database")
+
+    def check_indicators(self):
+        if self.results and not self.module_options.get("clean"):
+            self.alertstore.critical("Previous finding", "2026-07-29", self.results[0])
+
+    def collect_url_results(self):
+        for result in self.results:
+            self.add_url_result(result["url"], "2026-07-29", "test")
+
+    def serialize(self, result):
+        return {
+            "timestamp": "2026-07-29",
+            "module": self.__class__.__name__,
+            "event": "saved_output",
+            "data": result["url"],
+        }
 
 
 class CustomIOSBackupModule(RecordingModule):
@@ -217,6 +242,77 @@ class TestCommand:
             cmd.run()
         assert (output_path / "command.log").is_file()
 
+    @pytest.mark.parametrize("alias", [False, True])
+    def test_output_cannot_be_the_acquisition_directory(
+        self, tmp_path, alias, caplog
+    ):
+        target = tmp_path / "acquisition"
+        target.mkdir()
+        source = target / "saved_output_module.json"
+        source.write_text('["source evidence"]')
+        output = target
+        if alias:
+            output = tmp_path / "output-alias"
+            output.symlink_to(target, target_is_directory=True)
+        cmd = RecordingCommand(
+            target_path=str(target), results_path=str(output), iocs=Indicators()
+        )
+        cmd.modules = [SavedOutputModule]
+
+        with pytest.raises(SystemExit) as raised:
+            cmd.run()
+
+        assert raised.value.code == 1
+        assert "choose a separate output directory" in caplog.text
+        assert source.read_text() == '["source evidence"]'
+        assert list(target.iterdir()) == [source]
+        assert not hasattr(cmd, "initialized")
+
+    def test_output_can_be_nested_under_the_acquisition(self, tmp_path):
+        target = tmp_path / "acquisition"
+        target.mkdir()
+        source = target / "saved_output_module.json"
+        source.write_text('["source evidence"]')
+        output = target / "results"
+        cmd = RecordingCommand(
+            target_path=str(target), results_path=str(output), iocs=Indicators()
+        )
+        cmd.modules = [SavedOutputModule]
+
+        cmd.run()
+
+        assert source.read_text() == '["source evidence"]'
+        assert (output / "saved_output_module.json").is_file()
+
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            "command.log",
+            "info.json",
+            "alerts.json",
+            "alerts_timeline.csv",
+            "timeline.csv",
+            "urls.json",
+            "saved_output_module.json",
+            "saved_output_module_detected.json",
+        ],
+    )
+    def test_output_cannot_overwrite_an_input_file(self, tmp_path, filename, caplog):
+        source = tmp_path / filename
+        source.write_text('["source evidence"]')
+        cmd = RecordingCommand(
+            target_path=str(source), results_path=str(tmp_path), iocs=Indicators()
+        )
+        cmd.modules = [SavedOutputModule]
+
+        with pytest.raises(SystemExit) as raised:
+            cmd.run()
+
+        assert raised.value.code == 1
+        assert "choose a separate output directory" in caplog.text
+        assert source.read_text() == '["source evidence"]'
+        assert not hasattr(cmd, "initialized")
+
     def test_indicators_load_once_and_are_shared(self, indicator_file, monkeypatch):
         from mvt.common.config import settings
 
@@ -312,6 +408,52 @@ class TestCommand:
                 "source": "test-chat",
             }
         ]
+
+    @pytest.mark.parametrize("module_options", [{"empty": True}, {"fail": True}])
+    def test_rerun_drops_stale_owned_output(self, tmp_path, module_options):
+        owned_files = (
+            "saved_output_module.json",
+            "saved_output_module_detected.json",
+            "alerts.json",
+            "urls.json",
+            "timeline.csv",
+        )
+        unrelated = tmp_path / "another_module.json"
+        unrelated.write_text('["keep"]')
+        first = RecordingCommand(results_path=str(tmp_path), iocs=Indicators())
+        first.modules = [SavedOutputModule]
+        first.run()
+        assert all((tmp_path / name).is_file() for name in owned_files)
+
+        second = RecordingCommand(
+            results_path=str(tmp_path),
+            module_options=module_options,
+            iocs=Indicators(),
+        )
+        second.modules = [SavedOutputModule]
+        second.run()
+
+        assert not any((tmp_path / name).exists() for name in owned_files)
+        assert len((tmp_path / "alerts_timeline.csv").read_text().splitlines()) == 1
+        assert unrelated.read_text() == '["keep"]'
+
+    def test_rerun_with_records_but_no_alerts_drops_previous_detections(self, tmp_path):
+        for module_options in ({}, {"clean": True}):
+            cmd = RecordingCommand(
+                results_path=str(tmp_path),
+                module_options=module_options,
+                iocs=Indicators(),
+            )
+            cmd.modules = [SavedOutputModule]
+            cmd.run()
+
+        assert json.loads((tmp_path / "saved_output_module.json").read_text()) == [
+            {"url": "https://example.org/previous"}
+        ]
+        assert not (tmp_path / "saved_output_module_detected.json").exists()
+        assert not (tmp_path / "alerts.json").exists()
+        assert (tmp_path / "urls.json").is_file()
+        assert (tmp_path / "timeline.csv").is_file()
 
     def test_modules_run_in_stable_topological_order(self):
         cmd = RecordingCommand()

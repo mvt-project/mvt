@@ -64,8 +64,6 @@ class ConfigurationProfiles(IOSExtraction):
 
         for result in self.results:
             if result["plist"].get("PayloadUUID"):
-                payload_content = result["plist"]["PayloadContent"][0]
-
                 # Alert on any known malicious configuration profiles in the
                 # indicator list.
                 ioc_match = self.indicators.check_profile(
@@ -80,10 +78,16 @@ class ConfigurationProfiles(IOSExtraction):
 
                 # Highlight suspicious configuration profiles which may be used
                 # to hide notifications.
-                if payload_content["PayloadType"] in ["com.apple.notificationsettings"]:
-                    warning_message = f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}'
-                    self.alertstore.medium(warning_message, "", result)
-                    continue
+                for payload_content in result["plist"].get("PayloadContent") or []:
+                    if not isinstance(payload_content, dict):
+                        continue
+                    if (
+                        payload_content.get("PayloadType")
+                        == "com.apple.notificationsettings"
+                    ):
+                        warning_message = f'Found a potentially suspicious configuration profile "{result["plist"]["PayloadDisplayName"]}" with payload type {payload_content["PayloadType"]}'
+                        self.alertstore.medium(warning_message, "", result)
+                        break
 
     @staticmethod
     def _b64encode_key(d: dict, key: str) -> None:
