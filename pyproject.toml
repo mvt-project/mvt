@@ -118,7 +118,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-mvt = ["ios/data/*.json"]
+mvt = ["ios/data/*.json", "common/report_template.html", "common/report_fonts/*"]
 
 [tool.setuptools_scm]
 # The version is the latest v* tag; ignore the archive/* tags.
