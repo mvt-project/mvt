@@ -352,7 +352,10 @@ class URL:
         # Use hostname so port/credentials do not prevent subdomain IOC matches.
         # removeprefix, not lstrip: lstrip takes a set of characters, so it ate the
         # leading "w"s and dots of any domain ("web.evil.com" -> "eb.evil.com").
-        return tld_obj.parsed_url.hostname.lower().removeprefix("www.")
+        hostname = tld_obj.parsed_url.hostname
+        if not hostname:
+            return ""
+        return hostname.lower().removeprefix("www.")
 
     def get_top_level(self) -> str:
         """Get only the top-level domain from a URL.
