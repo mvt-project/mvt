@@ -298,6 +298,21 @@ class TestCommand:
         alerts = json.loads((tmp_path / "alerts.json").read_text())
         assert alerts[0]["event"]["payload"] == "\\xa8\\xa9"
 
+    def test_records_time_and_memory_per_module(self, tmp_path):
+        cmd = RecordingCommand(results_path=str(tmp_path))
+        cmd.modules = [FirstModule, SecondModule]
+
+        cmd.run()
+
+        info = json.loads((tmp_path / "info.json").read_text())
+        assert [stat["module"] for stat in info["module_stats"]] == [
+            "FirstModule",
+            "SecondModule",
+        ]
+        for stat in info["module_stats"]:
+            assert stat["seconds"] >= 0
+            assert stat["peak_rss_growth_mb"] >= 0
+
     def test_stores_collected_urls(self, tmp_path):
         cmd = RecordingCommand(results_path=str(tmp_path))
         cmd.modules = [URLRecordingModule]
