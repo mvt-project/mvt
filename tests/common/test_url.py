@@ -38,6 +38,17 @@ def test_other_google_short_url_is_shortened():
 def test_get_domain_strips_only_a_whole_www_prefix(url, domain):
     assert URL(url).domain == domain
 
+@pytest.mark.parametrize(
+    "url, domain",
+    [
+        ("https://evil.com:8443/path", "evil.com"),
+        ("https://user:pass@evil.com/path", "evil.com"),
+        ("https://user:pass@www.evil.com:8443/path", "evil.com"),
+    ],
+)
+def test_get_domain_ignores_port_and_credentials(url, domain):
+    assert URL(url).domain == domain
+
 
 def test_shortener_starting_with_w_is_detected():
     assert URL("https://w3t.org/example").check_if_shortened() is True
