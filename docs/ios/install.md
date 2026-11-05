@@ -1,55 +1,44 @@
-# Install libimobiledevice
+# Install pymobiledevice3
 
-Before proceeding with doing any acquisition of iOS devices we recommend installing [libimobiledevice](https://libimobiledevice.org/) utilities. These utilities will become useful when extracting crash logs and generating iTunes backups. Because the utilities and its libraries are subject to frequent changes in response to new versions of iOS, you might want to consider compiling libimobiledevice utilities from sources. Otherwise, if available, you can try installing packages available in your distribution:
+Before acquiring data from an iOS device, we recommend installing [pymobiledevice3](https://github.com/doronz88/pymobiledevice3). It provides command-line tools for generating iTunes-compatible backups and extracting crash logs.
 
-```bash
-sudo apt install libimobiledevice-utils
-```
+## Installation
 
-On Mac, you can try installing it from brew:
+Install `pipx` following the [MVT installation instructions](../install.md), then run:
 
 ```bash
-brew install --HEAD libimobiledevice
+pipx install pymobiledevice3
 ```
 
-If you have a reasonably recent version of libimobiledevice in your package manager, it might work straight out of the box. Try connecting your iOS device to your computer via USB and run:
+To update an existing installation:
 
 ```bash
-ideviceinfo
+pipx upgrade pymobiledevice3
 ```
 
-If you encounter unexpected issues, uninstall the packages and try compiling libimobiledevcice from sources.
-
-## Compile libimobiledevice from sources
-
-!!! warning
-    The following instructions are a best effort. The installation from source requires several steps, and it is likely some have been forgotten here and that won't work for you. You will likely need to fiddle around a bit before getting this right.
-
-Make sure you have uninstalled all the libimobiledevice tools from your package manage:
+On Linux, you also need `usbmuxd` to communicate with devices over USB. On Debian and Ubuntu, install it with:
 
 ```bash
-sudo apt remove --purge libimobiledevice-utils libimobiledevice-dev libimobiledevice6 libplist-dev libplist3 libusbmuxd-dev libusbmuxd-tools libusbmuxd4 libusbmuxd6 usbmuxd
+sudo apt install usbmuxd
 ```
 
-Firstly you need to install [libplist](https://github.com/libimobiledevice/libplist). Then you can install [libusbmuxd](https://github.com/libimobiledevice/libusbmuxd).
+macOS includes the required USB device service. For other platforms and additional requirements, see the [pymobiledevice3 installation documentation](https://doronz88.github.io/pymobiledevice3/installation/).
 
-Now you should be able to to download and install the actual suite of tools at [https://github.com/libimobiledevice/libimobiledevice](https://github.com/libimobiledevice/libimobiledevice).
+## Verify connectivity
 
-You can now also build and install [usbmuxd](https://github.com/libimobiledevice/usbmuxd).
-
-## Making sure everything works fine.
-
-Once the idevice tools are available you can check if everything works fine by connecting your iOS device and running:
+Connect the iOS device to your computer with a USB cable and unlock it. Accept the **Trust This Computer** prompt and enter the device passcode if requested. Then run:
 
 ```bash
-ideviceinfo
+pymobiledevice3 usbmux list
+pymobiledevice3 lockdown info
 ```
 
-This should show many details on the connected iOS device. If you are connecting the device to your laptop for the first time, it will require to unlock and enter the PIN code on the mobile device. If it complains that no device is connected and the mobile device is indeed plugged in through the USB cable, you might need to do this first, although typically the pairing is automatically done when connecting the device:
+These commands should list the connected device and display its details. If pairing is needed, run:
 
 ```bash
-sudo usbmuxd -f -v
-idevicepair pair
+pymobiledevice3 lockdown pair
 ```
 
-Again, it will ask to unlock the phone and enter the PIN code. 
+If no device is found, check the USB connection, make sure the device is unlocked, and, on Linux, check that `usbmuxd` is running. See the [upstream troubleshooting guide](https://doronz88.github.io/pymobiledevice3/guides/troubleshooting/) for further help.
+
+Once connected, follow the [backup instructions](backup/pymobiledevice3.md).

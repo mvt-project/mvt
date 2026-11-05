@@ -7,6 +7,7 @@ import logging
 import threading
 from pathlib import Path
 
+import pytest
 from Crypto.Cipher import AES
 
 from mvt.ios.decrypt import DecryptBackup, MVTEncryptedBackup
@@ -81,7 +82,10 @@ def test_extract_file_by_id_copies_unencrypted_files(mocker, tmp_path):
     assert output_path.read_bytes() == b"plain content"
 
 
-def test_process_backup_rejects_unsafe_file_ids_and_destinations(mocker, tmp_path):
+@pytest.mark.parametrize("with_symlink", [False, True], ids=["file-id", "symlink"])
+def test_process_backup_rejects_unsafe_file_ids_and_destinations(
+    mocker, tmp_path, with_symlink
+):
     backup_path = tmp_path / "backup"
     destination = tmp_path / "destination"
     outside = tmp_path / "outside"
@@ -92,20 +96,27 @@ def test_process_backup_rejects_unsafe_file_ids_and_destinations(mocker, tmp_pat
     safe_file_id = "ef" + "3" * 38
     unsafe_file_id = "../../outside-file"
     symlink_file_id = "ab" + "4" * 38
-    for file_id in (safe_file_id, symlink_file_id):
+    file_ids = [safe_file_id]
+    if with_symlink:
+        file_ids.append(symlink_file_id)
+    for file_id in file_ids:
         source_path = backup_path / file_id[:2] / file_id
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_bytes(b"encrypted")
-    (destination / "ab").symlink_to(outside, target_is_directory=True)
+    if with_symlink:
+        try:
+            (destination / "ab").symlink_to(outside, target_is_directory=True)
+        except OSError:
+            pytest.skip("creating symbolic links is not permitted on this system")
 
     cursor = mocker.MagicMock()
-    cursor.__iter__.return_value = iter(
-        [
-            (safe_file_id, "Domain", "safe", b"plist"),
-            (unsafe_file_id, "Domain", "unsafe", b"plist"),
-            (symlink_file_id, "Domain", "symlink", b"plist"),
-        ]
-    )
+    records = [
+        (safe_file_id, "Domain", "safe", b"plist"),
+        (unsafe_file_id, "Domain", "unsafe", b"plist"),
+    ]
+    if with_symlink:
+        records.append((symlink_file_id, "Domain", "symlink", b"plist"))
+    cursor.__iter__.return_value = iter(records)
     cursor_context = mocker.MagicMock()
     cursor_context.__enter__.return_value = cursor
 
@@ -124,7 +135,8 @@ def test_process_backup_rejects_unsafe_file_ids_and_destinations(mocker, tmp_pat
     decryptor.process_backup()
 
     assert (destination / safe_file_id[:2] / safe_file_id).read_bytes() == b"decrypted"
-    assert not (outside / symlink_file_id).exists()
+    if with_symlink:
+        assert not (outside / symlink_file_id).exists()
     backup.extract_file_by_id.assert_called_once()
     assert backup.extract_file_by_id.call_args.kwargs["file_id"] == safe_file_id
 

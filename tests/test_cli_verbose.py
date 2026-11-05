@@ -100,8 +100,8 @@ class TestVerboseOnTheCheckCommands:
         assert result.exit_code == 0
         assert _console_level() == logging.DEBUG
 
-    def test_the_command_option_says_it_is_kept_for_compatibility(self):
+    def test_the_command_option_is_hidden_from_the_help(self):
         result = CliRunner().invoke(ios_cli, [*OFFLINE, "check-backup", "--help"])
 
         assert result.exit_code == 0
-        assert "kept for compatibility" in result.output
+        assert "--verbose" not in result.output

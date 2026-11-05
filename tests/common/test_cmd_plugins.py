@@ -1,4 +1,5 @@
 import json
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -54,20 +55,23 @@ def _run(command, arguments):
     return CliRunner().invoke(command, arguments, env={"COLUMNS": "200"})
 
 
-def _table_rows(output):
-    """Return the content of the table rows, without the header and the box."""
+def _table_lines(output):
+    """Return the cells of each line of the table, header first."""
     return [
-        [cell.strip() for cell in line.strip().strip("│").split("│")]
+        [cell.strip() for cell in re.split("[│┃]", line.strip().strip("│┃"))]
         for line in output.splitlines()
-        if "│" in line
+        if "│" in line or "┃" in line
     ]
 
 
+def _table_rows(output):
+    """Return the content of the table rows, without the header and the box."""
+    return _table_lines(output)[1:]
+
+
 def _table_header(output):
-    for line in output.splitlines():
-        if "┃" in line:
-            return [cell.strip() for cell in line.strip().strip("┃").split("┃")]
-    return []
+    lines = _table_lines(output)
+    return lines[0] if lines else []
 
 
 def _install(monkeypatch, distributions, entry_points):

@@ -43,6 +43,7 @@ class TestCompletionCommand:
 
     def test_completion_install_updates_bashrc_once(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setenv("USERPROFILE", str(tmp_path))
         runner = CliRunner()
 
         result = runner.invoke(mvt_cli, ["completion", "bash", "--install"])
@@ -67,6 +68,7 @@ class TestCompletionCommand:
         self, tmp_path, monkeypatch
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setenv("USERPROFILE", str(tmp_path))
         runner = CliRunner()
 
         result = runner.invoke(mvt_cli, ["completion", "fish", "--install"])
