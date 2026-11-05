@@ -7,6 +7,7 @@ from mvt.common.module import MVTModule
 
 from .dumpsys_accessibility import DumpsysAccessibility
 from .dumpsys_activities import DumpsysActivities
+from .dumpsys_adb_state import DumpsysADBState
 from .dumpsys_appops import DumpsysAppops
 from .dumpsys_battery_daily import DumpsysBatteryDaily
 from .dumpsys_battery_history import DumpsysBatteryHistory
@@ -15,7 +16,6 @@ from .dumpsys_getprop import DumpsysGetProp
 from .dumpsys_packages import DumpsysPackages
 from .dumpsys_platform_compat import DumpsysPlatformCompat
 from .dumpsys_receivers import DumpsysReceivers
-from .dumpsys_adb_state import DumpsysADBState
 from .fs_timestamps import BugReportTimestamps
 from .tombstones import Tombstones
 from .mounts import Mounts
