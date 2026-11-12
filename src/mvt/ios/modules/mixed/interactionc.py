@@ -14,7 +14,7 @@ from mvt.common.module_types import (
     ModuleResults,
     ModuleSerializedResult,
 )
-from mvt.common.utils import convert_mactime_to_iso
+from mvt.common.utils import convert_mactime_to_iso, sanitize_json_data
 
 from ..base import IOSExtraction
 from .whatsapp_contacts import WhatsappContacts
@@ -546,5 +546,23 @@ class InteractionC(IOSExtraction):
             conn.close()
 
         self._postprocess_results()
+
+        # Preserve every column from the underlying interaction row. The
+        # joined compatibility queries above intentionally expose a stable
+        # result schema but otherwise discard useful forensic fields.
+        conn = self._open_sqlite_db(self.file_path)
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT * FROM ZINTERACTIONS;")
+            names = [description[0] for description in cur.description]
+            interactions = {}
+            for row in cur:
+                raw = sanitize_json_data(dict(zip(names, row)))
+                interactions[raw.get("Z_PK")] = raw
+        finally:
+            cur.close()
+            conn.close()
+        for result in self.results:
+            result["interaction"] = interactions.get(result.get("table_id"), {})
 
         self.log.info("Extracted a total of %d InteractionC events", len(self.results))
