@@ -236,12 +236,18 @@ def test_output_write_error_is_fatal_not_recovered(tmp_path, monkeypatch, caplog
     assert command.sysdiagnose_archive is None
 
 
-@pytest.mark.parametrize("offset", ["+0200", "-0530"])
-def test_recovered_timezone_falls_back_to_original_filename(tmp_path, offset):
+@pytest.mark.parametrize(
+    ("suffix", "expected"),
+    [
+        ("+0200_iPhone-OS_iPhone_24A000.tar.gz", timedelta(hours=2)),
+        ("-0530_iPhone-OS_iPhone_24A000.tar.gz", -timedelta(hours=5, minutes=30)),
+        ("+0100.tar.gz.partial", timedelta(hours=1)),
+        ("+2500.tar.gz.partial", timedelta(0)),
+    ],
+)
+def test_recovered_timezone_falls_back_to_original_filename(tmp_path, suffix, expected):
     path = _recovery_archive(tmp_path, "gzip-body")
-    renamed = path.with_name(
-        f"sysdiagnose_2026.09.14_20-04-52{offset}_iPhone-OS_iPhone_24A000.tar.gz"
-    )
+    renamed = path.with_name(f"sysdiagnose_2026.09.14_20-04-52{suffix}")
     path.rename(renamed)
     command = CmdIOSCheckSysdiagnose(target_path=str(renamed))
     try:
@@ -250,9 +256,6 @@ def test_recovered_timezone_falls_back_to_original_filename(tmp_path, offset):
         command.module_init(module)
         # Simulate the diagnostic log being in the missing part of an archive.
         module.files = [f for f in module.files if not f.endswith("/sysdiagnose.log")]
-        expected = (
-            timedelta(hours=2) if offset == "+0200" else -timedelta(hours=5, minutes=30)
-        )
         assert module._extract_timezone().utcoffset(None) == expected
     finally:
         command.finish()

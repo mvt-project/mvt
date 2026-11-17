@@ -147,7 +147,7 @@ class CmdIOSCheckSysdiagnose(Command):
                         while compressed.read1(1024 * 1024):
                             pass
                     except (EOFError, gzip.BadGzipFile, zlib.error) as exc:
-                        self._warn_incomplete_archive(exc)
+                        self._handle_incomplete_archive(exc)
         except (tarfile.ReadError, EOFError, zlib.error, OSError) as exc:
             self.log.critical(
                 "Unable to read the sysdiagnose archive %s: %s. "
@@ -158,8 +158,12 @@ class CmdIOSCheckSysdiagnose(Command):
             self.finish()
             sys.exit(1)
 
-    def _warn_incomplete_archive(self, exc: Exception) -> None:
+    def _handle_incomplete_archive(self, exc: Exception) -> None:
         self.archive_incomplete = True
+        if not self.sysdiagnose_files:
+            raise tarfile.ReadError(
+                "No complete sysdiagnose files could be recovered"
+            ) from exc
         self.log.warning(
             "The sysdiagnose archive is truncated or damaged: %s. Recovered "
             "%d complete files; incomplete files are excluded. Analysis will "
@@ -182,11 +186,7 @@ class CmdIOSCheckSysdiagnose(Command):
             for member in archive:
                 self._extract_member(archive, member, extraction_root, archive_roots)
         except (tarfile.ReadError, EOFError, gzip.BadGzipFile, zlib.error) as exc:
-            self._warn_incomplete_archive(exc)
-            if not self.sysdiagnose_files:
-                raise tarfile.ReadError(
-                    "No complete sysdiagnose files could be recovered"
-                ) from exc
+            self._handle_incomplete_archive(exc)
 
         if len(archive_roots) != 1:
             self.finish()

@@ -66,32 +66,35 @@ class SysdiagnoseExtraction(MVTModule):
                 "utf-8", errors="replace"
             )
             filenames = re.findall(r"sysdiagnose_\S+?\.tar\.gz", content)
-        if not filenames and self.target_path:
+        if self.target_path:
             # A recovered archive can be missing sysdiagnose.log. Its original
             # filename still records the collection offset, when not renamed.
-            filename = Path(self.target_path).name
-            if re.match(
-                r"sysdiagnose_\d{4}\.\d{2}\.\d{2}_\d{2}-\d{2}-\d{2}[+-]\d{4}(?:_|\.)",
+            filenames.append(Path(self.target_path).name)
+        for filename in filenames:
+            match = re.match(
+                r"sysdiagnose_(\d{4}\.\d{2}\.\d{2}_[^_\s]+?)(?:_|\.tar\.gz|$)",
                 filename,
-            ):
-                filenames = [filename]
-        if not filenames:
-            self.log.info(
-                "Unable to determine the timezone in which the sysdiagnose was "
-                "generated. Assuming UTC for logs without a timezone."
             )
-            return timezone.utc
+            if not match:
+                continue
+            try:
+                sysdiagnose_timezone = datetime.strptime(
+                    match[1], "%Y.%m.%d_%H-%M-%S%z"
+                ).tzinfo
+            except ValueError:
+                continue
+            self.log.info(
+                "Based on the sysdiagnose filename, assuming timezone %s for logs "
+                "without a timezone.",
+                sysdiagnose_timezone,
+            )
+            return sysdiagnose_timezone
 
-        timestamp = "_".join(filenames[0].removesuffix(".tar.gz").split("_")[1:3])
-        sysdiagnose_timezone = datetime.strptime(
-            timestamp, "%Y.%m.%d_%H-%M-%S%z"
-        ).tzinfo
         self.log.info(
-            "Based on the sysdiagnose filename, assuming timezone %s for logs "
-            "without a timezone.",
-            sysdiagnose_timezone,
+            "Unable to determine the timezone in which the sysdiagnose was "
+            "generated. Assuming UTC for logs without a timezone."
         )
-        return sysdiagnose_timezone
+        return timezone.utc
 
     def _get_files_by_pattern(self, pattern: str) -> list[str]:
         file_names = self.tar_files if self.tar else self.files

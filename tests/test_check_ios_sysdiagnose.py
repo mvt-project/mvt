@@ -95,6 +95,20 @@ def test_check_sysdiagnose_reports_a_truncated_archive(tmp_path, caplog):
     assert "Aborted!" not in result.output
 
 
+def test_damaged_gzip_trailer_without_recoverable_files_fails(tmp_path, caplog):
+    archive = tmp_path / "sysdiagnose.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        directory = tarfile.TarInfo("sysdiagnose")
+        directory.type = tarfile.DIRTYPE
+        tar.addfile(directory)
+    archive.write_bytes(archive.read_bytes()[:-8])
+
+    result = CliRunner().invoke(check_sysdiagnose, [str(archive)])
+
+    assert result.exit_code == 1
+    assert "No complete sysdiagnose files could be recovered" in caplog.text
+
+
 def test_check_sysdiagnose_recovers_and_saves_warning(tmp_path, caplog):
     archive = _recovery_archive(tmp_path, "gzip-body")
     module_path = tmp_path / "custom_sysdiagnose.py"
