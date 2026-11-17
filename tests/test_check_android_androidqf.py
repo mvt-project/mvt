@@ -63,6 +63,32 @@ def test_androidqf_property_detection_across_layouts(
 
 
 class TestCheckAndroidqfCommand:
+    @pytest.mark.parametrize("use_zip", [False, True], ids=["folder", "zip"])
+    def test_androidqf_process_list_and_log_files(self, tmp_path, use_zip):
+        archive_path = tmp_path / "acquisition.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.writestr("processes.txt", "USER PID NAME\nroot 1 init\n")
+            archive.writestr("logs/proc/kmsg", "")
+            archive.writestr("logs/data/anr/", "")
+            target = archive_path if use_zip else tmp_path / "acquisition"
+            if not use_zip:
+                archive.extractall(target)
+
+        command = CmdAndroidCheckAndroidQF(
+            target_path=str(target),
+            disable_version_check=True,
+            disable_indicator_check=True,
+        )
+        command.run()
+
+        records = {type(module).__name__: module.results for module in command.executed}
+        assert records["AQFProcesses"] == [
+            {"user": "root", "pid": 1, "command": "init"}
+        ]
+        timestamps = records["AQFLogTimestamps"]
+        assert len(timestamps) == 1
+        assert timestamps[0]["path"].replace("\\", "/").endswith("logs/proc/kmsg")
+
     def test_log_timestamps_module_is_registered(self):
         assert AQFLogTimestamps in ANDROIDQF_MODULES
 

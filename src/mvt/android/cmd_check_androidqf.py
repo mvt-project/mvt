@@ -95,7 +95,9 @@ class CmdAndroidCheckAndroidQF(Command):
         elif os.path.isfile(self.target_path):
             self.__format = "zip"
             self.__zip = zipfile.ZipFile(self.target_path)
-            self.__files = self.__zip.namelist()
+            self.__files = [
+                entry.filename for entry in self.__zip.infolist() if not entry.is_dir()
+            ]
 
         self._load_acquisition_context()
 
