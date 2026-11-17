@@ -160,7 +160,9 @@ def check_adb(ctx):
         "zone is read from persist.sys.timezone in the bugreport itself."
     ),
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("BUGREPORT_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_bugreport(
@@ -235,7 +237,9 @@ def check_bugreport(
 )
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -310,7 +314,9 @@ def check_backup(
 )
 @click.option("--non-interactive", "-n", is_flag=True, help=HELP_MSG_NONINTERACTIVE)
 @click.option("--backup-password", "-p", help=HELP_MSG_ANDROID_BACKUP_PASSWORD)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("ANDROIDQF_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_androidqf(
@@ -397,7 +403,9 @@ def check_androidqf(
         "time instead of UTC."
     ),
 )
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("LOGS_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_intrusion_logs(

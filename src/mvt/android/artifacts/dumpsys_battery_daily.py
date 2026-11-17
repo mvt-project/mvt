@@ -73,8 +73,12 @@ class DumpsysBatteryDailyArtifact(AndroidArtifact):
                 continue
 
             line = line.strip().replace("Update ", "")
-            package_name, vers = line.split(" ", 1)
-            vers_raw = vers.split("=", 1)[1]
+            # A truncated or vendor-specific line must not abort the parse and
+            # lose every record after it.
+            package_name, _, vers = line.partition(" ")
+            vers_raw = vers.partition("=")[2]
+            if not package_name or not vers_raw:
+                continue
             try:
                 version_code: int | str = int(vers_raw)
             except ValueError:

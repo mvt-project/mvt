@@ -204,6 +204,10 @@ This JSON file is created by mvt-ios' `Manifest` module. The module extracts rec
 
 If indicators are provided through the command-line, they are checked against the original relative path in case. In some cases, there might be records of files created containing a domain name in their name, for example in the case of browser cache folders. Any matches are stored in *manifest_detected.json*.
 
+An incomplete backup still lists in its manifest the files it failed to acquire. Those records carry a `"missing": true` field, and the module reports how many of them it found. Use it to tell a module which returned nothing because the artifact was not acquired apart from one which found nothing on a device that never had it.
+
+Files must be stored at their expected paths inside the backup folder. If the module cannot finish listing the backup files, it logs a warning and skips the missing-file check; the manifest metadata is still extracted.
+
 ---
 
 ### `os_analytics_ad_daily.json`

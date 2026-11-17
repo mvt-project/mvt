@@ -59,6 +59,66 @@ class TestCheckAndroidBackupCommand:
         assert result.exit_code == 1
         assert "Invalid backup password" in caplog.text
 
+    def test_check_encrypted_backup_prompt_retry(self, mocker):
+        """A wrong password at the prompt is asked for again"""
+        prompt_mock = mocker.patch(
+            "mvt.android.modules.backup.helpers.prompt_password",
+            side_effect=["wrong_password", TEST_BACKUP_PASSWORD],
+        )
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+        result = runner.invoke(check_backup, [path])
+
+        assert prompt_mock.call_count == 2
+        assert result.exit_code == 0
+
+    def test_check_encrypted_backup_prompt_gives_up(self, mocker, caplog):
+        """The prompt gives up after three wrong passwords"""
+        prompt_mock = mocker.patch(
+            "mvt.android.modules.backup.helpers.prompt_password",
+            return_value="wrong_password",
+        )
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+
+        with caplog.at_level(logging.CRITICAL):
+            result = runner.invoke(check_backup, [path])
+
+        assert prompt_mock.call_count == 3
+        assert result.exit_code == 1
+        assert "Invalid backup password" in caplog.text
+
+    def test_check_encrypted_backup_prompt_retry_empty(self, mocker, caplog):
+        """An empty answer on a retry ends the check"""
+        prompt_mock = mocker.patch(
+            "mvt.android.modules.backup.helpers.prompt_password",
+            side_effect=["wrong_password", ""],
+        )
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+
+        with caplog.at_level(logging.CRITICAL):
+            result = runner.invoke(check_backup, [path])
+
+        assert prompt_mock.call_count == 2
+        assert result.exit_code == 1
+        assert "No backup password provided" in caplog.text
+
+    def test_check_encrypted_backup_cli_invalid_no_prompt(self, mocker):
+        """A password given on the command line is not asked for again"""
+        prompt_mock = mocker.patch(
+            "mvt.android.modules.backup.helpers.prompt_password",
+            return_value=TEST_BACKUP_PASSWORD,
+        )
+        runner = CliRunner()
+        path = os.path.join(get_artifact_folder(), "androidqf_encrypted/backup.ab")
+        result = runner.invoke(
+            check_backup, ["--backup-password", "invalid_password", path]
+        )
+
+        assert prompt_mock.call_count == 0
+        assert result.exit_code == 1
+
     def test_check_encrypted_backup_env(self, mocker):
         """Provide password as environment variable"""
         prompt_mock = mocker.patch(

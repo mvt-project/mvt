@@ -52,7 +52,7 @@ class MVTEncryptedBackup(EncryptedBackup):
 
     NOTE: This subclass relies on internal APIs of iphone_backup_decrypt
     (specifically _read_and_unlock_keybag, _keybag, and the Keybag class
-    internals). Pinned to iphone_backup_decrypt==0.9.0.
+    internals). Pinned to iphone_backup_decrypt==0.10.0.
     """
 
     def __init__(self, *, backup_directory, passphrase=None, derived_key=None):
