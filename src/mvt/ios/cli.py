@@ -278,7 +278,9 @@ def extract_key(password, key_file, backup_path):
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("BACKUP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_backup(
@@ -347,7 +349,9 @@ def check_backup(
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("DUMP_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_fs(
@@ -416,7 +420,9 @@ def check_fs(
     help=HELP_MSG_LOAD_MODULE,
 )
 @click.option("--hashes", "-H", is_flag=True, help=HELP_MSG_HASHES)
-@click.option("--verbose", "-v", is_flag=True, help=HELP_MSG_VERBOSE_COMMAND)
+@click.option(
+    "--verbose", "-v", is_flag=True, hidden=True, help=HELP_MSG_VERBOSE_COMMAND
+)
 @click.argument("SYSDIAGNOSE_PATH", type=click.Path(exists=True))
 @click.pass_context
 def check_sysdiagnose(

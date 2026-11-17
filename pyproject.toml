@@ -36,7 +36,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "tzdata==2026.3",
 ]
-requires-python = ">= 3.10"
+requires-python = ">= 3.11"
 
 [project.urls]
 homepage = "https://docs.mvt.re/en/latest/"
