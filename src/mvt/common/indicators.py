@@ -18,7 +18,9 @@ from appdirs import user_data_dir
 from .config import settings
 from .url import URL
 
-MVT_DATA_FOLDER = user_data_dir("mvt")
+# MVT_DATA_FOLDER in the environment relocates the downloaded indicators and
+# the update-check state kept next to them.
+MVT_DATA_FOLDER = os.environ.get("MVT_DATA_FOLDER") or user_data_dir("mvt")
 MVT_INDICATORS_FOLDER = os.path.join(MVT_DATA_FOLDER, "indicators")
 
 logger = logging.getLogger(__name__)
@@ -71,7 +73,9 @@ class Indicators:
             if os.path.isfile(path) and path.lower().endswith(".stix2"):
                 self.parse_stix2(path)
             elif os.path.isdir(path):
-                for file in glob.glob(os.path.join(path, "**", "*.stix2"), recursive=True):
+                for file in glob.glob(
+                    os.path.join(path, "**", "*.stix2"), recursive=True
+                ):
                     self.parse_stix2(file)
             else:
                 self.log.error(
@@ -518,9 +522,7 @@ class Indicators:
         the original URL order.
         """
         batches = [list(urls) if urls else [] for urls in url_batches]
-        unique_urls = list(
-            dict.fromkeys(url for urls in batches for url in urls)
-        )
+        unique_urls = list(dict.fromkeys(url for urls in batches for url in urls))
 
         if not unique_urls:
             return [None] * len(batches)

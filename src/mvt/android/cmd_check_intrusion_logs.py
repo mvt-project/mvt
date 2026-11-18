@@ -63,6 +63,8 @@ class CmdAndroidCheckIntrusionLogs(Command):
         if not self.target_path:
             raise ValueError("No target path specified")
 
+        self.log.info("Checking intrusion logs at path: %s", self.target_path)
+
         if not os.path.isdir(self.target_path) and not (
             os.path.isfile(self.target_path)
             and self.target_path.lower().endswith(".zip")

@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from functools import cached_property
 from heapq import heappop, heappush
 from typing import Any, Optional
 
@@ -84,17 +85,17 @@ class Command:
         self.timeline: ModuleTimeline = []
         self.url_results: list[URLResult] = []
 
-        # Load IOCs
-        self._create_storage()
-        self._setup_logging()
-
         if iocs is not None:
             self.iocs = iocs
-        else:
-            self.iocs = Indicators(self.log)
-            self.iocs.load_indicators_files(self.ioc_files)
 
         self.alertstore = AlertStore()
+
+    @cached_property
+    def iocs(self) -> Indicators:
+        """Load indicators on first use. Nested commands share their parent's."""
+        iocs = Indicators(self.log)
+        iocs.load_indicators_files(self.ioc_files)
+        return iocs
 
     def _create_storage(self) -> None:
         if self.results_path and not os.path.exists(self.results_path):
@@ -710,16 +711,29 @@ class Command:
         return ordered
 
     def run(self) -> None:
+        # The output folder and its command.log exist for a run, so that
+        # listing modules or rejecting a target leaves nothing behind.
+        # Resolving the module list can warn, so the log comes first.
+        self._create_storage()
+        self._setup_logging()
+
         ordered_modules = self._ordered_modules()
         if ordered_modules is None:
             return
 
-        self._log_loaded_modules(ordered_modules)
+        # Read the indicators once the run is certain to happen, before
+        # init() does any work on the target, so that a missing indicators
+        # file is reported first and every module gets the same object.
+        iocs = self.iocs
 
+        # Commands announce their target from init(), so it goes before the
+        # module list.
         try:
             self.init()
         except NotImplementedError:
             pass
+
+        self._log_loaded_modules(ordered_modules)
 
         executed_by_type: dict[type[MVTModule], MVTModule] = {}
         for module in ordered_modules:
@@ -740,8 +754,8 @@ class Command:
                 for dependency, resolved in self._module_dependencies(module)
             }
 
-            if self.iocs.total_ioc_count:
-                m.indicators = self.iocs
+            if iocs.total_ioc_count:
+                m.indicators = iocs
                 m.indicators.log = m.log
 
             if self.serial:

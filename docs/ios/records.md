@@ -204,6 +204,10 @@ This JSON file is created by mvt-ios' `Manifest` module. The module extracts rec
 
 If indicators are provided through the command-line, they are checked against the original relative path in case. In some cases, there might be records of files created containing a domain name in their name, for example in the case of browser cache folders. Any matches are stored in *manifest_detected.json*.
 
+An incomplete backup still lists in its manifest the files it failed to acquire. Those records carry a `"missing": true` field, and the module reports how many of them it found. Use it to tell a module which returned nothing because the artifact was not acquired apart from one which found nothing on a device that never had it.
+
+Files must be stored at their expected paths inside the backup folder. If the module cannot finish listing the backup files, it logs a warning and skips the missing-file check; the manifest metadata is still extracted.
+
 ---
 
 ### `os_analytics_ad_daily.json`
@@ -435,3 +439,11 @@ This JSON file is created by mvt-ios' `WhatsappContacts` module. The module extr
 
 This database is often missing from incremental backups. When it cannot be found, the module logs a warning and produces no results, in which case the disappearing messages state of chats cannot be determined from the backup.
 
+
+---
+
+## Records extracted by `check-sysdiagnose`
+
+### `sysdiagnose_info.json`
+
+This JSON file is created by mvt-ios' `SysdiagnoseInfo` module. The module extracts details about the device and the sysdiagnose itself: the product type and model, iOS version and build, serial number, IMEI, MEID and UDID from the remotectl dump state and the mobile activation request, the Apple account name and email from the App Store daemon database (no longer part of a sysdiagnose on newer iOS versions, still read from older archives), and the original file name and creation time of the archive from *sysdiagnose.log*.

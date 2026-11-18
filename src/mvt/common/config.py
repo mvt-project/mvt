@@ -12,7 +12,9 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-MVT_CONFIG_FOLDER = user_config_dir("mvt")
+# MVT_CONFIG_FOLDER in the environment relocates the settings file, so that
+# a test run or a scripted install never touches the user's own.
+MVT_CONFIG_FOLDER = os.environ.get("MVT_CONFIG_FOLDER") or user_config_dir("mvt")
 MVT_CONFIG_PATH = os.path.join(MVT_CONFIG_FOLDER, "config.yaml")
 
 

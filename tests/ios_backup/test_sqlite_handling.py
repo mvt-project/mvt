@@ -9,6 +9,8 @@ import plistlib
 import shutil
 import sqlite3
 
+import pytest
+
 from mvt.ios.modules.base import IOSExtraction
 from mvt.ios.modules.fs.analytics import Analytics
 
@@ -45,6 +47,9 @@ def test_open_sqlite_reads_wal_without_modifying_evidence(tmp_path):
     assert not os.path.exists(str(evidence_path) + "-shm")
 
 
+@pytest.mark.skipif(
+    shutil.which("sqlite3") is None, reason="the recovery needs the sqlite3 binary"
+)
 def test_recovery_preserves_source_database(tmp_path):
     database_path = tmp_path / "source.db"
     conn = sqlite3.connect(database_path)

@@ -59,6 +59,9 @@ class CmdIOSCheckBackup(Command):
         self.name = "check-backup"
         self.modules = BACKUP_MODULES + MIXED_MODULES
 
+    def init(self) -> None:
+        self.log.info("Checking iTunes backup located at: %s", self.target_path)
+
     def resolve_backup_path(self) -> bool:
         target_path = getattr(self, "target_path", None)
         if not isinstance(target_path, str) or not target_path:

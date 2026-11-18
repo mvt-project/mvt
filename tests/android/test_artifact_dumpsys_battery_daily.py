@@ -144,3 +144,18 @@ class TestDumpsysBatteryDailyArtifact:
             "Detected uninstall of package com.example.app (vers 0)"
         )
         assert uninstall_alert.event_time == "2026-01-10"
+
+    def test_malformed_update_line_does_not_lose_later_records(self):
+        # A truncated "Update" line, or one from a vendor that omits "vers=",
+        # used to raise out of parse() and lose every record after it.
+        dba = DumpsysBatteryDailyArtifact()
+        dba.parse(
+            "  Daily from 2021-05-10-08-00-00 to 2021-05-11-08-00-00:\n"
+            "    Update com.first vers=1\n"
+            "    Update com.truncated\n"
+            "    Update com.no.equals vers 2\n"
+            "    Update com.last vers=3\n"
+        )
+
+        assert [r["package_name"] for r in dba.results] == ["com.first", "com.last"]
+        assert [r["version_code"] for r in dba.results] == [1, 3]

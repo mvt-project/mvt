@@ -16,7 +16,8 @@ from mvt.common.module import MVTModule
 from .modules.backup import BACKUP_MODULES
 from .modules.fs import FS_MODULES
 from .modules.mixed import MIXED_MODULES
+from .modules.sysdiagnose import SYSDIAGNOSE_MODULES
 
 IOS_CHECK_IOCS_MODULES: list[type[MVTModule]] = (
-    BACKUP_MODULES + FS_MODULES + MIXED_MODULES
+    BACKUP_MODULES + FS_MODULES + MIXED_MODULES + SYSDIAGNOSE_MODULES
 )

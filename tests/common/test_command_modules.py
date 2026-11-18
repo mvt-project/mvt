@@ -12,13 +12,16 @@ from mvt.ios.command_modules import IOS_CHECK_IOCS_MODULES
 from mvt.ios.modules.backup import BACKUP_MODULES as IOS_BACKUP_MODULES
 from mvt.ios.modules.fs import FS_MODULES
 from mvt.ios.modules.mixed import MIXED_MODULES
+from mvt.ios.modules.sysdiagnose import SYSDIAGNOSE_MODULES
 
 
 def test_the_check_iocs_lists_are_the_families_of_their_platform():
     # The CLI reads these same lists, so nothing composing one elsewhere can
     # drift from what the command runs. This pins what the lists are composed
     # of.
-    assert IOS_CHECK_IOCS_MODULES == IOS_BACKUP_MODULES + FS_MODULES + MIXED_MODULES
+    assert IOS_CHECK_IOCS_MODULES == (
+        IOS_BACKUP_MODULES + FS_MODULES + MIXED_MODULES + SYSDIAGNOSE_MODULES
+    )
     assert ANDROID_CHECK_IOCS_MODULES == (
         ANDROID_BACKUP_MODULES
         + BUGREPORT_MODULES

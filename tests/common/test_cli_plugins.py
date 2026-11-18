@@ -1,3 +1,4 @@
+import shlex
 from types import SimpleNamespace
 
 import click
@@ -110,7 +111,7 @@ def test_load_command_option_supports_folders_and_repeated_paths(tmp_path):
 def test_loaded_command_participates_in_shell_completion(tmp_path):
     command_path = _write_command(tmp_path / "hello.py", "hello")
     group = _make_group()
-    words = f"group --load-command {command_path} he"
+    words = f"group --load-command {shlex.quote(str(command_path))} he"
 
     result = CliRunner().invoke(
         group,
