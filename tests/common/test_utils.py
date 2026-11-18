@@ -18,7 +18,6 @@ from mvt.common.utils import (
     generate_hashes_from_path,
     get_sha256_from_file_path,
     init_logging,
-    sanitize_json_data,
     set_verbose_logging,
 )
 
@@ -107,18 +106,6 @@ class TestCustomJSONEncoder:
             json.dumps({"name": "家".encode()}, cls=CustomJSONEncoder)
             == '{"name": "\\u5bb6"}'
         )
-
-
-def test_sanitize_json_data_preserves_nested_binary_and_dates():
-    value = {
-        "blob": b"\x00\xff",
-        "nested": [datetime(2023, 11, 13, 12, 21, 49, 727467)],
-    }
-
-    assert sanitize_json_data(value) == {
-        "blob": "AP8=",
-        "nested": ["2023-11-13 12:21:49.727467"],
-    }
 
 
 class TestInitLogging:

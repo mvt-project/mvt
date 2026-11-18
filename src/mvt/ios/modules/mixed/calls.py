@@ -7,7 +7,7 @@ import logging
 from typing import Optional
 
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
-from mvt.common.utils import convert_mactime_to_iso, sanitize_json_data
+from mvt.common.utils import convert_mactime_to_iso
 
 from ..base import IOSExtraction
 
@@ -58,25 +58,41 @@ class Calls(IOSExtraction):
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
         try:
-            cur.execute("SELECT * FROM ZCALLRECORD;")
-            names = [description[0] for description in cur.description]
-            for row in cur:
-                original = dict(zip(names, row))
-                address = original.get("ZADDRESS")
-                if isinstance(address, bytes):
-                    address = address.decode("utf-8", errors="replace")
-                raw = sanitize_json_data(original)
-                date = raw.get("ZDATE")
+            cur.execute("PRAGMA table_info(ZCALLRECORD);")
+            columns = {column[1].upper() for column in cur}
+            originated_column = "ZORIGINATED" if "ZORIGINATED" in columns else "NULL"
+            answered_column = "ZANSWERED" if "ZANSWERED" in columns else "NULL"
+            cur.execute(
+                f"""
+                SELECT
+                    ZDATE, ZDURATION, ZLOCATION, ZADDRESS, ZSERVICE_PROVIDER,
+                    {originated_column}, {answered_column}
+                FROM ZCALLRECORD;
+                """
+            )
+
+            for (
+                date,
+                duration,
+                location,
+                address,
+                provider,
+                originated,
+                answered,
+            ) in cur:
                 self.results.append(
                     {
-                        "isodate": (
-                            convert_mactime_to_iso(date) if date is not None else ""
+                        "isodate": convert_mactime_to_iso(date),
+                        "duration": duration,
+                        "location": location,
+                        "number": (
+                            address.decode("utf-8")
+                            if isinstance(address, bytes)
+                            else address
                         ),
-                        "duration": raw.get("ZDURATION"),
-                        "location": raw.get("ZLOCATION"),
-                        "number": address,
-                        "provider": raw.get("ZSERVICE_PROVIDER"),
-                        "call": raw,
+                        "provider": provider,
+                        "originated": originated,
+                        "answered": answered,
                     }
                 )
         finally:

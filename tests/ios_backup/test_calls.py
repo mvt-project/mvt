@@ -5,34 +5,42 @@
 
 import sqlite3
 
+import pytest
+
 from mvt.common.module import run_module
 from mvt.ios.modules.mixed.calls import Calls
 
 
-def test_calls_preserves_complete_source_record(tmp_path):
+@pytest.mark.parametrize("has_flags", [True, False])
+def test_calls_reads_optional_call_flags(tmp_path, has_flags):
     db_path = tmp_path / "CallHistory.storedata"
     conn = sqlite3.connect(db_path)
-    conn.execute(
-        """
-        CREATE TABLE ZCALLRECORD (
-            ZDATE REAL, ZDURATION REAL, ZLOCATION TEXT, ZADDRESS BLOB,
-            ZSERVICE_PROVIDER TEXT, ZORIGINATED INTEGER, ZANSWERED INTEGER,
-            ZMETADATA BLOB
-        );
-        """
-    )
-    conn.execute(
-        "INSERT INTO ZCALLRECORD VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
-        (700000000, 42, "Berlin", b"+491234", "carrier", 1, 0, b"\x00\xff"),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute(
+            """
+            CREATE TABLE ZCALLRECORD (
+                ZDATE REAL, ZDURATION REAL, ZLOCATION TEXT, ZADDRESS BLOB,
+                ZSERVICE_PROVIDER TEXT
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO ZCALLRECORD VALUES (?, ?, ?, ?, ?)",
+            (700000000, 42, "Berlin", b"+491234", "carrier"),
+        )
+        if has_flags:
+            conn.execute("ALTER TABLE ZCALLRECORD ADD COLUMN ZORIGINATED INTEGER")
+            conn.execute("ALTER TABLE ZCALLRECORD ADD COLUMN ZANSWERED INTEGER")
+            conn.execute("UPDATE ZCALLRECORD SET ZORIGINATED = 1, ZANSWERED = 0")
+        conn.commit()
+    finally:
+        conn.close()
 
     module = Calls(file_path=str(db_path))
     run_module(module)
 
     assert len(module.results) == 1
-    assert module.results[0]["number"] == "+491234"
-    assert module.results[0]["call"]["ZORIGINATED"] == 1
-    assert module.results[0]["call"]["ZANSWERED"] == 0
-    assert module.results[0]["call"]["ZMETADATA"] == "AP8="
+    record = module.results[0]
+    assert record["number"] == "+491234"
+    assert record["originated"] == (1 if has_flags else None)
+    assert record["answered"] == (0 if has_flags else None)
