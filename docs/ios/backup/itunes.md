@@ -39,3 +39,25 @@ If your backup has a lock next to it like in the image above, then the backup is
 ## Notes:
 
 - Remember to keep the backup encryption password that you created safe, since without it you will not be able to access/modify/decrypt the backup file.
+
+# Troubleshooting macOS access
+
+If `mvt-ios` reports that the backup path is not readable, macOS may be
+blocking the application from which you run MVT.
+
+For a backup in the default `~/Library/Application Support/MobileSync/Backup`
+location, start with Full Disk Access:
+
+1. Open **System Settings > Privacy & Security > Full Disk Access**.
+2. Enable access for the terminal or other application from which you run
+   `mvt-ios`, such as Terminal or iTerm.
+3. Quit and reopen that application, then retry the command that failed.
+
+For a backup on external or removable storage, open
+**System Settings > Privacy & Security > Files and Folders** and enable
+**Removable Volumes** for the same application. Grant Full Disk Access only if
+MVT also needs access to protected files on the internal disk.
+
+Full Disk Access gives an application broad access to files on your Mac,
+including data from other apps and Time Machine backups. Only grant it to
+applications you trust.
