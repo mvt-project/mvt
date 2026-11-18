@@ -5,6 +5,7 @@
 
 import logging
 import shutil
+import sqlite3
 
 import pytest
 
@@ -74,3 +75,39 @@ class TestSafariBrowserStateModule:
         assert len(m.alertstore.alerts) == 1
         assert len(m.results) == 1
         assert m.results[0]["tab_url"] == "https://en.wikipedia.org/wiki/NSO_Group"
+
+    def test_detection_for_tab_without_session_row(self, tmp_path, indicator_file):
+        url = "https://en.wikipedia.org/wiki/NSO_Group"
+        db_path = tmp_path / "private/var/mobile/Library/Safari/BrowserState.db"
+        db_path.parent.mkdir(parents=True)
+        conn = sqlite3.connect(db_path)
+        try:
+            conn.executescript(
+                """
+                CREATE TABLE tabs (
+                    uuid TEXT, title TEXT, url TEXT, user_visible_url TEXT,
+                    last_viewed_time REAL
+                );
+                CREATE TABLE tab_sessions (tab_uuid TEXT, session_data BLOB);
+                """
+            )
+            conn.execute(
+                "INSERT INTO tabs VALUES ('tab-1', 'Example', ?, ?, 700000000)",
+                (url, url),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        module = SafariBrowserState(target_path=str(tmp_path))
+        module.is_fs_dump = True
+        indicators = Indicators(log=logging.getLogger())
+        indicators.parse_stix2(indicator_file)
+        indicators.ioc_collections[0]["domains"].append("en.wikipedia.org")
+        module.indicators = indicators
+        run_module(module)
+
+        assert len(module.results) == 1
+        assert module.results[0]["tab_url"] == url
+        assert module.results[0]["session_data"] == []
+        assert len(module.alertstore.alerts) == 1
