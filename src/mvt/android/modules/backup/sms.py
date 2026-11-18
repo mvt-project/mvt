@@ -59,7 +59,7 @@ class SMS(BackupModule):
 
     def collect_url_results(self) -> None:
         for message in self.results:
-            for url in message.get("links", []):
+            for url in message.get("links") or []:
                 self.add_url_result(url, message.get("isodate"), "sms")
 
     def run(self) -> None:
