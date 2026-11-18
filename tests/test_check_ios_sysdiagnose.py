@@ -1,10 +1,13 @@
 import logging
+import json
 import os
 import tarfile
 
 from click.testing import CliRunner
 
 from mvt.ios.cli import check_sysdiagnose
+
+from .test_cmd_check_sysdiagnose import _recovery_archive
 
 
 CUSTOM_MODULE = """
@@ -90,3 +93,41 @@ def test_check_sysdiagnose_reports_a_truncated_archive(tmp_path, caplog):
     assert "Unable to read the sysdiagnose archive" in caplog.text
     assert "truncated" in caplog.text
     assert "Aborted!" not in result.output
+
+
+def test_damaged_gzip_trailer_without_recoverable_files_fails(tmp_path, caplog):
+    archive = tmp_path / "sysdiagnose.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        directory = tarfile.TarInfo("sysdiagnose")
+        directory.type = tarfile.DIRTYPE
+        tar.addfile(directory)
+    archive.write_bytes(archive.read_bytes()[:-8])
+
+    result = CliRunner().invoke(check_sysdiagnose, [str(archive)])
+
+    assert result.exit_code == 1
+    assert "No complete sysdiagnose files could be recovered" in caplog.text
+
+
+def test_check_sysdiagnose_recovers_and_saves_warning(tmp_path, caplog):
+    archive = _recovery_archive(tmp_path, "gzip-body")
+    module_path = tmp_path / "custom_sysdiagnose.py"
+    module_path.write_text(CUSTOM_MODULE, encoding="utf-8")
+    output_path = tmp_path / "output"
+    with caplog.at_level(logging.WARNING, logger="mvt"):
+        result = CliRunner().invoke(
+            check_sysdiagnose,
+            [
+                "--load-module",
+                str(module_path),
+                "--output",
+                str(output_path),
+                str(archive),
+            ],
+        )
+    assert result.exit_code == 0, result.output
+    assert json.loads((output_path / "custom_sysdiagnose_module.json").read_text()) == [
+        {"content": "artifact"}
+    ]
+    assert "truncated or damaged" in caplog.text
+    assert "Recovered 3 complete files" in (output_path / "command.log").read_text()
