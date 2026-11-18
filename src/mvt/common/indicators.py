@@ -652,8 +652,10 @@ class Indicators:
 
         for ioc in self.get_iocs("file_paths"):
             # Strip any trailing slash from indicator paths to match
-            # directories.
-            if file_path.startswith(ioc.value.rstrip("/")):
+            # directories. Only a whole path component may match, so
+            # "/private/var/tmp/hooker" does not flag "/private/var/tmp/hookers".
+            ioc_path = ioc.value.rstrip("/")
+            if file_path == ioc_path or file_path.startswith(ioc_path + "/"):
                 return IndicatorMatch(
                     ioc=ioc,
                     message=f'Found a known suspicious file path "{file_path}" matching indicators form "{ioc.name}"',
