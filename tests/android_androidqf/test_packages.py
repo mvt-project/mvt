@@ -115,6 +115,43 @@ class TestAndroidqfPackages:
             == "31037a27af59d4914906c01ad14a318eee2f3e31d48da8954dca62a99174e3fa"
         )
 
+    @pytest.mark.parametrize(
+        "collection, invalid_hash",
+        [
+            ("files_md5", "a" * 32),
+            ("files_sha1", "a" * 40),
+            ("files_sha256", "g" * 64),
+        ],
+    )
+    def test_invalid_apk_sha256_preserves_other_matches(
+        self, indicators_factory, collection, invalid_hash
+    ):
+        cert_hash = "b" * 64
+        valid_hash = "abcd" * 16
+        module = AQFPackages(
+            results=[
+                {
+                    "name": "com.example.app",
+                    "installer": "com.android.vending",
+                    "files": [
+                        {"sha256": invalid_hash, "certificate": {"Sha256": cert_hash}},
+                        {"sha256": valid_hash.upper()},
+                    ],
+                }
+            ]
+        )
+        module.indicators = indicators_factory(
+            files_sha256=[valid_hash], app_cert_hashes=[cert_hash]
+        )
+        module.indicators.ioc_collections[0][collection].append(invalid_hash)
+
+        module.check_indicators()
+
+        assert [a.matched_indicator.value for a in module.alertstore.alerts] == [
+            cert_hash,
+            valid_hash,
+        ]
+
     def test_packages_certificate_hash_ioc(self, module, indicators_factory):
         module.indicators = indicators_factory(
             app_cert_hashes=[
@@ -139,10 +176,12 @@ class TestAndroidqfPackages:
     def test_virustotal_delays_after_missing_result(self, monkeypatch):
         lookups = []
         sleeps = []
+        missing_hash = "a" * 64
+        found_hash = "b" * 64
 
         def fake_virustotal_lookup(file_hash):
             lookups.append(file_hash)
-            if file_hash == "missing_hash":
+            if file_hash == missing_hash:
                 return None
             return {
                 "attributes": {
@@ -165,8 +204,9 @@ class TestAndroidqfPackages:
                     "disabled": False,
                     "system": False,
                     "files": [
-                        {"path": "/data/app/missing.apk", "sha256": "missing_hash"},
-                        {"path": "/data/app/found.apk", "sha256": "found_hash"},
+                        {"path": "/data/app/missing.apk", "sha256": missing_hash},
+                        {"path": "/data/app/found.apk", "sha256": found_hash},
+                        {"path": "/data/app/invalid.apk", "sha256": "c" * 32},
                     ],
                 }
             ],
@@ -174,7 +214,7 @@ class TestAndroidqfPackages:
 
         module.check_indicators()
 
-        assert lookups == ["missing_hash", "found_hash"]
+        assert lookups == [missing_hash, found_hash]
         assert sleeps == [16]
         assert module.results[0]["files"][1]["virustotal"] == "1/1"
         assert len(module.alertstore.alerts) == 1
@@ -233,10 +273,16 @@ def test_root_package_heuristic_preserves_exact_ioc_checks(
 def test_root_package_keeps_existing_heuristic_short_circuit(
     indicators_factory, with_indicators
 ):
-    module = AQFPackages(results=[{
-        "name": "com.topjohnwu.magisk", "installer": "null", "system": False,
-        "files": [],
-    }])
+    module = AQFPackages(
+        results=[
+            {
+                "name": "com.topjohnwu.magisk",
+                "installer": "null",
+                "system": False,
+                "files": [],
+            }
+        ]
+    )
     if with_indicators:
         module.indicators = indicators_factory(app_ids=["example.unrelated"])
     module.check_indicators()
@@ -260,18 +306,22 @@ def test_root_package_incomplete_metadata_preserves_later_matches(
     indicators_factory, files, caplog
 ):
     root_name = "com.topjohnwu.magisk"
-    module = AQFPackages(results=[
-        {"name": root_name, "files": files},
-        {
-            "name": "example.later",
-            "installer": "com.android.vending",
-            "system": False,
-            "files": [{
-                "sha256": "a" * 64,
-                "certificate": {"Sha256": "b" * 64},
-            }],
-        },
-    ])
+    module = AQFPackages(
+        results=[
+            {"name": root_name, "files": files},
+            {
+                "name": "example.later",
+                "installer": "com.android.vending",
+                "system": False,
+                "files": [
+                    {
+                        "sha256": "a" * 64,
+                        "certificate": {"Sha256": "b" * 64},
+                    }
+                ],
+            },
+        ]
+    )
     module.indicators = indicators_factory(
         app_ids=[root_name, "example.later"],
         files_sha256=["a" * 64],
@@ -282,9 +332,14 @@ def test_root_package_incomplete_metadata_preserves_later_matches(
 
     matches = [alert for alert in module.alertstore.alerts if alert.matched_indicator]
     assert {alert.matched_indicator.value for alert in matches} == {
-        root_name, "example.later", "a" * 64, "b" * 64,
+        root_name,
+        "example.later",
+        "a" * 64,
+        "b" * 64,
     }
-    assert any("rooting/jailbreaking" in alert.message for alert in module.alertstore.alerts)
+    assert any(
+        "rooting/jailbreaking" in alert.message for alert in module.alertstore.alerts
+    )
     assert "metadata" in caplog.text
     if isinstance(files, list) and any(
         isinstance(item, dict)
