@@ -11,7 +11,9 @@ from click.testing import CliRunner
 
 from mvt.android.cli import cli as android_cli
 from mvt.android.command_modules import ANDROID_CHECK_IOCS_MODULES
+from mvt.common.alerts import AlertLevel
 from mvt.common.cmd_check_iocs import CmdCheckIOCS
+from mvt.common.indicators import Indicators
 from mvt.common.module import MVTModule
 from mvt.ios.cli import cli as ios_cli
 from mvt.ios.command_modules import IOS_CHECK_IOCS_MODULES
@@ -78,6 +80,34 @@ class BackupOnlyModule(MVTModule):
 
     def run(self) -> None:
         pass
+
+
+@pytest.mark.parametrize("platform", ["ios", "android"])
+def test_check_iocs_includes_detections_in_the_final_summary(
+    platform, tmp_path, capsys
+):
+    class AlertingResultsModule(CustomResultsModule):
+        def check_indicators(self) -> None:
+            self.alertstore.critical("Matched stored record", "", self.results[0])
+
+    (tmp_path / "custom_results.json").write_text(json.dumps([{"a": 1}]))
+    cmd = CmdCheckIOCS(
+        target_path=str(tmp_path),
+        custom_modules=[AlertingResultsModule],
+        platform=platform,
+    )
+    cmd.iocs = Indicators()
+
+    cmd.run()
+    cmd.show_alerts_brief()
+    cmd.show_support_message()
+
+    assert cmd.alertstore.count(AlertLevel.CRITICAL) == 1
+    assert json.loads((tmp_path / "custom_results.json").read_text()) == [{"a": 1}]
+    output = capsys.readouterr().out
+    assert "MVT produced 1 CRITICAL alerts." in output
+    assert "MVT produced HIGH or CRITICAL alerts." in output
+    assert "The lack of severe alerts" not in output
 
 
 @pytest.mark.parametrize(

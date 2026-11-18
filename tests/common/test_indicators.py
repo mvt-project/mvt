@@ -3,10 +3,12 @@
 # Use of this software is governed by the MVT License 1.1 that can be found at
 #   https://license.mvt.re/1.1/
 
+import json
 import logging
 import os
 import threading
 
+import pytest
 import requests
 
 from mvt.common.config import settings
@@ -89,6 +91,110 @@ class TestIndicators:
 
         assert ind.check_url("https://goo.gl/maps/example") is None
         head_request.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "pattern",
+        [
+            "[url:value='https://example.com/payload']",
+            "[file:hashes.sha256='" + "a" * 64 + "']",
+            None,
+        ],
+    )
+    def test_check_url_without_domain_indicators(self, tmp_path, pattern):
+        stix_file = tmp_path / "no-domains.stix2"
+        stix_file.write_text(
+            json.dumps(
+                {
+                    "objects": [
+                        {
+                            "type": "indicator",
+                            "id": "indicator--review",
+                            "pattern": pattern,
+                        }
+                    ]
+                    if pattern
+                    else []
+                }
+            )
+        )
+        ind = Indicators()
+        ind.load_indicators_files([str(stix_file)], load_default=False)
+
+        # Cover both successful host parsing and the parsing-error fallback.
+        assert ind.check_url("https://example.com/benign") is None
+        assert ind.check_url("not-a-valid-domain") is None
+        if pattern and pattern.startswith("[url:"):
+            assert ind.check_url("https://example.com/payload")
+            matches = ind.check_url_batches(
+                [["https://example.com/benign"], ["https://example.com/payload"]]
+            )
+            assert matches[0] is None
+            assert matches[1]
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://payload.example.org:443/path",
+            "https://user:password@payload.example.org/path",
+            "https://user:password@payload.example.org:8443/path",
+        ],
+    )
+    def test_check_subdomain_indicator_with_port_and_credentials(self, url):
+        ind = Indicators()
+        collection = ind._new_collection(name="review", file_name="review.stix2")
+        ind._process_indicator(
+            {"pattern": "[domain-name:value='payload.example.org']"}, collection
+        )
+        ind.ioc_collections.append(collection)
+
+        match = ind.check_url(url)
+        assert match
+        assert match.ioc.value == "payload.example.org"
+
+    @pytest.mark.parametrize("nested", [False, True])
+    @pytest.mark.parametrize("has_domains", [False, True])
+    @pytest.mark.parametrize(
+        "destination",
+        ["https://example.com/payload", "https://198.51.100.1/payload"],
+    )
+    def test_shortened_exact_url_indicator(
+        self, mocker, nested, has_domains, destination
+    ):
+        ind = Indicators()
+        collection = ind._new_collection(name="review", file_name="review.stix2")
+        ind._process_indicator(
+            {"pattern": f"[url:value='{destination}']"}, collection
+        )
+        if has_domains:
+            ind._process_indicator(
+                {"pattern": "[domain-name:value='unrelated.example.org']"},
+                collection,
+            )
+        ind.ioc_collections.append(collection)
+        original = "https://bit.ly/example"
+        intermediate = "https://t.co/example"
+
+        def head_request(url, timeout):
+            if nested and url == original:
+                location = intermediate
+            else:
+                assert url == (intermediate if nested else original)
+                location = destination
+            return mocker.Mock(status_code=302, headers={"Location": location})
+
+        head = mocker.patch(
+            "mvt.common.url.requests.head", side_effect=head_request
+        )
+        match = ind.check_url(original)
+
+        assert match
+        assert match.ioc.value == destination
+        assert ind.get_expanded_url(original) == destination
+        assert (intermediate if nested else original) in match.message
+        assert destination in match.message
+        assert head.call_count == (2 if nested else 1)
+        if nested:
+            assert ind.get_expanded_url(intermediate) == destination
 
     def test_check_url_batches_preserves_order(self, indicator_file):
         ind = Indicators(log=logging)
