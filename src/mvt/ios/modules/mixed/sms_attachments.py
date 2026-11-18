@@ -67,7 +67,7 @@ class SMSAttachments(IOSExtraction):
                 if ioc_match:
                     self.alertstore.high(
                         ioc_match.message,
-                        "",
+                        attachment.get("isodate") or "",
                         attachment,
                         matched_indicator=ioc_match.ioc,
                     )

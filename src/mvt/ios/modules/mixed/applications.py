@@ -68,7 +68,7 @@ class Applications(IOSExtraction):
                 if "softwareVersionBundleId" not in result:
                     self.alertstore.medium(
                         "Suspicious application identified without softwareVersionBundleId",
-                        "",
+                        result.get("isodate") or "",
                         result,
                     )
                     continue
@@ -79,7 +79,7 @@ class Applications(IOSExtraction):
                 if ioc_match:
                     self.alertstore.critical(
                         f"Malicious application {result['softwareVersionBundleId']} identified",
-                        "",
+                        result.get("isodate") or "",
                         result,
                         matched_indicator=ioc_match.ioc,
                     )
@@ -91,7 +91,7 @@ class Applications(IOSExtraction):
                 if ioc_match:
                     self.alertstore.critical(
                         f"Malicious application {result['softwareVersionBundleId']} identified",
-                        "",
+                        result.get("isodate") or "",
                         result,
                         matched_indicator=ioc_match.ioc,
                     )
@@ -104,7 +104,7 @@ class Applications(IOSExtraction):
             ):
                 self.alertstore.medium(
                     f"Suspicious app not installed from the App Store or MDM: {result['softwareVersionBundleId']}",
-                    "",
+                    result.get("isodate") or "",
                     result,
                 )
 

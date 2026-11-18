@@ -66,14 +66,17 @@ class IDStatusCache(IOSExtraction):
                 ioc_match = self.indicators.check_email(email)
                 if ioc_match:
                     self.alertstore.critical(
-                        ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                        ioc_match.message,
+                        result.get("isodate") or "",
+                        result,
+                        matched_indicator=ioc_match.ioc,
                     )
                     continue
 
             if "\\x00\\x00" in result.get("user", ""):
                 self.alertstore.high(
                     f"Found an ID Status Cache entry with suspicious patterns: {result.get('user')}",
-                    "",
+                    result.get("isodate") or "",
                     result,
                 )
 
