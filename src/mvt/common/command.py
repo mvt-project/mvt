@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import sys
+import time
 from datetime import datetime
 from functools import cached_property
 from heapq import heappop, heappush
@@ -34,6 +35,17 @@ from .utils import (
     get_sha256_from_file_path,
 )
 from .version import MVT_VERSION
+
+
+def _peak_rss_mb() -> float:
+    """The process's peak resident set size so far, in MB (0 where unknown)."""
+    try:
+        import resource
+    except ImportError:
+        return 0.0
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # ru_maxrss is in bytes on macOS and in kilobytes elsewhere.
+    return peak / (1024 * 1024 if sys.platform == "darwin" else 1024)
 
 
 class Command:
@@ -76,6 +88,9 @@ class Command:
         # This dictionary maps the modules which were replaced by a module
         # declaring `replaces` to the module which took their place.
         self.module_replacements: dict[type[MVTModule], type[MVTModule]] = {}
+
+        # Wall time and peak-RSS growth of every module run, in run order.
+        self.module_stats: list[dict[str, Any]] = []
 
         # This list will contain all executed modules.
         # We can use this to reference e.g. self.executed[0].results.
@@ -190,6 +205,7 @@ class Command:
             "date": convert_datetime_to_iso(datetime.now()),
             "ioc_files": [],
             "hashes": [],
+            "module_stats": self.module_stats,
         }
 
         for coll in self.iocs.ioc_collections:
@@ -766,6 +782,8 @@ class Command:
             except NotImplementedError:
                 pass
 
+            started = time.perf_counter()
+            peak_before = _peak_rss_mb()
             try:
                 run_module(m)
             except EncryptedBackupError:
@@ -774,6 +792,19 @@ class Command:
                     "Please decrypt it first using `mvt-ios decrypt-backup`."
                 )
                 return
+
+            stats = {
+                "module": module.__name__,
+                "seconds": round(time.perf_counter() - started, 2),
+                "peak_rss_growth_mb": round(_peak_rss_mb() - peak_before),
+            }
+            self.module_stats.append(stats)
+            self.log.info(
+                "Module %s ran in %.1fs and raised the peak memory by %d MB",
+                stats["module"],
+                stats["seconds"],
+                stats["peak_rss_growth_mb"],
+            )
 
             self.executed.append(m)
             executed_by_type[module] = m
