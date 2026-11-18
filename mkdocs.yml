@@ -2,7 +2,9 @@ site_name: Mobile Verification Toolkit
 repo_url: https://github.com/mvt-project/mvt
 edit_uri: edit/main/docs/
 hooks:
-    - hooks/copyright.py
+    - docs/hooks/copyright.py
+exclude_docs: |
+    /hooks/
 site_description: Mobile Verification Toolkit Documentation
 not_in_nav: |
     android/adb.md
