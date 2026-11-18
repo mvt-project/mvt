@@ -187,3 +187,113 @@ def test_check_androidqf_rejects_negative_virustotal_delay(data_path):
 
     assert result.exit_code == 2
     assert "Invalid value for '--delay'" in result.output
+
+
+@pytest.mark.parametrize(
+    "indicator_kwargs, expected_value",
+    [
+        ({"app_ids": ["com.topjohnwu.magisk"]}, "com.topjohnwu.magisk"),
+        ({"files_sha256": ["a" * 64]}, "a" * 64),
+        ({"app_cert_hashes": ["b" * 64]}, "b" * 64),
+    ],
+)
+def test_root_package_heuristic_preserves_exact_ioc_checks(
+    indicators_factory, indicator_kwargs, expected_value
+):
+    module = AQFPackages(
+        results=[
+            {
+                "name": "com.topjohnwu.magisk",
+                "installer": "com.android.vending",
+                "system": False,
+                "files": [
+                    {
+                        "sha256": "a" * 64,
+                        "certificate": {
+                            "Md5": "c" * 32,
+                            "Sha1": "d" * 40,
+                            "Sha256": "b" * 64,
+                        },
+                    }
+                ],
+            }
+        ]
+    )
+    module.indicators = indicators_factory(**indicator_kwargs)
+
+    module.check_indicators()
+
+    matches = [a for a in module.alertstore.alerts if a.matched_indicator]
+    assert len(matches) == 1
+    assert matches[0].matched_indicator.value == expected_value
+    assert any("rooting/jailbreaking" in a.message for a in module.alertstore.alerts)
+
+
+@pytest.mark.parametrize("with_indicators", [False, True])
+def test_root_package_keeps_existing_heuristic_short_circuit(
+    indicators_factory, with_indicators
+):
+    module = AQFPackages(results=[{
+        "name": "com.topjohnwu.magisk", "installer": "null", "system": False,
+        "files": [],
+    }])
+    if with_indicators:
+        module.indicators = indicators_factory(app_ids=["example.unrelated"])
+    module.check_indicators()
+    assert len(module.alertstore.alerts) == 1
+    assert "rooting/jailbreaking" in module.alertstore.alerts[0].message
+
+
+@pytest.mark.parametrize(
+    "files",
+    [
+        None,
+        {},
+        [None],
+        [{"sha256": None, "certificate": None}],
+        [{"sha256": 123, "certificate": {}}],
+        [{"certificate": {"Md5": None, "Sha1": [], "Sha256": "b" * 64}}],
+        [None, {"sha256": "a" * 64, "certificate": {"Sha256": "b" * 64}}],
+    ],
+)
+def test_root_package_incomplete_metadata_preserves_later_matches(
+    indicators_factory, files, caplog
+):
+    root_name = "com.topjohnwu.magisk"
+    module = AQFPackages(results=[
+        {"name": root_name, "files": files},
+        {
+            "name": "example.later",
+            "installer": "com.android.vending",
+            "system": False,
+            "files": [{
+                "sha256": "a" * 64,
+                "certificate": {"Sha256": "b" * 64},
+            }],
+        },
+    ])
+    module.indicators = indicators_factory(
+        app_ids=[root_name, "example.later"],
+        files_sha256=["a" * 64],
+        app_cert_hashes=["b" * 64],
+    )
+
+    module.check_indicators()
+
+    matches = [alert for alert in module.alertstore.alerts if alert.matched_indicator]
+    assert {alert.matched_indicator.value for alert in matches} == {
+        root_name, "example.later", "a" * 64, "b" * 64,
+    }
+    assert any("rooting/jailbreaking" in alert.message for alert in module.alertstore.alerts)
+    assert "metadata" in caplog.text
+    if isinstance(files, list) and any(
+        isinstance(item, dict)
+        and isinstance(item.get("certificate"), dict)
+        and item["certificate"].get("Sha256") == "b" * 64
+        for item in files
+    ):
+        assert any(
+            alert.event["name"] == root_name
+            and alert.matched_indicator.value == "b" * 64
+            for alert in matches
+        )
