@@ -120,7 +120,15 @@ class Indicators:
             self.total_ioc_count += 1
 
     def _process_indicator(self, indicator: dict, collection: dict) -> None:
-        key, value = indicator.get("pattern", "").strip("[]").split("=")
+        # Split once. A value may itself contain "=" (a URL query string,
+        # a file path). Splitting on every "=" raises ValueError and used
+        # to abort loading every indicator in the file.
+        parts = indicator.get("pattern", "").strip("[]").split("=", 1)
+        if len(parts) != 2:
+            raise ValueError(
+                f"cannot parse STIX pattern {indicator.get('pattern', '')!r}"
+            )
+        key, value = parts
         key = key.strip()
 
         # Normalize hash algorithm keys so that both the STIX2-spec-compliant
@@ -313,16 +321,24 @@ class Indicators:
                         malware_id = relationship["target_ref"]
                         break
 
-            if malware_id is not None:
-                # Now we look for the correct collection matching the malware ID we
-                # got from the relationship.
-                for collection in collections:
-                    if collection["id"] == malware_id:
-                        self._process_indicator(indicator, collection)
-                        break
-            else:
-                # Adds to the default collection
-                self._process_indicator(indicator, default_collection)
+            try:
+                if malware_id is not None:
+                    # Now we look for the correct collection matching the malware ID we
+                    # got from the relationship.
+                    for collection in collections:
+                        if collection["id"] == malware_id:
+                            self._process_indicator(indicator, collection)
+                            break
+                else:
+                    # Adds to the default collection
+                    self._process_indicator(indicator, default_collection)
+            except ValueError:
+                # One bad pattern must not drop the rest of the file.
+                self.log.warning(
+                    "Skipping indicator %s, could not parse pattern %r",
+                    indicator.get("id", "<unknown>"),
+                    indicator.get("pattern", ""),
+                )
 
         for coll in collections:
             self.log.debug(
