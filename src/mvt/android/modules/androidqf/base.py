@@ -46,8 +46,22 @@ class AndroidQFModule(MVTModule):
         self.archive = archive
         self.files = files
 
-    def _get_files_by_pattern(self, pattern: str):
-        return fnmatch.filter(self.files, pattern)
+    def _get_files_by_pattern(self, pattern: str) -> List[str]:
+        pattern = pattern.replace("\\", "/")
+        patterns = [pattern]
+        # ZIPs may store artifacts at their root, without the acquisition
+        # directory prefix present in paths collected by from_dir().
+        if pattern.startswith("*/"):
+            patterns.append(pattern[2:])
+
+        return [
+            file_path
+            for file_path in self.files
+            if any(
+                fnmatch.fnmatch(file_path.replace("\\", "/"), candidate)
+                for candidate in patterns
+            )
+        ]
 
     def _get_device_timezone(self):
         """

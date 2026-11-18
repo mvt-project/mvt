@@ -34,7 +34,9 @@ class AQFProcesses(ProcessesArtifact, AndroidQFModule):
         )
 
     def run(self) -> None:
-        ps_files = self._get_files_by_pattern("*/ps.txt")
+        ps_files = self._get_files_by_pattern(
+            "*/processes.txt"
+        ) or self._get_files_by_pattern("*/ps.txt")
         if not ps_files:
             return
 

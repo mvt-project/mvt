@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import zipfile
 
+import pytest
 from click.testing import CliRunner
 
 from mvt.android.cli import check_androidqf
@@ -23,7 +24,71 @@ from .utils import get_artifact_folder
 TEST_BACKUP_PASSWORD = "123456"
 
 
+@pytest.mark.parametrize(
+    "layout", ["directory", "", "./", "acquisition/", "outer/acquisition/"]
+)
+def test_androidqf_property_detection_across_layouts(
+    tmp_path, indicators_factory, monkeypatch, layout
+):
+    monkeypatch.setattr(settings, "NETWORK_ACCESS_ALLOWED", False)
+    content = (
+        "[persist.sys.timezone]: [Europe/Berlin]\n"
+        "[test.suspicious.property]: [enabled]\n"
+    )
+    if layout == "directory":
+        target = tmp_path / "acquisition"
+        target.mkdir()
+        (target / "getprop.txt").write_text(content)
+    else:
+        target = tmp_path / "acquisition.zip"
+        with zipfile.ZipFile(target, "w") as archive:
+            archive.writestr(layout + "getprop.txt", content)
+
+    command = CmdAndroidCheckAndroidQF(
+        target_path=str(target),
+        module_name="AQFGetProp",
+        iocs=indicators_factory(android_property_names=["test.suspicious.property"]),
+    )
+    command.run()
+
+    assert len(command.executed) == 1
+    module = command.executed[0]
+    assert module.results == [
+        {"name": "persist.sys.timezone", "value": "Europe/Berlin"},
+        {"name": "test.suspicious.property", "value": "enabled"},
+    ]
+    assert module._get_device_timezone() == "Europe/Berlin"
+    assert len(command.alertstore.alerts) == 1
+    assert command.alertstore.alerts[0].event == module.results[1]
+
+
 class TestCheckAndroidqfCommand:
+    @pytest.mark.parametrize("use_zip", [False, True], ids=["folder", "zip"])
+    def test_androidqf_process_list_and_log_files(self, tmp_path, use_zip):
+        archive_path = tmp_path / "acquisition.zip"
+        with zipfile.ZipFile(archive_path, "w") as archive:
+            archive.writestr("processes.txt", "USER PID NAME\nroot 1 init\n")
+            archive.writestr("logs/proc/kmsg", "")
+            archive.writestr("logs/data/anr/", "")
+            target = archive_path if use_zip else tmp_path / "acquisition"
+            if not use_zip:
+                archive.extractall(target)
+
+        command = CmdAndroidCheckAndroidQF(
+            target_path=str(target),
+            disable_version_check=True,
+            disable_indicator_check=True,
+        )
+        command.run()
+
+        records = {type(module).__name__: module.results for module in command.executed}
+        assert records["AQFProcesses"] == [
+            {"user": "root", "pid": 1, "command": "init"}
+        ]
+        timestamps = records["AQFLogTimestamps"]
+        assert len(timestamps) == 1
+        assert timestamps[0]["path"].replace("\\", "/").endswith("logs/proc/kmsg")
+
     def test_log_timestamps_module_is_registered(self):
         assert AQFLogTimestamps in ANDROIDQF_MODULES
 
