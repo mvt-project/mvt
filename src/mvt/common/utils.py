@@ -11,7 +11,7 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
-from typing import Any, Iterator, Union
+from typing import Any, Iterator, Optional, Union
 
 from .log import MVTLogHandler
 
@@ -41,25 +41,32 @@ class CustomJSONEncoder(json.JSONEncoder):
         return str(o)
 
 
-def convert_chrometime_to_datetime(timestamp: int) -> datetime.datetime:
+def convert_chrometime_to_datetime(
+    timestamp: int,
+) -> Optional[datetime.datetime]:
     """Converts Chrome timestamp to a datetime.
 
     :param timestamp: Chrome timestamp as int.
     :type timestamp: int
-    :returns: datetime.
+    :returns: datetime, or None if the timestamp is outside the range of
+        dates Python can represent.
 
     """
     epoch_start = datetime.datetime(1601, 1, 1)
-    delta = datetime.timedelta(microseconds=timestamp)
-    return epoch_start + delta
+    try:
+        delta = datetime.timedelta(microseconds=timestamp)
+        return epoch_start + delta
+    except OverflowError:
+        return None
 
 
-def convert_datetime_to_iso(date_time: datetime.datetime) -> str:
+def convert_datetime_to_iso(date_time: Optional[datetime.datetime]) -> str:
     """Converts datetime to ISO string.
 
-    :param date_time: datetime, naive or timezone aware
-    :type date_time: datetime.datetime
-    :returns: ISO datetime string in YYYY-mm-dd HH:MM:SS.ms format.
+    :param date_time: A naive or timezone-aware datetime, or None.
+    :type date_time: Optional[datetime.datetime]
+    :returns: ISO datetime string in YYYY-mm-dd HH:MM:SS.ms format, or an
+        empty string if date_time is None.
     :rtype: str
 
     """
