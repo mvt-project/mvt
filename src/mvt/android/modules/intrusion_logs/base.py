@@ -9,7 +9,7 @@ import json
 import logging
 import zipfile
 from pathlib import Path
-from typing import Optional, Union
+from typing import ClassVar, Optional, Union
 
 try:
     import zoneinfo
@@ -18,6 +18,7 @@ except ImportError:
 
 from mvt.common.module import MVTModule
 from mvt.common.utils import convert_datetime_to_iso, convert_unix_to_iso
+from mvt.schemas import OutputModel, RecordListOutput
 
 
 class IntrusionLogsModule(MVTModule):
@@ -40,6 +41,8 @@ class IntrusionLogsModule(MVTModule):
     because ``il_events_by_type`` defaults to ``None``, which preserves the
     original file-loading code path.
     """
+
+    output_model: ClassVar[OutputModel] = RecordListOutput
 
     def __init__(
         self,

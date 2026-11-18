@@ -4,12 +4,15 @@
 #   https://license.mvt.re/1.1/
 
 from mvt.android.artifacts.settings import Settings as SettingsArtifact
+from mvt.schemas import RecordListOutput
 
 from .base import AndroidQFModule
 
 
 class AQFSettings(SettingsArtifact, AndroidQFModule):
     """This module analyse setting files"""
+
+    output_model = RecordListOutput
 
     def run(self) -> None:
         for setting_file in self._get_files_by_pattern("*/settings_*.txt"):
