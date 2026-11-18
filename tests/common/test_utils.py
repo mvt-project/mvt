@@ -11,6 +11,7 @@ from datetime import datetime
 from mvt.common.log import MVTLogHandler
 from mvt.common.utils import (
     CustomJSONEncoder,
+    convert_chrometime_to_datetime,
     convert_datetime_to_iso,
     convert_mactime_to_iso,
     convert_unix_to_iso,
@@ -34,6 +35,21 @@ class TestDateConversions:
 
     def test_convert_mactime_to_iso(self):
         assert convert_mactime_to_iso(TEST_DATE_MAC) == TEST_DATE_ISO
+
+    def test_convert_chrometime_to_datetime(self):
+        chrome_epoch_offset = 11644473600
+        converted = convert_chrometime_to_datetime(
+            (TEST_DATE_EPOCH + chrome_epoch_offset) * 1000000
+        )
+        assert converted == datetime(2021, 7, 18, 0, 0, 0)
+
+    def test_convert_chrometime_out_of_range(self):
+        # A corrupt history database can hold any integer. The conversion
+        # must not raise, so one bad row does not abort the whole module.
+        assert convert_chrometime_to_datetime(10**20) is None
+        assert convert_chrometime_to_datetime(2**62) is None
+        assert convert_chrometime_to_datetime(-(2**62)) is None
+        assert convert_datetime_to_iso(convert_chrometime_to_datetime(2**62)) == ""
 
     def test_convert_unix_to_utc_datetime(self):
         converted = convert_unix_to_utc_datetime(TEST_DATE_EPOCH)
