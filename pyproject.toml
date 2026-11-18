@@ -21,6 +21,8 @@ dependencies = [
     "rich==15.0.0",
     "tld==0.13.2",
     "requests==2.34.2",
+    "certifi>=2026.10.19",
+    "urllib3>=2.8.0",
     "simplejson==4.1.1",
     "packaging==26.3",
     "appdirs==1.4.4",
@@ -36,7 +38,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "tzdata==2026.3",
 ]
-requires-python = ">= 3.10"
+requires-python = ">= 3.11"
 
 [project.urls]
 homepage = "https://docs.mvt.re/en/latest/"
