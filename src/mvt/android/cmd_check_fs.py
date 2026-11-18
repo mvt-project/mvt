@@ -1,0 +1,47 @@
+# Mobile Verification Toolkit (MVT)
+# Copyright (c) 2021-2026 The MVT Authors.
+# Use of this software is governed by the MVT License 1.1 that can be found at
+#   https://license.mvt.re/1.1/
+
+import logging
+from typing import Optional
+
+from mvt.common.command import Command
+from mvt.common.indicators import Indicators
+from mvt.common.module import MVTModule
+
+from .modules.fs import FS_MODULES
+
+log = logging.getLogger(__name__)
+
+
+class CmdAndroidCheckFS(Command):
+    def __init__(
+        self,
+        target_path: Optional[str] = None,
+        results_path: Optional[str] = None,
+        ioc_files: Optional[list] = None,
+        iocs: Optional[Indicators] = None,
+        module_name: Optional[str] = None,
+        module_options: Optional[dict] = None,
+        hashes: bool = False,
+        disable_version_check: bool = False,
+        disable_indicator_check: bool = False,
+        custom_modules: Optional[list[type[MVTModule]]] = None,
+    ) -> None:
+        super().__init__(
+            target_path=target_path,
+            results_path=results_path,
+            ioc_files=ioc_files,
+            iocs=iocs,
+            module_name=module_name,
+            module_options=module_options,
+            hashes=hashes,
+            log=log,
+            disable_version_check=disable_version_check,
+            disable_indicator_check=disable_indicator_check,
+            custom_modules=custom_modules,
+        )
+        self.platform = "android"
+        self.name = "check-fs"
+        self.modules = FS_MODULES
