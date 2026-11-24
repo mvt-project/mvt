@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import shlex
+import stat
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -533,6 +534,16 @@ class IndicatorsUpdates:
     def _ioc_file_name(ioc_url: str) -> str:
         return ioc_url.split("://", 1)[-1].replace("/", "_")
 
+    @staticmethod
+    def _cached_file_id(path: Path) -> Optional[tuple[int, int]]:
+        try:
+            info = path.stat()
+        except FileNotFoundError:
+            return None
+        if stat.S_ISREG(info.st_mode):
+            return info.st_dev, info.st_ino
+        return None
+
     def download_remote_ioc(self, ioc_url: str) -> Optional[str]:
         try:
             res = requests.get(ioc_url, timeout=15)
@@ -589,13 +600,12 @@ class IndicatorsUpdates:
                 continue
 
             # Keep every current name, including those of feeds that fail to refresh.
-            # Compare without case to protect collisions on case-insensitive filesystems.
-            protected_names.add(self._ioc_file_name(ioc_url).casefold())
+            protected_names.add(self._ioc_file_name(ioc_url))
             # Reproduce the old spelling for files already in the cache.
             legacy_name = ioc_url.lstrip("https://").replace("/", "_")
             ioc_local_path = self.download_remote_ioc(ioc_url)
             if not ioc_local_path:
-                protected_names.add(legacy_name.casefold())
+                protected_names.add(legacy_name)
                 continue
 
             legacy_names.add(legacy_name)
@@ -603,12 +613,20 @@ class IndicatorsUpdates:
                 'Downloaded indicators "%s" to %s', ioc.get("name"), ioc_local_path
             )
 
-        obsolete_names = {
-            name for name in legacy_names if name.casefold() not in protected_names
-        }
+        obsolete_names = legacy_names - protected_names
         if obsolete_names:
-            for cached_file in Path(MVT_INDICATORS_FOLDER).iterdir():
-                if cached_file.name in obsolete_names and cached_file.is_file():
+            cache = Path(MVT_INDICATORS_FOLDER)
+            # Different spellings can refer to the same file on this filesystem.
+            protected_ids = {
+                self._cached_file_id(cache / name)
+                for name in protected_names
+                if Path(name).name == name
+            }
+            for cached_file in cache.iterdir():
+                if cached_file.name not in obsolete_names:
+                    continue
+                file_id = self._cached_file_id(cached_file)
+                if file_id is not None and file_id not in protected_ids:
                     cached_file.unlink(missing_ok=True)
 
         self.set_latest_update()

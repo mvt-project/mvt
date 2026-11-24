@@ -75,7 +75,6 @@ def test_refresh_retires_legacy_download(scheme, updater_and_cache, monkeypatch)
     [
         ("ools.example", 200, "other feed"),
         ("ools.example", 503, "cached feed"),
-        ("Ools.example", 503, "cached feed"),
         ("stools.example", 503, "cached feed"),
         ("stools.example", 200, None),
     ],
@@ -108,3 +107,38 @@ def test_refresh_handles_legacy_filename_collisions(
         assert not legacy.exists()
     else:
         assert legacy.read_text(encoding="utf-8") == expected_legacy
+
+
+@pytest.mark.parametrize("other_status", [200, 503])
+def test_refresh_uses_filesystem_case_rules(
+    updater_and_cache, monkeypatch, other_status
+):
+    updater, cache = updater_and_cache
+    # These are the two paths the previous version wrote, in index order.
+    legacy = cache / "ools.example_IOCs.stix2"
+    other = cache / "ools.example_iocs.stix2"
+    legacy.write_text(_bundle("retired.example"), encoding="utf-8")
+    other.write_text(_bundle("cached-other.example"), encoding="utf-8")
+    shared_file = legacy.samefile(other)
+    _mock_downloads(
+        monkeypatch,
+        updater,
+        {
+            "https://tools.example/IOCs.stix2": SimpleNamespace(
+                status_code=200, text=_bundle("current.example")
+            ),
+            "https://ools.example/iocs.stix2": SimpleNamespace(
+                status_code=other_status, text=_bundle("updated-other.example")
+            ),
+        },
+    )
+
+    updater.update()
+
+    assert legacy.exists() == shared_file
+    loaded = indicators.Indicators()
+    loaded.load_indicators_files([])
+    assert {ioc.value for ioc in loaded.get_iocs("domains")} == {
+        "current.example",
+        "updated-other.example" if other_status == 200 else "cached-other.example",
+    }
