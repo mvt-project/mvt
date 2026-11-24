@@ -543,7 +543,7 @@ class IndicatorsUpdates:
             )
             return None
 
-        clean_file_name = ioc_url.lstrip("https://").replace("/", "_")
+        clean_file_name = ioc_url.split("://", 1)[-1].replace("/", "_")
         ioc_path = os.path.join(MVT_INDICATORS_FOLDER, clean_file_name)
 
         with open(ioc_path, "w", encoding="utf-8") as handle:
