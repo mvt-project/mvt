@@ -47,8 +47,8 @@ RUN apt-get update \
   && mvt-ios --help > /dev/null
 
 # Installing ABE
-ADD --checksum=sha256:a20e07f8b2ea47620aff0267f230c3f1f495f097081fd709eec51cf2a2e11632 \
-  https://github.com/nelenkov/android-backup-extractor/releases/download/master-20221109063121-8fdfc5e/abe.jar /opt/abe/abe.jar
+ADD --checksum=sha256:3f42f011b6b567431ab8cd9d4ae5c36cf19a82da835168718d1735d995a3ba1a \
+  https://github.com/nelenkov/android-backup-extractor/releases/download/v1.2.0/abe-v1.2.0.jar /opt/abe/abe.jar
 # Create alias for abe
 RUN echo 'alias abe="java -jar /opt/abe/abe.jar"' >> ~/.bashrc
 
