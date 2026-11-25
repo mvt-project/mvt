@@ -261,6 +261,7 @@ class CmdAndroidCheckAndroidQF(Command):
                 hashes=self.hashes,
                 sub_command=True,
                 custom_modules=self.custom_modules,
+                module_name=self.module_name,
             )
             cmd.from_zip(bugreport)
             cmd.run()
@@ -292,6 +293,7 @@ class CmdAndroidCheckAndroidQF(Command):
             hashes=self.hashes,
             sub_command=True,
             custom_modules=self.custom_modules,
+            module_name=self.module_name,
         )
         try:
             cmd.from_ab(backup)
@@ -378,6 +380,7 @@ class CmdAndroidCheckAndroidQF(Command):
                 hashes=self.hashes,
                 sub_command=True,
                 custom_modules=self.custom_modules,
+                module_name=self.module_name,
             )
             cmd.run()
 
