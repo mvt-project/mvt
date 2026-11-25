@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import zipfile
 
+import pytest
 from click.testing import CliRunner
 
 from mvt.android.cli import check_androidqf
@@ -32,6 +33,26 @@ class TestCheckAndroidqfCommand:
         path = os.path.join(get_artifact_folder(), "androidqf")
         result = runner.invoke(check_androidqf, [path])
         assert result.exit_code == 0
+
+    @pytest.mark.parametrize(
+        "module_name, filename",
+        [("RootBinaries", "root_binaries.json"), ("Mounts", "mounts.json")],
+    )
+    def test_output_cannot_delete_acquisition_inputs(
+        self, tmp_path, module_name, filename, caplog
+    ):
+        source = tmp_path / filename
+        source.write_text('["/system/xbin/su"]')
+
+        result = CliRunner().invoke(
+            check_androidqf,
+            ["--module", module_name, "--output", str(tmp_path), str(tmp_path)],
+        )
+
+        assert result.exit_code == 1
+        assert "choose a separate output directory" in caplog.text
+        assert source.read_text() == '["/system/xbin/su"]'
+        assert list(tmp_path.iterdir()) == [source]
 
     def test_check_stores_nested_sms_urls(self, tmp_path):
         runner = CliRunner()
