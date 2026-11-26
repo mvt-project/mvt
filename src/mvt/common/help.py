@@ -22,6 +22,10 @@ HELP_MSG_VERBOSE_COMMAND = (
     "name instead)"
 )
 HELP_MSG_CHECK_IOCS = "Compare stored JSON results to provided indicators"
+HELP_MSG_REPORT = "Create a single-file HTML report from the results folder of a check"
+HELP_MSG_REPORT_OUTPUT = (
+    "Path of the report, by default report.html inside the results folder"
+)
 HELP_MSG_STIX2 = "Download public STIX2 indicators"
 HELP_MSG_DISABLE_UPDATE_CHECK = "Disable MVT version update check"
 HELP_MSG_DISABLE_INDICATOR_UPDATE_CHECK = "Disable indicators update check"
