@@ -59,7 +59,10 @@ class Filesystem(IOSExtraction):
             ioc_match = self.indicators.check_file_path(result["path"])
             if ioc_match:
                 self.alertstore.high(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("modified") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
             # If we are instructed to run fast, we skip the rest.
@@ -69,7 +72,10 @@ class Filesystem(IOSExtraction):
             ioc_match = self.indicators.check_file_path_process(result["path"])
             if ioc_match:
                 self.alertstore.high(
-                    ioc_match.message, "", result, matched_indicator=ioc_match.ioc
+                    ioc_match.message,
+                    result.get("modified") or "",
+                    result,
+                    matched_indicator=ioc_match.ioc,
                 )
 
     def run(self) -> None:
