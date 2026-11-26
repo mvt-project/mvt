@@ -8,12 +8,15 @@ from typing import Optional
 
 from mvt.android.artifacts.dumpsys_receivers import DumpsysReceiversArtifact
 from mvt.common.module_types import ModuleResults
+from mvt.schemas import MappingOutput
 
 from .base import BugReportModule
 
 
 class DumpsysReceivers(DumpsysReceiversArtifact, BugReportModule):
     """This module extracts details on receivers for risky activities."""
+
+    output_model = MappingOutput
 
     def __init__(
         self,

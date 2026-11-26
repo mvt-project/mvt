@@ -4,7 +4,7 @@
 #   https://license.mvt.re/1.1/
 
 import datetime
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 import pydantic
 import betterproto2
@@ -13,6 +13,7 @@ from dateutil import parser
 from mvt.android.parsers.proto.tombstone import Tombstone
 from mvt.common.module_types import ModuleAtomicResult, ModuleSerializedResult
 from mvt.common.utils import convert_datetime_to_iso
+from mvt.schemas import OutputModel
 
 from .artifact import AndroidArtifact
 
@@ -73,12 +74,18 @@ class TombstoneCrashResult(pydantic.BaseModel):
     extra: Optional[str] = None
 
 
+class TombstoneCrashOutput(pydantic.RootModel[List[TombstoneCrashResult]]):
+    """Complete JSON document written by tombstone crash modules."""
+
+
 class TombstoneCrashArtifact(AndroidArtifact):
     """
     Parser for Android tombstone crash files.
 
     This parser can parse both text and protobuf tombstone crash files.
     """
+
+    output_model: ClassVar[OutputModel] = TombstoneCrashOutput
 
     def serialize(self, record: ModuleAtomicResult) -> ModuleSerializedResult:
         return {
