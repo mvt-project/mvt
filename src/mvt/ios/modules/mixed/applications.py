@@ -135,16 +135,28 @@ class Applications(IOSExtraction):
 
     def _parse_info_plist(self, plist_path: str) -> None:
         """
-        Parse Info.plist file from backup
+        Parse app inventory and available iTunes metadata from backup Info.plist.
+
+        has_itunes_metadata records metadata availability, not installation method.
         """
         with open(plist_path, "rb") as f:
             data = plistlib.load(f)
 
-        for app in data.get("Applications", {}):
-            app_data = data["Applications"][app]
+        applications = data.get("Applications", {})
+        # The inventory can include apps without an Applications entry or
+        # iTunes metadata. Preserve their bundle IDs for inventory and IOC checks.
+        app_ids = dict.fromkeys(
+            [*applications, *data.get("Installed Applications", [])]
+        )
+        for app in app_ids:
+            app_data = applications.get(app, {})
             entry = {"name": app}
-            metadata = plistlib.loads(app_data["iTunesMetadata"])
-            entry.update(metadata)
+            metadata = app_data.get("iTunesMetadata")
+            if metadata is not None:
+                entry.update(plistlib.loads(metadata))
+
+            entry.setdefault("softwareVersionBundleId", app)
+            entry["has_itunes_metadata"] = metadata is not None
 
             self._parse_itunes_timestamp(entry)
 
