@@ -57,31 +57,46 @@ class Calls(IOSExtraction):
             return
         conn = self._open_sqlite_db(self.file_path)
         cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT
-                ZDATE, ZDURATION, ZLOCATION, ZADDRESS, ZSERVICE_PROVIDER
-            FROM ZCALLRECORD;
-        """
-        )
-        # names = [description[0] for description in cur.description]
-
-        for row in cur:
-            self.results.append(
-                {
-                    "isodate": convert_mactime_to_iso(row[0]),
-                    "duration": row[1],
-                    "location": row[2],
-                    "number": (
-                        row[3].decode("utf-8")
-                        if isinstance(row[3], bytes)
-                        else row[3]
-                    ),
-                    "provider": row[4],
-                }
+        try:
+            cur.execute("PRAGMA table_info(ZCALLRECORD);")
+            columns = {column[1].upper() for column in cur}
+            originated_column = "ZORIGINATED" if "ZORIGINATED" in columns else "NULL"
+            answered_column = "ZANSWERED" if "ZANSWERED" in columns else "NULL"
+            cur.execute(
+                f"""
+                SELECT
+                    ZDATE, ZDURATION, ZLOCATION, ZADDRESS, ZSERVICE_PROVIDER,
+                    {originated_column}, {answered_column}
+                FROM ZCALLRECORD;
+                """
             )
 
-        cur.close()
-        conn.close()
+            for (
+                date,
+                duration,
+                location,
+                address,
+                provider,
+                originated,
+                answered,
+            ) in cur:
+                self.results.append(
+                    {
+                        "isodate": convert_mactime_to_iso(date),
+                        "duration": duration,
+                        "location": location,
+                        "number": (
+                            address.decode("utf-8")
+                            if isinstance(address, bytes)
+                            else address
+                        ),
+                        "provider": provider,
+                        "originated": originated,
+                        "answered": answered,
+                    }
+                )
+        finally:
+            cur.close()
+            conn.close()
 
         self.log.info("Extracted a total of %d calls", len(self.results))

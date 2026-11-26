@@ -107,7 +107,7 @@ class SafariBrowserState(IOSExtraction):
                         tabs.last_viewed_time,
                         tab_sessions.session_data
                     FROM tabs
-                    JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
+                    LEFT JOIN tab_sessions ON tabs.uuid = tab_sessions.tab_uuid
                     ORDER BY tabs.last_viewed_time;
                 """
                 )
@@ -139,7 +139,9 @@ class SafariBrowserState(IOSExtraction):
                     except plistlib.InvalidFileException:
                         pass
 
-                    if "SessionHistoryEntries" in session_data.get("SessionHistory", {}):
+                    if "SessionHistoryEntries" in session_data.get(
+                        "SessionHistory", {}
+                    ):
                         for session_entry in session_data["SessionHistory"].get(
                             "SessionHistoryEntries"
                         ):
