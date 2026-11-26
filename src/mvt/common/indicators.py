@@ -120,7 +120,7 @@ class Indicators:
             self.total_ioc_count += 1
 
     def _process_indicator(self, indicator: dict, collection: dict) -> None:
-        key, value = indicator.get("pattern", "").strip("[]").split("=")
+        key, value = indicator.get("pattern", "").strip("[]").split("=", 1)
         key = key.strip()
 
         # Normalize hash algorithm keys so that both the STIX2-spec-compliant
