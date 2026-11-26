@@ -8,6 +8,7 @@ import os
 from typing import Optional
 
 from mvt.common.command import Command
+from mvt.common.config import settings
 from mvt.common.indicators import Indicators
 from mvt.common.module import MVTModule
 
@@ -56,6 +57,8 @@ class CmdIOSCheckBackup(Command):
         )
 
         self.platform = "ios"
+        if hashes or settings.HASH_FILES:
+            self.module_options["check_file_hashes"] = True
         self.name = "check-backup"
         self.modules = BACKUP_MODULES + MIXED_MODULES
 
